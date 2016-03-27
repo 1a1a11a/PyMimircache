@@ -1,12 +1,12 @@
 # cachecow
-___
+
 This is the cachecow platform used for analyzing cache trace developed by Emory University, Ymir group 
 
 Currently the platform is still under development. 
 
 The current platform supports plotting hit rate curve(**HRC**) and miss rate curve(**MRC**) of a given trace. 
 
-## Usage: 
+### Usage:
 ```python
 from cachecow.Cache.LRU import LRU
 from cachecow.CacheReader.basicCacheReader import basicCacheReader
