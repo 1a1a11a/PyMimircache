@@ -183,8 +183,8 @@ print("find packages: " + str(find_packages(exclude=(['cachecow.Bin', 'cachecow.
 
 
 setup(
-    name = "cachecow",
-    version = "0.0.1p2",
+    name="cachecowEmory",
+    version="0.0.1",
     # package_dir = {'':'src'},
     # packages = ['Cache', 'CacheReader', 'Profiler', 'Utils'],
     packages = find_packages(exclude=(['cachecow.Bin', 'cachecow.Test', 'cachecow.Data'])),

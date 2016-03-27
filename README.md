@@ -6,6 +6,11 @@ Currently the platform is still under development.
 
 The current platform supports plotting hit rate curve(**HRC**) and miss rate curve(**MRC**) of a given trace. 
 
+### Dependency
+please have glib, numpy, scipy, matplotlib installed
+
+
+
 ### Usage:
 ```python
 from cachecow.Cache.LRU import LRU
