@@ -15,9 +15,9 @@ from cachecow.CacheReader.vscsiReader import vscsiReader
 from cachecow.Profiler.getMRCBasicLRU import getMRCBasicLRU
 from cachecow.Profiler.parda import parda
 
-#first step: construct a reader for reading any kind of trace
+# first step: construct a reader for reading any kind of trace
 
-this one is the most basic one, each line is a label/tag/record
+# this one is the most basic one, each line is a label/tag/record
 reader1 = basicCacheReader("../Data/parda.trace")
 
 # this one reads csv file and choose one column as label/tag
@@ -55,9 +55,9 @@ basic_profiler.outputMRC("I can also be a file name")
 
 
 # the second profiler now it supports now is parda
-# p = parda(LRU, 30000, reader1)      # construction is same, but you don't need to specify bin_size
-# p.run(parda_mode.seq)               # let's run, it supports two mode, sequential mode and openmp mode
-# # p.run(parda_mode.openmp, threads=4)
-# p.plotHRC()                         # the rest is the same as all other profilers, plot, print, output
-# p.plotMRC()                         # in case the specified cache-size is not large enough, I also saved
-#                                     # parda histogram list in the same folder with data
+p = parda(LRU, 30000, reader1)      # construction is same, but you don't need to specify bin_size
+p.run(parda_mode.seq)               # let's run, it supports two mode, sequential mode and openmp mode
+# p.run(parda_mode.openmp, threads=4) # parallel analysis, not stable
+p.plotHRC()                         # the rest is the same as all other profilers, plot, print, output
+p.plotMRC()                         # in case the specified cache-size is not large enough, I also saved
+                                     # parda histogram list in the same folder with data
