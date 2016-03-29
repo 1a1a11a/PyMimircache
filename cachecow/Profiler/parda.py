@@ -123,5 +123,5 @@ class parda(getMRCAbstractLRU):
 if __name__ == "__main__":
     p = parda(LRU, 30000, basicCacheReader("../Data/parda.trace"))
     # p.run(parda_mode.seq, threads=4)
-    p.run_with_specified_lines(10000, 20000)
-    p.plotMRC()
+    p.run_with_specified_lines(10000, 120000)
+    p.plotHRC(autosize=True, autosize_threshhold=0.001)

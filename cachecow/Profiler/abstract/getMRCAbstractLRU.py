@@ -3,6 +3,7 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
 
+import traceback
 import abc
 import math
 from os import path
@@ -18,6 +19,7 @@ import matplotlib.pyplot as plt
 from cachecow.Cache.LRU import LRU
 from cachecow.Profiler.abstract.profilerAbstract import profilerAbstract
 
+DEBUG = True
 
 
 class getMRCAbstractLRU(profilerAbstract):
@@ -76,13 +78,27 @@ class getMRCAbstractLRU(profilerAbstract):
             self.calculate()
         return self.HRC
 
-    def plotMRC(self):
+    def plotMRC(self, autosize=False, autosize_threshhold=0.01):
         if not self.calculated:
             self.calculate()
         try:
             figure_MRC = plt.figure(1)
             # p_MRC = figure_MRC.add_subplot(1,1,1)
-            plt.plot(range(0, self.bin_size * self.num_of_blocks, self.bin_size), self.MRC)
+
+            # change the x-axis range according to threshhold
+            if autosize:
+                for i in range(len(self.MRC) - 1, 2, -1):
+                    if (self.MRC[i - 1] - self.MRC[i]) / self.MRC[i] > autosize_threshhold:
+                        break
+                num_of_blocks = i
+
+            else:
+                num_of_blocks = self.num_of_blocks
+            if DEBUG:
+                print(num_of_blocks)
+                print(self.bin_size * num_of_blocks)
+
+            plt.plot(range(0, self.bin_size * num_of_blocks, self.bin_size), self.MRC[:num_of_blocks])
             plt.xlabel("Cache Size")
             plt.ylabel("Miss Rate/%")
             plt.title('Miss Rate Curve', fontsize=18, color='black')
@@ -91,14 +107,28 @@ class getMRCAbstractLRU(profilerAbstract):
         except Exception as e:
             print("the plotting function is not wrong, is this a headless server?")
             print(e)
-            
+            traceback.print_exc()
 
-    def plotHRC(self):
+    def plotHRC(self, autosize=False, autosize_threshhold=0.001):
         if not self.calculated:
             self.calculate()
         try:
             figure_HRC = plt.figure(2)
-            line = plt.plot(range(0, self.bin_size * self.num_of_blocks, self.bin_size), self.HRC)
+
+            # change the x-axis range according to threshhold
+            if autosize:
+                for i in range(len(self.HRC) - 1, 2, -1):
+                    if (self.HRC[i] - self.HRC[i - 1]) / self.HRC[i] > autosize_threshhold:
+                        break
+                num_of_blocks = i
+
+            else:
+                num_of_blocks = self.num_of_blocks
+            if DEBUG:
+                print(num_of_blocks)
+                print(self.bin_size * num_of_blocks)
+
+            line = plt.plot(range(0, self.bin_size * num_of_blocks, self.bin_size), self.HRC[:num_of_blocks])
             plt.xlabel("Cache Size")
             plt.ylabel("Hit Rate/%")
             plt.title('Hit Rate Curve', fontsize=18, color='black')
