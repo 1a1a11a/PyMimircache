@@ -263,6 +263,10 @@ void parda_input_with_binaryfilepointer(FILE* fp, program_data_t* pdt, long begi
 void parda_input_with_textfilepointer(FILE* fp, program_data_t* pdt, long begin, long end) {
   HKEY input;
   long i;
+  if (begin!=0)
+    for (i=0;i<begin;i++)
+      fscanf(fp, "%s", input);    
+
   for(i = begin; i <= end; i++) {
     fscanf(fp, "%s", input);    
     // fgets(input, SLEN, fp);
@@ -382,6 +386,30 @@ void set_return_result(const unsigned* histogram, long cache_size, float* return
 //   // printf("after free %p, first element: %lf\n", return_array, return_array[0]);
 //   // printf("after free %p, first element: %d\n", a, a[0]);
 // }
+
+
+void classical_with_line_specification(char* inputFileName, 
+  long lines, long cache_size, long begin_line, long end_line, float* return_array) {
+
+  program_data_t pdt_c = parda_init();
+  parda_input_with_filename(inputFileName, &pdt_c, begin_line, end_line-1);
+  program_data_t* pdt = &pdt_c;
+  pdt->histogram[B_INF] += narray_get_len(pdt->ga);
+  set_return_result(pdt->histogram, cache_size, return_array, inputFileName);
+  return; 
+    // return parda_return_python(pdt->histogram);
+    // parda_print_histogram(pdt->histogram);
+  printf("seq\n");
+}
+
+
+
+
+
+
+
+
+
 
 
 

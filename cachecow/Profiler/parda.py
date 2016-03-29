@@ -58,15 +58,12 @@ class parda(getMRCAbstractLRU):
 
     def run(self, mode, *args, **kargs):
         c_line_num = c_long(self.num_of_lines)
-        try:
-            # python 2
-            c_file_name = c_char_p(self.reader.file_loc)
-        except:
-            # python 3
-            c_file_name = c_char_p(self.reader.file_loc.encode())
+        c_file_name = c_char_p(self.reader.file_loc.encode())
 
         if mode == parda_mode.seq:
             self.mode = mode
+            c_begin = c_long(40000)
+            c_end = c_long(self.num_of_lines - 40000)
             self.parda_seq.classical_tree_based_stackdist(c_file_name, c_line_num, self.c_cache_size,
                                                           self.c_float_array)
 
@@ -87,7 +84,19 @@ class parda(getMRCAbstractLRU):
         else:
             print("does not support given run mode")
 
+        self.run_aux()
 
+    def run_with_specified_lines(self, begin_line, end_line):
+        c_line_num = c_long(self.num_of_lines)
+        c_file_name = c_char_p(self.reader.file_loc.encode())
+
+        c_begin = c_long(begin_line)
+        c_end = c_long(end_line)
+        self.parda_seq.classical_with_line_specification(c_file_name, c_line_num, self.c_cache_size,
+                                                         c_begin, c_end, self.c_float_array)
+        self.run_aux()
+
+    def run_aux(self):
         self.calculated = True
 
         for i in range(self.cache_size):
@@ -113,5 +122,6 @@ class parda(getMRCAbstractLRU):
 
 if __name__ == "__main__":
     p = parda(LRU, 30000, basicCacheReader("../Data/parda.trace"))
-    p.run(parda_mode.seq, threads=4)
+    # p.run(parda_mode.seq, threads=4)
+    p.run_with_specified_lines(10000, 20000)
     p.plotMRC()
