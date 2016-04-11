@@ -5,9 +5,12 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from ctypes import *
 from enum import Enum
 
-from cachecow.Cache.LRU import LRU
-from cachecow.CacheReader.basicCacheReader import basicCacheReader
-from cachecow.Profiler.abstract.getMRCAbstractLRU import getMRCAbstractLRU
+from mimirCache.Cache.LRU import LRU
+from mimirCache.CacheReader.plainReader import basicCacheReader
+from mimirCache.CacheReader.csvReader import csvCacheReader
+from mimirCache.Profiler.abstract.getMRCAbstractLRU import getMRCAbstractLRU
+
+
 
 
 class parda_mode(Enum):
@@ -23,9 +26,8 @@ class parda(getMRCAbstractLRU):
         super().__init__(cache_class, cache_size, bin_size, reader)
 
         # load the shared object file
-        self.parda_seq = CDLL(os.path.join(os.path.dirname(__file__), self.get_lib_name()))
+        self.parda_seq = CDLL(os.path.join(os.path.dirname(os.path.abspath(__file__)), self.get_lib_name()))
 
-        self.c_float_array = (c_float * (self.cache_size + 1))()
         self.c_cache_size = c_long(self.cache_size)
 
 
@@ -35,6 +37,7 @@ class parda(getMRCAbstractLRU):
 
         self.num_of_lines = self.reader.get_num_total_lines()
         print("lines: %d" % self.num_of_lines)
+        self.calculated = True
 
 
     def get_lib_name(self):
@@ -57,13 +60,13 @@ class parda(getMRCAbstractLRU):
         pass
 
     def run(self, mode, *args, **kargs):
+        self.c_float_array = (c_float * (self.cache_size + 1))()
+
         c_line_num = c_long(self.num_of_lines)
         c_file_name = c_char_p(self.reader.file_loc.encode())
 
         if mode == parda_mode.seq:
             self.mode = mode
-            c_begin = c_long(40000)
-            c_end = c_long(self.num_of_lines - 40000)
             self.parda_seq.classical_tree_based_stackdist(c_file_name, c_line_num, self.c_cache_size,
                                                           self.c_float_array)
 
@@ -115,13 +118,54 @@ class parda(getMRCAbstractLRU):
         for i in range(len(self.MRC)):
             pass
 
-    def __del__(self):
-        if os.path.exists('temp.dat'):
-            os.remove('temp.dat')
+    def get_reuse_distance(self):
+        c_line_num = c_long(self.num_of_lines)
+        c_file_name = c_char_p(self.reader.file_loc.encode())
+        self.c_long_array = (c_long * (self.num_of_lines + 1))()
+
+        c_begin = c_long(40000)
+        c_end = c_long(self.num_of_lines - 40000)
+        self.parda_seq.get_reuse_distance(c_file_name, c_line_num, self.c_cache_size, self.c_long_array)
+        # for i in self.c_long_array:
+        #     print(i+1)
+
+        return self.c_long_array
+
+    def _test(self):
+        c_line_num = c_long(self.num_of_lines)
+        c_file_name = c_char_p(self.reader.file_loc.encode())
+        self.c_long_array = (c_long * (self.num_of_lines + 1))()
+
+        # self.parda_seq.main(c_line_num, c_file_name)
+        self.parda_seq.get_reuse_distance_smart(c_file_name, c_line_num, self.c_cache_size, self.c_long_array)
+        count = 0
+        for i in self.c_long_array:
+            # print(i)
+            if i > -1 and i < 2000:
+                count += 1
+        print(count)
+        self.parda_seq.get_reuse_distance(c_file_name, c_line_num, self.c_cache_size, self.c_long_array)
+        count = 0
+        for i in self.c_long_array:
+            if i > -1 and i < 2000:
+                count += 1
+        print(count)
+
+
+
+
+        # def __del__(self):
+        #     if os.path.exists('temp.dat'):
+        #         os.remove('temp.dat')
 
 
 if __name__ == "__main__":
     p = parda(LRU, 30000, basicCacheReader("../Data/parda.trace"))
-    # p.run(parda_mode.seq, threads=4)
-    p.run_with_specified_lines(10000, 120000)
-    p.plotHRC(autosize=True, autosize_threshhold=0.001)
+    # p = parda(LRU, 30000, csvCacheReader("../Data/trace_CloudPhysics_txt", 4))
+    # p = parda(LRU, 30000, vscsiReader("../Data/cloudPhysics/w02_vscsi1.vscsitrace"))
+    # p = parda(LRU, 3000000, basicCacheReader("temp.dat"))
+    p.run(parda_mode.seq, threads=4)
+    # p.get_reuse_distance()
+    # p._test()
+    # p.run_with_specified_lines(10000, 20000)
+    p.plotHRC(autosize=True, autosize_threshhold=0.00001)

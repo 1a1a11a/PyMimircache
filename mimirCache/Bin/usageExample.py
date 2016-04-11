@@ -1,10 +1,10 @@
-from cachecow.Cache.LRU import LRU
-from cachecow.CacheReader.basicCacheReader import basicCacheReader
-from cachecow.CacheReader.csvCacheReader import csvCacheReader
-from cachecow.CacheReader.vscsiReader import vscsiReader
-from cachecow.Profiler.getMRCBasicLRU import getMRCBasicLRU
-from cachecow.Profiler.parda import parda
-from cachecow.Profiler.parda import parda_mode
+from mimirCache.Cache.LRU import LRU
+from mimirCache.CacheReader.plainReader import basicCacheReader
+from mimirCache.CacheReader.csvReader import csvCacheReader
+from mimirCache.CacheReader.vscsiReader import vscsiReader
+from mimirCache.Profiler.basicLRUProfiler import getMRCBasicLRU
+from mimirCache.Profiler.pardaProfiler import parda
+from mimirCache.Profiler.pardaProfiler import parda_mode
 
 
 # first step: construct a reader for reading any kind of trace

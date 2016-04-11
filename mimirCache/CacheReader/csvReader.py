@@ -1,4 +1,4 @@
-from cachecow.CacheReader.readerAbstract import cacheReaderAbstract
+from mimirCache.CacheReader.readerAbstract import cacheReaderAbstract
 
 
 class csvCacheReader(cacheReaderAbstract):

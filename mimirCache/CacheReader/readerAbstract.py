@@ -8,7 +8,7 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
     @abc.abstractclassmethod
     def __init__(self, file_loc):
         self.file_loc = file_loc
-        assert (os.path.exists(file_loc))
+        assert (os.path.exists(file_loc)), "file do not exist"
         self.trace_file = open(file_loc, 'r')
         self.counter = 0
 
@@ -45,7 +45,7 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
     @abc.abstractclassmethod
     def __next__(self):  # Python 3
         self.counter += 1
-        if (self.counter % 1000 == 0):
+        if (self.counter % 100000 == 0):
             print('read in ' + str(self.counter) + ' records')
             # raise NotImplementedError
 

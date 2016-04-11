@@ -11,15 +11,16 @@ from os import path
 
 # deal with headless situation
 # if Constants.headless:
-#     import matplotlib
-    # matplotlib.use('Agg')
+import matplotlib
+
+matplotlib.use('pdf')
 
 import matplotlib.pyplot as plt
 
-from cachecow.Cache.LRU import LRU
-from cachecow.Profiler.abstract.profilerAbstract import profilerAbstract
+from mimirCache.Cache.LRU import LRU
+from mimirCache.Profiler.abstract.profilerAbstract import profilerAbstract
 
-DEBUG = True
+DEBUG = False
 
 
 class getMRCAbstractLRU(profilerAbstract):
@@ -36,6 +37,7 @@ class getMRCAbstractLRU(profilerAbstract):
             self.HRC_bin = [0] * self.num_of_blocks
         assert self.cache_class == LRU
         self.cache = self.cache_class(self.cache_size)
+        self.calculated = False
 
 
     @abc.abstractclassmethod
@@ -95,16 +97,17 @@ class getMRCAbstractLRU(profilerAbstract):
             else:
                 num_of_blocks = self.num_of_blocks
             if DEBUG:
-                print(num_of_blocks)
-                print(self.bin_size * num_of_blocks)
+                print("number of blocks: {}".format(num_of_blocks))
+                print("total size: {}".format(self.bin_size * num_of_blocks))
 
             plt.plot(range(0, self.bin_size * num_of_blocks, self.bin_size), self.MRC[:num_of_blocks])
             plt.xlabel("Cache Size")
             plt.ylabel("Miss Rate/%")
             plt.title('Miss Rate Curve', fontsize=18, color='black')
             plt.show()
-            plt.savefig("figure_temp_MRC.png")
+            plt.savefig("figure_temp_MRC.pdf")
         except Exception as e:
+            plt.savefig("figure_temp_MRC.pdf")
             print("the plotting function is not wrong, is this a headless server?")
             print(e)
             traceback.print_exc()
@@ -125,16 +128,17 @@ class getMRCAbstractLRU(profilerAbstract):
             else:
                 num_of_blocks = self.num_of_blocks
             if DEBUG:
-                print(num_of_blocks)
-                print(self.bin_size * num_of_blocks)
+                print("number of blocks: {}".format(num_of_blocks))
+                print("total size: {}".format(self.bin_size * num_of_blocks))
 
             line = plt.plot(range(0, self.bin_size * num_of_blocks, self.bin_size), self.HRC[:num_of_blocks])
             plt.xlabel("Cache Size")
             plt.ylabel("Hit Rate/%")
             plt.title('Hit Rate Curve', fontsize=18, color='black')
             plt.show()
-            plt.savefig("figure_temp_HRC")
+            plt.savefig("figure_temp_HRC.pdf")
         except Exception as e:
+            plt.savefig("figure_temp_HRC.pdf")
             print("the plotting function is not wrong, is this a headless server?")
             print(e)
 

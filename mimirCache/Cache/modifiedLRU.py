@@ -3,7 +3,7 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 import math
 
-from cachecow.Utils.LinkedList import LinkedList
+from mimirCache.Utils.LinkedList import LinkedList
 
 
 class modifiedLRU():

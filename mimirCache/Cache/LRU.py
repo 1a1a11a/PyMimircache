@@ -1,8 +1,8 @@
 import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-from cachecow.Cache.cache import cache
-from cachecow.Utils.LinkedList import LinkedList
+from mimirCache.Cache.cache import cache
+from mimirCache.Utils.LinkedList import LinkedList
 
 
 class LRU(cache):

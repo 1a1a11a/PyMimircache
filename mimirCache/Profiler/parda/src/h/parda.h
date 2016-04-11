@@ -48,14 +48,14 @@ traces.
 #endif
 
 //#define DEFAULT_NBUCKETS 100000
-#define DEFAULT_NBUCKETS 10000000
+#define DEFAULT_NBUCKETS 1000000000
 #define B_OVFL   nbuckets
 #define B_INF    nbuckets+1
 #define SLEN 200
 
 
 /* Tunable parameters */
-extern long nbuckets;
+extern unsigned long long nbuckets;
 #ifdef ENABLE_PROFILING
 extern char pfile[128];
 extern FILE* pid_fp;
@@ -118,6 +118,14 @@ void show_T(void* data, int i, FILE* fp);
 double rtclock(void);
 void set_return_result(const unsigned* histogram, long cache_size, float* return_array, char* inputFileName);
 double* parda_return_python(const unsigned* histogram); 
+
+void get_reuse_distance(char* inputFileName, long lines, long cache_size, long* return_array);
+void parda_input_with_textfilepointer_get_reuse_distance(FILE* fp, program_data_t* pdt, long begin, long end, long* return_array);
+void parda_input_with_filename_get_reuse_distance(char* inFileName, program_data_t* pdt, long begin, long end, long* return_array);
+
+
+
+
 
 /*parda inline functions*/
 static inline T parda_low(int pid, int psize, T sum) {
@@ -187,4 +195,59 @@ static inline void process_one_access(char* input, program_data_t* pdt, const lo
 						pdt->histogram[distance] += 1;
 		}
 }
+
+
+
+
+static inline long process_one_access_get_reuse_distance(char* input, program_data_t* pdt, const long tim) {
+		long distance;
+		int *lookup;
+		lookup = g_hash_table_lookup(pdt->gh, input);
+    //printf("gh=%p process_one\n",pdt->gh);
+		// Cold start: Not in the list yet
+		if (lookup == NULL) {
+				distance = -1;
+				char *data = strdup(input);
+				pdt->root=insert(tim,pdt->root);
+				long *p_data;
+        narray_append_val(pdt->ga,input);
+				if ( !(p_data = (long*)malloc(sizeof(long))) )
+				{
+						printf("no memory for p_data\n");assert(0);exit(-1);
+				}
+				*p_data = tim;
+				g_hash_table_insert(pdt->gh, data, p_data);  // Store pointer to list element
+		}
+		// Hit: We've seen this data before
+		else {
+				char *data = strdup(input);
+				pdt->root = insert((*lookup), pdt->root);
+				distance = node_size(pdt->root->right);
+				pdt->root = delete(*lookup, pdt->root);
+				pdt->root = insert(tim, pdt->root);
+				int *p_data;
+				if ( !(p_data = (int*)malloc(sizeof(int)))) {
+						printf("no memory for p_data\n");
+            assert(0); exit(-1);
+				}
+				*p_data = tim;
+				g_hash_table_replace(pdt->gh, data, p_data);
+				// Is distance greater than the largest bucket
+				if (distance > nbuckets)
+						pdt->histogram[B_OVFL] += 1;
+				else
+						pdt->histogram[distance] += 1;
+		}
+		return distance;
+}
+
+GArray* line_to_str_array(char* line, char* delim); 
+void parda_input_with_textfilepointer_get_reuse_distance_smart(FILE* fp, program_data_t* pdt, long begin, long end, long* return_array); 
+void iterator3(gpointer key, gpointer value, gpointer user_data); 
+void iterator2(gpointer key, gpointer value, gpointer user_data); 
+void get_reuse_distance_smart(char* inputFileName, long lines, long cache_size, long* return_array); 
+void parda_input_with_filename_get_reuse_distance_smart(char* inFileName, program_data_t* pdt, long begin, long end, long* return_array); 
+void process_one_access_frequent_item(gpointer data, gpointer user_data); 
+
+
 #endif

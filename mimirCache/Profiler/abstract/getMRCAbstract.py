@@ -16,8 +16,10 @@ from os import path
 #     matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-from cachecow.Cache.LRU import LRU
-from cachecow.Profiler.abstract.profilerAbstract import profilerAbstract
+from mimirCache.Cache.LRU import LRU
+from mimirCache.Profiler.abstract.profilerAbstract import profilerAbstract
+
+debug = False
 
 
 class getMRCAbstract(profilerAbstract):

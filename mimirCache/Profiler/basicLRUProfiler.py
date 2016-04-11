@@ -3,7 +3,7 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 import math
 
-from cachecow.Profiler.abstract.getMRCAbstractLRU import getMRCAbstractLRU
+from mimirCache.Profiler.abstract.getMRCAbstractLRU import getMRCAbstractLRU
 
 class getMRCBasicLRU(getMRCAbstractLRU):
     def __init__(self, cache_class, cache_size, bin_size, reader):

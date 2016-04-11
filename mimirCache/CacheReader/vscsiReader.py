@@ -1,13 +1,13 @@
 import os
 from ctypes import *
 
-from cachecow.CacheReader.readerAbstract import cacheReaderAbstract
+from mimirCache.CacheReader.readerAbstract import cacheReaderAbstract
 
 
 class vscsiReader(cacheReaderAbstract):
     def __init__(self, file_loc):
         super().__init__(file_loc)
-        self.vscsiC = CDLL(os.path.join(os.path.dirname(__file__), self.get_lib_name()))
+        self.vscsiC = CDLL(os.path.join(os.path.dirname(os.path.abspath(__file__)), self.get_lib_name()))
         self.vscsiC.argTypes = [c_char_p, c_void_p, POINTER(c_int), POINTER(c_int), POINTER(c_int)]
         self.mem = c_void_p()
         self.ver = c_int(-1)
@@ -28,7 +28,7 @@ class vscsiReader(cacheReaderAbstract):
     def get_lib_name(self):
         for name in os.listdir(os.path.dirname(os.path.abspath(__file__))):
             if 'libvscsi' in name and '.py' not in name:
-                return name 
+                return name
 
 
 

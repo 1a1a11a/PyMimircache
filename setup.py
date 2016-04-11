@@ -110,23 +110,23 @@ extra_link_args.append(openmp_flag)
 
 # ------------------ OpenMP hack for build_clib --------------------
 
-if openmp_flag != '':
-    try:
-        cflags = distutils.sysconfig.get_config_var('CFLAGS')
-        distutils.sysconfig._config_vars['CFLAGS'] = cflags + " " + openmp_flag
-
-        # ldflags = distutils.sysconfig.get_config_var('LDFLAGS')
-        # distutils.sysconfig._config_vars['LDFLAGS'] = ldflags + " " + openmp_flag
-
-        # pycflags = distutils.sysconfig.get_config_var('PY_CFLAGS')
-        # distutils.sysconfig._config_vars['PY_CFLAGS'] = pycflags + " " + openmp_flag
-
-        # config_CC = distutils.sysconfig.get_config_var('CC')
-        # distutils.sysconfig._config_vars['CC'] = config_CC + " " + openmp_flag
-
-    except Exception as e:
-        print(e)
-        cflags += openmp_flag
+# if openmp_flag != '':
+#     try:
+#         cflags = distutils.sysconfig.get_config_var('CFLAGS')
+#         distutils.sysconfig._config_vars['CFLAGS'] = cflags + " " + openmp_flag
+#
+#         # ldflags = distutils.sysconfig.get_config_var('LDFLAGS')
+#         # distutils.sysconfig._config_vars['LDFLAGS'] = ldflags + " " + openmp_flag
+#
+#         # pycflags = distutils.sysconfig.get_config_var('PY_CFLAGS')
+#         # distutils.sysconfig._config_vars['PY_CFLAGS'] = pycflags + " " + openmp_flag
+#
+#         # config_CC = distutils.sysconfig.get_config_var('CC')
+#         # distutils.sysconfig._config_vars['CC'] = config_CC + " " + openmp_flag
+#
+#     except Exception as e:
+#         print(e)
+#         cflags += openmp_flag
 
 
 print('all compile flags: ' + str(extra_compile_args))
@@ -135,9 +135,9 @@ print('all link flasgs: ' + str(extra_link_args))
 
 # --------------------- parda module ---------------------------
 extensions.append(Extension(
-    "cachecow.Profiler.libparda",
-    glob("cachecow/Profiler/parda/src/*.c"),
-    include_dirs = ["cachecow/Profiler/parda/src/h/"],
+    "mimirCache.Profiler.libparda",
+    glob("mimirCache/Profiler/parda/src/*.c"),
+    include_dirs=["mimirCache/Profiler/parda/src/h/"],
     extra_compile_args = extra_compile_args,
     extra_link_args = extra_link_args,
     language = "c"
@@ -145,9 +145,9 @@ extensions.append(Extension(
 
 # --------------------- vscsi module ---------------------------
 extensions.append(Extension(
-    "cachecow.CacheReader.libvscsi",
-    glob("cachecow/CacheReader/vscsi/src/*.c"),
-    include_dirs = ["cachecow/CacheReader/vscsi/src/"],
+    "mimirCache.CacheReader.libvscsi",
+    glob("mimirCache/CacheReader/vscsi/src/*.c"),
+    include_dirs=["mimirCache/CacheReader/vscsi/src/"],
     language = "c"
     ))
 
@@ -179,7 +179,7 @@ extensions.append(Extension(
 
 
 
-print("find packages: " + str(find_packages(exclude=(['cachecow.Bin', 'cachecow.Test', 'cachecow.Data']))))
+print("find packages: " + str(find_packages(exclude=(['mimirCache.Bin', 'mimirCache.Test', 'mimirCache.Data']))))
 
 
 setup(
@@ -187,7 +187,7 @@ setup(
     version="0.0.1-r1",
     # package_dir = {'':'src'},
     # packages = ['Cache', 'CacheReader', 'Profiler', 'Utils'],
-    packages = find_packages(exclude=(['cachecow.Bin', 'cachecow.Test', 'cachecow.Data'])),
+    packages=find_packages(exclude=(['mimirCache.Bin', 'mimirCache.Test', 'mimirCache.Data'])),
     # modules = 
     package_data = {'':['Data/*.trace']}, 
 
@@ -195,7 +195,7 @@ setup(
     author_email = "peter.waynechina@gmail.com",
     description = "cacheCow platform for analyzing cache traces, developed by Ymir group @ Emory University",
     license = "GPLv3",
-    keywords = "cachecow cache Ymir",
+    keywords="mimirCache cache Ymir",
     # install_requires = ['scipy', 'numpy', 'matplotlib'], 
 
 
