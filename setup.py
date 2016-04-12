@@ -179,12 +179,13 @@ extensions.append(Extension(
 
 
 
-print("find packages: " + str(find_packages(exclude=(['mimirCache.Bin', 'mimirCache.Test', 'mimirCache.Data']))))
+print("find packages: " + str(
+    find_packages(exclude=(['mimirCache.Bin', 'mimirCache.Test', 'mimirCache.Data', 'mimirCache.1a1a11a']))))
 
 
 setup(
     name="mimirCache",
-    version="0.0.1",
+    version="0.0.2.7",
     # package_dir = {'':'src'},
     # packages = ['Cache', 'CacheReader', 'Profiler', 'Utils'],
     packages=find_packages(exclude=(['mimirCache.Bin', 'mimirCache.Test', 'mimirCache.Data'])),

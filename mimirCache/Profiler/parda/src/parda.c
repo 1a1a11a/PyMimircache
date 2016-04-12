@@ -531,7 +531,7 @@ void parda_input_with_textfilepointer_get_reuse_distance_smart(FILE* fp, program
             GList *gl = g_hash_table_get_keys(ght); 
             GList *gl_node = gl; 
             process_one_access_get_reuse_distance(gl_node->data, pdt, i);
-            while (gl_node = g_list_next(gl_node))
+            while ((gl_node = g_list_next(gl_node))!=NULL)
                 process_one_access_get_reuse_distance(gl_node->data, pdt, i);
         }
     }
