@@ -17,6 +17,33 @@ long get_label_trace_v2(void* data){
    return record->lbn; 
 }
 
+int set_return_value_v1(void** mem, int size, long ts[], int len[], long lbn[], int cmd[], int delta){
+   int i;
+   for (i=0; i<size; i++){
+       trace_v1_record_t *record = (trace_v1_record_t *)(*mem);
+       ts[i] = record->ts;
+       len[i] = record->len;
+       cmd[i] = record->cmd;
+       lbn[i] = record->lbn;
+       *mem += delta; 
+   }
+   return i;
+}
+
+
+int set_return_value_v2(void** mem, int size, long ts[], int len[], long lbn[], int cmd[], int delta){
+   int i;
+   for (i=0; i<10000; i++){
+       trace_v2_record_t *record = (trace_v2_record_t *)(*mem);
+       ts[i] = record->ts;
+       len[i] = record->len;
+       cmd[i] = record->cmd;
+       lbn[i] = record->lbn;
+       *mem += delta; 
+   }
+   return i;
+}
+
 
 
 

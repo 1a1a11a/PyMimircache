@@ -3,9 +3,10 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 import math
 
-from mimirCache.Profiler.abstract.getMRCAbstractLRU import getMRCAbstractLRU
+from mimirCache.Profiler.abstract.abstractLRUProfiler import abstractLRUProfiler
 
-class getMRCBasicLRU(getMRCAbstractLRU):
+
+class basicLRUProfiler(abstractLRUProfiler):
     def __init__(self, cache_class, cache_size, bin_size, reader):
         super().__init__(cache_class, cache_size, bin_size, reader)
 

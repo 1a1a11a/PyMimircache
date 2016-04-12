@@ -17,12 +17,12 @@ from os import path
 import matplotlib.pyplot as plt
 
 from mimirCache.Cache.LRU import LRU
-from mimirCache.Profiler.abstract.profilerAbstract import profilerAbstract
+from mimirCache.Profiler.abstract.abstractProfiler import profilerAbstract
 
 debug = False
 
 
-class getMRCAbstract(profilerAbstract):
+class abstractOtherProfiler(profilerAbstract):
 
     __metaclass__ = abc.ABCMeta
 

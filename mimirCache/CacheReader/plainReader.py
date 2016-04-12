@@ -1,9 +1,9 @@
-from mimirCache.CacheReader.readerAbstract import cacheReaderAbstract
+from mimirCache.CacheReader.abstractReader import cacheReaderAbstract
 
 
-class basicCacheReader(cacheReaderAbstract):
+class plainCacheReader(cacheReaderAbstract):
     def __init__(self, file_loc):
-        super(basicCacheReader, self).__init__(file_loc)
+        super(plainCacheReader, self).__init__(file_loc)
 
     def read_one_element(self):
         super().read_one_element()
@@ -21,9 +21,12 @@ class basicCacheReader(cacheReaderAbstract):
         else:
             raise StopIteration
 
+    def __repr__(self):
+        return "basic cache reader, cache trace separated by line, %s" % super.__repr__()
+
 
 if __name__ == "__main__":
-    reader = basicCacheReader('../Data/trace_CloudPhysics')
+    reader = plainCacheReader('../Data/trace_CloudPhysics')
 
     # usage one: for reading all elements
     for i in reader:

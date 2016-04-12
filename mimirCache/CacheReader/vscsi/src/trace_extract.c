@@ -88,26 +88,49 @@ int setup(char *argv, void** mem, int* ver, int* delta, int* num_of_rec)
 	return 0;
 }
 
-long read_trace(void** mem, int* ver, int* delta){
-	long (*fptr)(void *) = NULL;
+// long read_trace(void** mem, int* ver, int* delta){
+// 	// long (*fptr)(void *) = NULL;
+// 	void* ptr; 
+// 	switch (*ver)
+// 	{
+// 		case VSCSI1:
+// 			ptr = (trace_v1_record_t*);
+// 			break;
+
+// 		case VSCSI2:	
+// 			ptr = (trace_v2_record_t*);
+// 			break;
+// 	}
+// 	// printf("mem: %p\n", *mem);
+
+// 	long lbn = fptr(*mem);
+// 	*mem += *delta;
+// 	DEBUG(printf("mem: %p\n", *mem);)
+
+// 	return lbn;
+// }
+
+int read_trace2(void** mem, int* ver, int size, long ts[], int len[], long lbn[], int cmd[]){
+	int (*fptr)(void**, int, long*, int*, long*, int*, int) = NULL;
+	int delta;
 	switch (*ver)
 	{
 		case VSCSI1:
-			fptr = get_label_trace_v1;
+			fptr = set_return_value_v1;
+			delta = sizeof(trace_v1_record_t);
 			break;
 
 		case VSCSI2:	
-			fptr = get_label_trace_v2;
+			fptr = set_return_value_v2;
+			delta = sizeof(trace_v2_record_t);
 			break;
 	}
 	// printf("mem: %p\n", *mem);
 
-	long lbn = fptr(*mem);
-	*mem += *delta;
-	DEBUG(printf("mem: %p\n", *mem);)
-
-	return lbn;
+	// long lbn = fptr(*mem);
+	return fptr(mem, size, ts, len, lbn, cmd, delta);
 }
+
 
 
 int finish(void* mem, int size){
@@ -118,16 +141,16 @@ int finish(void* mem, int size){
 
 
 
-int main(int argc, char** argv){
-	void ** mem = NULL; 
-	int ver; 
-	int delta; 
-	int num_of_rec; 
-	setup(argv[1], mem, &ver, &delta, &num_of_rec);
-	int i;
-	void* mem_original = *mem;
-	for (i=0;i<10;i++)
-		printf("%ld\n", read_trace(mem, &ver, &delta));
-	finish(mem_original, (delta)*(num_of_rec));
-	return 0;
-}
+// int main(int argc, char** argv){
+// 	void ** mem = NULL; 
+// 	int ver; 
+// 	int delta; 
+// 	int num_of_rec; 
+// 	setup(argv[1], mem, &ver, &delta, &num_of_rec);
+// 	int i;
+// 	void* mem_original = *mem;
+// 	for (i=0;i<10;i++)
+// 		printf("%ld\n", read_trace(mem, &ver, &delta));
+// 	finish(mem_original, (delta)*(num_of_rec));
+// 	return 0;
+// }

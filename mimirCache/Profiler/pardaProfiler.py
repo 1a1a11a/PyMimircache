@@ -6,9 +6,14 @@ from ctypes import *
 from enum import Enum
 
 from mimirCache.Cache.LRU import LRU
-from mimirCache.CacheReader.plainReader import basicCacheReader
+from mimirCache.CacheReader.plainReader import plainCacheReader
 from mimirCache.CacheReader.csvReader import csvCacheReader
-from mimirCache.Profiler.abstract.getMRCAbstractLRU import getMRCAbstractLRU
+from mimirCache.Profiler.abstract.abstractLRUProfiler import abstractLRUProfiler
+
+
+# TODO: to optimize use numpy for ctype return value
+# from numpy.ctypeslib import ndpointer
+
 
 
 
@@ -20,8 +25,7 @@ class parda_mode(Enum):
     hybrid = 4
 
 
-
-class parda(getMRCAbstractLRU):
+class pardaProfiler(abstractLRUProfiler):
     def __init__(self, cache_class, cache_size, reader, bin_size=1):
         super().__init__(cache_class, cache_size, bin_size, reader)
 
@@ -32,7 +36,7 @@ class parda(getMRCAbstractLRU):
 
 
         # if the given file is not basic reader, needs conversion
-        if not isinstance(reader, basicCacheReader):
+        if not isinstance(reader, plainCacheReader):
             self.prepare_file()
 
         self.num_of_lines = self.reader.get_num_total_lines()
@@ -51,7 +55,7 @@ class parda(getMRCAbstractLRU):
         with open('temp.dat', 'w') as ofile:
             for i in self.reader:
                 ofile.write(str(i) + '\n')
-        self.reader = basicCacheReader('temp.dat')
+        self.reader = plainCacheReader('temp.dat')
 
 
 
@@ -59,7 +63,7 @@ class parda(getMRCAbstractLRU):
         # do not need this function in this profiler
         pass
 
-    def run(self, mode, *args, **kargs):
+    def run(self, mode=parda_mode.seq, *args, **kargs):
         self.c_float_array = (c_float * (self.cache_size + 1))()
 
         c_line_num = c_long(self.num_of_lines)
@@ -160,7 +164,7 @@ class parda(getMRCAbstractLRU):
 
 
 if __name__ == "__main__":
-    p = parda(LRU, 30000, basicCacheReader("../Data/parda.trace"))
+    p = pardaProfiler(LRU, 30000, plainCacheReader("../Data/parda.trace"))
     # p = parda(LRU, 30000, csvCacheReader("../Data/trace_CloudPhysics_txt", 4))
     # p = parda(LRU, 30000, vscsiReader("../Data/cloudPhysics/w02_vscsi1.vscsitrace"))
     # p = parda(LRU, 3000000, basicCacheReader("temp.dat"))

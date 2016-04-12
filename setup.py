@@ -183,8 +183,8 @@ print("find packages: " + str(find_packages(exclude=(['mimirCache.Bin', 'mimirCa
 
 
 setup(
-    name="cachecowEmory",
-    version="0.0.1-r1",
+    name="mimirCache",
+    version="0.0.1",
     # package_dir = {'':'src'},
     # packages = ['Cache', 'CacheReader', 'Profiler', 'Utils'],
     packages=find_packages(exclude=(['mimirCache.Bin', 'mimirCache.Test', 'mimirCache.Data'])),
@@ -193,7 +193,7 @@ setup(
 
     author = "Juncheng Yang", 
     author_email = "peter.waynechina@gmail.com",
-    description = "cacheCow platform for analyzing cache traces, developed by Ymir group @ Emory University",
+    description="mimirCache platform for analyzing cache traces, developed by Ymir group @ Emory University",
     license = "GPLv3",
     keywords="mimirCache cache Ymir",
     # install_requires = ['scipy', 'numpy', 'matplotlib'], 

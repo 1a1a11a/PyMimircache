@@ -1,22 +1,22 @@
 from mimirCache.Cache.LRU import LRU
-from mimirCache.CacheReader.plainReader import basicCacheReader
+from mimirCache.CacheReader.plainReader import plainCacheReader
 from mimirCache.CacheReader.csvReader import csvCacheReader
-from mimirCache.CacheReader.vscsiReader import vscsiReader
-from mimirCache.Profiler.basicLRUProfiler import getMRCBasicLRU
-from mimirCache.Profiler.pardaProfiler import parda
+from mimirCache.CacheReader.vscsiReader import vscsiCacheReader
+from mimirCache.Profiler.basicLRUProfiler import basicLRUProfiler
+from mimirCache.Profiler.pardaProfiler import pardaProfiler
 from mimirCache.Profiler.pardaProfiler import parda_mode
 
 
 # first step: construct a reader for reading any kind of trace
 
 # this one is the most basic one, each line is a label/tag
-reader1 = basicCacheReader("../Data/parda.trace")
+reader1 = plainCacheReader("../Data/parda.trace")
 
 # this one reads csv file and choose one column as label/tag
 reader2 = csvCacheReader("../Data/trace_CloudPhysics_txt", column=4)
 
 # this one reads binary cloudphysics trace file
-reader3 = vscsiReader("../Data/trace_CloudPhysics_bin")
+reader3 = vscsiCacheReader("../Data/trace_CloudPhysics_bin")
 
 # reader is also a generator, for readers you can do the following thing:
 # read one trace element at one time:
@@ -30,7 +30,7 @@ reader1.reset()
 # second step: construct a profiler for analyze
 
 # basic mattson profiler (toooooo slow)
-basic_profiler = getMRCBasicLRU(LRU, cache_size=20000, bin_size=10, reader=reader1)
+basic_profiler = basicLRUProfiler(LRU, cache_size=20000, bin_size=10, reader=reader1)
 # or you can use a short way to construct, see below
 # basic_profiler = getMRCBasicLRU(LRU, 20000, 10, reader1)
 
@@ -47,7 +47,7 @@ basic_profiler = getMRCBasicLRU(LRU, cache_size=20000, bin_size=10, reader=reade
 
 
 # the second profiler now it supports now is parda
-p = parda(LRU, 30000, reader1)      # construction is same, but you don't need to specify bin_size
+p = pardaProfiler(LRU, 30000, reader1)  # construction is same, but you don't need to specify bin_size
 p.run(parda_mode.seq)               # let's run, it supports two mode, sequential mode and openmp mode
 # # p.run(parda_mode.openmp, threads=4)
 p.plotHRC()                         # the rest is the same as all other profilers, plot, print, output

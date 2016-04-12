@@ -18,12 +18,12 @@ matplotlib.use('pdf')
 import matplotlib.pyplot as plt
 
 from mimirCache.Cache.LRU import LRU
-from mimirCache.Profiler.abstract.profilerAbstract import profilerAbstract
+from mimirCache.Profiler.abstract.abstractProfiler import profilerAbstract
 
 DEBUG = False
 
 
-class getMRCAbstractLRU(profilerAbstract):
+class abstractLRUProfiler(profilerAbstract):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractclassmethod

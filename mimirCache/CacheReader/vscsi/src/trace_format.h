@@ -77,6 +77,10 @@ void print_trace_v2(FILE *stream, void *data);
 void print_trace_item(FILE *stream, trace_item_t *item);
 long get_label_trace_v1(void* data);
 long get_label_trace_v2(void* data); 
+int set_return_value_v1(void** mem, int size, long ts[], int len[], long lbn[], int cmd[], int delta);
+int set_return_value_v2(void** mem, int size, long ts[], int len[], long lbn[], int cmd[], int delta);
+int read_trace2(void** mem, int* ver, int size, long ts[], int len[], long lbn[], int cmd[]); 
+
 
 vscsi_version_t test_vscsi_version(void *trace);
 

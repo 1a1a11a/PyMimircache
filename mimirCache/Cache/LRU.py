@@ -115,3 +115,6 @@ class LRU(cache):
             # print(self.cacheDict)
             # self.printLinkedList()
             return -1
+
+    def __repr__(self):
+        return "LRU, size: {}, {}".format(self.cache_size, super.__repr__())
