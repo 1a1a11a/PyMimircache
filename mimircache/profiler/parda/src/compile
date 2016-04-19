@@ -1,0 +1,27 @@
+CFLAGS += $(shell pkg-config --cflags glib-2.0)
+LIBS    = $(shell pkg-config --libs glib-2.0 --libs gthread-2.0)
+
+
+
+gcc -c -fPIC $CFLAGS -o parda_print.o parda_print.c
+gcc -c -fPIC $CFLAGS -o process_args.o process_args.c
+gcc -c -fPIC $CFLAGS -o splay.o splay.c
+gcc -c -fPIC $CFLAGS -o narray.o narray.c
+
+
+
+# For Linux: 
+gcc -shared -Wl,-soname,parda -o parda.so  parda_print.o process_args.o splay.o narray.o -fPIC -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -pthread -lgthread-2.0 -lglib-2.0 parda.c 
+
+
+# For Mac
+gcc -dynamiclib -o parda.dylib parda_print.o process_args.o splay.o narray.o -fPIC $CFLAGS $LIBS parda.c 
+
+
+
+
+
+
+# VSCSI: 
+gcc -c -fPIC -o trace_format.o trace_format.c 
+gcc -dynamiclib -o vscsi.dylib trace_format.o trace_extract.c
