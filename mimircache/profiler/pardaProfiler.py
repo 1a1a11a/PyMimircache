@@ -41,7 +41,7 @@ class pardaProfiler(abstractLRUProfiler):
 
         self.num_of_lines = self.reader.get_num_total_lines()
         print("lines: %d" % self.num_of_lines)
-        self.calculated = True
+        self.calculated = False
 
     def get_lib_name(self):
         for name in os.listdir(os.path.dirname(os.path.abspath(__file__))):
@@ -51,8 +51,10 @@ class pardaProfiler(abstractLRUProfiler):
     def prepare_file(self):
         print("changing file format")
         with open('temp.dat', 'w') as ofile:
-            for i in self.reader:
+            i = self.reader.read_one_element()
+            while i != None:
                 ofile.write(str(i) + '\n')
+                i = self.reader.read_one_element()
         self.reader = plainCacheReader('temp.dat')
 
     def addOneTraceElement(self, element):
@@ -121,17 +123,15 @@ class pardaProfiler(abstractLRUProfiler):
     def get_reuse_distance(self):
         c_line_num = c_long(self.num_of_lines)
         c_file_name = c_char_p(self.reader.file_loc.encode())
-        self.c_long_array = (c_long * (self.num_of_lines + 1))()
+        self.c_long_array = (c_long * (self.num_of_lines))()
 
-        c_begin = c_long(40000)
-        c_end = c_long(self.num_of_lines - 40000)
         self.parda_seq.get_reuse_distance(c_file_name, c_line_num, self.c_cache_size, self.c_long_array)
         # for i in self.c_long_array:
         #     print(i+1)
 
         return self.c_long_array
 
-    def _test(self):
+    def _test(self, cache_size=2000):
         c_line_num = c_long(self.num_of_lines)
         c_file_name = c_char_p(self.reader.file_loc.encode())
         self.c_long_array = (c_long * (self.num_of_lines + 1))()
@@ -141,13 +141,13 @@ class pardaProfiler(abstractLRUProfiler):
         count = 0
         for i in self.c_long_array:
             # print(i)
-            if i > -1 and i < 2000:
+            if i > -1 and i < cache_size:
                 count += 1
         print(count)
         self.parda_seq.get_reuse_distance(c_file_name, c_line_num, self.c_cache_size, self.c_long_array)
         count = 0
         for i in self.c_long_array:
-            if i > -1 and i < 2000:
+            if i > -1 and i < cache_size:
                 count += 1
         print(count)
 
@@ -164,8 +164,14 @@ if __name__ == "__main__":
     # p = parda(LRU, 30000, csvCacheReader("../data/trace_CloudPhysics_txt", 4))
     # p = parda(LRU, 30000, vscsiReader("../data/cloudPhysics/w02_vscsi1.vscsitrace"))
     # p = parda(LRU, 3000000, basicCacheReader("temp.dat"))
-    p.run(parda_mode.seq, threads=4)
+    # p.run(parda_mode.seq, threads=4)
     # p.get_reuse_distance()
-    # p._test()
+    import os
+    import shutil
+
+    for f in os.listdir('../data/mining/'):
+        shutil.copy('../data/mining/' + f, '../data/mining/mining.dat')
+        print(f)
+        p._test()
     # p.run_with_specified_lines(10000, 20000)
-    p.plotHRC(autosize=True, autosize_threshhold=0.00001)
+        # p.plotHRC(autosize=True, autosize_threshhold=0.00001)

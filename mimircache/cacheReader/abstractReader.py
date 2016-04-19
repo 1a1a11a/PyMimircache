@@ -23,6 +23,8 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
     def get_num_total_lines(self):
         self.num_of_line = 0
         while self.read_one_element():
+            # use the one above, not output progress
+            # for i in self:
             self.num_of_line += 1
         self.reset()
         return self.num_of_line

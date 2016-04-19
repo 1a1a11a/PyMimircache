@@ -516,8 +516,9 @@ void parda_input_with_textfilepointer_get_reuse_distance_smart(FILE* fp, program
         g_array_free(ga, TRUE);
     }  
     // debug 
-   g_hash_table_foreach(gh_mining, (GHFunc)iterator2, NULL);
+    g_hash_table_foreach(gh_mining, (GHFunc)iterator2, NULL);
 
+    int extra = 0; 
 
     for(i = begin; i <= end; i++) {
         fscanf(fp, "%s", input);    
@@ -525,14 +526,16 @@ void parda_input_with_textfilepointer_get_reuse_distance_smart(FILE* fp, program
         DEBUG(printf("%s %d\n", input, i);)
         GHashTable* ght = g_hash_table_lookup(gh_mining, input);
 
-        return_array[i-begin] = process_one_access_get_reuse_distance(input, pdt, i);
+        return_array[i-begin] = process_one_access_get_reuse_distance(input, pdt, i+extra);
         if (ght){
             // hash table not empty 
             GList *gl = g_hash_table_get_keys(ght); 
             GList *gl_node = gl; 
-            process_one_access_get_reuse_distance(gl_node->data, pdt, i);
-            while ((gl_node = g_list_next(gl_node))!=NULL)
-                process_one_access_get_reuse_distance(gl_node->data, pdt, i);
+            process_one_access_get_reuse_distance(gl_node->data, pdt, i+extra);
+            while ((gl_node = g_list_next(gl_node))!=NULL){
+                extra ++; 
+                process_one_access_get_reuse_distance(gl_node->data, pdt, i+extra);
+            }
         }
     }
     g_hash_table_destroy(gh_mining);
@@ -559,7 +562,7 @@ GArray* line_to_str_array(char* line, char* delim){
 }
 
 void iterator3(gpointer key, gpointer value, gpointer user_data) {
-    printf("%s(%d) ", (char*)key, strlen(key));
+    printf("%s(%d) ", (char*)key, (int)strlen(key));
 }
 
 

@@ -11,6 +11,8 @@ class cache:
     @abc.abstractmethod
     def __init__(self, cache_size):
         self.cache_size = cache_size
+        if self.cache_size <= 0:
+            raise RuntimeError("cache size cannot be smaller than or equal 0")
 
     @abc.abstractmethod
     def checkElement(self, element):
@@ -57,5 +59,11 @@ class cache:
     def printCacheLine(self):
         return
 
+    def __contains__(self, item):
+        return self.checkElement(item)
+
     def __repr__(self):
         return "abstract cache class, {}".format(super().__repr__())
+
+    def __repr__(self):
+        return "abstract cache class, {}".format(super().__str__())

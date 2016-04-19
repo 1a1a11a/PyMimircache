@@ -20,10 +20,10 @@ class profilerAbstract(metaclass=abc.ABCMeta):
 
     @abc.abstractclassmethod
     def run(self):
-        for record in self.readData():
-            self.addOneTraceElement(record)
-        # self.printResult()
-        return
+        pass
+        # for record in self.reader():
+        #     self.addOneTraceElement(record)
+        # return
 
     # def readData(self):
     #     # this method can be overriden in the subclass

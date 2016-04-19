@@ -10,7 +10,7 @@ from mimircache.profiler.pardaProfiler import pardaProfiler
 from mimircache.profiler.pardaProfiler import parda_mode
 
 
-class cacheCow:
+class cachecow:
     def __init__(self, **kargs):
         self.cache_size = -1
         if 'size' in kargs:
@@ -31,6 +31,9 @@ class cacheCow:
     def set_size(self, size):
         assert isinstance(size, int), "size can only be an integer"
         self.cache_size = size
+
+    def reset(self):
+        self.reader.reset()
 
     def profiler(self, cache_class, **kargs):
 
@@ -82,7 +85,7 @@ class cacheCow:
 
 
 if __name__ == "__main__":
-    m = cacheCow(size=10000)
+    m = cachecow(size=10000)
     # m.test()
     m.open('../data/parda.trace')
     p = m.profiler("LRU")

@@ -37,25 +37,55 @@ class vscsiCacheReader(cacheReaderAbstract):
         # self.vscsiC.read_trace.resType = c_long
         self.vscsiC.read_trace2.resType = c_int
         self.mem_original = c_void_p(self.c_mem.value)
-        self.read()
+        self._read()
 
     def get_lib_name(self):
         for name in os.listdir(os.path.dirname(os.path.abspath(__file__))):
             if 'libvscsi' in name and '.py' not in name:
                 return name
 
+    def get_first_line(self):
+        self.reset()
+        return next(self.lines())
+
+    def get_last_line(self):
+        self.c_mem = c_void_p(self.mem_original.value + self.c_delta.value * (self.c_num_of_rec.value - 1))
+        self.vscsiC.read_trace2(byref(self.c_mem), byref(self.c_ver), c_int(1), self.c_long_ts, self.c_int_len,
+                                self.c_long_lbn, self.c_int_cmd)
+        return (self.c_long_ts[0], self.c_int_cmd[0], self.c_int_len[0], self.c_long_lbn[0])
+
+
     def reset(self):
+        print("reset")
         self.buffer_pointer = 0
         self.read_in_num = 0
         self.counter = 0
+        self.c_read_size.value = 0
         self.c_mem = c_void_p(self.mem_original.value)
 
     def read_one_element(self):
-        super().read_one_element()
-        return self.vscsiC.read_trace(byref(self.c_mem), byref(self.c_ver), byref(self.c_delta))
+        if self.buffer_pointer < self.c_read_size.value:
+            self.buffer_pointer += 1
+            return (self.c_long_lbn[self.buffer_pointer - 1])
+
+        elif self.read_in_num < self.c_num_of_rec.value:
+            self._read()
+            self.buffer_pointer = 1
+            return (self.c_long_lbn[self.buffer_pointer - 1])
+        else:
+            return None
+
+
+
+            # raise NotImplementedError("this method is for internal use and it is not implemented in vscsiReader")
+
+    def get_num_total_lines(self):
+        return self.c_num_of_rec.value
+
 
     def lines(self):
         # ts, cmd, size, lbn
+        self.reset()
         while (self.read_in_num < self.c_num_of_rec.value or self.buffer_pointer < self.c_read_size.value):
             if self.buffer_pointer < self.c_read_size.value:
                 self.buffer_pointer += 1
@@ -63,33 +93,30 @@ class vscsiCacheReader(cacheReaderAbstract):
                        self.c_int_len[self.buffer_pointer - 1], self.c_long_lbn[self.buffer_pointer - 1])
 
             elif self.read_in_num < self.c_num_of_rec.value:
-                self.read()
+                self._read()
                 self.buffer_pointer = 1
                 yield (self.c_long_ts[self.buffer_pointer - 1], self.c_int_cmd[self.buffer_pointer - 1], \
                        self.c_int_len[self.buffer_pointer - 1], self.c_long_lbn[self.buffer_pointer - 1])
 
     def __next__(self):  # Python 3
         super().__next__()
-
         if self.buffer_pointer < self.c_read_size.value:
             self.buffer_pointer += 1
             return (self.c_long_lbn[self.buffer_pointer - 1])
 
         elif self.read_in_num < self.c_num_of_rec.value:
-            self.read()
+            self._read()
             self.buffer_pointer = 1
             return (self.c_long_lbn[self.buffer_pointer - 1])
         else:
             raise StopIteration
 
-    def read(self):
+    def _read(self):
         if self.c_num_of_rec.value - self.read_in_num >= 10000:
             self.c_read_size = c_int(10000)
         else:
             self.c_read_size = c_int(self.c_num_of_rec.value - self.read_in_num)
         self.read_in_num += self.c_read_size.value
-        print(self.read_in_num)
-
         self.vscsiC.read_trace2(byref(self.c_mem), byref(self.c_ver), self.c_read_size, self.c_long_ts, self.c_int_len,
                                 self.c_long_lbn, self.c_int_cmd)
 
@@ -103,16 +130,22 @@ if __name__ == "__main__":
     # # usage one: for reading all elements
     num = 0
     print(reader.c_num_of_rec)
-    for i in reader.lines():
+    for line in reader.lines():
+        if num == 0:
+            prev = line[0]
+            num += 1
+            continue
+        print(line[0] - prev)
+        prev = line[0]
+
         num += 1
+
+
         # print("{}: {}".format(num, i))
-    print(num)
-    reader.reset()
-    for i in reader.lines():
-        num += 1
-        # print("{}: {}".format(num, i))
-    print(num)
-    print(reader)
+        # print(num)
+        # print(reader)
+        # print(reader.get_first_line())
+        # print(reader.get_last_line())
 
     #
     # # usage two: best for reading one element each time

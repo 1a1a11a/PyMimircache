@@ -13,7 +13,7 @@ from os import path
 # if Constants.headless:
 import matplotlib
 
-matplotlib.use('pdf')
+# matplotlib.use('pdf')
 
 import matplotlib.pyplot as plt
 
