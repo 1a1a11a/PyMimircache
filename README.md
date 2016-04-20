@@ -9,7 +9,7 @@ The current platform supports plotting hit rate curve(**HRC**) and miss rate cur
 ### Dependency
 please have glib, numpy, scipy, matplotlib installed
 
-
+##The following Usage is out-dated, waiting for update. 
 
 ### Usage:
 ```python
