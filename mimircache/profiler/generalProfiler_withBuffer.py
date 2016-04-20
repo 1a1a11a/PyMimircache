@@ -1,6 +1,5 @@
-''' this module is used for all other cache replacement algorithms including LRU,
-    but for LRU, we can use reuse distance for more efficient profiling, see basicLRUProfiler
-
+''' this module is used for all other cache replacement algorithms excluding LRU,
+    for LRU, see getMRCAbstractLRU
 '''
 import math
 import os
@@ -17,14 +16,13 @@ from mimircache.cache.FIFO import FIFO
 from mimircache.cache.LFU_LRU__NEED_OPTIMIZATION import LFU_LRU
 from mimircache.cache.LFU_MRU import LFU_MRU
 from mimircache.cache.LFU_RR import LFU_RR
-from mimircache.cache.LRU import LRU
+from mimircache.cache.LRU_new import LRU
 from mimircache.cache.MRU import MRU
 from mimircache.cache.RR import RR
 from mimircache.cache.SLRU import SLRU
 from mimircache.cache.S4LRU import S4LRU
 
 from mimircache.cacheReader.plainReader import plainCacheReader
-
 
 import matplotlib.pyplot as plt
 
@@ -76,8 +74,8 @@ class generalProfiler(profilerAbstract):
             self.cache_distribution[i % self.num_of_process].append((i + 1) * bin_size)
             # print(self.cache_distribution)
 
-                # build pipes for communication between main process and children process
-                # the pipe mainly sends element from main process to children
+            # build pipes for communication between main process and children process
+            # the pipe mainly sends element from main process to children
 
         self.pipe_list = []
 
@@ -92,7 +90,6 @@ class generalProfiler(profilerAbstract):
         self.calculated = False
         self._auto_output_filename = os.path.basename(self.reader.file_loc).split('.')[
                                          0] + '_' + self.cache_class.__name__ + '_' + str(self.cache_size)
-
 
     def addOneTraceElement(self, element):
         super().addOneTraceElement(element)
@@ -123,17 +120,18 @@ class generalProfiler(profilerAbstract):
             else:
                 cache_list.append(cache_class(cache_size_list[i]))
 
-        element = pipe.recv()
+        elements = pipe.recv()
 
         # TODO this part should be changed
-        while element != 'END_1a1a11a_ENDMARKER':
+        while elements[-1] != 'END_1a1a11a_ENDMARKER':
             for i in range(len(cache_list)):
                 # print("i = %d"%i)
                 # cache_list[i].printCacheLine()
                 # print('')
-                if cache_list[i].addElement(element) == False:
-                    MRC_array[i * num_of_process + process_num] += 1
-            element = pipe.recv()
+                for element in elements:
+                    if cache_list[i].addElement(element) == False:
+                        MRC_array[i * num_of_process + process_num] += 1
+            elements = pipe.recv()
             # print(element)
             # print(cache_list)
 
@@ -230,16 +228,13 @@ class generalProfiler(profilerAbstract):
                     file.write(str(x) + '\n')
         return True
 
-
     def calculate(self):
         self.calculated = True
         for i in range(len(self.pipe_list)):
-            self.pipe_list[i][0].send("END_1a1a11a_ENDMARKER")
+            self.pipe_list[i][0].send(["END_1a1a11a_ENDMARKER"])
             self.pipe_list[i][0].close()
         for i in range(len(self.process_list)):
             self.process_list[i].join()
-
-
 
         for i in range(len(self.MRC)):
             # print(self.MRC_array[i])
@@ -247,15 +242,31 @@ class generalProfiler(profilerAbstract):
         for i in range(len(self.HRC)):
             self.HRC[i] = 100 - self.MRC[i]
 
-    def run(self):
+    def run(self, buffer_size=10000):
         super().run()
         self.reader.reset()
+        l = []
         for i in self.reader:
-            self.addOneTraceElement(i)
+            l.append(i)
+            if len(l) == buffer_size:
+                self.add_elements(l)
+                l.clear()
+                # self.addOneTraceElement(i)
         # p.printMRC()
+        if len(l) > 0:
+            self.add_elements(l)
         self.outputHRC()
         self.plotHRC()
 
+    def add_elements(self, elements):
+        for element in elements:
+            super().addOneTraceElement(element)
+
+        for i in range(len(self.pipe_list)):
+            # print("send out: " + element)
+            self.pipe_list[i][0].send(elements)
+
+        return
 
 
 if __name__ == "__main__":
@@ -263,11 +274,11 @@ if __name__ == "__main__":
 
     t1 = time.time()
     # r = plainCacheReader('../../data/test')
-    r = plainCacheReader('../../data/parda.trace')
+    r = plainCacheReader('../data/parda.trace')
 
     # p = generalProfiler(LRU, 6000, 20, r, 48)
     # p = generalProfiler(ARC, (10, 0.5), 10, r, 1)
-    p = generalProfiler(clock, 800, 20, r, 4)
+    p = generalProfiler(LRU, 800, 5, r, 4)
     # p = generalProfiler(ARC, 5, 5, r, 1)
     p.run()
 

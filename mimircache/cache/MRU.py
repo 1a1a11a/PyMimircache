@@ -37,7 +37,7 @@ class MRU(cache):
         '''
         if len(self.cacheDict) == self.cache_size:
             self._evictOneElement()
-        self.cache_size[element] = element
+        self.cacheDict[element] = element
         self.last_element = element
 
     def find_evict_key(self):
