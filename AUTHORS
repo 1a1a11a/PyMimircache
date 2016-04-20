@@ -1,0 +1,14 @@
+The MIMIR Cache project benefits from the efforts of a number of people:
+
+  * Juncheng Yang (Emory University) designed and wrote most of the framework,
+  * Ymir Vigfusson (Emory University/Reykjavik University) is the faculty
+    sponsor of the project, 
+  * Trausti Saemundsson (Reykjavik University) wrote some of the initial cache
+    replacement policies, 
+  * Shureed Kabir and Arnold Yichu Lin (Emory University) contributed to the
+    design and implementation.
+
+The VSCSI format and reader is due to Irfan Ahmad et al. at CloudPhysics.
+
+The PARDA implementation is due to Qingpeng Niu et al. Citation: PARDA: A Fast Parallel Reuse Distance Analysis Algorithm. Qingpeng Niu, James Dinan, Qingda Lu and P.  Sadayappan.  IEEE IPDPS (IPDPS'12), May 2012, Shanghai, China.
+
