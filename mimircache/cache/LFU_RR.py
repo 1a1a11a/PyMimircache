@@ -15,7 +15,6 @@ class LFU_RR(abstractLFU):
             evict_key = self.least_freq_elements_list[r]
             count += 1
         self.least_freq_elements_list[r] = None
-        self.least_freq_elements_list.remove(evict_key)
 
         if count > 10:
             new_list = [e for e in self.least_freq_elements_list if e]

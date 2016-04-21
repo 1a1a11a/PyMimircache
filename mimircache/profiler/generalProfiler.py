@@ -17,7 +17,7 @@ from mimircache.cache.FIFO import FIFO
 from mimircache.cache.LFU_LRU__NEED_OPTIMIZATION import LFU_LRU
 from mimircache.cache.LFU_MRU import LFU_MRU
 from mimircache.cache.LFU_RR import LFU_RR
-from mimircache.cache.LRU import LRU
+from mimircache.cache.LRU_new import LRU
 from mimircache.cache.MRU import MRU
 from mimircache.cache.RR import RR
 from mimircache.cache.SLRU import SLRU
@@ -260,6 +260,7 @@ class generalProfiler(profilerAbstract):
 
 if __name__ == "__main__":
     import time
+    import cProfile
 
     t1 = time.time()
     # r = plainCacheReader('../../data/test')
@@ -267,9 +268,28 @@ if __name__ == "__main__":
 
     # p = generalProfiler(LRU, 6000, 20, r, 48)
     # p = generalProfiler(ARC, (10, 0.5), 10, r, 1)
-    p = generalProfiler(clock, 800, 20, r, 4)
+    p = generalProfiler(LFU_LRU, 800, 80, r, 4)
     # p = generalProfiler(ARC, 5, 5, r, 1)
+
+
+    import pstats, io
+
+    pr = cProfile.Profile()
+    pr.enable()
+
+
     p.run()
+
+    pr.disable()
+    s = io.StringIO()
+    sortby = 'cumulative'
+    ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+    ps.print_stats()
+    print(s.getvalue())
+
+
+
+
 
     t2 = time.time()
     print("TIME: %f" % (t2 - t1))
