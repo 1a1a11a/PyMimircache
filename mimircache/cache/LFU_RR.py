@@ -9,7 +9,19 @@ class LFU_RR(abstractLFU):
     def find_evict_key(self):
         r = random.randrange(0, len(self.least_freq_elements_list))
         evict_key = self.least_freq_elements_list[r]
+        count = 0
+        while not evict_key:
+            r = random.randrange(0, len(self.least_freq_elements_list))
+            evict_key = self.least_freq_elements_list[r]
+            count += 1
+        self.least_freq_elements_list[r] = None
         self.least_freq_elements_list.remove(evict_key)
+
+        if count > 10:
+            new_list = [e for e in self.least_freq_elements_list if e]
+            del self.least_freq_elements_list
+            self.least_freq_elements_list = new_list
+
         return evict_key
 
 

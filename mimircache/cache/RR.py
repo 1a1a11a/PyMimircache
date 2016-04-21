@@ -10,6 +10,8 @@ class RR(cache):
     def __init__(self, cache_size=1000):
         super().__init__(cache_size)
         self.cacheDict = dict()  # key -> linked list node (in reality, it should also contains value)
+        self.cache_line_list = []  # to save all the keys, otherwise needs to populate from cacheDict every time
+
 
     def checkElement(self, element):
         '''
@@ -38,6 +40,7 @@ class RR(cache):
         if len(self.cacheDict) >= self.cache_size:
             self._evictOneElement()
         self.cacheDict[element] = ""
+        self.cache_line_list.append(element)
 
     def printCacheLine(self):
         for i in self.cacheSet:
@@ -53,7 +56,24 @@ class RR(cache):
         evict one element from the cache line
         :return: True on success, False on failure
         '''
-        element = random.choice(list(self.cacheDict.keys()))
+        # element = random.choice(list(self.cacheDict.keys()))
+        rand_num = random.randrange(0, len(self.cache_line_list))
+        element = self.cache_line_list[rand_num]
+        count = 0
+        while not element:
+            rand_num = random.randrange(0, len(self.cache_line_list))
+            element = self.cache_line_list[rand_num]
+            count += 1
+
+        # mark this element as deleted, put a hole on it
+        self.cache_line_list[rand_num] = None
+
+        if (count > 10):
+            # if there are too many holes, then we need to resize the list
+            new_list = [e for e in self.cache_line_list if e]
+            del self.cache_line_list
+            self.cache_line_list = new_list
+
         del self.cacheDict[element]
 
     def addElement(self, element):
@@ -69,6 +89,6 @@ class RR(cache):
             return False
 
     def __repr__(self):
-        return "Random Replacement, given size: {}, current size: {}, {}".format(self.cache_size,
-                                                                                 self.cacheLinkedList.size,
-                                                                                 super().__repr__())
+        return "Random Replacement, given size: {}, current size: {}".format(self.cache_size,
+                                                                             len(self.cacheDict),
+                                                                             super().__repr__())
