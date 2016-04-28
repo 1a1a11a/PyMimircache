@@ -6,8 +6,8 @@ class KeyTrace:
         self.reader = reader
         self.num_keys = num_keys
 
-    def show(self, num_colors=4):
-        x, y = self.generate_plot_data()
+    def show(self, num_colors=4, min_frequency=0):
+        x, y = self.generate_plot_data(min_frequency=min_frequency)
 
         colors = []
         color = 0
@@ -26,24 +26,47 @@ class KeyTrace:
         plt.ylabel("Key")
         plt.show()
 
-    def generate_plot_data(self):
+    def generate_plot_data(self, min_frequency=0):
+        if min_frequency < 0:
+            raise Exception("Invalid min_frequency: value must be positive")
+
         logical_time = 0
         d = {}
 
-        for element in self.reader:
+        values = None
 
-            if element in d:
-                d[element].append(logical_time)
-            elif len(d) < self.num_keys:
-                d[element] = []
+        if min_frequency > 0:
+            for element in self.reader:
+                if element in d:
+                    d[element].append(logical_time)
+                else:
+                    d[element] = []
 
-            logical_time += 1
+                logical_time += 1
+
+            for key, value in list(d.items()):
+                if len(value) < min_frequency:
+                    del d[key]
+
+            values = sorted(d.values(), key=len)[len(d) - 1 - self.num_keys:len(d) - 1]
+
+        else:
+            for element in self.reader:
+
+                if element in d:
+                    d[element].append(logical_time)
+                elif len(d) < self.num_keys:
+                    d[element] = []
+
+                logical_time += 1
+
+            values = d.values()
 
         x = []
         y = []
         key = 0
 
-        for item in d.values():
+        for item in values:
             for time in item:
                 x.append(time)
                 y.append(key)
