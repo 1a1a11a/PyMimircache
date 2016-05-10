@@ -3,13 +3,12 @@ this module provides the heatmap ploting engine, it supports both virtual time (
 real time, under both modes, it support using multiprocessing to do the plotting
 currently, it only support LRU
 the mechanism it works is it gets reuse distance from LRU profiler (parda for now)
-the whole module is not externally thread safe, if you want to use it in multi-threading,
-create multiple heatmap objects
 """
 
 import logging
 import pickle
-from multiprocessing import Pool
+from collections import deque
+from multiprocessing import Pool, Array, Process, Queue
 
 import numpy as np
 import os
@@ -26,11 +25,60 @@ from mimircache.utils.printing import *
 DEBUG = True
 
 
+def _calc_hit_count(reuse_dist_array, cache_size, begin_pos, end_pos, real_start):
+    """
+
+    :rtype: count of hit
+    :param reuse_dist_array:
+    :param cache_size:
+    :param begin_pos:
+    :param end_pos: end pos of trace in current partition (not included)
+    :param real_start: the real start position of cache trace
+    :return:
+    """
+    hit_count = 0
+    miss_count = 0
+    for i in range(begin_pos, end_pos):
+        if reuse_dist_array[i] == -1:
+            # never appear
+            miss_count += 1
+            continue
+        if reuse_dist_array[i] - (i - real_start) < 0 and reuse_dist_array[i] < cache_size:
+            # hit
+            hit_count += 1
+        else:
+            # miss
+            miss_count += 1
+    return hit_count
+
+
+def _calc_hit_rate_subprocess(order, cache_size, break_points_share_array, reuse_dist_share_array, q):
+    """
+    the child process for calculating hit rate, each child process will calculate for
+    a column with fixed starting time
+    :param order: the order of column the child is working on
+    :return: a list of result in the form of (x, y, hit_rate) with x as fixed value
+    """
+
+    result_list = []
+    total_hc = 0
+    for i in range(order + 1, len(break_points_share_array)):
+        hc = _calc_hit_count(reuse_dist_share_array, cache_size, break_points_share_array[i - 1],
+                             break_points_share_array[i], break_points_share_array[order])
+        total_hc += hc
+        hr = total_hc / (break_points_share_array[i] - break_points_share_array[order])
+        result_list.append((order, i, hr))
+    q.put(result_list)
+    # return result_list
+
+
+
+
+
 class heatmap:
     def __init__(self, cache_class=LRU):
         self.cache_class = cache_class
-        self.reuse_dist_python_list = []
-        self.break_points = None
+
 
     def prepare_heatmap_dat(self, mode, reader, calculate=True):
         """
@@ -44,6 +92,9 @@ class heatmap:
         assert isinstance(reader, vscsiCacheReader), "Currently only supports vscsiReader"
         reader.reset()
 
+        reuse_dist_python_list = []
+        break_points = []
+        
         if calculate:
             # build profiler for extracting reuse distance (For LRU)
             p = pardaProfiler(LRU, 30000, reader)
@@ -51,53 +102,89 @@ class heatmap:
             c_reuse_dist_long_array = p.get_reuse_distance()
 
             for i in c_reuse_dist_long_array:
-                self.reuse_dist_python_list.append(i)
+                reuse_dist_python_list.append(i)
 
             if not os.path.exists('temp/'):
                 os.makedirs('temp/')
             with open('temp/reuse.dat', 'wb') as ofile:
-                pickle.dump(self.reuse_dist_python_list, ofile)
+                pickle.dump(reuse_dist_python_list, ofile)
 
         else:
             # the reuse distance has already been calculated, just load it
             with open('temp/reuse.dat', 'rb') as ifile:
-                self.reuse_dist_python_list = pickle.load(ifile)
+                reuse_dist_python_list = pickle.load(ifile)
 
             breakpoints_filename = 'temp/break_points_' + mode + str(self.interval) + '.dat'
             # check whether the break points distribution table has been calculated
             if os.path.exists(breakpoints_filename):
                 with open(breakpoints_filename, 'rb') as ifile:
-                    self.break_points = pickle.load(ifile)
+                    break_points = pickle.load(ifile)
+
+        # check break points are loaded or not, if not need to calculate it
+        if not break_points:
+            if mode == 'r':
+                break_points = self._get_breakpoints_realtime(reader, self.interval)
+            elif mode == 'v':
+                break_points = self._get_breakpoints_virtualtime(self.interval, len(reuse_dist_python_list))
+            with open('temp/break_points_' + mode + str(self.interval) + '.dat', 'wb') as ifile:
+                pickle.dump(break_points, ifile)
 
         # create share memory for child process
+        reuse_dist_share_array = Array('l', len(reuse_dist_python_list), lock=False)
+        for i, j in enumerate(reuse_dist_python_list):
+            reuse_dist_share_array[i] = j
 
-        if not self.break_points:
-            # the break points are not loaded, needs to calculate it
-            if mode == 'r':
-                self.break_points = self._get_breakpoints_realtime(reader, self.interval)
-            elif mode == 'v':
-                self.break_points = self._get_breakpoints_virtualtime(self.interval, len(self.reuse_dist_python_list))
-            with open('temp/break_points_' + mode + str(self.interval) + '.dat', 'wb') as ifile:
-                pickle.dump(self.break_points, ifile)
+        break_points_share_array = Array('i', len(break_points), lock=False)
+        for i, j in enumerate(break_points):
+            break_points_share_array[i] = j
+
 
         # create the array for storing results
         # result is a dict: (x, y) -> heat, x, y is the left, lower point of heat square
         # (x,y) means from time x to time y
-        array_len = len(self.break_points)
+        array_len = len(break_points)
         result = np.empty((array_len, array_len), dtype=np.float32)
         result[:] = np.nan
 
         # Jason: efficiency can be further improved by porting into Cython and improve parallel logic
         # Jason: memory usage can be optimized by not copying whole reuse distance array in each sub process
-        map_list = [i for i in range(len(self.break_points) - 1)]
+        map_list = deque()
+        for i in range(len(break_points) - 1):
+            map_list.append(i)
 
-        count = 0
-        with Pool(processes=self.num_of_process) as p:
-            for ret_list in p.imap_unordered(self._calc_hit_rate_subprocess_realtime, map_list):
-                count += 1
-                print("%2.2f%%" % (count / len(map_list) * 100), end='\r')
-                for r in ret_list:  # l is a list of (x, y, hr)
+        # new 0510
+        q = Queue()
+        process_pool = []
+        process_count = 0
+        result_count = 0
+        map_list_pos = 0
+        while result_count < len(map_list):
+            if process_count < self.num_of_process and map_list_pos < len(map_list):
+                p = Process(target=_calc_hit_rate_subprocess, args=(map_list[map_list_pos], self.cache_size,
+                                                                    break_points_share_array, reuse_dist_share_array,
+                                                                    q))
+                p.start()
+                process_pool.append(p)
+                process_count += 1
+                map_list_pos += 1
+            else:
+                rl = q.get()
+                for r in rl:
                     result[r[0]][r[1]] = r[2]
+                process_count -= 1
+                result_count += 1
+            print("%2.2f%%" % (result_count / len(map_list) * 100), end='\r')
+        for p in process_pool:
+            p.join()
+
+        # old 0510
+        # with Pool(processes=self.num_of_process) as p:
+        #     for ret_list in p.imap_unordered(_calc_hit_rate_subprocess, map_list,
+        #                                      chunksize=10):
+        #         count += 1
+        #         print("%2.2f%%" % (count / len(map_list) * 100), end='\r')
+        #         for r in ret_list:  # l is a list of (x, y, hr)
+        #             result[r[0]][r[1]] = r[2]
 
         # print(result)
         with open('temp/draw', 'wb') as ofile:
@@ -105,7 +192,8 @@ class heatmap:
 
         return result
 
-    def _get_breakpoints_virtualtime(self, bin_size, total_length):
+    @staticmethod
+    def _get_breakpoints_virtualtime(bin_size, total_length):
         """
 
         :param bin_size: the size of the group (virtual time slice)
@@ -125,7 +213,8 @@ class heatmap:
 
         return break_points
 
-    def _get_breakpoints_realtime(self, reader, interval):
+    @staticmethod
+    def _get_breakpoints_realtime(reader, interval):
         """
         given reader(vscsi) and time interval, split the data according to the time interval,
         save the order into break_points(list)
@@ -182,51 +271,8 @@ class heatmap:
         # end_pos-begin_pos, hit_count/(end_pos-begin_pos)))
         return hit_count / (end_pos - begin_pos)
 
-    def _calc_hit_count(self, reuse_dist_array, cache_size, begin_pos, end_pos, real_start):
-        """
-
-        :rtype: count of hit
-        :param reuse_dist_array:
-        :param cache_size:
-        :param begin_pos:
-        :param end_pos: end pos of trace in current partition (not included)
-        :param real_start: the real start position of cache trace
-        :return:
-        """
-        hit_count = 0
-        miss_count = 0
-        for i in range(begin_pos, end_pos):
-            if reuse_dist_array[i] == -1:
-                # never appear
-                miss_count += 1
-                continue
-            if reuse_dist_array[i] - (i - real_start) < 0 and reuse_dist_array[i] < cache_size:
-                # hit
-                hit_count += 1
-            else:
-                # miss
-                miss_count += 1
-        return hit_count
-
-    def _calc_hit_rate_subprocess_realtime(self, order):
-        """
-        the child process for calculating hit rate, each child process will calculate for
-        a column with fixed starting time
-        :param order: the order of column the child is working on
-        :return: a list of result in the form of (x, y, hit_rate) with x as fixed value
-        """
-        result_list = []
-        total_hc = 0
-        for i in range(order + 1, len(self.break_points)):
-            # break points does not
-            hc = self._calc_hit_count(self.reuse_dist_python_list, self.cache_size, self.break_points[i - 1],
-                                      self.break_points[i], self.break_points[order])
-            total_hc += hc
-            hr = total_hc / (self.break_points[i] - self.break_points[order])
-            result_list.append((order, i, hr))
-        return result_list
-
-    def draw(self, xydict, filename="heatmap.png"):
+    @staticmethod
+    def draw(xydict, filename="heatmap.png"):
         # with open('temp/draw', 'rb') as ofile:
         #     xydict = pickle.load(ofile)
         # print("load data successfully, begin plotting")
@@ -238,16 +284,18 @@ class heatmap:
         cmap = plt.cm.jet
         cmap.set_bad('w', 1.)
 
-        plt.Figure()
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
 
         # heatmap = plt.pcolor(result2.T, cmap=plt.cm.Blues, vmin=np.min(result2[np.nonzero(result2)]), \
         # vmax=result2.max())
         try:
-            # plt.pcolor(masked_array.T, cmap=cmap)
-            plt.imshow(masked_array.T, interpolation='nearest', origin='lower')
-            plt.colorbar()
+            # ax.pcolor(masked_array.T, cmap=cmap)
+            ax.imshow(masked_array.T, interpolation='nearest', origin='lower')
+            cb = plt.colorbar()
             # plt.show()
-            plt.savefig(filename)
+            ax.savefig(filename)
+            cb.remove()
             colorfulPrint("red", "plot is saved at the same directory")
         except Exception as e:
             logging.warning(str(e))
@@ -306,22 +354,16 @@ class heatmap:
         self.__del_manual__()
 
 
-if __name__ == "__main__":
-
+def server_plot_all():
+    hm = heatmap()
     mem_sizes = []
     with open('memSize', 'r') as ifile:
         for line in ifile:
             mem_sizes.append(int(line.strip()))
 
-    # reader1 = plainCacheReader("../data/parda.trace")
-    # reader2 = vscsiCacheReader("../data/trace_CloudPhysics_bin")
-
-
-    hm = heatmap()
-
     for filename in os.listdir("../data/cloudphysics"):
         if filename.endswith('.vscsitrace'):
-            if int(filename.split('_')[0][1:]) in [41, 92]:
+            if int(filename.split('_')[0][1:]) in [99]:
                 continue
             mem_size = mem_sizes[int(filename.split('_')[0][1:])] * 16
             reader = vscsiCacheReader("../data/cloudphysics/" + filename)
@@ -329,12 +371,16 @@ if __name__ == "__main__":
             hm.run('r', 1000000000, mem_size, reader, num_of_process=42, figname=filename + '.png')
 
 
+def localtest():
+    # reader1 = plainCacheReader("../data/parda.trace")
+    reader2 = vscsiCacheReader("../data/trace_CloudPhysics_bin")
+
+    hm = heatmap()
+    hm.run('r', 100000000, 2000, reader2, num_of_process=4)
 
 
-    # hm.run('r', 100000000, 2000, reader2, 1)
-            # hm.run('v', 1000, 2000, reader2, 1)
 
 
-    # for i in range(10, 200, 10):
-    #     prepare_heatmap_dat_multiprocess_ts("../data/traces/w02_vscsi1.vscsitrace", 1000000000, 200*i*i, 48, True)
-    #     draw("heatmap_"+str(1000000000)+'_'+str(200*i*i)+'.pdf')
+
+if __name__ == "__main__":
+    server_plot_all()
