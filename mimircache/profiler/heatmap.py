@@ -336,10 +336,15 @@ class heatmap:
         if 'figname' in kargs:
             figname = kargs['figname']
 
+        if 'calculate' in kargs:
+            calculate = kargs['calculate']
+        else:
+            calculate = True
+
         if mode == 'r':
-            xydict = self.prepare_heatmap_dat('r', reader, True)
+            xydict = self.prepare_heatmap_dat('r', reader, calculate)
         elif mode == 'v':
-            xydict = self.prepare_heatmap_dat('v', reader, True)
+            xydict = self.prepare_heatmap_dat('v', reader, calculate)
             self.draw(xydict)
         else:
             raise RuntimeError("Cannot recognize this mode, it can only be either real time(r) or virtual time(v), "
@@ -362,7 +367,9 @@ def server_plot_all():
 
     for filename in os.listdir("../data/cloudphysics"):
         if filename.endswith('.vscsitrace'):
-            if int(filename.split('_')[0][1:]) in [99]:
+            if int(filename.split('_')[0][1:]) in [99, 5]:
+                continue
+            if os.path.exists(filename + '.png'):
                 continue
             mem_size = mem_sizes[int(filename.split('_')[0][1:])] * 16
             reader = vscsiCacheReader("../data/cloudphysics/" + filename)
@@ -371,7 +378,31 @@ def server_plot_all():
 
 
 def server_size_plot():
-    pass
+    hm = heatmap()
+    mem_sizes = []
+    with open('memSize', 'r') as ifile:
+        for line in ifile:
+            mem_sizes.append(int(line.strip()))
+
+    for filename in os.listdir("../data/cloudphysics"):
+        if filename.endswith('.vscsitrace'):
+            if int(filename.split('_')[0][1:]) in [13, 99]:
+                continue
+            mem_size = mem_sizes[int(filename.split('_')[0][1:])]
+            reader = vscsiCacheReader("../data/cloudphysics/" + filename)
+            print(filename)
+            size = 512
+            while size < mem_size * 1024 * 128:
+                print(size)
+                if size == 512:
+                    hm.run('r', 1000000000, size, reader, num_of_process=42, figname='time_size/' + filename
+                                                                                     + '_' + str(size) + '.png',
+                           calculate=True)
+                else:
+                    hm.run('r', 1000000000, size, reader, num_of_process=42, figname='time_size/' + filename
+                                                                                     + '_' + str(size) + '.png',
+                           calculate=False)
+                size *= 2
 
 
 def localtest():

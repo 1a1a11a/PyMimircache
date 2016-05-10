@@ -84,7 +84,7 @@ class cachecow:
             reader = self.reader
 
         assert size != -1, "you didn't provide size for cache"
-        assert reader, "you didn't provide data file or data type"
+        assert reader, "you didn't provide a reader nor data (data file and data type)"
 
         return size, reader
 
@@ -157,12 +157,12 @@ if __name__ == "__main__":
 
     # m.test()
     m.open('../data/parda.trace')
-    p = m.profiler("LRU")
+    # p = m.profiler("LRU")
 
-    # p = m.profiler('lru', data='../data/parda.trace', dataType='plain')
+    p = m.profiler('lru', data='../data/parda.trace', dataType='plain')
     p.run()
     # print(len(p.HRC))
-    print(p.HRC)
+    # print(p.HRC)
     # print(p.MRC[-1])
     rdist = p.get_reuse_distance()
     # for i in rdist:
@@ -171,7 +171,7 @@ if __name__ == "__main__":
     #     print('no element')
     print(rdist)
     print(rdist[-1])
-    p.plotHRC()
+    # p.plotHRC()
     # p.plotMRC()
 
     # line_num = 0
