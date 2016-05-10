@@ -9,3 +9,7 @@ from .profiler.pardaProfiler import pardaProfiler as pardaProfiler
 from .profiler.pardaProfiler import parda_mode as parda_mode
 
 from .top.cachecow import cachecow as cacheCow
+
+import logging
+
+logging.basicConfig(filename="log", filemode='w', format='%(levelname)s:%(asctime)s:%(message)s', level=logging.DEBUG)

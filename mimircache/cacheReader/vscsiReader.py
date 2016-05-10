@@ -1,6 +1,6 @@
 import os
-from collections import deque
 from ctypes import *
+import logging
 
 from mimircache.cacheReader.abstractReader import cacheReaderAbstract
 
@@ -8,7 +8,6 @@ from mimircache.cacheReader.abstractReader import cacheReaderAbstract
 class vscsiCacheReader(cacheReaderAbstract):
     def __init__(self, file_loc):
         super().__init__(file_loc)
-        # self.buffer = deque()
         self.buffer_size = 0  # number of trace lines in the buffer
         self.buffer_pointer = 0  # point to the element in the buffer
         self.read_in_num = 0
@@ -39,10 +38,12 @@ class vscsiCacheReader(cacheReaderAbstract):
         self.mem_original = c_void_p(self.c_mem.value)
         self._read()
 
+
     def get_lib_name(self):
         for name in os.listdir(os.path.dirname(os.path.abspath(__file__))):
             if 'libvscsi' in name and '.py' not in name:
                 return name
+
 
     def get_first_line(self):
         self.reset()
@@ -56,7 +57,7 @@ class vscsiCacheReader(cacheReaderAbstract):
 
 
     def reset(self):
-        print("reset")
+        logging.debug("reset")
         self.buffer_pointer = 0
         self.read_in_num = 0
         self.counter = 0
@@ -76,15 +77,16 @@ class vscsiCacheReader(cacheReaderAbstract):
             return None
 
 
-
-            # raise NotImplementedError("this method is for internal use and it is not implemented in vscsiReader")
-
     def get_num_total_lines(self):
         return self.c_num_of_rec.value
 
 
     def lines(self):
         # ts, cmd, size, lbn
+        '''
+        return detailed information in vscsi reader
+        :return:
+        '''
         self.reset()
         while (self.read_in_num < self.c_num_of_rec.value or self.buffer_pointer < self.c_read_size.value):
             if self.buffer_pointer < self.c_read_size.value:

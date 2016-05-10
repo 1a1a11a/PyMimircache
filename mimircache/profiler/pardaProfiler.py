@@ -1,7 +1,7 @@
 import sys
 import os
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+import logging
 
 from ctypes import *
 from enum import Enum
@@ -40,7 +40,6 @@ class pardaProfiler(abstractLRUProfiler):
             self.prepare_file()
 
         self.num_of_lines = self.reader.get_num_total_lines()
-        print("lines: %d" % self.num_of_lines)
         self.calculated = False
 
     def get_lib_name(self):
@@ -49,7 +48,7 @@ class pardaProfiler(abstractLRUProfiler):
                 return name
 
     def prepare_file(self):
-        print("changing file format")
+        logging.debug("changing file format")
         with open('temp.dat', 'w') as ofile:
             i = self.reader.read_one_element()
             while i != None:
@@ -151,12 +150,9 @@ class pardaProfiler(abstractLRUProfiler):
                 count += 1
         print(count)
 
-
-
-
-        # def __del__(self):
-        #     if os.path.exists('temp.dat'):
-        #         os.remove('temp.dat')
+        def __del__(self):
+            if os.path.exists('temp.dat'):
+                os.remove('temp.dat')
 
 
 if __name__ == "__main__":
