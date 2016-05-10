@@ -1,5 +1,6 @@
-''' this module is used for all other cache replacement algorithms excluding LRU,
-    for LRU, see getMRCAbstractLRU
+''' this module is used for all other cache replacement algorithms including LRU,
+    but for LRU, we can use reuse distance for more efficient profiling, see basicLRUProfiler
+
 '''
 import math
 import os
@@ -120,18 +121,17 @@ class generalProfiler(profilerAbstract):
             else:
                 cache_list.append(cache_class(cache_size_list[i]))
 
-        elements = pipe.recv()
+        element = pipe.recv()
 
         # TODO this part should be changed
-        while elements[-1] != 'END_1a1a11a_ENDMARKER':
+        while element != 'END_1a1a11a_ENDMARKER':
             for i in range(len(cache_list)):
                 # print("i = %d"%i)
                 # cache_list[i].printCacheLine()
                 # print('')
-                for element in elements:
-                    if cache_list[i].addElement(element) == False:
-                        MRC_array[i * num_of_process + process_num] += 1
-            elements = pipe.recv()
+                if cache_list[i].addElement(element) == False:
+                    MRC_array[i * num_of_process + process_num] += 1
+            element = pipe.recv()
             # print(element)
             # print(cache_list)
 
@@ -231,7 +231,7 @@ class generalProfiler(profilerAbstract):
     def calculate(self):
         self.calculated = True
         for i in range(len(self.pipe_list)):
-            self.pipe_list[i][0].send(["END_1a1a11a_ENDMARKER"])
+            self.pipe_list[i][0].send("END_1a1a11a_ENDMARKER")
             self.pipe_list[i][0].close()
         for i in range(len(self.process_list)):
             self.process_list[i].join()
@@ -242,45 +242,43 @@ class generalProfiler(profilerAbstract):
         for i in range(len(self.HRC)):
             self.HRC[i] = 100 - self.MRC[i]
 
-    def run(self, buffer_size=10000):
+    def run(self):
         super().run()
         self.reader.reset()
-        l = []
         for i in self.reader:
-            l.append(i)
-            if len(l) == buffer_size:
-                self.add_elements(l)
-                l.clear()
-                # self.addOneTraceElement(i)
+            self.addOneTraceElement(i)
         # p.printMRC()
-        if len(l) > 0:
-            self.add_elements(l)
         self.outputHRC()
         self.plotHRC()
-
-    def add_elements(self, elements):
-        for element in elements:
-            super().addOneTraceElement(element)
-
-        for i in range(len(self.pipe_list)):
-            # print("send out: " + element)
-            self.pipe_list[i][0].send(elements)
-
-        return
 
 
 if __name__ == "__main__":
     import time
+    import cProfile
 
     t1 = time.time()
     # r = plainCacheReader('../../data/test')
-    r = plainCacheReader('../data/parda.trace')
+    r = plainCacheReader('../../data/parda.trace')
 
     # p = generalProfiler(LRU, 6000, 20, r, 48)
     # p = generalProfiler(ARC, (10, 0.5), 10, r, 1)
-    p = generalProfiler(LRU, 800, 5, r, 4)
+    p = generalProfiler(LFU_LRU, 800, 80, r, 4)
     # p = generalProfiler(ARC, 5, 5, r, 1)
+
+
+    import pstats, io
+
+    pr = cProfile.Profile()
+    pr.enable()
+
     p.run()
+
+    pr.disable()
+    s = io.StringIO()
+    sortby = 'cumulative'
+    ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+    ps.print_stats()
+    print(s.getvalue())
 
     t2 = time.time()
     print("TIME: %f" % (t2 - t1))
