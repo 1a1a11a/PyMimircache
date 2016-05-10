@@ -1,6 +1,9 @@
-''' this module is used for all other cache replacement algorithms excluding LRU,
-    for LRU, see getMRCAbstractLRU
-'''
+""" this module is used for all other cache replacement algorithms excluding LRU(LRU also works, but slow compared to
+    using pardaProfiler),
+"""
+# -*- coding: utf-8 -*-
+
+
 import math
 import os
 
@@ -50,7 +53,7 @@ class generalProfiler(profilerAbstract):
         self.bin_size = bin_size
         self.num_of_process = num_of_process
 
-        if (self.cache_size != -1):
+        if self.cache_size != -1:
             if int(self.cache_size / bin_size) * bin_size == self.cache_size:
                 self.num_of_cache = self.num_of_blocks = int(self.cache_size / bin_size)
             else:
@@ -100,9 +103,10 @@ class generalProfiler(profilerAbstract):
 
         return
 
-    def _addOneTraceElementSingleProcess(self, num_of_process, process_num, cache_class, cache_size_list, \
+    # noinspection PyMethodMayBeStatic
+    def _addOneTraceElementSingleProcess(self, num_of_process, process_num, cache_class, cache_size_list,
                                          cache_args, pipe, MRC_array):
-        '''
+        """
 
         :param num_of_process:
         :param process_num:
@@ -112,7 +116,7 @@ class generalProfiler(profilerAbstract):
         :param pipe:            for receiving cache record from main process
         :param MRC_array:       storing MRC count for all cache sizes
         :return:
-        '''
+        """
         cache_list = []
         for i in range(len(cache_size_list)):
             if len(cache_args) > 0:
@@ -129,7 +133,7 @@ class generalProfiler(profilerAbstract):
                 # cache_list[i].printCacheLine()
                 # print('')
                 for element in elements:
-                    if cache_list[i].addElement(element) == False:
+                    if not cache_list[i].addElement(element):
                         MRC_array[i * num_of_process + process_num] += 1
             elements = pipe.recv()
             # print(element)
@@ -161,8 +165,8 @@ class generalProfiler(profilerAbstract):
         if not self.calculated:
             self.calculate()
         try:
-            figure_MRC = plt.figure(1)
-            line = plt.plot(range(self.bin_size, self.bin_size * (self.num_of_blocks + 1), self.bin_size), self.MRC)
+            plt.figure(1)
+            plt.plot(range(self.bin_size, self.bin_size * (self.num_of_blocks + 1), self.bin_size), self.MRC)
             plt.xlabel("cache Size")
             plt.ylabel("Miss Rate/%")
             plt.title('Miss Rate Curve', fontsize=18, color='black')
@@ -178,14 +182,14 @@ class generalProfiler(profilerAbstract):
         if not self.calculated:
             self.calculate()
         try:
-            figure_HRC = plt.figure(2)
-            line = plt.plot(range(self.bin_size, self.bin_size * (self.num_of_blocks + 1), self.bin_size), self.HRC)
+            plt.figure(2)
+            plt.plot(range(self.bin_size, self.bin_size * (self.num_of_blocks + 1), self.bin_size), self.HRC)
             plt.xlabel("cache Size")
             plt.ylabel("Hit Rate/%")
             plt.title('Hit Rate Curve', fontsize=18, color='black')
             plt.show()
             plt.savefig(
-                os.path.basename(self.reader.file_loc).split('.')[0] + '_' + self.cache_class.__name__ + '_' + str( \
+                os.path.basename(self.reader.file_loc).split('.')[0] + '_' + self.cache_class.__name__ + '_' + str(
                     self.cache_size) + '_HRC')
             print("plot saved")
         except Exception as e:
@@ -193,10 +197,10 @@ class generalProfiler(profilerAbstract):
             print(e)
 
     def outputMRC(self, file_loc="./"):
-        ''' save the MRC list to the given location
+        """ save the MRC list to the given location
         :param file_loc: can be a fileName or foldername
         :return:
-        '''
+        """
         if not self.calculated:
             self.calculate()
 
@@ -211,10 +215,10 @@ class generalProfiler(profilerAbstract):
         return True
 
     def outputHRC(self, file_loc="./"):
-        ''' save the HRC list to the given location
+        """ save the HRC list to the given location
         :param file_loc: can be a fileName or foldername
         :return:
-        '''
+        """
         if not self.calculated:
             self.calculate()
 

@@ -1,8 +1,8 @@
 from mimircache.cache.LRU import LRU
-from mimircache.cacheReader.plainReader import plainCacheReader
 from mimircache.cacheReader.csvReader import csvCacheReader
+from mimircache.cacheReader.plainReader import plainCacheReader
 from mimircache.cacheReader.vscsiReader import vscsiCacheReader
-from mimircache.profiler.basicLRUProfiler import basicLRUProfiler
+from mimircache.oldModule.basicLRUProfiler import basicLRUProfiler
 from mimircache.profiler.pardaProfiler import pardaProfiler
 from mimircache.profiler.pardaProfiler import parda_mode
 
