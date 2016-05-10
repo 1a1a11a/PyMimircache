@@ -1,4 +1,7 @@
 import logging
+# import matplotlib
+# matplotlib.use('Agg')
+
 
 from mimircache.oldModule.basicLRUProfiler import basicLRUProfiler as basicLRUProfiler
 from .cache.LRU import LRU as LRU

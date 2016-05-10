@@ -13,6 +13,9 @@ from multiprocessing import Pool
 
 import numpy as np
 import os
+import matplotlib
+
+matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 
 from mimircache.cache.LRU import LRU
@@ -261,33 +264,61 @@ class heatmap:
                 os.remove('temp/' + filename)
             os.rmdir('temp/')
 
-    def run(self, mode, interval, cache_size, reader, num_of_process=4):
+    def run(self, mode, interval, cache_size, reader, **kargs):
         self.cache_size = cache_size
         self.interval = interval
         # self.reader = reader
         self.mode = mode
-        self.num_of_process = num_of_process
+        figname = None
+        if 'num_of_process' in kargs:
+            self.num_of_process = kargs['num_of_process']
+        else:
+            self.num_of_process = 4
+
+        if 'figname' in kargs:
+            figname = kargs['figname']
 
         if mode == 'r':
             xydict = self.prepare_heatmap_dat('r', reader, True)
-            print(xydict)
-            self.draw(xydict)
         elif mode == 'v':
             xydict = self.prepare_heatmap_dat('v', reader, True)
             self.draw(xydict)
         else:
             raise RuntimeError("Cannot recognize this mode, it can only be either real time(r) or virtual time(v), "
                                "but you input %s" % mode)
+
+        if figname:
+            self.draw(xydict, figname)
+        else:
+            self.draw(xydict)
+
         self.__del_manual__()
 
 
 if __name__ == "__main__":
-    reader1 = plainCacheReader("../data/parda.trace")
-    reader2 = vscsiCacheReader("../data/trace_CloudPhysics_bin")
+
+    mem_sizes = []
+    with open('memSize', 'r') as ifile:
+        for line in ifile:
+            mem_sizes.append(int(line.strip()))
+
+    # reader1 = plainCacheReader("../data/parda.trace")
+    # reader2 = vscsiCacheReader("../data/trace_CloudPhysics_bin")
+
 
     hm = heatmap()
+    for filename in os.listdir("../data/cloudphysics"):
+        if filename.endswith('.vscsitrace'):
+            mem_size = mem_sizes[int(filename.split('_')[0][1:])] * 16
+            reader = vscsiCacheReader("../data/cloudphysics/" + filename)
+            print(filename)
+            hm.run('r', 100000000, mem_size, reader, num_of_process=42, figname=filename + '.png')
+
+
+
+
     # hm.run('r', 100000000, 2000, reader2, 1)
-    hm.run('v', 1000, 2000, reader2, 1)
+            # hm.run('v', 1000, 2000, reader2, 1)
 
 
     # for i in range(10, 200, 10):

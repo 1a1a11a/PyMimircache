@@ -12,8 +12,7 @@ from os import path
 # deal with headless situation
 # if Constants.headless:
 import matplotlib
-
-# matplotlib.use('pdf')
+# matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
 

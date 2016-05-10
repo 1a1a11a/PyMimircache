@@ -8,7 +8,7 @@ import math
 import os
 
 # deal with headless situation
-# import matplotlib
+import matplotlib
 # matplotlib.use('Agg')
 
 from multiprocessing import Process, Pipe, Array
