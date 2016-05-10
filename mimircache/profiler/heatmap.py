@@ -291,11 +291,11 @@ class heatmap:
         # vmax=result2.max())
         try:
             # ax.pcolor(masked_array.T, cmap=cmap)
-            ax.imshow(masked_array.T, interpolation='nearest', origin='lower')
-            cb = plt.colorbar()
+            img = ax.imshow(masked_array.T, interpolation='nearest', origin='lower')
+            cb = fig.colorbar(img, ax=ax)
             # plt.show()
-            ax.savefig(filename)
-            cb.remove()
+            fig.savefig(filename)
+            # cb.remove()
             colorfulPrint("red", "plot is saved at the same directory")
         except Exception as e:
             logging.warning(str(e))
@@ -326,7 +326,6 @@ class heatmap:
         """
         self.cache_size = cache_size
         self.interval = interval
-        # self.reader = reader
         self.mode = mode
         figname = None
         if 'num_of_process' in kargs:
@@ -371,6 +370,10 @@ def server_plot_all():
             hm.run('r', 1000000000, mem_size, reader, num_of_process=42, figname=filename + '.png')
 
 
+def server_size_plot():
+    pass
+
+
 def localtest():
     # reader1 = plainCacheReader("../data/parda.trace")
     reader2 = vscsiCacheReader("../data/trace_CloudPhysics_bin")
@@ -383,4 +386,5 @@ def localtest():
 
 
 if __name__ == "__main__":
+    # localtest()
     server_plot_all()
