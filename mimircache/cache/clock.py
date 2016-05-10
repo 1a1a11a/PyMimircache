@@ -3,7 +3,7 @@ import os
 
 from mimircache.cache.abstractCache import cache
 from mimircache.utils.LinkedList import LinkedList
-from mimircache.cache.LRU_new import LRU
+from mimircache.cache.LRU import LRU
 
 
 class clock(LRU):

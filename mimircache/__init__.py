@@ -10,6 +10,6 @@ from .cacheReader.plainReader import plainCacheReader as plainReader
 from .cacheReader.vscsiReader import vscsiCacheReader as vscsiReader
 from .profiler.pardaProfiler import pardaProfiler as pardaProfiler
 from .profiler.pardaProfiler import parda_mode as parda_mode
-from .top.cachecow import cachecow as cacheCow
+from .top.cachecow import cachecow as cachecow
 
 logging.basicConfig(filename="log", filemode='w', format='%(levelname)s:%(asctime)s:%(message)s', level=logging.DEBUG)

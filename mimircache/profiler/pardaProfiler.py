@@ -165,9 +165,12 @@ if __name__ == "__main__":
     import os
     import shutil
 
-    for f in os.listdir('../data/mining/'):
-        shutil.copy('../data/mining/' + f, '../data/mining/mining.dat')
-        print(f)
-        p._test()
+    print(len(p.get_reuse_distance()))
+
+
+    # for f in os.listdir('../data/mining/'):
+    #     shutil.copy('../data/mining/' + f, '../data/mining/mining.dat')
+    #     print(f)
+    #     p._test()
     # p.run_with_specified_lines(10000, 20000)
         # p.plotHRC(autosize=True, autosize_threshhold=0.00001)

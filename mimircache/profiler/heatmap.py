@@ -14,7 +14,6 @@ from multiprocessing import Pool
 import numpy as np
 import os
 import matplotlib
-
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 
@@ -70,7 +69,8 @@ class heatmap:
                 with open(breakpoints_filename, 'rb') as ifile:
                     self.break_points = pickle.load(ifile)
 
-        # new
+        # create share memory for child process
+
         if not self.break_points:
             # the break points are not loaded, needs to calculate it
             if mode == 'r':
@@ -239,19 +239,21 @@ class heatmap:
         cmap.set_bad('w', 1.)
 
         plt.Figure()
-        plt.pcolor(masked_array.T, cmap=cmap)
 
         # heatmap = plt.pcolor(result2.T, cmap=plt.cm.Blues, vmin=np.min(result2[np.nonzero(result2)]), \
         # vmax=result2.max())
         try:
-            plt.pcolor(masked_array.T, cmap=cmap)
+            # plt.pcolor(masked_array.T, cmap=cmap)
+            plt.imshow(masked_array.T, interpolation='nearest', origin='lower')
+            plt.colorbar()
             # plt.show()
             plt.savefig(filename)
+            colorfulPrint("red", "plot is saved at the same directory")
         except Exception as e:
             logging.warning(str(e))
             import matplotlib
             matplotlib.use('pdf')
-            plt.pcolor(masked_array.T, cmap=cmap)
+            plt.pcolormesh(masked_array.T, cmap=cmap)
             plt.savefig(filename)
 
     def __del_manual__(self):
@@ -265,6 +267,15 @@ class heatmap:
             os.rmdir('temp/')
 
     def run(self, mode, interval, cache_size, reader, **kargs):
+        """
+
+        :param mode:
+        :param interval:
+        :param cache_size:
+        :param reader:
+        :param kargs: include num_of_process, figname
+        :return:
+        """
         self.cache_size = cache_size
         self.interval = interval
         # self.reader = reader
@@ -307,12 +318,15 @@ if __name__ == "__main__":
 
 
     hm = heatmap()
+
     for filename in os.listdir("../data/cloudphysics"):
         if filename.endswith('.vscsitrace'):
+            if int(filename.split('_')[0][1:]) in [41, 92]:
+                continue
             mem_size = mem_sizes[int(filename.split('_')[0][1:])] * 16
             reader = vscsiCacheReader("../data/cloudphysics/" + filename)
             print(filename)
-            hm.run('r', 100000000, mem_size, reader, num_of_process=42, figname=filename + '.png')
+            hm.run('r', 1000000000, mem_size, reader, num_of_process=42, figname=filename + '.png')
 
 
 

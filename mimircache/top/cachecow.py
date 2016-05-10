@@ -5,10 +5,20 @@ from mimircache.cacheReader.plainReader import plainCacheReader
 from mimircache.cacheReader.vscsiReader import vscsiCacheReader
 
 from mimircache.cache.LRU import LRU
+from mimircache.cache.ARC import ARC
+from mimircache.cache.clock import clock
+from mimircache.cache.FIFO import FIFO
+from mimircache.cache.LFU_MRU import LFU_MRU
+from mimircache.cache.LFU_RR import LFU_RR
+from mimircache.cache.MRU import MRU
+from mimircache.cache.RR import RR
+from mimircache.cache.SLRU import SLRU
+from mimircache.cache.S4LRU import S4LRU
 
+from mimircache.profiler.generalProfiler import generalProfiler
 from mimircache.profiler.pardaProfiler import pardaProfiler
 from mimircache.profiler.pardaProfiler import parda_mode
-
+from mimircache.profiler.heatmap import heatmap
 
 class cachecow:
     def __init__(self, **kargs):
@@ -17,6 +27,21 @@ class cachecow:
             assert isinstance(kargs['size'], int), "size can only be an integer"
             self.cache_size = kargs['size']
         self.reader = None
+
+        self.cacheclass_mapping = {}
+        self.prepare_cacheclass_mapping()
+
+    def prepare_cacheclass_mapping(self):
+        self.cacheclass_mapping['lru'] = LRU
+        self.cacheclass_mapping['arc'] = ARC
+        self.cacheclass_mapping['clock'] = clock
+        self.cacheclass_mapping['fifo'] = FIFO
+        self.cacheclass_mapping['lfu_mru'] = LFU_MRU
+        self.cacheclass_mapping['lfu_rr'] = LFU_RR
+        self.cacheclass_mapping['mru'] = MRU
+        self.cacheclass_mapping['rr'] = RR
+        self.cacheclass_mapping['slru'] = SLRU
+        self.cacheclass_mapping['s4lru'] = S4LRU
 
     def open(self, file_path):
         # assert os.path.exists(file_path), "data file does not exist"
@@ -35,8 +60,12 @@ class cachecow:
     def reset(self):
         self.reader.reset()
 
-    def profiler(self, cache_class, **kargs):
-
+    def _profiler_pre_check(self, **kargs):
+        """
+        check whether user has provided new cache size and data information
+        :param kargs:
+        :return:
+        """
         if 'size' in kargs:
             size = kargs['size']
         else:
@@ -49,24 +78,61 @@ class cachecow:
                 reader = csvCacheReader(kargs['data'])
             if kargs['dataType'] == 'vscsi':
                 reader = vscsiCacheReader(kargs['data'])
+        elif 'reader' in kargs:
+            reader = kargs['reader']
         else:
             reader = self.reader
 
         assert size != -1, "you didn't provide size for cache"
         assert reader, "you didn't provide data file or data type"
 
+        return size, reader
+
+    def heatmap(self, mode, interval, **kargs):
+        """
+
+        :param mode:
+        :param interval:
+        :param kargs:
+        :return:
+        """
+
+        size, reader = self._profiler_pre_check(kargs=kargs)
+
+        hm = heatmap()
+        hm.run(mode, interval, size, reader, kargs=kargs)
+
+
+    def profiler(self, cache_class, **kargs):
+        """
+        profiler
+        :param cache_class:
+        :param kargs:
+        :return:
+        """
+        size, reader = self._profiler_pre_check(kargs=kargs)
+
         profiler = None
 
         # print(cache_class)
-        # print(LRU)
+
         if cache_class.lower() == "lru":
             profiler = pardaProfiler(LRU, size, reader)
             # print(profiler)
-
         else:
-            # TODO
-            # parameters about cache class can be passed in kargs
-            pass
+            if 'bin_size' in kargs:
+                bin_size = kargs['bin_size']
+            else:
+                raise RuntimeError("please give bin_size parameter if you want to profile on non-LRU cache "
+                                   "replacement algorithm")
+            if 'num_of_process' in kargs:
+                num_of_process = kargs['num_of_process']
+            else:
+                num_of_process = 4
+
+            profiler = generalProfiler(self.cacheclass_mapping[cache_class.lower()], size, bin_size,
+                                       reader, num_of_process)
+
 
         return profiler
 
@@ -85,17 +151,27 @@ class cachecow:
 
 
 if __name__ == "__main__":
-    m = cachecow(size=10000)
+    m = cachecow(size=2000)
+    m.vscsi('../data/trace_CloudPhysics_bin')
+    # m.heatmap('r', 100000000)
+
     # m.test()
     m.open('../data/parda.trace')
     p = m.profiler("LRU")
-    # p = m.profiler(LRU, data='../data/parda.trace', dataType='plain')
-    # p.run()
+
+    # p = m.profiler('lru', data='../data/parda.trace', dataType='plain')
+    p.run()
     # print(len(p.HRC))
+    print(p.HRC)
     # print(p.MRC[-1])
     rdist = p.get_reuse_distance()
-    print(rdist[-2])
-    # p.plotHRC()
+    # for i in rdist:
+    #     print(i)
+    # else:
+    #     print('no element')
+    print(rdist)
+    print(rdist[-1])
+    p.plotHRC()
     # p.plotMRC()
 
     # line_num = 0

@@ -2,7 +2,7 @@ import sys
 import os
 
 from mimircache.cache.abstractCache import cache
-from mimircache.cache.LRU_new import LRU
+from mimircache.cache.LRU import LRU
 from mimircache.utils.LinkedList import LinkedList
 
 
