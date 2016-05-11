@@ -27,8 +27,8 @@ class parda_mode(Enum):
 
 
 class pardaProfiler(abstractLRUProfiler):
-    def __init__(self, cache_class, cache_size, reader, bin_size=1):
-        super().__init__(cache_class, cache_size, bin_size, reader)
+    def __init__(self, cache_size, reader, bin_size=1):
+        super().__init__(LRU, cache_size, bin_size, reader)
 
         # load the shared object file
         self.parda_seq = CDLL(os.path.join(os.path.dirname(os.path.abspath(__file__)), self.get_lib_name()))
@@ -156,7 +156,7 @@ class pardaProfiler(abstractLRUProfiler):
 
 
 if __name__ == "__main__":
-    p = pardaProfiler(LRU, 30000, plainCacheReader("../data/parda.trace"))
+    p = pardaProfiler(30000, plainCacheReader("../data/parda.trace"))
     # p = parda(LRU, 30000, csvCacheReader("../data/trace_CloudPhysics_txt", 4))
     # p = parda(LRU, 30000, vscsiReader("../data/cloudPhysics/w02_vscsi1.vscsitrace"))
     # p = parda(LRU, 3000000, basicCacheReader("temp.dat"))

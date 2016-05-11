@@ -78,7 +78,7 @@ class abstractLRUProfiler(profilerAbstract):
             self.calculate()
         return self.HRC
 
-    def plotMRC(self, autosize=False, autosize_threshhold=0.01):
+    def plotMRC(self, autosize=False, autosize_threshold=0.01):
         if not self.calculated:
             self.calculate()
         try:
@@ -88,7 +88,7 @@ class abstractLRUProfiler(profilerAbstract):
             # change the x-axis range according to threshhold
             if autosize:
                 for i in range(len(self.MRC) - 1, 2, -1):
-                    if (self.MRC[i - 1] - self.MRC[i]) / self.MRC[i] > autosize_threshhold:
+                    if (self.MRC[i - 1] - self.MRC[i]) / self.MRC[i] > autosize_threshold:
                         break
                 num_of_blocks = i
 
@@ -110,7 +110,7 @@ class abstractLRUProfiler(profilerAbstract):
             print(e)
             traceback.print_exc()
 
-    def plotHRC(self, autosize=False, autosize_threshhold=0.001):
+    def plotHRC(self, autosize=False, autosize_threshold=0.001):
         if not self.calculated:
             self.calculate()
         try:
@@ -119,7 +119,7 @@ class abstractLRUProfiler(profilerAbstract):
             # change the x-axis range according to threshhold
             if autosize:
                 for i in range(len(self.HRC) - 1, 2, -1):
-                    if (self.HRC[i] - self.HRC[i - 1]) / self.HRC[i] > autosize_threshhold:
+                    if (self.HRC[i] - self.HRC[i - 1]) / self.HRC[i] > autosize_threshold:
                         break
                 num_of_blocks = i
 

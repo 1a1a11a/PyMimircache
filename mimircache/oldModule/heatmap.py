@@ -19,7 +19,7 @@ import time
 def prepare_heatmap_dat(bin_size=1000, cache_size=2000):
     reader = csvCacheReader("../data/trace_CloudPhysics_txt", 4, delimiter=' ')
     total_line = reader.get_num_total_lines()
-    p = pardaProfiler(LRU, 30000, reader)
+    p = pardaProfiler(30000, reader)
     c_reuse_dist_long_array = p.get_reuse_distance()
 
     array_len = len(c_reuse_dist_long_array) // bin_size
@@ -51,7 +51,7 @@ def prepare_heatmap_dat(bin_size=1000, cache_size=2000):
 def prepare_heatmap_dat_multiprocess(bin_size=1000, cache_size=2000, num_of_process=8):
     reader = plainCacheReader("../data/parda.trace")
     total_line = reader.get_num_total_lines()
-    p = pardaProfiler(LRU, 30000, reader)
+    p = pardaProfiler(30000, reader)
     c_reuse_dist_long_array = p.get_reuse_distance()
 
     array_len = len(c_reuse_dist_long_array) // bin_size
@@ -104,7 +104,7 @@ def prepare_heatmap_dat_multiprocess_ts(datapath="../data/trace_CloudPhysics_bin
     break_points = None
 
     if calculate:
-        p = pardaProfiler(LRU, 30000, reader)
+        p = pardaProfiler(30000, reader)
         c_reuse_dist_long_array = p.get_reuse_distance()
 
         # print(len(c_reuse_dist_long_array))

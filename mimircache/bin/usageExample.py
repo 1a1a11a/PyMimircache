@@ -46,7 +46,7 @@ basic_profiler = basicLRUProfiler(LRU, cache_size=20000, bin_size=10, reader=rea
 
 
 # the second profiler now it supports now is parda
-p = pardaProfiler(LRU, 30000, reader1)  # construction is same, but you don't need to specify bin_size
+p = pardaProfiler(30000, reader1)  # construction is same, but you don't need to specify bin_size
 p.run(parda_mode.seq)  # let's run, it supports two mode, sequential mode and openmp mode
 # # p.run(parda_mode.openmp, threads=4)
 p.plotHRC()  # the rest is the same as all other profilers, plot, print, output

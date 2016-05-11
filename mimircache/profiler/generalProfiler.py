@@ -161,38 +161,101 @@ class generalProfiler(profilerAbstract):
             self.calculate()
         return self.HRC
 
-    def plotMRC(self):
+    # def plotMRC(self):
+    #     if not self.calculated:
+    #         self.calculate()
+    #     try:
+    #         plt.figure(1)
+    #         plt.plot(range(self.bin_size, self.bin_size * (self.num_of_blocks + 1), self.bin_size), self.MRC)
+    #         plt.xlabel("cache Size")
+    #         plt.ylabel("Miss Rate/%")
+    #         plt.title('Miss Rate Curve', fontsize=18, color='black')
+    #         plt.show()
+    #         plt.savefig(
+    #             os.path.basename(self.reader.file_loc).split('.')[0] + '_' + self.cache_class.__name__ + '_' + str(
+    #                 self.cache_size) + '_MRC')
+    #     except Exception as e:
+    #         print("the plotting function is not wrong, is this a headless server?")
+    #         print(e)
+    #
+    # def plotHRC(self):
+    #     if not self.calculated:
+    #         self.calculate()
+    #     try:
+    #         plt.figure(2)
+    #         plt.plot(range(self.bin_size, self.bin_size * (self.num_of_blocks + 1), self.bin_size), self.HRC)
+    #         plt.xlabel("cache Size")
+    #         plt.ylabel("Hit Rate/%")
+    #         plt.title('Hit Rate Curve', fontsize=18, color='black')
+    #         plt.show()
+    #         plt.savefig(
+    #             os.path.basename(self.reader.file_loc).split('.')[0] + '_' + self.cache_class.__name__ + '_' + str(
+    #                 self.cache_size) + '_HRC')
+    #         print("plot saved")
+    #     except Exception as e:
+    #         print("the plotting function is not wrong, is this a headless server?")
+    #         print(e)
+
+
+    def plotMRC(self, autosize=False, autosize_threshold=0.01):
         if not self.calculated:
             self.calculate()
         try:
-            plt.figure(1)
-            plt.plot(range(self.bin_size, self.bin_size * (self.num_of_blocks + 1), self.bin_size), self.MRC)
+            figure_MRC = plt.figure(1)
+            # p_MRC = figure_MRC.add_subplot(1,1,1)
+
+            # change the x-axis range according to threshhold
+            if autosize:
+                for i in range(len(self.MRC) - 1, 2, -1):
+                    if (self.MRC[i - 1] - self.MRC[i]) / self.MRC[i] > autosize_threshold:
+                        break
+                num_of_blocks = i
+
+            else:
+                num_of_blocks = self.num_of_blocks
+            if DEBUG:
+                print("number of blocks: {}".format(num_of_blocks))
+                print("total size: {}".format(self.bin_size * num_of_blocks))
+
+            plt.plot(range(0, self.bin_size * num_of_blocks, self.bin_size), self.MRC[:num_of_blocks])
             plt.xlabel("cache Size")
             plt.ylabel("Miss Rate/%")
             plt.title('Miss Rate Curve', fontsize=18, color='black')
             plt.show()
-            plt.savefig(
-                os.path.basename(self.reader.file_loc).split('.')[0] + '_' + self.cache_class.__name__ + '_' + str(
-                    self.cache_size) + '_MRC')
+            plt.savefig("figure_temp_MRC.pdf")
         except Exception as e:
+            plt.savefig("figure_temp_MRC.pdf")
             print("the plotting function is not wrong, is this a headless server?")
             print(e)
+            traceback.print_exc()
 
-    def plotHRC(self):
+    def plotHRC(self, autosize=False, autosize_threshold=0.001):
         if not self.calculated:
             self.calculate()
         try:
-            plt.figure(2)
-            plt.plot(range(self.bin_size, self.bin_size * (self.num_of_blocks + 1), self.bin_size), self.HRC)
+            figure_HRC = plt.figure(2)
+
+            # change the x-axis range according to threshhold
+            if autosize:
+                for i in range(len(self.HRC) - 1, 2, -1):
+                    if (self.HRC[i] - self.HRC[i - 1]) / self.HRC[i] > autosize_threshold:
+                        break
+                num_of_blocks = i
+
+            else:
+                num_of_blocks = self.num_of_blocks
+            if DEBUG:
+                print("number of blocks: {}".format(num_of_blocks))
+                print("total size: {}".format(self.bin_size * num_of_blocks))
+
+            line = plt.plot(range(0, self.bin_size * num_of_blocks, self.bin_size), self.HRC[:num_of_blocks])
             plt.xlabel("cache Size")
             plt.ylabel("Hit Rate/%")
             plt.title('Hit Rate Curve', fontsize=18, color='black')
             plt.show()
-            plt.savefig(
-                os.path.basename(self.reader.file_loc).split('.')[0] + '_' + self.cache_class.__name__ + '_' + str(
-                    self.cache_size) + '_HRC')
-            print("plot saved")
+            plt.savefig("figure_temp_HRC.pdf")
         except Exception as e:
+            plt.savefig("figure_temp_HRC.pdf")
             print("the plotting function is not wrong, is this a headless server?")
             print(e)
 

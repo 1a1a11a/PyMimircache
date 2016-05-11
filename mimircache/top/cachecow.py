@@ -117,7 +117,7 @@ class cachecow:
         # print(cache_class)
 
         if cache_class.lower() == "lru":
-            profiler = pardaProfiler(LRU, size, reader)
+            profiler = pardaProfiler(size, reader)
             # print(profiler)
         else:
             if 'bin_size' in kargs:
@@ -159,7 +159,7 @@ if __name__ == "__main__":
     m.open('../data/parda.trace')
     # p = m.profiler("LRU")
 
-    p = m.profiler('lru', data='../data/parda.trace', dataType='plain')
+    p = m.profiler('mru', bin_size=10, data='../data/parda.trace', dataType='plain')
     p.run()
     # print(len(p.HRC))
     # print(p.HRC)

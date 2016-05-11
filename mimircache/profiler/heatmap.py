@@ -97,7 +97,7 @@ class heatmap:
         
         if calculate:
             # build profiler for extracting reuse distance (For LRU)
-            p = pardaProfiler(LRU, 30000, reader)
+            p = pardaProfiler(30000, reader)
             # reuse distance, c_reuse_dist_long_array is an array in dtype C long type
             c_reuse_dist_long_array = p.get_reuse_distance()
 
@@ -359,7 +359,6 @@ class heatmap:
 
 
 def server_plot_all():
-    hm = heatmap()
     mem_sizes = []
     with open('memSize', 'r') as ifile:
         for line in ifile:
@@ -367,10 +366,11 @@ def server_plot_all():
 
     for filename in os.listdir("../data/cloudphysics"):
         if filename.endswith('.vscsitrace'):
-            if int(filename.split('_')[0][1:]) in [99, 5]:
+            if int(filename.split('_')[0][1:]) in [1, 99, 5, 87]:
                 continue
             if os.path.exists(filename + '.png'):
                 continue
+            hm = heatmap()
             mem_size = mem_sizes[int(filename.split('_')[0][1:])] * 16
             reader = vscsiCacheReader("../data/cloudphysics/" + filename)
             print(filename)
@@ -378,7 +378,6 @@ def server_plot_all():
 
 
 def server_size_plot():
-    hm = heatmap()
     mem_sizes = []
     with open('memSize', 'r') as ifile:
         for line in ifile:
@@ -388,6 +387,7 @@ def server_size_plot():
         if filename.endswith('.vscsitrace'):
             if int(filename.split('_')[0][1:]) in [13, 99]:
                 continue
+            hm = heatmap()
             mem_size = mem_sizes[int(filename.split('_')[0][1:])]
             reader = vscsiCacheReader("../data/cloudphysics/" + filename)
             print(filename)
