@@ -97,7 +97,7 @@ class cachecow:
         :return:
         """
 
-        size, reader = self._profiler_pre_check(kargs=kargs)
+        size, reader = self._profiler_pre_check(**kargs)
 
         hm = heatmap()
         hm.run(mode, interval, size, reader, kargs=kargs)
@@ -110,7 +110,7 @@ class cachecow:
         :param kargs:
         :return:
         """
-        size, reader = self._profiler_pre_check(kargs=kargs)
+        size, reader = self._profiler_pre_check(**kargs)
 
         profiler = None
 
@@ -157,21 +157,21 @@ if __name__ == "__main__":
 
     # m.test()
     m.open('../data/parda.trace')
-    # p = m.profiler("LRU")
+    p = m.profiler("LRU")
 
-    p = m.profiler('mru', bin_size=10, data='../data/parda.trace', dataType='plain')
+    p = m.profiler('mru', bin_size=200, data='../data/parda.trace', dataType='plain', num_of_process=4)
     p.run()
     # print(len(p.HRC))
-    # print(p.HRC)
+    print(p.HRC)
     # print(p.MRC[-1])
-    rdist = p.get_reuse_distance()
+    # rdist = p.get_reuse_distance()
     # for i in rdist:
     #     print(i)
     # else:
     #     print('no element')
-    print(rdist)
-    print(rdist[-1])
-    # p.plotHRC()
+    # print(rdist)
+    # print(rdist[-1])
+    p.plotHRC()
     # p.plotMRC()
 
     # line_num = 0

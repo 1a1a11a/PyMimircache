@@ -272,35 +272,44 @@ class heatmap:
         return hit_count / (end_pos - begin_pos)
 
     @staticmethod
-    def draw(xydict, filename="heatmap.png"):
-        # with open('temp/draw', 'rb') as ofile:
-        #     xydict = pickle.load(ofile)
-        # print("load data successfully, begin plotting")
-        # print(result)
+    def draw(xydict, **kargs):
+        if 'figname' in kargs:
+            filename = kargs['figname']
+        else:
+            filename = 'heatmap.png'
 
+        plt.clf()
         masked_array = np.ma.array(xydict, mask=np.isnan(xydict))
 
         # print(masked_array)
         cmap = plt.cm.jet
         cmap.set_bad('w', 1.)
 
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
+        # fig = plt.figure()
+        # ax = fig.add_subplot(111)
 
         # heatmap = plt.pcolor(result2.T, cmap=plt.cm.Blues, vmin=np.min(result2[np.nonzero(result2)]), \
         # vmax=result2.max())
         try:
             # ax.pcolor(masked_array.T, cmap=cmap)
-            img = ax.imshow(masked_array.T, interpolation='nearest', origin='lower')
-            cb = fig.colorbar(img, ax=ax)
+            if 'fixed_range' in kargs and kargs['fixed_range']:
+                img = plt.imshow(masked_array.T, vmin=0, vmax=1, interpolation='nearest', origin='lower')
+            else:
+                img = plt.imshow(masked_array.T, interpolation='nearest', origin='lower')
+            # cb = plt.colorbar(img, ax=ax)
+            cb = plt.colorbar(img)
+            if 'text' in kargs:
+                (length1, length2) = masked_array.shape
+                ax = plt.gca()
+                # ax.text(2, 6, r'an equation: $E=mc^2$', fontsize=30)
+                ax.text(length2 // 3, length1 // 8, kargs['text'], fontsize=20)  # , color='blue')
+
+                # ax.text(length2*3//4, length1//4, 2, text, fontsize=120, color='blue')
             # plt.show()
-            fig.savefig(filename)
-            # cb.remove()
+            plt.savefig(filename)
             colorfulPrint("red", "plot is saved at the same directory")
         except Exception as e:
             logging.warning(str(e))
-            import matplotlib
-            matplotlib.use('pdf')
             plt.pcolormesh(masked_array.T, cmap=cmap)
             plt.savefig(filename)
 
@@ -327,14 +336,11 @@ class heatmap:
         self.cache_size = cache_size
         self.interval = interval
         self.mode = mode
-        figname = None
         if 'num_of_process' in kargs:
             self.num_of_process = kargs['num_of_process']
         else:
             self.num_of_process = 4
 
-        if 'figname' in kargs:
-            figname = kargs['figname']
 
         if 'calculate' in kargs:
             calculate = kargs['calculate']
@@ -345,15 +351,11 @@ class heatmap:
             xydict = self.prepare_heatmap_dat('r', reader, calculate)
         elif mode == 'v':
             xydict = self.prepare_heatmap_dat('v', reader, calculate)
-            self.draw(xydict)
         else:
             raise RuntimeError("Cannot recognize this mode, it can only be either real time(r) or virtual time(v), "
                                "but you input %s" % mode)
 
-        if figname:
-            self.draw(xydict, figname)
-        else:
-            self.draw(xydict)
+        self.draw(xydict, **kargs)
 
         self.__del_manual__()
 
@@ -365,15 +367,15 @@ def server_plot_all():
             mem_sizes.append(int(line.strip()))
 
     for filename in os.listdir("../data/cloudphysics"):
+        print(filename)
         if filename.endswith('.vscsitrace'):
-            if int(filename.split('_')[0][1:]) in [1, 99, 5, 87]:
+            if int(filename.split('_')[0][1:]) in [1, 4, 5, 51, 99, 83, 87]:
                 continue
             if os.path.exists(filename + '.png'):
                 continue
             hm = heatmap()
-            mem_size = mem_sizes[int(filename.split('_')[0][1:])] * 16
+            mem_size = mem_sizes[int(filename.split('_')[0][1:]) - 1] * 16
             reader = vscsiCacheReader("../data/cloudphysics/" + filename)
-            print(filename)
             hm.run('r', 1000000000, mem_size, reader, num_of_process=42, figname=filename + '.png')
 
 
@@ -385,7 +387,7 @@ def server_size_plot():
 
     for filename in os.listdir("../data/cloudphysics"):
         if filename.endswith('.vscsitrace'):
-            if int(filename.split('_')[0][1:]) in [13, 99]:
+            if int(filename.split('_')[0][1:]) in [1, 4, 5, 51, 99, 83, 87]:
                 continue
             hm = heatmap()
             mem_size = mem_sizes[int(filename.split('_')[0][1:])]
@@ -397,11 +399,11 @@ def server_size_plot():
                 if size == 512:
                     hm.run('r', 1000000000, size, reader, num_of_process=42, figname='time_size/' + filename
                                                                                      + '_' + str(size) + '.png',
-                           calculate=True)
+                           calculate=True, fixed_range=True, text='size=' + str(size))
                 else:
                     hm.run('r', 1000000000, size, reader, num_of_process=42, figname='time_size/' + filename
                                                                                      + '_' + str(size) + '.png',
-                           calculate=False)
+                           calculate=False, fixed_range=True, text='size=' + str(size))
                 size *= 2
 
 
@@ -410,12 +412,12 @@ def localtest():
     reader2 = vscsiCacheReader("../data/trace_CloudPhysics_bin")
 
     hm = heatmap()
-    hm.run('r', 100000000, 2000, reader2, num_of_process=4)
+    hm.run('r', 100000000, 2000, reader2, num_of_process=4, fixed_range="True", text="Hello word")
 
 
 
 
 
 if __name__ == "__main__":
-    # localtest()
-    server_plot_all()
+    localtest()
+    # server_plot_all()
