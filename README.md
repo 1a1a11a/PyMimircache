@@ -1,6 +1,6 @@
-# cachecow
+# mimircache
 
-This is the cachecow platform used for analyzing cache trace developed by Emory University, Ymir group 
+This is the mimircache platform used for analyzing cache trace developed by Emory University, Ymir group 
 
 Currently the platform is still under development. 
 
