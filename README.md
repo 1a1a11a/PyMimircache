@@ -11,7 +11,7 @@ and also plotting heatmap of a workload under LRU between different time is supp
 please have glib, numpy, scipy, matplotlib installed
 
 
-### Mimircache Tutorial 
+### mimircache Tutorial 
 ```python
 import mimircache as m
 
