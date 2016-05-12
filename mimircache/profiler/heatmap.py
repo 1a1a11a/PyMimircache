@@ -176,6 +176,8 @@ class heatmap:
             print("%2.2f%%" % (result_count / len(map_list) * 100), end='\r')
         for p in process_pool:
             p.join()
+        del reuse_dist_share_array
+        del break_points_share_array
 
         # old 0510
         # with Pool(processes=self.num_of_process) as p:
@@ -357,7 +359,7 @@ class heatmap:
 
         self.draw(xydict, **kargs)
 
-        self.__del_manual__()
+        # self.__del_manual__()
 
 
 def server_plot_all():
@@ -371,12 +373,12 @@ def server_plot_all():
         if filename.endswith('.vscsitrace'):
             if int(filename.split('_')[0][1:]) in [1, 4, 5, 51, 99, 83, 87]:
                 continue
-            if os.path.exists(filename + '.png'):
+            if os.path.exists(filename + '_v.png'):
                 continue
             hm = heatmap()
             mem_size = mem_sizes[int(filename.split('_')[0][1:]) - 1] * 16
             reader = vscsiCacheReader("../data/cloudphysics/" + filename)
-            hm.run('r', 1000000000, mem_size, reader, num_of_process=42, figname=filename + '.png')
+            hm.run('v', 100000, mem_size, reader, num_of_process=45, figname=filename + '_v.png')
 
 
 def server_size_plot():
@@ -388,6 +390,8 @@ def server_size_plot():
     for filename in os.listdir("../data/cloudphysics"):
         if filename.endswith('.vscsitrace'):
             if int(filename.split('_')[0][1:]) in [1, 4, 5, 51, 99, 83, 87]:
+                continue
+            if os.path.exists('time_size/' + filename + '_512.png'):
                 continue
             hm = heatmap()
             mem_size = mem_sizes[int(filename.split('_')[0][1:])]
@@ -412,7 +416,7 @@ def localtest():
     reader2 = vscsiCacheReader("../data/trace_CloudPhysics_bin")
 
     hm = heatmap()
-    hm.run('r', 100000000, 2000, reader2, num_of_process=4, fixed_range="True", text="Hello word")
+    hm.run('v', 1000, 2000, reader2, num_of_process=4, fixed_range="True", text="Hello word")
 
 
 
@@ -421,3 +425,4 @@ def localtest():
 if __name__ == "__main__":
     localtest()
     # server_plot_all()
+    # server_size_plot()
