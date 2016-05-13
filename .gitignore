@@ -5,6 +5,7 @@ __pycache__/
 
 # C extensions
 *.so
+*.dylib
 
 # Distribution / packaging
 .Python
@@ -63,3 +64,9 @@ target/
 
 # 1a1a11a
 1a1a11a/
+
+# old 
+oldModule/ 
+
+# pycharm 
+.idea/
