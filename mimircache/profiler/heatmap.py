@@ -20,6 +20,7 @@ from mimircache.cache.LRU import LRU
 from mimircache.cacheReader.plainReader import plainCacheReader
 from mimircache.cacheReader.vscsiReader import vscsiCacheReader
 from mimircache.profiler.pardaProfiler import pardaProfiler
+import matplotlib.ticker as ticker
 from mimircache.utils.printing import *
 
 DEBUG = True
@@ -298,15 +299,12 @@ class heatmap:
                 img = plt.imshow(masked_array.T, vmin=0, vmax=1, interpolation='nearest', origin='lower')
             else:
                 img = plt.imshow(masked_array.T, interpolation='nearest', origin='lower')
-            # cb = plt.colorbar(img, ax=ax)
             cb = plt.colorbar(img)
             if 'text' in kargs:
                 (length1, length2) = masked_array.shape
                 ax = plt.gca()
-                # ax.text(2, 6, r'an equation: $E=mc^2$', fontsize=30)
                 ax.text(length2 // 3, length1 // 8, kargs['text'], fontsize=20)  # , color='blue')
 
-                # ax.text(length2*3//4, length1//4, 2, text, fontsize=120, color='blue')
             # plt.show()
             plt.savefig(filename)
             colorfulPrint("red", "plot is saved at the same directory")
@@ -411,6 +409,31 @@ def server_size_plot():
                 size *= 2
 
 
+def server_request_num_plot():
+    for filename in os.listdir("../data/cloudphysics"):
+        print(filename)
+        if filename.endswith('.vscsitrace'):
+            if int(filename.split('_')[0][1:]) in [1, 4, 5, 51, 99, 83, 87]:
+                continue
+            if os.path.exists(filename + '_request_num.png'):
+                continue
+            hm = heatmap()
+            reader = vscsiCacheReader("../data/cloudphysics/" + filename)
+            break_points = hm._get_breakpoints_realtime(reader, 1000000000)
+
+            array_len = len(break_points)
+            result = np.empty((array_len, array_len), dtype=np.float32)
+            result[:] = np.nan
+
+            for o1, i in enumerate(break_points):
+                for o2, j in enumerate(break_points):
+                    if i >= j:
+                        continue
+                    else:
+                        result[o1][o2] = j - i
+            hm.draw(result, figname=filename + '_request_num.png')
+
+
 def localtest():
     # reader1 = plainCacheReader("../data/parda.trace")
     reader2 = vscsiCacheReader("../data/trace_CloudPhysics_bin")
@@ -423,6 +446,7 @@ def localtest():
 
 
 if __name__ == "__main__":
-    localtest()
+    # localtest()
     # server_plot_all()
     # server_size_plot()
+    server_request_num_plot()
