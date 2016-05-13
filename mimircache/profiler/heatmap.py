@@ -25,6 +25,11 @@ from mimircache.utils.printing import *
 
 DEBUG = True
 
+__all__ = ("run", "draw", "prepare_heatmap_dat")
+
+
+
+
 
 def _calc_hit_count(reuse_dist_array, cache_size, begin_pos, end_pos, real_start):
     """
@@ -274,6 +279,7 @@ class heatmap:
         # end_pos-begin_pos, hit_count/(end_pos-begin_pos)))
         return hit_count / (end_pos - begin_pos)
 
+
     @staticmethod
     def draw(xydict, **kargs):
         if 'figname' in kargs:
@@ -304,6 +310,14 @@ class heatmap:
                 (length1, length2) = masked_array.shape
                 ax = plt.gca()
                 ax.text(length2 // 3, length1 // 8, kargs['text'], fontsize=20)  # , color='blue')
+
+            # change tick from arbitrary number to real time
+            if 'change_label' in kargs and 'interval' in kargs:
+                ticks = ticker.FuncFormatter(lambda x, pos: '{:2.2f}'.format(x * kargs['interval'] / (10 ** 6) / 3600))
+                plt.gca().xaxis.set_major_formatter(ticks)
+                plt.gca().yaxis.set_major_formatter(ticks)
+                plt.xlabel("time/hour")
+                plt.ylabel("time/hour")
 
             # plt.show()
             plt.savefig(filename)
@@ -349,6 +363,7 @@ class heatmap:
 
         if mode == 'r':
             xydict = self.prepare_heatmap_dat('r', reader, calculate)
+            kargs['interval'] = interval
         elif mode == 'v':
             xydict = self.prepare_heatmap_dat('v', reader, calculate)
         else:
@@ -376,7 +391,8 @@ def server_plot_all():
             hm = heatmap()
             mem_size = mem_sizes[int(filename.split('_')[0][1:]) - 1] * 16
             reader = vscsiCacheReader("../data/cloudphysics/" + filename)
-            hm.run('v', 100000, mem_size, reader, num_of_process=45, figname=filename + '_v.png')
+            hm.run('r', 1000000000, mem_size, reader, num_of_process=45, figname=filename + '_v.png',
+                   fixed_range="True", change_label='True')
 
 
 def server_size_plot():
@@ -439,14 +455,14 @@ def localtest():
     reader2 = vscsiCacheReader("../data/trace_CloudPhysics_bin")
 
     hm = heatmap()
-    hm.run('v', 1000, 2000, reader2, num_of_process=4, fixed_range="True", text="Hello word")
+    hm.run('r', 10000000, 2000, reader2, num_of_process=8, fixed_range="True", text="Hello word", change_label='True')
 
 
 
 
 
 if __name__ == "__main__":
-    # localtest()
+    localtest()
     # server_plot_all()
     # server_size_plot()
-    server_request_num_plot()
+    # server_request_num_plot()
