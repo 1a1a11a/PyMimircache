@@ -19,6 +19,7 @@ from matplotlib import pyplot as plt
 from mimircache.cache.LRU import LRU
 from mimircache.cacheReader.plainReader import plainCacheReader
 from mimircache.cacheReader.vscsiReader import vscsiCacheReader
+from mimircache.cacheReader.csvReader import csvCacheReader
 from mimircache.profiler.pardaProfiler import pardaProfiler
 import matplotlib.ticker as ticker
 from mimircache.utils.printing import *
@@ -95,7 +96,7 @@ class heatmap:
         :return:
         """
 
-        assert isinstance(reader, vscsiCacheReader), "Currently only supports vscsiReader"
+        # assert isinstance(reader, vscsiCacheReader), "Currently only supports vscsiReader"
         reader.reset()
 
         reuse_dist_python_list = []
@@ -234,9 +235,9 @@ class heatmap:
         break_points = []
         prev = 0
         for num, line in enumerate(reader.lines()):
-            if (line[0] - prev) > interval:
+            if (float(line[0]) - prev) > interval:
                 break_points.append(num)
-                prev = line[0]
+                prev = float(line[0])
 
         # noinspection PyUnboundLocalVariable
         if line[0] != prev:
@@ -408,7 +409,7 @@ def server_size_plot():
             if os.path.exists('time_size/' + filename + '_512.png'):
                 continue
             hm = heatmap()
-            mem_size = mem_sizes[int(filename.split('_')[0][1:])]
+            mem_size = mem_sizes[int(filename.split('_')[0][1:]) - 1]
             reader = vscsiCacheReader("../data/cloudphysics/" + filename)
             print(filename)
             size = 512
@@ -450,6 +451,23 @@ def server_request_num_plot():
             hm.draw(result, figname=filename + '_request_num.png')
 
 
+def server_plot_all_redis():
+    for filename in os.listdir("../data/redis/"):
+        print(filename)
+        if filename.endswith('.csv'):
+            if filename in []:
+                continue
+            if os.path.exists(filename + '_r.png'):
+                continue
+            hm = heatmap()
+            reader = csvCacheReader("../data/redis/" + filename, column=1)
+            hm.run('r', 20, 20000, reader, num_of_process=48, figname=filename + '_r.png',
+                   fixed_range="True")  # , change_label='True')
+
+
+
+
+
 def localtest():
     # reader1 = plainCacheReader("../data/parda.trace")
     reader2 = vscsiCacheReader("../data/trace_CloudPhysics_bin")
@@ -462,7 +480,8 @@ def localtest():
 
 
 if __name__ == "__main__":
-    localtest()
+    # localtest()
     # server_plot_all()
+    server_plot_all_redis()
     # server_size_plot()
     # server_request_num_plot()

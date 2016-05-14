@@ -20,7 +20,7 @@ class csvCacheReader(cacheReaderAbstract):
         else:
             return None
 
-    def lines(self):
+    def lines_dict(self):
         line = self.trace_file.readline()
         while line:
             line_split = line.split(self.delimiter)
@@ -33,6 +33,14 @@ class csvCacheReader(cacheReaderAbstract):
                     d[key] = value
             line = self.trace_file.readline()
             yield d
+
+    def lines(self):
+        line = self.trace_file.readline()
+        while line:
+            line_split = tuple(line.split(self.delimiter))
+            line = self.trace_file.readline()
+            yield line_split
+
 
     def __next__(self):  # Python 3
         super().__next__()
