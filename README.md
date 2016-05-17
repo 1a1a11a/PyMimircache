@@ -55,4 +55,4 @@ import mimircache as m
 
 # besides profiling for MRC/HRC, you can also plot heatmap (only support LRU and vscsi data now): 
     c.heatmap(mode, interval)	# mode can be ‘r’ for real time or ‘v’ for virtual time, interval for how long the time interval should be, after calling this function. Besides, you can also specify num_of_process, recommends set this value to the same of cores in the running server, figname for the location and name for the created plot. After calling this function, a new plot will be created at current directory 
-'''
+```
