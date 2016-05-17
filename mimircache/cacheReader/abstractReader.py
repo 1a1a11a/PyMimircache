@@ -53,6 +53,7 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
     # @atexit.register
     def __del__(self):
         try:
-            self.trace_file.close()
+            pass
+            # self.trace_file.close()
         except:
             pass

@@ -455,13 +455,19 @@ def server_plot_all_redis():
     for filename in os.listdir("../data/redis/"):
         print(filename)
         if filename.endswith('.csv'):
+            reader = csvCacheReader("../data/redis/" + filename, column=1)
+            # print(reader)
+            # for line in reader:
+            #     print(line)
+            #     break
+
             if filename in []:
                 continue
             if os.path.exists(filename + '_r.png'):
                 continue
             hm = heatmap()
             reader = csvCacheReader("../data/redis/" + filename, column=1)
-            hm.run('r', 20, 20000, reader, num_of_process=48, figname=filename + '_r.png',
+            hm.run('r', 20, 2000, reader, num_of_process=48, figname=filename + '_r.png',
                    fixed_range="True")  # , change_label='True')
 
 

@@ -486,7 +486,7 @@ void parda_input_with_textfilepointer_get_reuse_distance_smart(FILE* fp, program
             fscanf(fp, "%s", input);    
 
     // load frequent item mining result 
-    FILE* fp_mining = fopen("../Data/mining.dat", "r"); 
+    FILE* fp_mining = fopen("mining.dat", "r"); 
     GHashTable* gh_mining = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL); 
     char line[2048]; 
      
@@ -531,6 +531,7 @@ void parda_input_with_textfilepointer_get_reuse_distance_smart(FILE* fp, program
             // hash table not empty 
             GList *gl = g_hash_table_get_keys(ght); 
             GList *gl_node = gl; 
+            extra ++; 
             process_one_access_get_reuse_distance(gl_node->data, pdt, i+extra);
             while ((gl_node = g_list_next(gl_node))!=NULL){
                 extra ++; 

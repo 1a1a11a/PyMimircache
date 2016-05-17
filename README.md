@@ -12,7 +12,10 @@ please have glib, numpy, scipy, matplotlib installed
 
 
 ### mimircache Tutorial 
+
+#### get data
 ```python
+
 import mimircache as m
 
 # initialize a cachecow object 
@@ -29,6 +32,10 @@ import mimircache as m
 # We can also do a reset to go back to beginning 
     c.reset() 
 # if you need need more operations about the data, please read advanced usage 
+``` 
+
+#### miss rate curve (MRC) and hit rate curve (HRC) 
+```python 
 
 # now, let’s run the workload to get miss rate curve(MRC), 
 # First get the profiler object 
@@ -41,6 +48,10 @@ import mimircache as m
     p.plotMRC()		# you can also do p.plotHRC()
 # if you only want reuse distance, then you can do: 
     rdist = p.get_reuse_distance()		# rdist is a list with all the reuse distances 
+``` 
+
+#### heatmap
+```python
 
 # besides profiling for MRC/HRC, you can also plot heatmap (only support LRU and vscsi data now): 
     c.heatmap(mode, interval)	# mode can be ‘r’ for real time or ‘v’ for virtual time, interval for how long the time interval should be, after calling this function. Besides, you can also specify num_of_process, recommends set this value to the same of cores in the running server, figname for the location and name for the created plot. After calling this function, a new plot will be created at current directory 
