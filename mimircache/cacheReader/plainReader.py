@@ -4,6 +4,9 @@ from mimircache.cacheReader.abstractReader import cacheReaderAbstract
 class plainCacheReader(cacheReaderAbstract):
     def __init__(self, file_loc):
         super(plainCacheReader, self).__init__(file_loc)
+        # cacheReaderAbstract.__init__(self, file_loc)
+        # print("begin to call")
+        self.trace_file = open(file_loc, 'r')
 
     def read_one_element(self):
         super().read_one_element()

@@ -9,6 +9,7 @@ from enum import Enum
 from mimircache.cache.LRU import LRU
 from mimircache.cacheReader.plainReader import plainCacheReader
 from mimircache.cacheReader.csvReader import csvCacheReader
+from mimircache.cacheReader.vscsiReader import vscsiCacheReader
 from mimircache.profiler.abstract.abstractLRUProfiler import abstractLRUProfiler
 
 
@@ -138,11 +139,13 @@ class pardaProfiler(abstractLRUProfiler):
         # self.parda_seq.main(c_line_num, c_file_name)
         self.parda_seq.get_reuse_distance_smart(c_file_name, c_line_num, self.c_cache_size, self.c_long_array)
         count = 0
+        print(len(self.c_long_array))
         for i in self.c_long_array:
             # print(i)
             if i > -1 and i < cache_size:
                 count += 1
         print(count)
+        print(len(self.c_long_array))
         self.parda_seq.get_reuse_distance(c_file_name, c_line_num, self.c_cache_size, self.c_long_array)
         count = 0
         for i in self.c_long_array:
@@ -165,7 +168,13 @@ if __name__ == "__main__":
     import os
     import shutil
 
-    print(len(p.get_reuse_distance()))
+    # print(len(p.get_reuse_distance()))
+
+
+
+    p = pardaProfiler(2000, csvCacheReader('../data/mining/mining.dat.original', 1))
+    p = pardaProfiler(2000, plainCacheReader('../data/mining/mining.dat.original'))
+    p._test()
 
 
     # for f in os.listdir('../data/mining/'):

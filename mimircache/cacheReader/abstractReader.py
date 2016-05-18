@@ -9,7 +9,7 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
     def __init__(self, file_loc):
         self.file_loc = file_loc
         assert (os.path.exists(file_loc)), "data file does not exist"
-        self.trace_file = open(file_loc, 'r')
+        # self.trace_file = open(file_loc, 'r')
         self.counter = 0
 
     def reset(self):

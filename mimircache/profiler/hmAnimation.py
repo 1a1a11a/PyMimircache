@@ -16,8 +16,8 @@ def offline_plotting(folder_loc):
     for fileloc in glob.glob(folder_loc + "/*.png"):
         if not fileloc.split('/')[-1].split('_')[0] in gif_list:
             gif_list.append(fileloc.split('/')[-1].split('_')[0])
-            # im = Image.open(fileloc)
-            # im.save(DIRECTORY + fileloc.split('/')[-1])
+        im = Image.open(fileloc)
+        im.save(DIRECTORY + fileloc.split('/')[-1])
 
     for prefix in gif_list:
         images = []

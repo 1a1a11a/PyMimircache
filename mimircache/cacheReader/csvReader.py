@@ -5,6 +5,8 @@ from mimircache.cacheReader.abstractReader import cacheReaderAbstract
 class csvCacheReader(cacheReaderAbstract):
     def __init__(self, file_loc, column, header=False, delimiter=','):
         super(csvCacheReader, self).__init__(file_loc)
+        self.trace_file = open(file_loc, 'r')
+
         self.column = column
         self.counter = 0
         self.header_bool = header

@@ -79,6 +79,31 @@ def _calc_hit_rate_subprocess(order, cache_size, break_points_share_array, reuse
     # return result_list
 
 
+def _calc_avg_rd_subprocess(order, cache_size, break_points_share_array, reuse_dist_share_array, q):
+    """
+    the child process for calculating average reuse distance in each block, each child process will calculate for
+    a column with fixed starting time
+    :param order: the order of column the child is working on
+    :return: a list of result in the form of (x, y, hit_rate) with x as fixed value
+    """
+
+    result_list = []
+    for i in range(order + 1, len(break_points_share_array)):
+        rd = 0
+        never_see = 0
+        for j in (break_points_share_array[i - 1], break_points_share_array[i]):
+            if reuse_dist_share_array[j] != -1:
+                rd += reuse_dist_share_array[j]
+            else:
+                never_see += 1
+
+        result_list.append((order, i, rd))
+    q.put(result_list)
+
+
+
+
+
 
 
 
@@ -167,7 +192,10 @@ class heatmap:
         map_list_pos = 0
         while result_count < len(map_list):
             if process_count < self.num_of_process and map_list_pos < len(map_list):
-                p = Process(target=_calc_hit_rate_subprocess, args=(map_list[map_list_pos], self.cache_size,
+                # p = Process(target=_calc_hit_rate_subprocess, args=(map_list[map_list_pos], self.cache_size,
+                #                                                     break_points_share_array, reuse_dist_share_array,
+                #                                                     q))
+                p = Process(target=_calc_avg_rd_subprocess, args=(map_list[map_list_pos], self.cache_size,
                                                                     break_points_share_array, reuse_dist_share_array,
                                                                     q))
                 p.start()
@@ -385,15 +413,15 @@ def server_plot_all():
     for filename in os.listdir("../data/cloudphysics"):
         print(filename)
         if filename.endswith('.vscsitrace'):
-            if int(filename.split('_')[0][1:]) in [1, 4, 5, 51, 99, 83, 87]:
+            if int(filename.split('_')[0][1:]) in [1, 3, 4, 5, 51, 99, 83, 87]:
                 continue
             if os.path.exists(filename + '_v.png'):
                 continue
             hm = heatmap()
             mem_size = mem_sizes[int(filename.split('_')[0][1:]) - 1] * 16
             reader = vscsiCacheReader("../data/cloudphysics/" + filename)
-            hm.run('r', 1000000000, mem_size, reader, num_of_process=45, figname=filename + '_v.png',
-                   fixed_range="True", change_label='True')
+            hm.run('r', 1000000000, mem_size, reader, num_of_process=48, figname=filename + 'reuse_r.png',
+                   change_label='True')  # fixed_range="True",
 
 
 def server_size_plot():
@@ -487,7 +515,7 @@ def localtest():
 
 if __name__ == "__main__":
     # localtest()
-    # server_plot_all()
-    server_plot_all_redis()
+    server_plot_all()
+    # server_plot_all_redis()
     # server_size_plot()
     # server_request_num_plot()

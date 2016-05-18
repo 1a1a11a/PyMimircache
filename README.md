@@ -39,7 +39,7 @@ import mimircache as m
 
 # now, let’s run the workload to get miss rate curve(MRC), 
 # First get the profiler object 
-    p = c.profiler(‘LRU’)			# if you want to profile other cache replacement algorithms, also specify bin_size, which represents the sample interval
+    p = c.profiler('LRU')			# if you want to profile other cache replacement algorithms, also specify bin_size, which represents the sample interval
 # currently all supported cache replacement algorithms include: LRU, MRU, Random(RR), SLRU, S4LRU, clock, ARC, FIFO, LFU with Random(LFU_RR), LFU with MRU(LFU_MRU), LFU with LRU(LFU_LRU) 
 # then run it 
     p.run()
