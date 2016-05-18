@@ -23,6 +23,7 @@ from mimircache.cacheReader.csvReader import csvCacheReader
 from mimircache.profiler.pardaProfiler import pardaProfiler
 import matplotlib.ticker as ticker
 from mimircache.utils.printing import *
+from mimircache.profiler.heatmap_sub import _calc_hit_rate_subprocess_general
 
 DEBUG = True
 
@@ -88,16 +89,20 @@ def _calc_avg_rd_subprocess(order, cache_size, break_points_share_array, reuse_d
     """
 
     result_list = []
+    rd = 0
+    never_see = 0
     for i in range(order + 1, len(break_points_share_array)):
-        rd = 0
-        never_see = 0
+        # rd = 0
+        # never_see = 0
         for j in (break_points_share_array[i - 1], break_points_share_array[i]):
             if reuse_dist_share_array[j] != -1:
                 rd += reuse_dist_share_array[j]
             else:
                 never_see += 1
 
-        result_list.append((order, i, rd))
+        result_list.append((order, i, never_see))
+        # result_list.append((order, i, rd/(break_points_share_array[i]-break_points_share_array[order])))
+        # result_list.append((order, i, rd/(break_points_share_array[i]-break_points_share_array[order]-never_see)))
     q.put(result_list)
 
 
@@ -198,6 +203,11 @@ class heatmap:
                 p = Process(target=_calc_avg_rd_subprocess, args=(map_list[map_list_pos], self.cache_size,
                                                                     break_points_share_array, reuse_dist_share_array,
                                                                     q))
+
+                # p = Process(target=_calc_hit_rate_subprocess_general, args=(map_list[map_list_pos], self.cache_size,
+                #                                                   break_points_share_array, reader, q))
+
+
                 p.start()
                 process_pool.append(p)
                 process_count += 1
@@ -405,6 +415,7 @@ class heatmap:
 
 
 def server_plot_all():
+    import gc
     mem_sizes = []
     with open('memSize', 'r') as ifile:
         for line in ifile:
@@ -415,13 +426,16 @@ def server_plot_all():
         if filename.endswith('.vscsitrace'):
             if int(filename.split('_')[0][1:]) in [1, 3, 4, 5, 51, 99, 83, 87]:
                 continue
-            if os.path.exists(filename + '_v.png'):
+            if os.path.exists(filename + '_miss_r.png'):
                 continue
             hm = heatmap()
             mem_size = mem_sizes[int(filename.split('_')[0][1:]) - 1] * 16
             reader = vscsiCacheReader("../data/cloudphysics/" + filename)
-            hm.run('r', 1000000000, mem_size, reader, num_of_process=48, figname=filename + 'reuse_r.png',
-                   change_label='True')  # fixed_range="True",
+            hm.run('r', 1000000000, mem_size, reader, num_of_process=48, figname=filename + '_miss_r.png',
+                   change_label='True', fixed_range="True")  # fixed_range="True",
+            del hm
+            del reader
+            gc.collect()
 
 
 def server_size_plot():
@@ -507,7 +521,8 @@ def localtest():
     reader2 = vscsiCacheReader("../data/trace_CloudPhysics_bin")
 
     hm = heatmap()
-    hm.run('r', 10000000, 2000, reader2, num_of_process=8, fixed_range="True", text="Hello word", change_label='True')
+    hm.run('r', 10000000, 2000, reader2, num_of_process=8, text="Hello word",
+           change_label='True')  # fixed_range="True",
 
 
 

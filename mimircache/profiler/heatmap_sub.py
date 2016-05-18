@@ -1,3 +1,8 @@
+from mimircache.cacheReader.plainReader import plainCacheReader
+from mimircache.cache.FIFO import FIFO
+from mimircache.cache.RR import RR
+
+
 def _calc_hit_count_general(reuse_dist_array, cache_size, begin_pos, end_pos, real_start):
     """
 
@@ -38,16 +43,32 @@ def _calc_hit_rate_subprocess_general(order, cache_size, break_points_share_arra
     """
 
     result_list = []
-    total_hc = 0
-    pos_in_break_points = 0
+    total_hc = 0  # total hit count
+    total_mc = 0  # total miss count
+    pos_in_break_points = order + 1
+    line_num = 0
+    if type(reader) != plainCacheReader:
+        reader_new = plainCacheReader('temp.dat')
+    else:
+        reader_new = type(reader)(reader.file_loc)
+    p = RR(cache_size=cache_size)
+    # for i in range(break_points_share_array[order], ):
+    # TODO: figure out line size here and add seek method in reader base class
+    # TODO: use mmap here to improve performance
+    for line in reader_new:
+        if line_num < break_points_share_array[order]:
+            line_num += 1
+            continue
+        line_num += 1
+        if p.addElement(line):
+            total_hc += 1
+        else:
+            total_mc += 1
 
-    for i in range(break_points_share_array[order], len(break_points_share_array)):
-
-        for j in range()
-            hc = _calc_hit_count_general(reuse_dist_share_array, cache_size, break_points_share_array[i - 1],
-                                         break_points_share_array[i], break_points_share_array[order])
-        total_hc += hc
-        hr = total_hc / (break_points_share_array[i] - break_points_share_array[order])
-        result_list.append((order, i, hr))
+        if pos_in_break_points < len(break_points_share_array) and \
+                        line_num == break_points_share_array[pos_in_break_points]:
+            hr = total_hc / (break_points_share_array[pos_in_break_points] - break_points_share_array[order])
+            result_list.append((order, pos_in_break_points, hr))
+            pos_in_break_points += 1
     q.put(result_list)
     # return result_list
