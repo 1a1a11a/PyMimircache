@@ -46,14 +46,14 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
     @abc.abstractclassmethod
     def __next__(self):  # Python 3
         self.counter += 1
-        if (self.counter % 100000 == 0):
-            print('read in ' + str(self.counter) + ' records')
+        # if (self.counter % 100000 == 0):
+        #     print('read in ' + str(self.counter) + ' records')
             # raise NotImplementedError
 
     # @atexit.register
     def __del__(self):
         try:
-            pass
-            # self.trace_file.close()
+            # pass
+            self.trace_file.close()
         except:
             pass

@@ -79,7 +79,7 @@ class RR(cache):
     def addElement(self, element):
         '''
         :param element: the element in the reference, it can be in the cache, or not
-        :return: None
+        :return: True if element in the cache
         '''
         if self.checkElement(element):
             self._updateElement(element)

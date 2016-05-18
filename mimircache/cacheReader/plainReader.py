@@ -18,9 +18,9 @@ class plainCacheReader(cacheReaderAbstract):
 
     def __next__(self):  # Python 3
         super().__next__()
-        element = self.trace_file.readline()
+        element = self.trace_file.readline().strip()
         if element:
-            return element.strip()
+            return element
         else:
             raise StopIteration
 

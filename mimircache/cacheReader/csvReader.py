@@ -46,7 +46,7 @@ class csvCacheReader(cacheReaderAbstract):
 
     def __next__(self):  # Python 3
         super().__next__()
-        element = self.trace_file.readline()
+        element = self.trace_file.readline().strip()
         if element:
             return element.split(self.delimiter)[self.column].strip()
         else:
