@@ -168,13 +168,18 @@ if __name__ == "__main__":
     import os
     import shutil
 
-    # print(len(p.get_reuse_distance()))
+    from pympler.tracker import SummaryTracker
+
+    tracker = SummaryTracker()
+
+    print(len(p.get_reuse_distance()))
+
+    tracker.print_diff()
 
 
-
-    p = pardaProfiler(2000, csvCacheReader('../data/mining/mining.dat.original', 1))
-    p = pardaProfiler(2000, plainCacheReader('../data/mining/mining.dat.original'))
-    p._test()
+    # p = pardaProfiler(2000, csvCacheReader('../data/mining/mining.dat.original', 1))
+    # p = pardaProfiler(2000, plainCacheReader('../data/mining/mining.dat.original'))
+    # p._test()
 
 
     # for f in os.listdir('../data/mining/'):

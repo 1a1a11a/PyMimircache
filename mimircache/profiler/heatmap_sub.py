@@ -51,7 +51,7 @@ def _calc_hit_rate_subprocess_general(order, cache_size, break_points_share_arra
         reader_new = plainCacheReader('temp.dat')
     else:
         reader_new = type(reader)(reader.file_loc)
-    p = RR(cache_size=cache_size)
+    c = RR(cache_size=cache_size)
     # for i in range(break_points_share_array[order], ):
     # TODO: figure out line size here and add seek method in reader base class
     # TODO: use mmap here to improve performance
@@ -60,7 +60,7 @@ def _calc_hit_rate_subprocess_general(order, cache_size, break_points_share_arra
             line_num += 1
             continue
         line_num += 1
-        if p.addElement(line):
+        if c.addElement(line):
             total_hc += 1
         else:
             total_mc += 1

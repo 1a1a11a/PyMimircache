@@ -9,6 +9,7 @@ import logging
 import pickle
 from collections import deque
 from multiprocessing import Pool, Array, Process, Queue
+import math
 
 import numpy as np
 import os
@@ -29,8 +30,9 @@ DEBUG = True
 
 __all__ = ("run", "draw", "prepare_heatmap_dat")
 
-
-
+# heatmap gradient, only works in _calc_rd_count_subprocess
+# HEATMAP_GRADIENT = 10000
+LOG_NUM = 0
 
 
 def _calc_hit_count(reuse_dist_array, cache_size, begin_pos, end_pos, real_start):
@@ -91,20 +93,62 @@ def _calc_avg_rd_subprocess(order, cache_size, break_points_share_array, reuse_d
     result_list = []
     rd = 0
     never_see = 0
+    count = 0
     for i in range(order + 1, len(break_points_share_array)):
         # rd = 0
         # never_see = 0
-        for j in (break_points_share_array[i - 1], break_points_share_array[i]):
+        for j in range(break_points_share_array[i - 1], break_points_share_array[i]):
             if reuse_dist_share_array[j] != -1:
                 rd += reuse_dist_share_array[j]
+                count += 1
             else:
                 never_see += 1
+        # print("{}:{}:{}+{}".format(break_points_share_array[i]-break_points_share_array[i-1], count+never_see, count, never_see))
 
-        result_list.append((order, i, never_see))
-        # result_list.append((order, i, rd/(break_points_share_array[i]-break_points_share_array[order])))
-        # result_list.append((order, i, rd/(break_points_share_array[i]-break_points_share_array[order]-never_see)))
+        # result_list.append((order, i, never_see))
+        result_list.append((order, i, rd / (break_points_share_array[i] - break_points_share_array[order])))
+        # if break_points_share_array[i]-break_points_share_array[order]-never_see != 0:
+        #     result_list.append((order, i, rd/(break_points_share_array[i]-break_points_share_array[order]-never_see)))
+
+    # print(never_see+len(rd))
     q.put(result_list)
 
+
+def _calc_rd_count_subprocess(order, max_rd, break_points_share_array, reuse_dist_share_array, q):
+    """
+    the child process for calculating average reuse distance in each block, each child process will calculate for
+    a column with fixed starting time
+    :param order: the order of column the child is working on
+    :return: a list of result in the form of (x, y, hit_rate) with x as fixed value
+    """
+
+    result_list = []
+    # rd_bucket = [0]* HEATMAP_GRADIENT
+    rd_bucket = [0] * int(math.log(max_rd, LOG_NUM) + 1)
+    # never_see = 0
+    # count = 0
+    # gap = max_rd//HEATMAP_GRADIENT+1
+
+
+    for j in range(break_points_share_array[order], break_points_share_array[order + 1]):
+        if reuse_dist_share_array[j] != -1:
+            if reuse_dist_share_array[j] == 0:
+                rd_bucket[0] += 1
+            else:
+                rd_bucket[int(math.log(reuse_dist_share_array[j], LOG_NUM))] += 1
+
+                # if reuse_dist_share_array[j] // gap < len(rd_bucket):
+                #     rd_bucket[reuse_dist_share_array[j] // gap] += 1
+                # else:
+                #     rd_bucket[-1] += 1
+    for i in range(len(rd_bucket)):
+        result_list.append((order, i, rd_bucket[i]))
+
+        # if rd_bucket[i]:
+        #     result_list.append((order, i, math.log2(rd_bucket[i])))
+        # else:
+        #     result_list.append((order, i, 0))
+    q.put(result_list)
 
 
 
@@ -115,6 +159,9 @@ def _calc_avg_rd_subprocess(order, cache_size, break_points_share_array, reuse_d
 class heatmap:
     def __init__(self, cache_class=LRU):
         self.cache_class = cache_class
+        if not os.path.exists('temp/'):
+            os.mkdir('temp')
+        self.gap = 0
 
 
     def prepare_heatmap_dat(self, mode, reader, calculate=True):
@@ -131,7 +178,11 @@ class heatmap:
 
         reuse_dist_python_list = []
         break_points = []
-        
+
+        # for general cache replacement algorithm, uncomment the following
+        # p = pardaProfiler(30000, reader)
+
+
         if calculate:
             # build profiler for extracting reuse distance (For LRU)
             p = pardaProfiler(30000, reader)
@@ -157,6 +208,7 @@ class heatmap:
                 with open(breakpoints_filename, 'rb') as ifile:
                     break_points = pickle.load(ifile)
 
+
         # check break points are loaded or not, if not need to calculate it
         if not break_points:
             if mode == 'r':
@@ -176,18 +228,35 @@ class heatmap:
             break_points_share_array[i] = j
 
 
-        # create the array for storing results
-        # result is a dict: (x, y) -> heat, x, y is the left, lower point of heat square
-        # (x,y) means from time x to time y
-        array_len = len(break_points)
-        result = np.empty((array_len, array_len), dtype=np.float32)
-        result[:] = np.nan
-
         # Jason: efficiency can be further improved by porting into Cython and improve parallel logic
         # Jason: memory usage can be optimized by not copying whole reuse distance array in each sub process
         map_list = deque()
         for i in range(len(break_points) - 1):
             map_list.append(i)
+
+        func_pointer = _calc_hit_rate_subprocess
+        func_pointer = _calc_avg_rd_subprocess
+        func_pointer = _calc_rd_count_subprocess
+
+        # create the array for storing results
+        # result is a dict: (x, y) -> heat, x, y is the left, lower point of heat square
+        if func_pointer == _calc_rd_count_subprocess:
+            max_rd = max(reuse_dist_python_list)
+            # print("max rd = %d"%max_rd)
+            # self.gap = max_rd // HEATMAP_GRADIENT + 1
+            param1 = max_rd
+            # result = np.empty((len(break_points), HEATMAP_GRADIENT), dtype=np.float32)
+            self._set_log_num(max_rd, len(break_points))
+            result = np.empty((len(break_points), int(math.log(max_rd, LOG_NUM)) + 1), dtype=np.float32)
+            result[:] = np.nan
+
+        else:
+            # (x,y) means from time x to time y
+            param1 = self.cache_size
+            array_len = len(break_points)
+            result = np.empty((array_len, array_len), dtype=np.float32)
+            result[:] = np.nan
+
 
         # new 0510
         q = Queue()
@@ -197,12 +266,13 @@ class heatmap:
         map_list_pos = 0
         while result_count < len(map_list):
             if process_count < self.num_of_process and map_list_pos < len(map_list):
+
                 # p = Process(target=_calc_hit_rate_subprocess, args=(map_list[map_list_pos], self.cache_size,
                 #                                                     break_points_share_array, reuse_dist_share_array,
                 #                                                     q))
-                p = Process(target=_calc_avg_rd_subprocess, args=(map_list[map_list_pos], self.cache_size,
-                                                                    break_points_share_array, reuse_dist_share_array,
-                                                                    q))
+                p = Process(target=func_pointer, args=(map_list[map_list_pos], param1,
+                                                       break_points_share_array, reuse_dist_share_array,
+                                                       q))
 
                 # p = Process(target=_calc_hit_rate_subprocess_general, args=(map_list[map_list_pos], self.cache_size,
                 #                                                   break_points_share_array, reader, q))
@@ -238,6 +308,27 @@ class heatmap:
             pickle.dump(result, ofile)
 
         return result
+
+    def _set_log_num(self, max_rd, length):
+        """
+        find out the LOG_NUM that makes the number of pixels in y axis to match the number of pixels in x axis
+        :param max_rd: maxinum reuse distance
+        :param length: length of break points (also number of pixels along x axis)
+        :return:
+        """
+        global LOG_NUM
+        init_log_num = 10
+        l2_prev = length
+        while True:
+            l2 = math.log(max_rd, init_log_num)
+            if l2 > length and l2_prev < length:
+                LOG_NUM = init_log_num
+                # print(LOG_NUM)
+                break
+            l2_prev = l2
+            init_log_num = (init_log_num - 1) / 2 + 1
+
+
 
     @staticmethod
     def _get_breakpoints_virtualtime(bin_size, total_length):
@@ -343,7 +434,8 @@ class heatmap:
             if 'fixed_range' in kargs and kargs['fixed_range']:
                 img = plt.imshow(masked_array.T, vmin=0, vmax=1, interpolation='nearest', origin='lower')
             else:
-                img = plt.imshow(masked_array.T, interpolation='nearest', origin='lower')
+                img = plt.imshow(masked_array.T, interpolation='nearest', origin='lower',
+                                 norm=matplotlib.colors.LogNorm())
             cb = plt.colorbar(img)
             if 'text' in kargs:
                 (length1, length2) = masked_array.shape
@@ -351,12 +443,21 @@ class heatmap:
                 ax.text(length2 // 3, length1 // 8, kargs['text'], fontsize=20)  # , color='blue')
 
             # change tick from arbitrary number to real time
-            if 'change_label' in kargs and 'interval' in kargs:
+            if 'change_label' in kargs and kargs['change_label'] and 'interval' in kargs:
                 ticks = ticker.FuncFormatter(lambda x, pos: '{:2.2f}'.format(x * kargs['interval'] / (10 ** 6) / 3600))
                 plt.gca().xaxis.set_major_formatter(ticks)
                 plt.gca().yaxis.set_major_formatter(ticks)
                 plt.xlabel("time/hour")
                 plt.ylabel("time/hour")
+
+            if 'change_label_rd_bucket' in kargs and kargs['change_label_rd_bucket']:
+                # ticks = ticker.FuncFormatter(lambda x, pos: '{:2.2f}'.format(x * kargs['interval'] / (10 ** 6) / 3600))
+                ticks = ticker.FuncFormatter(lambda x, pos: '{:2.0f}'.format(LOG_NUM ** x))
+                # plt.gca().xaxis.set_major_formatter(ticks)
+                plt.gca().yaxis.set_major_formatter(ticks)
+                plt.xlabel("logical time")
+                plt.ylabel("reuse distance")
+
 
             # plt.show()
             plt.savefig(filename)
@@ -409,6 +510,10 @@ class heatmap:
             raise RuntimeError("Cannot recognize this mode, it can only be either real time(r) or virtual time(v), "
                                "but you input %s" % mode)
 
+        if "change_label_rd_bucket" in kargs and kargs['change_label_rd_bucket']:
+            kargs['gap'] = self.gap
+
+
         self.draw(xydict, **kargs)
 
         # self.__del_manual__()
@@ -426,13 +531,13 @@ def server_plot_all():
         if filename.endswith('.vscsitrace'):
             if int(filename.split('_')[0][1:]) in [1, 3, 4, 5, 51, 99, 83, 87]:
                 continue
-            if os.path.exists(filename + '_miss_r.png'):
+            if os.path.exists(filename + '_rd_no_miss_r.png'):
                 continue
             hm = heatmap()
             mem_size = mem_sizes[int(filename.split('_')[0][1:]) - 1] * 16
             reader = vscsiCacheReader("../data/cloudphysics/" + filename)
-            hm.run('r', 1000000000, mem_size, reader, num_of_process=48, figname=filename + '_miss_r.png',
-                   change_label='True', fixed_range="True")  # fixed_range="True",
+            hm.run('r', 1000000000, mem_size, reader, num_of_process=48, figname=filename + '_rd_no_miss_r.png',
+                   change_label='True')  # , fixed_range="True",
             del hm
             del reader
             gc.collect()
@@ -518,19 +623,29 @@ def server_plot_all_redis():
 
 def localtest():
     # reader1 = plainCacheReader("../data/parda.trace")
+
+
+
     reader2 = vscsiCacheReader("../data/trace_CloudPhysics_bin")
 
     hm = heatmap()
-    hm.run('r', 10000000, 2000, reader2, num_of_process=8, text="Hello word",
-           change_label='True')  # fixed_range="True",
-
-
+    hm.run('r', 10000000, 2000, reader2, num_of_process=8, change_label_rd_bucket=True)  # ,change_label='False'
+    # fixed_range=True, text="Hello word",
+    del hm
+    # p = pardaProfiler(20000, reader2)
+    # p.run()
 
 
 
 if __name__ == "__main__":
-    # localtest()
-    server_plot_all()
+    import time
+
+    t1 = time.time()
+    localtest()
+    t2 = time.time()
+    print(t2 - t1)
+
+    # server_plot_all()
     # server_plot_all_redis()
     # server_size_plot()
     # server_request_num_plot()
