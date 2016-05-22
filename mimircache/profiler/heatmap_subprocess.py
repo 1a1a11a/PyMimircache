@@ -37,7 +37,6 @@ def calc_hit_rate_start_time_end_time_subprocess_general(order, break_points_sha
     the child process for calculating hit rate for a general cache replacement algorithm,
     each child process will calculate for a column with fixed starting time
     :param order: the order of column the child is working on
-    :param cache_size:
     :param break_points_share_array:
     :param reader:
     :param q
@@ -78,9 +77,9 @@ def calc_hit_rate_start_time_end_time_subprocess_general(order, break_points_sha
     # return result_list
 
 
-def _hit_rate_start_time_end_time_calc_hit_count(reuse_dist_array, begin_pos, end_pos, real_start, **kargs):
+def _hit_rate_start_time_end_time_calc_hit_count(reuse_dist_array, cache_size, begin_pos, end_pos, real_start, **kargs):
     """
-
+    called by hit_rate_start_time_end_time to calculate hit count
     :rtype: count of hit
     :param reuse_dist_array:
     :param cache_size:
@@ -89,8 +88,6 @@ def _hit_rate_start_time_end_time_calc_hit_count(reuse_dist_array, begin_pos, en
     :param real_start: the real start position of cache trace
     :return:
     """
-
-    cache_size = kargs['cache_size']
 
     hit_count = 0
     miss_count = 0
@@ -112,6 +109,9 @@ def calc_hit_rate_start_time_cache_size_subprocess(order, break_points_share_arr
     """
     the child process for calculating hit rate of different cache size with different starting time, but fixed end time,
     and each child process will calculate for a column with a given starting time
+    :param q:
+    :param reuse_dist_share_array:
+    :param break_points_share_array:
     :param order: the order of column the child is working on
     :return: a list of result in the form of (x, y, hit_rate) with x as fixed value(starting time), y as cache size
     """
@@ -119,7 +119,6 @@ def calc_hit_rate_start_time_cache_size_subprocess(order, break_points_share_arr
     max_rd = kargs['max_rd']
 
     result_list = []
-    total_hc = 0
 
     rd_distribution = [0] * (max_rd + 1)
 
@@ -136,11 +135,14 @@ def calc_hit_rate_start_time_cache_size_subprocess(order, break_points_share_arr
     q.put(result_list)
 
 
-def calc_hit_rate_start_time_end_time_subprocess(order, cache_size, break_points_share_array, reuse_dist_share_array, q,
+def calc_hit_rate_start_time_end_time_subprocess(order, break_points_share_array, reuse_dist_share_array, q,
                                                  **kargs):
     """
     the child process for calculating hit rate, each child process will calculate for
     a column with fixed starting time
+    :param q:
+    :param reuse_dist_share_array:
+    :param break_points_share_array:
     :param order: the order of column the child is working on
     :return: a list of result in the form of (x, y, hit_rate) with x as fixed value
     """
@@ -164,6 +166,9 @@ def calc_avg_rd_start_time_end_time_subprocess(order, break_points_share_array, 
     """
     the child process for calculating average reuse distance in each block, each child process will calculate for
     a column with fixed starting time
+    :param q:
+    :param reuse_dist_share_array:
+    :param break_points_share_array:
     :param order: the order of column the child is working on
     :return: a list of result in the form of (x, y, hit_rate) with x as fixed value
     """
@@ -191,6 +196,9 @@ def calc_cold_miss_count_start_time_end_time_subprocess(order, break_points_shar
     """
     the child process for calculating cold miss count in each block, each child process will calculate for
     a column with fixed starting time
+    :param q:
+    :param reuse_dist_share_array:
+    :param break_points_share_array:
     :param order: the order of column the child is working on
     :return: a list of result in the form of (x, y, miss_count) with x as fixed value
     """
@@ -217,6 +225,9 @@ def calc_rd_distribution_subprocess(order, break_points_share_array, reuse_dist_
     For LRU
     the child process for calculating average reuse distance in each block, each child process will calculate for
     a column with fixed starting time
+    :param q:
+    :param reuse_dist_share_array:
+    :param break_points_share_array:
     :param order: the order of column the child is working on
     :return: a list of result in the form of (x, y, hit_rate) with x as fixed value
     """
