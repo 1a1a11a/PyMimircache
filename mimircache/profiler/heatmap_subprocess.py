@@ -5,7 +5,7 @@ import math
 
 
 def _hit_rate_start_time_end_time_calc_hit_count_general(reuse_dist_array, cache_size, begin_pos, end_pos, real_start,
-                                                         **kargs):
+                                                         **kwargs):
     """
 
     :rtype: count of hit
@@ -32,7 +32,7 @@ def _hit_rate_start_time_end_time_calc_hit_count_general(reuse_dist_array, cache
     return hit_count
 
 
-def calc_hit_rate_start_time_end_time_subprocess_general(order, break_points_share_array, reader, q, **kargs):
+def calc_hit_rate_start_time_end_time_subprocess_general(order, break_points_share_array, reader, q, **kwargs):
     """
     the child process for calculating hit rate for a general cache replacement algorithm,
     each child process will calculate for a column with fixed starting time
@@ -43,7 +43,7 @@ def calc_hit_rate_start_time_end_time_subprocess_general(order, break_points_sha
     :return: nothing, but add to the queue a list of result in the form of (x, y, hit_rate) with x as fixed value
     """
 
-    cache_size = kargs['cache_size']
+    cache_size = kwargs['cache_size']
 
     result_list = []
     total_hc = 0  # total hit count
@@ -77,7 +77,8 @@ def calc_hit_rate_start_time_end_time_subprocess_general(order, break_points_sha
     # return result_list
 
 
-def _hit_rate_start_time_end_time_calc_hit_count(reuse_dist_array, cache_size, begin_pos, end_pos, real_start, **kargs):
+def _hit_rate_start_time_end_time_calc_hit_count(reuse_dist_array, cache_size, begin_pos, end_pos, real_start,
+                                                 **kwargs):
     """
     called by hit_rate_start_time_end_time to calculate hit count
     :rtype: count of hit
@@ -105,7 +106,8 @@ def _hit_rate_start_time_end_time_calc_hit_count(reuse_dist_array, cache_size, b
     return hit_count
 
 
-def calc_hit_rate_start_time_cache_size_subprocess(order, break_points_share_array, reuse_dist_share_array, q, **kargs):
+def calc_hit_rate_start_time_cache_size_subprocess(order, break_points_share_array, reuse_dist_share_array, q,
+                                                   **kwargs):
     """
     the child process for calculating hit rate of different cache size with different starting time, but fixed end time,
     and each child process will calculate for a column with a given starting time
@@ -116,7 +118,7 @@ def calc_hit_rate_start_time_cache_size_subprocess(order, break_points_share_arr
     :return: a list of result in the form of (x, y, hit_rate) with x as fixed value(starting time), y as cache size
     """
 
-    max_rd = kargs['max_rd']
+    max_rd = kwargs['max_rd']
 
     result_list = []
 
@@ -136,7 +138,7 @@ def calc_hit_rate_start_time_cache_size_subprocess(order, break_points_share_arr
 
 
 def calc_hit_rate_start_time_end_time_subprocess(order, break_points_share_array, reuse_dist_share_array, q,
-                                                 **kargs):
+                                                 **kwargs):
     """
     the child process for calculating hit rate, each child process will calculate for
     a column with fixed starting time
@@ -147,7 +149,7 @@ def calc_hit_rate_start_time_end_time_subprocess(order, break_points_share_array
     :return: a list of result in the form of (x, y, hit_rate) with x as fixed value
     """
 
-    cache_size = kargs['cache_size']
+    cache_size = kwargs['cache_size']
 
     result_list = []
     total_hc = 0
@@ -162,7 +164,7 @@ def calc_hit_rate_start_time_end_time_subprocess(order, break_points_share_array
     # return result_list
 
 
-def calc_avg_rd_start_time_end_time_subprocess(order, break_points_share_array, reuse_dist_share_array, q, **kargs):
+def calc_avg_rd_start_time_end_time_subprocess(order, break_points_share_array, reuse_dist_share_array, q, **kwargs):
     """
     the child process for calculating average reuse distance in each block, each child process will calculate for
     a column with fixed starting time
@@ -192,7 +194,7 @@ def calc_avg_rd_start_time_end_time_subprocess(order, break_points_share_array, 
 
 
 def calc_cold_miss_count_start_time_end_time_subprocess(order, break_points_share_array, reuse_dist_share_array, q,
-                                                        **kargs):
+                                                        **kwargs):
     """
     the child process for calculating cold miss count in each block, each child process will calculate for
     a column with fixed starting time
@@ -220,7 +222,7 @@ def calc_cold_miss_count_start_time_end_time_subprocess(order, break_points_shar
     q.put(result_list)
 
 
-def calc_rd_distribution_subprocess(order, break_points_share_array, reuse_dist_share_array, q, **kargs):
+def calc_rd_distribution_subprocess(order, break_points_share_array, reuse_dist_share_array, q, **kwargs):
     """
     For LRU
     the child process for calculating average reuse distance in each block, each child process will calculate for
@@ -232,8 +234,8 @@ def calc_rd_distribution_subprocess(order, break_points_share_array, reuse_dist_
     :return: a list of result in the form of (x, y, hit_rate) with x as fixed value
     """
 
-    LOG_NUM = kargs['log_num']
-    max_rd = kargs['max_rd']
+    LOG_NUM = kwargs['log_num']
+    max_rd = kwargs['max_rd']
 
     result_list = []
     # rd_bucket = [0]* HEATMAP_GRADIENT

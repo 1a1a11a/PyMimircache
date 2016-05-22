@@ -3,6 +3,13 @@ this module provides the heatmap ploting engine, it supports both virtual time (
 real time, under both modes, it support using multiprocessing to do the plotting
 currently, it only support LRU
 the mechanism it works is it gets reuse distance from LRU profiler (parda for now)
+currently supported plot type:
+
+        # 1. hit_rate_start_time_end_time
+        # 2. hit_rate_start_time_cache_size
+        # 3. avg_rd_start_time_end_time
+        # 4. cold_miss_count_start_time_end_time
+        # 5. rd_distribution
 """
 
 import logging
@@ -14,6 +21,7 @@ import math
 import numpy as np
 import os
 import matplotlib
+
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 
@@ -24,7 +32,7 @@ from mimircache.cacheReader.csvReader import csvCacheReader
 from mimircache.profiler.pardaProfiler import pardaProfiler
 import matplotlib.ticker as ticker
 from mimircache.utils.printing import *
-from mimircache.profiler.heatmap_sub import _calc_hit_rate_subprocess_general
+from mimircache.profiler.heatmap_subprocess import *
 
 DEBUG = True
 
@@ -32,126 +40,7 @@ __all__ = ("run", "draw", "prepare_heatmap_dat")
 
 # heatmap gradient, only works in _calc_rd_count_subprocess
 # HEATMAP_GRADIENT = 10000
-LOG_NUM = 0
-
-
-def _calc_hit_count(reuse_dist_array, cache_size, begin_pos, end_pos, real_start):
-    """
-
-    :rtype: count of hit
-    :param reuse_dist_array:
-    :param cache_size:
-    :param begin_pos:
-    :param end_pos: end pos of trace in current partition (not included)
-    :param real_start: the real start position of cache trace
-    :return:
-    """
-    hit_count = 0
-    miss_count = 0
-    for i in range(begin_pos, end_pos):
-        if reuse_dist_array[i] == -1:
-            # never appear
-            miss_count += 1
-            continue
-        if reuse_dist_array[i] - (i - real_start) < 0 and reuse_dist_array[i] < cache_size:
-            # hit
-            hit_count += 1
-        else:
-            # miss
-            miss_count += 1
-    return hit_count
-
-
-def _calc_hit_rate_subprocess(order, cache_size, break_points_share_array, reuse_dist_share_array, q):
-    """
-    the child process for calculating hit rate, each child process will calculate for
-    a column with fixed starting time
-    :param order: the order of column the child is working on
-    :return: a list of result in the form of (x, y, hit_rate) with x as fixed value
-    """
-
-    result_list = []
-    total_hc = 0
-    for i in range(order + 1, len(break_points_share_array)):
-        hc = _calc_hit_count(reuse_dist_share_array, cache_size, break_points_share_array[i - 1],
-                             break_points_share_array[i], break_points_share_array[order])
-        total_hc += hc
-        hr = total_hc / (break_points_share_array[i] - break_points_share_array[order])
-        result_list.append((order, i, hr))
-    q.put(result_list)
-    # return result_list
-
-
-def _calc_avg_rd_subprocess(order, cache_size, break_points_share_array, reuse_dist_share_array, q):
-    """
-    the child process for calculating average reuse distance in each block, each child process will calculate for
-    a column with fixed starting time
-    :param order: the order of column the child is working on
-    :return: a list of result in the form of (x, y, hit_rate) with x as fixed value
-    """
-
-    result_list = []
-    rd = 0
-    never_see = 0
-    count = 0
-    for i in range(order + 1, len(break_points_share_array)):
-        # rd = 0
-        # never_see = 0
-        for j in range(break_points_share_array[i - 1], break_points_share_array[i]):
-            if reuse_dist_share_array[j] != -1:
-                rd += reuse_dist_share_array[j]
-                count += 1
-            else:
-                never_see += 1
-        # print("{}:{}:{}+{}".format(break_points_share_array[i]-break_points_share_array[i-1], count+never_see, count, never_see))
-
-        # result_list.append((order, i, never_see))
-        result_list.append((order, i, rd / (break_points_share_array[i] - break_points_share_array[order])))
-        # if break_points_share_array[i]-break_points_share_array[order]-never_see != 0:
-        #     result_list.append((order, i, rd/(break_points_share_array[i]-break_points_share_array[order]-never_see)))
-
-    # print(never_see+len(rd))
-    q.put(result_list)
-
-
-def _calc_rd_count_subprocess(order, max_rd, break_points_share_array, reuse_dist_share_array, q):
-    """
-    the child process for calculating average reuse distance in each block, each child process will calculate for
-    a column with fixed starting time
-    :param order: the order of column the child is working on
-    :return: a list of result in the form of (x, y, hit_rate) with x as fixed value
-    """
-
-    result_list = []
-    # rd_bucket = [0]* HEATMAP_GRADIENT
-    rd_bucket = [0] * int(math.log(max_rd, LOG_NUM) + 1)
-    # never_see = 0
-    # count = 0
-    # gap = max_rd//HEATMAP_GRADIENT+1
-
-
-    for j in range(break_points_share_array[order], break_points_share_array[order + 1]):
-        if reuse_dist_share_array[j] != -1:
-            if reuse_dist_share_array[j] == 0:
-                rd_bucket[0] += 1
-            else:
-                rd_bucket[int(math.log(reuse_dist_share_array[j], LOG_NUM))] += 1
-
-                # if reuse_dist_share_array[j] // gap < len(rd_bucket):
-                #     rd_bucket[reuse_dist_share_array[j] // gap] += 1
-                # else:
-                #     rd_bucket[-1] += 1
-    for i in range(len(rd_bucket)):
-        result_list.append((order, i, rd_bucket[i]))
-
-        # if rd_bucket[i]:
-        #     result_list.append((order, i, math.log2(rd_bucket[i])))
-        # else:
-        #     result_list.append((order, i, 0))
-    q.put(result_list)
-
-
-
+# LOG_NUM = 0
 
 
 
@@ -161,27 +50,13 @@ class heatmap:
         self.cache_class = cache_class
         if not os.path.exists('temp/'):
             os.mkdir('temp')
-        self.gap = 0
 
-
-    def prepare_heatmap_dat(self, mode, reader, calculate=True):
-        """
-        prepare the data for plotting heatmap
-        :param mode:   mode can be either virtual time(v) or real time(r)
-        :param reader: for reading the trace file
-        :param calculate: flag for checking whether we need to recalculate reuse distance and distribution table
-        :return:
-        """
-
+    def _prepare_reuse_distance_and_break_points(self, mode, reader, calculate, save=False):
         # assert isinstance(reader, vscsiCacheReader), "Currently only supports vscsiReader"
         reader.reset()
 
-        reuse_dist_python_list = []
         break_points = []
-
-        # for general cache replacement algorithm, uncomment the following
-        # p = pardaProfiler(30000, reader)
-
+        reuse_dist_python_list = []
 
         if calculate:
             # build profiler for extracting reuse distance (For LRU)
@@ -189,13 +64,15 @@ class heatmap:
             # reuse distance, c_reuse_dist_long_array is an array in dtype C long type
             c_reuse_dist_long_array = p.get_reuse_distance()
 
-            for i in c_reuse_dist_long_array:
-                reuse_dist_python_list.append(i)
+            if save:
+                # needs to save the data
+                for i in c_reuse_dist_long_array:
+                    reuse_dist_python_list.append(i)
 
-            if not os.path.exists('temp/'):
-                os.makedirs('temp/')
-            with open('temp/reuse.dat', 'wb') as ofile:
-                pickle.dump(reuse_dist_python_list, ofile)
+                if not os.path.exists('temp/'):
+                    os.makedirs('temp/')
+                with open('temp/reuse.dat', 'wb') as ofile:
+                    pickle.dump(reuse_dist_python_list, ofile)
 
         else:
             # the reuse distance has already been calculated, just load it
@@ -214,15 +91,130 @@ class heatmap:
             if mode == 'r':
                 break_points = self._get_breakpoints_realtime(reader, self.interval)
             elif mode == 'v':
-                break_points = self._get_breakpoints_virtualtime(self.interval, len(reuse_dist_python_list))
-            with open('temp/break_points_' + mode + str(self.interval) + '.dat', 'wb') as ifile:
-                pickle.dump(break_points, ifile)
+                break_points = self._get_breakpoints_virtualtime(self.interval, len(c_reuse_dist_long_array))
+            if save:
+                with open('temp/break_points_' + mode + str(self.interval) + '.dat', 'wb') as ifile:
+                    pickle.dump(break_points, ifile)
 
-        # create share memory for child process
-        reuse_dist_share_array = Array('l', len(reuse_dist_python_list), lock=False)
-        for i, j in enumerate(reuse_dist_python_list):
-            reuse_dist_share_array[i] = j
+        if reuse_dist_python_list:
+            return reuse_dist_python_list, break_points
+        else:
+            return c_reuse_dist_long_array, break_points
 
+    def _prepare_multiprocess_params_LRU(self, plot_type, break_points, *args, **kwargs):
+        # 1. hit_rate_start_time_end_time
+        # 2. hit_rate_start_time_cache_size
+        # 3. avg_rd_start_time_end_time
+        # 4. cold_miss_count_start_time_end_time
+        # 5. rd_distribution
+
+        # create the array for storing results
+        # result is a dict: (x, y) -> heat, x, y is the left, lower point of heat square
+        kwargs_dict = {}  # the dictionary for passing parameters to subprocess
+        if plot_type == "hit_rate_start_time_cache_size":
+            max_rd = max(kwargs['reuse_distance_list'])
+            kwargs_dict['max_rd'] = max_rd
+            result = np.empty((len(break_points), max_rd + 1), dtype=np.float32)
+            result[:] = np.nan
+            func_pointer = calc_hit_rate_start_time_cache_size_subprocess
+
+        elif plot_type == "rd_distribution":
+            max_rd = max(kwargs['reuse_distance_list'])
+            # print("max rd = %d"%max_rd)
+            kwargs_dict['max_rd'] = max_rd
+            kwargs_dict['log_num'] = self._cal_log_num(max_rd, len(break_points))
+            plt.xlabel("virtual time")
+            plt.ylabel('reuse distance')
+            plt.gca().yaxis.set_major_formatter(
+                ticker.FuncFormatter(lambda x, pos: '{:2.0f}'.format(kwargs_dict['log_num'] ** x)))
+
+            result = np.empty((len(break_points), int(math.log(max_rd, kwargs_dict['log_num'])) + 1), dtype=np.float32)
+            result[:] = np.nan
+            func_pointer = calc_rd_distribution_subprocess
+
+        elif plot_type == "hit_rate_start_time_end_time":
+            # (x,y) means from time x to time y
+            kwargs_dict['cache_size'] = self.cache_size
+            array_len = len(break_points)
+            result = np.empty((array_len, array_len), dtype=np.float32)
+            result[:] = np.nan
+            func_pointer = calc_hit_rate_start_time_end_time_subprocess
+
+        elif plot_type == "avg_rd_start_time_end_time":
+            # (x,y) means from time x to time y
+            kwargs_dict['cache_size'] = self.cache_size
+            array_len = len(break_points)
+            result = np.empty((array_len, array_len), dtype=np.float32)
+            result[:] = np.nan
+            func_pointer = calc_avg_rd_start_time_end_time_subprocess
+
+        elif plot_type == "cold_miss_count_start_time_end_time":
+            # (x,y) means from time x to time y
+            kwargs_dict['cache_size'] = self.cache_size
+            array_len = len(break_points)
+            result = np.empty((array_len, array_len), dtype=np.float32)
+            result[:] = np.nan
+            func_pointer = calc_cold_miss_count_start_time_end_time_subprocess
+
+        else:
+            raise RuntimeError("cannot recognize plot type")
+
+        return result, kwargs_dict, func_pointer
+
+    def calculate_heatmap_dat(self, mode, reader, plot_type, LRU=True, calculate=True, **kwargs):
+        """
+            calculate the data for plotting heatmap
+
+        :param mode: mode can be either virtual time(v) or real time(r)
+        :param reader: for reading the trace file
+        :param plot_type: the type of heatmap to generate, possible choices are:
+        1. hit_rate_start_time_end_time
+        2. hit_rate_start_time_cache_size
+        3. avg_rd_start_time_end_time
+        4. cold_miss_count_start_time_end_time
+        5. rd_distribution
+        6.
+
+        :param LRU: whether the cache replacement algorithm is LRU or not, the default is True, if it is set as False,
+                    then you must provide the type of cache replacement algorithm, in the form of cache=something,
+                    for example, cache="MRU", cache="ARC"
+        :param calculate: flag for checking whether we need to recalculate reuse distance and distribution table,
+                    the default is True, if it is set as false, then there must be a file named reuse.dat in the temp folder
+        :param kwargs: possible key-arg includes the type of cache replacement algorithms(cache),
+
+        :return: a two-dimension list, the first dimension is x, the second dimension is y, the value is the heat value
+        """
+
+        if LRU:
+            reuse_dist_python_list, break_points = self._prepare_reuse_distance_and_break_points(mode, reader,
+                                                                                                 calculate)
+            # create shared memory for child process
+            reuse_dist_share_array = Array('l', len(reuse_dist_python_list), lock=False)
+            for i, j in enumerate(reuse_dist_python_list):
+                reuse_dist_share_array[i] = j
+            kwargs['reuse_distance_list'] = reuse_dist_share_array
+            result, kwargs_dict, func_pointer = self._prepare_multiprocess_params_LRU(plot_type, break_points,
+                                                                                      **kwargs)  # reuse_distance_list=reuse_dist_share_array,
+
+        else:
+            # if it is not LRU, then there should be a cache replacement algorithm in kwargs
+            assert 'cache' in kwargs, "you didn't provide any cache replacement algorithm"
+
+            # for general cache replacement algorithm, uncomment the following, it is just for
+            # transform the data from other format to plain txt
+            p = pardaProfiler(30000, reader)
+
+            # prepare break points
+            if mode == 'r':
+                break_points = self._get_breakpoints_realtime(reader, self.interval)
+            elif mode == 'v':
+                break_points = self._get_breakpoints_virtualtime(self.interval, p.num_of_lines)
+            else:
+                raise RuntimeError("unrecognized mode, it can only be r or v")
+
+            kwargs_dict = {}
+
+        # create shared memory for break points
         break_points_share_array = Array('i', len(break_points), lock=False)
         for i, j in enumerate(break_points):
             break_points_share_array[i] = j
@@ -234,28 +226,9 @@ class heatmap:
         for i in range(len(break_points) - 1):
             map_list.append(i)
 
-        func_pointer = _calc_hit_rate_subprocess
-        func_pointer = _calc_avg_rd_subprocess
-        func_pointer = _calc_rd_count_subprocess
 
-        # create the array for storing results
-        # result is a dict: (x, y) -> heat, x, y is the left, lower point of heat square
-        if func_pointer == _calc_rd_count_subprocess:
-            max_rd = max(reuse_dist_python_list)
-            # print("max rd = %d"%max_rd)
-            # self.gap = max_rd // HEATMAP_GRADIENT + 1
-            param1 = max_rd
-            # result = np.empty((len(break_points), HEATMAP_GRADIENT), dtype=np.float32)
-            self._set_log_num(max_rd, len(break_points))
-            result = np.empty((len(break_points), int(math.log(max_rd, LOG_NUM)) + 1), dtype=np.float32)
-            result[:] = np.nan
 
-        else:
-            # (x,y) means from time x to time y
-            param1 = self.cache_size
-            array_len = len(break_points)
-            result = np.empty((array_len, array_len), dtype=np.float32)
-            result[:] = np.nan
+
 
 
         # new 0510
@@ -270,9 +243,9 @@ class heatmap:
                 # p = Process(target=_calc_hit_rate_subprocess, args=(map_list[map_list_pos], self.cache_size,
                 #                                                     break_points_share_array, reuse_dist_share_array,
                 #                                                     q))
-                p = Process(target=func_pointer, args=(map_list[map_list_pos], param1,
-                                                       break_points_share_array, reuse_dist_share_array,
-                                                       q))
+                # print(kwargs_dict)
+                p = Process(target=func_pointer, args=(map_list[map_list_pos], break_points_share_array,
+                                                       reuse_dist_share_array, q), kwargs=kwargs_dict)
 
                 # p = Process(target=_calc_hit_rate_subprocess_general, args=(map_list[map_list_pos], self.cache_size,
                 #                                                   break_points_share_array, reader, q))
@@ -291,8 +264,6 @@ class heatmap:
             print("%2.2f%%" % (result_count / len(map_list) * 100), end='\r')
         for p in process_pool:
             p.join()
-        del reuse_dist_share_array
-        del break_points_share_array
 
         # old 0510
         # with Pool(processes=self.num_of_process) as p:
@@ -309,25 +280,25 @@ class heatmap:
 
         return result
 
-    def _set_log_num(self, max_rd, length):
+    def _cal_log_num(self, max_rd, length):
         """
         find out the LOG_NUM that makes the number of pixels in y axis to match the number of pixels in x axis
         :param max_rd: maxinum reuse distance
         :param length: length of break points (also number of pixels along x axis)
         :return:
         """
-        global LOG_NUM
+        # global LOG_NUM
         init_log_num = 10
         l2_prev = length
         while True:
             l2 = math.log(max_rd, init_log_num)
-            if l2 > length and l2_prev < length:
-                LOG_NUM = init_log_num
+            if l2 > length > l2_prev:
+                # LOG_NUM = init_log_num
                 # print(LOG_NUM)
-                break
+                # break
+                return init_log_num 
             l2_prev = l2
             init_log_num = (init_log_num - 1) / 2 + 1
-
 
 
     @staticmethod
@@ -339,6 +310,7 @@ class heatmap:
         :return: a list of break points
         """
         break_points = []
+        assert total_length // bin_size > 10, "bin size too large, please choose a smaller one"
         for i in range(total_length // bin_size):
             break_points.append(i * bin_size)
         if break_points[-1] != total_length - 1:
@@ -411,13 +383,12 @@ class heatmap:
 
 
     @staticmethod
-    def draw(xydict, **kargs):
-        if 'figname' in kargs:
-            filename = kargs['figname']
+    def draw(xydict, plot_type, **kwargs):
+        if 'figname' in kwargs:
+            filename = kwargs['figname']
         else:
             filename = 'heatmap.png'
 
-        plt.clf()
         masked_array = np.ma.array(xydict, mask=np.isnan(xydict))
 
         # print(masked_array)
@@ -431,37 +402,53 @@ class heatmap:
         # vmax=result2.max())
         try:
             # ax.pcolor(masked_array.T, cmap=cmap)
-            if 'fixed_range' in kargs and kargs['fixed_range']:
-                img = plt.imshow(masked_array.T, vmin=0, vmax=1, interpolation='nearest', origin='lower')
+            if plot_type == "rd_distribution":
+                img = plt.imshow(masked_array.T, interpolation='nearest', origin='lower', aspect='auto'
+                                 , norm=matplotlib.colors.LogNorm())
             else:
-                img = plt.imshow(masked_array.T, interpolation='nearest', origin='lower',
-                                 norm=matplotlib.colors.LogNorm())
+                if 'fixed_range' in kwargs and kwargs['fixed_range']:
+                    img = plt.imshow(masked_array.T, vmin=0, vmax=1, interpolation='nearest', origin='lower',
+                                     aspect='auto')
+                else:
+                    img = plt.imshow(masked_array.T, interpolation='nearest', origin='lower', aspect='auto')
+
             cb = plt.colorbar(img)
-            if 'text' in kargs:
+            if 'text' in kwargs:
                 (length1, length2) = masked_array.shape
                 ax = plt.gca()
-                ax.text(length2 // 3, length1 // 8, kargs['text'], fontsize=20)  # , color='blue')
+                ax.text(length2 // 3, length1 // 8, kwargs['text'], fontsize=20)  # , color='blue')
 
-            # change tick from arbitrary number to real time
-            if 'change_label' in kargs and kargs['change_label'] and 'interval' in kargs:
-                ticks = ticker.FuncFormatter(lambda x, pos: '{:2.2f}'.format(x * kargs['interval'] / (10 ** 6) / 3600))
+            # # change tick from arbitrary number to real time
+            if 'change_label' in kwargs and kwargs['change_label'] and 'interval' in kwargs:
+                ticks = ticker.FuncFormatter(lambda x, pos: '{:2.2f}'.format(x * kwargs['interval'] / (10 ** 6) / 3600))
                 plt.gca().xaxis.set_major_formatter(ticks)
                 plt.gca().yaxis.set_major_formatter(ticks)
                 plt.xlabel("time/hour")
                 plt.ylabel("time/hour")
+            #
+            # if 'change_label_rd_bucket' in kwargs and kwargs['change_label_rd_bucket']:
+            #     # ticks = ticker.FuncFormatter(lambda x, pos: '{:2.2f}'.format(x * kwargs['interval'] / (10 ** 6) / 3600))
+            #     ticks = ticker.FuncFormatter(lambda x, pos: '{:2.0f}'.format(LOG_NUM ** x))
+            #     # plt.gca().xaxis.set_major_formatter(ticks)
+            #     plt.gca().yaxis.set_major_formatter(ticks)
+            #     plt.xlabel("logical time")
+            #     plt.ylabel("reuse distance")
 
-            if 'change_label_rd_bucket' in kargs and kargs['change_label_rd_bucket']:
-                # ticks = ticker.FuncFormatter(lambda x, pos: '{:2.2f}'.format(x * kargs['interval'] / (10 ** 6) / 3600))
-                ticks = ticker.FuncFormatter(lambda x, pos: '{:2.0f}'.format(LOG_NUM ** x))
-                # plt.gca().xaxis.set_major_formatter(ticks)
-                plt.gca().yaxis.set_major_formatter(ticks)
-                plt.xlabel("logical time")
-                plt.ylabel("reuse distance")
+            if 'xlabel' in kwargs:
+                plt.xlabel(kwargs['xlabel'])
+            if 'ylabel' in kwargs:
+                plt.xlabel(kwargs['ylabel'])
+            if 'xticks' in kwargs:
+                plt.gca().xaxis.set_major_formatter(kwargs['xticks'])
+            if 'yticks' in kwargs:
+                plt.gca().yaxis.set_major_formatter(kwargs['yticks'])
+
 
 
             # plt.show()
             plt.savefig(filename)
             colorfulPrint("red", "plot is saved at the same directory")
+            plt.clf()
         except Exception as e:
             logging.warning(str(e))
             plt.pcolormesh(masked_array.T, cmap=cmap)
@@ -477,44 +464,42 @@ class heatmap:
                 os.remove('temp/' + filename)
             os.rmdir('temp/')
 
-    def run(self, mode, interval, cache_size, reader, **kargs):
+    def run(self, mode, interval, plot_type, reader, **kwargs):
         """
 
         :param mode:
         :param interval:
         :param cache_size:
         :param reader:
-        :param kargs: include num_of_process, figname
+        :param kwargs: include num_of_process, figname
         :return:
         """
-        self.cache_size = cache_size
+        self.cache_size = kwargs['cache_size']
         self.interval = interval
         self.mode = mode
-        if 'num_of_process' in kargs:
-            self.num_of_process = kargs['num_of_process']
+        if 'num_of_process' in kwargs:
+            self.num_of_process = kwargs['num_of_process']
         else:
             self.num_of_process = 4
 
-
-        if 'calculate' in kargs:
-            calculate = kargs['calculate']
+        if 'calculate' in kwargs:
+            calculate = kwargs['calculate']
         else:
             calculate = True
-
         if mode == 'r':
-            xydict = self.prepare_heatmap_dat('r', reader, calculate)
-            kargs['interval'] = interval
+            xydict = self.calculate_heatmap_dat('r', reader, plot_type, calculate, **kwargs)
+            kwargs['interval'] = interval
         elif mode == 'v':
-            xydict = self.prepare_heatmap_dat('v', reader, calculate)
+            xydict = self.calculate_heatmap_dat('v', reader, plot_type, calculate, **kwargs)
         else:
             raise RuntimeError("Cannot recognize this mode, it can only be either real time(r) or virtual time(v), "
                                "but you input %s" % mode)
 
-        if "change_label_rd_bucket" in kargs and kargs['change_label_rd_bucket']:
-            kargs['gap'] = self.gap
+        # if "change_label_rd_bucket" in kwargs and kwargs['change_label_rd_bucket']:
+        #     kwargs['gap'] = self.gap
 
 
-        self.draw(xydict, **kargs)
+        self.draw(xydict, plot_type, **kwargs)
 
         # self.__del_manual__()
 
@@ -629,8 +614,9 @@ def localtest():
     reader2 = vscsiCacheReader("../data/trace_CloudPhysics_bin")
 
     hm = heatmap()
-    hm.run('r', 10000000, 2000, reader2, num_of_process=8, change_label_rd_bucket=True)  # ,change_label='False'
-    # fixed_range=True, text="Hello word",
+    hm.run('v', 10, "rd_distribution", reader2, num_of_process=8, cache_size=2000, save=False,
+           change_label_rd_bucket=True)  # ,change_label='False'
+    # fixed_range=True, text="Hello word",  10000000
     del hm
     # p = pardaProfiler(20000, reader2)
     # p.run()
