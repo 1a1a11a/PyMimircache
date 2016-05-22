@@ -39,8 +39,9 @@ class pardaProfiler(abstractLRUProfiler):
         # if the given file is not basic reader, needs conversion
         if not isinstance(reader, plainCacheReader):
             self.prepare_file()
+        else:
+            self.num_of_lines = self.reader.get_num_total_lines()
 
-        self.num_of_lines = self.reader.get_num_total_lines()
         self.calculated = False
 
     def get_lib_name(self):
@@ -49,10 +50,12 @@ class pardaProfiler(abstractLRUProfiler):
                 return name
 
     def prepare_file(self):
+        self.num_of_lines = 0
         logging.debug("changing file format")
         with open('temp.dat', 'w') as ofile:
             i = self.reader.read_one_element()
             while i != None:
+                self.num_of_lines += 1
                 ofile.write(str(i) + '\n')
                 i = self.reader.read_one_element()
         self.reader = plainCacheReader('temp.dat')
