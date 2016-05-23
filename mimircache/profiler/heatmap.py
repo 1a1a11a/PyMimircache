@@ -167,7 +167,7 @@ class heatmap:
 
         return result, kwargs_dict, func_pointer
 
-    def calculate_heatmap_dat(self, mode, reader, plot_type, calculate=True, **kwargs):
+    def calculate_heatmap_dat(self, mode, reader, plot_type, **kwargs):
         """
             calculate the data for plotting heatmap
 
@@ -190,6 +190,11 @@ class heatmap:
 
         :return: a two-dimension list, the first dimension is x, the second dimension is y, the value is the heat value
         """
+        if 'calculate' in kwargs:
+            calculate = kwargs['calculate']
+        else:
+            calculate = True
+
         if 'LRU' not in kwargs or ('LRU' in kwargs and kwargs['LRU']):
             reuse_dist_python_list, break_points = self._prepare_reuse_distance_and_break_points(mode, reader,
                                                                                                  calculate)
@@ -416,7 +421,7 @@ class heatmap:
         # vmax=result2.max())
         try:
             # ax.pcolor(masked_array.T, cmap=cmap)
-            if plot_type == "rd_distribution":
+            if plot_type == "rd_distribution":  # or plot_type == "cold_miss_count_start_time_end_time"
                 img = plt.imshow(masked_array.T, interpolation='nearest', origin='lower', aspect='auto'
                                  , norm=matplotlib.colors.LogNorm())
             else:
@@ -473,7 +478,7 @@ class heatmap:
         if 'figname' in kwargs:
             filename = kwargs['figname']
         else:
-            filename = 'heatmap.png'
+            filename = 'cold_miss.png'
 
         try:
             # print(l)
@@ -551,6 +556,7 @@ class heatmap:
         self.cache_size = kwargs['cache_size']
         self.interval = interval
         self.mode = mode
+        reader.reset()
         if 'num_of_process' in kwargs:
             self.num_of_process = kwargs['num_of_process']
         else:
@@ -562,7 +568,7 @@ class heatmap:
             calculate = True
 
         if mode == 'r' or mode == 'v':
-            xydict = self.calculate_heatmap_dat(mode, reader, plot_type, calculate, **kwargs)
+            xydict = self.calculate_heatmap_dat(mode, reader, plot_type, calculate, interval=interval, **kwargs)
         else:
             raise RuntimeError("Cannot recognize this mode, it can only be either real time(r) or virtual time(v), "
                                "but you input %s" % mode)
@@ -576,8 +582,8 @@ class heatmap:
 
         print(xydict1.shape)
         print(xydict2.shape)
-        print(xydict1)
-        print(xydict2)
+        # print(xydict1)
+        # print(xydict2)
 
         xydict = xydict1 - xydict2
 
@@ -665,49 +671,52 @@ def server_size_plot():
         if filename.endswith('.vscsitrace'):
             if int(filename.split('_')[0][1:]) in [1, 4, 5, 51, 99, 83, 87]:
                 continue
-            if os.path.exists('time_size/' + filename + '_512.png'):
+            if os.path.exists('time_size_0523/' + filename + '_128.png'):
                 continue
             hm = heatmap()
             mem_size = mem_sizes[int(filename.split('_')[0][1:]) - 1]
             reader = vscsiCacheReader("../data/cloudphysics/" + filename)
             print(filename)
-            size = 512
-            while size < mem_size * 1024 * 128:
+            size = 128
+            while size < mem_size * 1024:
                 print(size)
-                if size == 512:
-                    hm.run('r', 1000000000, size, reader, num_of_process=42, figname='time_size/' + filename
-                                                                                     + '_' + str(size) + '.png',
+                if size == 128:
+                    hm.run('r', 10000000, "hit_rate_start_time_end_time", reader, num_of_process=48,
+                           figname='time_size/' + filename + '_' + str(size) + '.png',
+                           cache_size=size, change_label=True, save=True,
                            calculate=True, fixed_range=True, text='size=' + str(size))
                 else:
-                    hm.run('r', 1000000000, size, reader, num_of_process=42, figname='time_size/' + filename
-                                                                                     + '_' + str(size) + '.png',
+                    hm.run('r', 10000000, "hit_rate_start_time_end_time", reader, num_of_process=48,
+                           figname='time_size/' + filename + '_' + str(size) + '.png',
+                           cache_size=size, change_label=True, save=True,
                            calculate=False, fixed_range=True, text='size=' + str(size))
                 size *= 2
 
 
-def server_request_num_plot():
-    for filename in os.listdir("../data/cloudphysics"):
-        print(filename)
-        if filename.endswith('.vscsitrace'):
-            if int(filename.split('_')[0][1:]) in [1, 4, 5, 51, 99, 83, 87]:
-                continue
-            if os.path.exists(filename + '_request_num.png'):
-                continue
-            hm = heatmap()
-            reader = vscsiCacheReader("../data/cloudphysics/" + filename)
-            break_points = hm._get_breakpoints_realtime(reader, 1000000000)
-
-            array_len = len(break_points)
-            result = np.empty((array_len, array_len), dtype=np.float32)
-            result[:] = np.nan
-
-            for o1, i in enumerate(break_points):
-                for o2, j in enumerate(break_points):
-                    if i >= j:
-                        continue
-                    else:
-                        result[o1][o2] = j - i
-            hm.draw_heatmap(result, None, figname=filename + '_request_num.png')
+# To Del
+# def server_request_num_plot():
+#     for filename in os.listdir("../data/cloudphysics"):
+#         print(filename)
+#         if filename.endswith('.vscsitrace'):
+#             if int(filename.split('_')[0][1:]) in [1, 4, 5, 51, 99, 83, 87]:
+#                 continue
+#             if os.path.exists(filename + '_request_num.png'):
+#                 continue
+#             hm = heatmap()
+#             reader = vscsiCacheReader("../data/cloudphysics/" + filename)
+#             break_points = hm._get_breakpoints_realtime(reader, 1000000000)
+#
+#             array_len = len(break_points)
+#             result = np.empty((array_len, array_len), dtype=np.float32)
+#             result[:] = np.nan
+#
+#             for o1, i in enumerate(break_points):
+#                 for o2, j in enumerate(break_points):
+#                     if i >= j:
+#                         continue
+#                     else:
+#                         result[o1][o2] = j - i
+#             hm.draw_heatmap(result, None, figname=filename + '_request_num.png')
 
 
 def server_plot_all_redis():
@@ -729,18 +738,38 @@ def server_plot_all_redis():
                    fixed_range="True")  # , change_label='True')
 
 
+def request_num_2d(mode, interval):
+    reader2 = vscsiCacheReader("../data/trace_CloudPhysics_bin")
+
+    hm = heatmap()
+    if mode == 'r':
+        break_points = hm._get_breakpoints_realtime(reader2, interval)
+    elif mode == 'v':
+        p = pardaProfiler(2000, reader2)
+        break_points = hm._get_breakpoints_virtualtime(interval, p.num_of_lines)
+
+    l = []
+    for i in range(len(break_points)):
+        if i == 0:
+            continue
+        else:
+            l.append(break_points[i] - break_points[i - 1])
+    hm.draw2d(l, figname='request_num_2d.png')
+
+
+
 def cold_miss_2d(mode, interval):
     reader2 = vscsiCacheReader("../data/trace_CloudPhysics_bin")
 
     hm = heatmap()
     if mode == 'r':
-        break_points = hm._get_breakpoints_realtime(interval, reader2)
+        break_points = hm._get_breakpoints_realtime(reader2, interval)
     elif mode == 'v':
         p = pardaProfiler(2000, reader2)
         break_points = hm._get_breakpoints_virtualtime(interval, p.num_of_lines)
 
     l = calc_cold_miss_count(break_points, reader2)
-    hm.draw2d(l)
+    hm.draw2d(l, figname='cold_miss_2d.png')
 
 
 def localtest():
@@ -753,17 +782,17 @@ def localtest():
     hm = heatmap()
     # hm.run('r', 1000000000, "hit_rate_start_time_cache_size", reader2, num_of_process=8, cache_size=2000, save=False,
     #        change_label_rd_bucket=True, bin_size=1000)  # ,change_label='False'
-    # # fixed_range=True, text="Hello word",  10000000
+    # fixed_range=True, text="Hello word",  10000000
 
 
 
+    # cold_miss_2d('r', 10000000)
+    request_num_2d('r', 10000000)
+    # hm.run('r', 10000000, "cold_miss_count_start_time_end_time", reader2, num_of_process=8, # LRU=False, cache='optimal',
+    #        cache_size=500, save=False, change_label=True, figname="lru_rd2.png")
 
-    # hm.run('r', 10000000, "hit_rate_start_time_end_time", reader2, LRU=False, num_of_process=8,
-    #        cache='optimal', cache_size=500, save=False, change_label=True, figname="optimal.png")
-
-    hm.run_diff_optimal('r', 10000000, "hit_rate_start_time_end_time", reader2, num_of_process=8, LRU=False,
-                        cache="ARC",
-                        cache_size=500, save=False, change_label=True, figname="temp_ARC_NONPARDA_Optimal.png")
+    # hm.run_diff_optimal('r', 10000000, "hit_rate_start_time_end_time", reader2, num_of_process=8, LRU=False, cache="LRU",
+    #                     cache_size=500, save=False, change_label=True, figname="temp_LRU_NONPARDA_Optimal.png")
 
     reader2.reset()
 
@@ -796,5 +825,5 @@ if __name__ == "__main__":
 
     # server_plot_all()
     # server_plot_all_redis()
-    # server_size_plot()
+    server_size_plot()
     # server_request_num_plot()
