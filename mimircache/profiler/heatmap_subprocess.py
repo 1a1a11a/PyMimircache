@@ -1,6 +1,11 @@
 from mimircache.cacheReader.plainReader import plainCacheReader
 from mimircache.cache.FIFO import FIFO
 from mimircache.cache.RR import RR
+from mimircache.cache.SLRU import SLRU
+from mimircache.cache.ARC import ARC
+from mimircache.cache.LFU_RR import LFU_RR
+from mimircache.cache.optimal import optimal
+from mimircache.cache.LRU import LRU
 import math
 
 
@@ -32,7 +37,7 @@ def _hit_rate_start_time_end_time_calc_hit_count_general(reuse_dist_array, cache
     return hit_count
 
 
-def calc_hit_rate_start_time_end_time_subprocess_general(order, break_points_share_array, reader, q, **kwargs):
+def calc_hit_rate_start_time_end_time_subprocess_general(order, cache, break_points_share_array, reader, q, **kwargs):
     """
     the child process for calculating hit rate for a general cache replacement algorithm,
     each child process will calculate for a column with fixed starting time
@@ -42,8 +47,21 @@ def calc_hit_rate_start_time_end_time_subprocess_general(order, break_points_sha
     :param q
     :return: nothing, but add to the queue a list of result in the form of (x, y, hit_rate) with x as fixed value
     """
+    if cache != 'optimal':
+        cache_size = kwargs['cache_size']
+    if cache == 'RR':
+        c = RR(cache_size=cache_size)
+    if cache == 'SLRU':
+        c = SLRU(cache_size=cache_size)
+    if cache == 'ARC':
+        c = ARC(cache_size=cache_size)
+    if cache == 'LFU_RR':
+        c = LFU_RR(cache_size=cache_size)
+    if cache == 'LRU':
+        c = LRU(cache_size=cache_size)
+    if cache == "optimal":
+        c = optimal()
 
-    cache_size = kwargs['cache_size']
 
     result_list = []
     total_hc = 0  # total hit count
@@ -54,7 +72,6 @@ def calc_hit_rate_start_time_end_time_subprocess_general(order, break_points_sha
         reader_new = plainCacheReader('temp.dat')
     else:
         reader_new = type(reader)(reader.file_loc)
-    c = RR(cache_size=cache_size)
     # for i in range(break_points_share_array[order], ):
     # TODO: figure out line size here and add seek method in reader base class
     # TODO: use mmap here to improve performance
@@ -73,9 +90,13 @@ def calc_hit_rate_start_time_end_time_subprocess_general(order, break_points_sha
             hr = total_hc / (break_points_share_array[pos_in_break_points] - break_points_share_array[order])
             result_list.append((order, pos_in_break_points, hr))
             pos_in_break_points += 1
+            # print("{}: {}".format(total_hc, total_mc))
     q.put(result_list)
+
     # return result_list
 
+
+# LRU
 
 def _hit_rate_start_time_end_time_calc_hit_count(reuse_dist_array, cache_size, begin_pos, end_pos, real_start,
                                                  **kwargs):
@@ -119,13 +140,14 @@ def calc_hit_rate_start_time_cache_size_subprocess(order, break_points_share_arr
     """
 
     max_rd = kwargs['max_rd']
+    bin_size = kwargs['bin_size']
 
     result_list = []
 
-    rd_distribution = [0] * (max_rd + 1)
+    rd_distribution = [0] * (max_rd // bin_size + 1)
 
     for i in range(break_points_share_array[order], break_points_share_array[-1]):
-        rd_distribution[reuse_dist_share_array[i]] += 1
+        rd_distribution[reuse_dist_share_array[i] // bin_size] += 1
 
     num_of_total_request = break_points_share_array[-1] - break_points_share_array[order]
 
@@ -264,3 +286,34 @@ def calc_rd_distribution_subprocess(order, break_points_share_array, reuse_dist_
         # else:
         #     result_list.append((order, i, 0))
     q.put(result_list)
+
+
+
+
+    # def calc_optimal_hit_rate_start_time_end_time_subprocess(order, break_points_share_array, reuse_dist_share_array, q,
+    #                                                      **kwargs):
+    #         """
+    #         the child process for calculating hit rate, each child process will calculate for
+    #         a column with fixed starting time
+    #         :param q:
+    #         :param reuse_dist_share_array:
+    #         :param break_points_share_array:
+    #         :param order: the order of column the child is working on
+    #         :return: a list of result in the form of (x, y, hit_rate) with x as fixed value
+    #         """
+    #
+    #         cache_size = kwargs['cache_size']
+    #
+    #         seen_set = set()
+    #         for i in range(order + 1, len(break_points_share_array)):
+    #             for j in range(break_points_share_array[i-1], break_points_share_array[i]):
+    #                 if
+    #
+    #             hc = _hit_rate_start_time_end_time_calc_hit_count(reuse_dist_share_array, cache_size,
+    #                                                               break_points_share_array[i - 1],
+    #                                                               break_points_share_array[i], break_points_share_array[order])
+    #             total_hc += hc
+    #             hr = total_hc / (break_points_share_array[i] - break_points_share_array[order])
+    #             result_list.append((order, i, hr))
+    #         q.put(result_list)
+    #         # return result_list

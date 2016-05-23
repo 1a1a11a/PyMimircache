@@ -13,26 +13,25 @@ currently supported plot type:
 """
 
 import logging
+import os
 import pickle
 from collections import deque
-from multiprocessing import Pool, Array, Process, Queue
-import math
+from multiprocessing import Array, Process, Queue
 
-import numpy as np
-import os
 import matplotlib
+import numpy as np
 
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 
 from mimircache.cache.LRU import LRU
-from mimircache.cacheReader.plainReader import plainCacheReader
 from mimircache.cacheReader.vscsiReader import vscsiCacheReader
 from mimircache.cacheReader.csvReader import csvCacheReader
 from mimircache.profiler.pardaProfiler import pardaProfiler
 import matplotlib.ticker as ticker
 from mimircache.utils.printing import *
 from mimircache.profiler.heatmap_subprocess import *
+from mimircache.profiler.heatmap_subprocess2d import *
 
 DEBUG = True
 
@@ -101,7 +100,7 @@ class heatmap:
         else:
             return c_reuse_dist_long_array, break_points
 
-    def _prepare_multiprocess_params_LRU(self, plot_type, break_points, *args, **kwargs):
+    def _prepare_multiprocess_params_LRU(self, plot_type, break_points, **kwargs):
         # 1. hit_rate_start_time_end_time
         # 2. hit_rate_start_time_cache_size
         # 3. avg_rd_start_time_end_time
@@ -114,9 +113,16 @@ class heatmap:
         if plot_type == "hit_rate_start_time_cache_size":
             max_rd = max(kwargs['reuse_distance_list'])
             kwargs_dict['max_rd'] = max_rd
-            result = np.empty((len(break_points), max_rd + 1), dtype=np.float32)
+            if 'bin_size' in kwargs:
+                kwargs_dict["bin_size"] = kwargs['bin_size']
+            else:
+                kwargs_dict['bin_size'] = 1
+
+            result = np.empty((len(break_points), max_rd // kwargs_dict['bin_size'] + 1), dtype=np.float32)
             result[:] = np.nan
             func_pointer = calc_hit_rate_start_time_cache_size_subprocess
+            plt.gca().yaxis.set_major_formatter(
+                ticker.FuncFormatter(lambda x, pos: '{:2.0f}'.format(kwargs_dict['bin_size'] ** x)))
 
         elif plot_type == "rd_distribution":
             max_rd = max(kwargs['reuse_distance_list'])
@@ -161,7 +167,7 @@ class heatmap:
 
         return result, kwargs_dict, func_pointer
 
-    def calculate_heatmap_dat(self, mode, reader, plot_type, LRU=True, calculate=True, **kwargs):
+    def calculate_heatmap_dat(self, mode, reader, plot_type, calculate=True, **kwargs):
         """
             calculate the data for plotting heatmap
 
@@ -184,8 +190,7 @@ class heatmap:
 
         :return: a two-dimension list, the first dimension is x, the second dimension is y, the value is the heat value
         """
-
-        if LRU:
+        if 'LRU' not in kwargs or ('LRU' in kwargs and kwargs['LRU']):
             reuse_dist_python_list, break_points = self._prepare_reuse_distance_and_break_points(mode, reader,
                                                                                                  calculate)
             # create shared memory for child process
@@ -199,6 +204,7 @@ class heatmap:
         else:
             # if it is not LRU, then there should be a cache replacement algorithm in kwargs
             assert 'cache' in kwargs, "you didn't provide any cache replacement algorithm"
+            cache_type = kwargs['cache']
 
             # for general cache replacement algorithm, uncomment the following, it is just for
             # transform the data from other format to plain txt
@@ -213,6 +219,11 @@ class heatmap:
                 raise RuntimeError("unrecognized mode, it can only be r or v")
 
             kwargs_dict = {}
+            array_len = len(break_points)
+            result = np.empty((array_len, array_len), dtype=np.float32)
+            result[:] = np.nan
+
+        # print(break_points)
 
         # create shared memory for break points
         break_points_share_array = Array('i', len(break_points), lock=False)
@@ -239,16 +250,18 @@ class heatmap:
         map_list_pos = 0
         while result_count < len(map_list):
             if process_count < self.num_of_process and map_list_pos < len(map_list):
-
-                # p = Process(target=_calc_hit_rate_subprocess, args=(map_list[map_list_pos], self.cache_size,
-                #                                                     break_points_share_array, reuse_dist_share_array,
-                #                                                     q))
-                # print(kwargs_dict)
-                p = Process(target=func_pointer, args=(map_list[map_list_pos], break_points_share_array,
-                                                       reuse_dist_share_array, q), kwargs=kwargs_dict)
-
-                # p = Process(target=_calc_hit_rate_subprocess_general, args=(map_list[map_list_pos], self.cache_size,
-                #                                                   break_points_share_array, reader, q))
+                # LRU related heatmaps
+                if 'LRU' not in kwargs or ('LRU' in kwargs and kwargs['LRU']):
+                    # p = Process(target=_calc_hit_rate_subprocess, args=(map_list[map_list_pos], self.cache_size,
+                    #                                                     break_points_share_array, reuse_dist_share_array,
+                    #                                                     q))
+                    # print(kwargs_dict)
+                    p = Process(target=func_pointer, args=(map_list[map_list_pos], break_points_share_array,
+                                                           reuse_dist_share_array, q), kwargs=kwargs_dict)
+                else:
+                    p = Process(target=calc_hit_rate_start_time_end_time_subprocess_general,
+                                args=(map_list[map_list_pos], cache_type,
+                                      break_points_share_array, reader, q), kwargs={'cache_size': self.cache_size})
 
 
                 p.start()
@@ -310,7 +323,8 @@ class heatmap:
         :return: a list of break points
         """
         break_points = []
-        assert total_length // bin_size > 10, "bin size too large, please choose a smaller one"
+        assert total_length // bin_size > 10, "bin size too large, please choose a smaller one, " \
+                                              "total length %d, bin size %d" % (total_length, bin_size)
         for i in range(total_length // bin_size):
             break_points.append(i * bin_size)
         if break_points[-1] != total_length - 1:
@@ -383,7 +397,7 @@ class heatmap:
 
 
     @staticmethod
-    def draw(xydict, plot_type, **kwargs):
+    def draw_heatmap(xydict, plot_type, **kwargs):
         if 'figname' in kwargs:
             filename = kwargs['figname']
         else:
@@ -446,13 +460,73 @@ class heatmap:
 
 
             # plt.show()
-            plt.savefig(filename)
+            plt.savefig(filename, dpi=600)
             colorfulPrint("red", "plot is saved at the same directory")
             plt.clf()
         except Exception as e:
             logging.warning(str(e))
             plt.pcolormesh(masked_array.T, cmap=cmap)
             plt.savefig(filename)
+
+    @staticmethod
+    def draw2d(l, **kwargs):
+        if 'figname' in kwargs:
+            filename = kwargs['figname']
+        else:
+            filename = 'heatmap.png'
+
+        try:
+            # print(l)
+            plt.plot(l)
+
+            if 'xlabel' in kwargs:
+                plt.xlabel(kwargs['xlabel'])
+            if 'ylabel' in kwargs:
+                plt.xlabel(kwargs['ylabel'])
+            if 'xticks' in kwargs:
+                plt.gca().xaxis.set_major_formatter(kwargs['xticks'])
+            if 'yticks' in kwargs:
+                plt.gca().yaxis.set_major_formatter(kwargs['yticks'])
+
+            # plt.show()
+            plt.savefig(filename)
+            colorfulPrint("red", "plot is saved at the same directory")
+            plt.clf()
+        except Exception as e:
+            logging.warning(str(e))
+            plt.savefig(filename)
+
+    @staticmethod
+    def draw_test(xydict, **kwargs):
+        from mpl_toolkits.mplot3d import Axes3D
+
+        fig = plt.figure()
+        ax = Axes3D(fig)
+        # X = np.arange(-4, 4, 0.25)
+        X = np.arange(0, len(xydict))
+        # Y = np.arange(-4, 4, 0.25)
+        Y = np.arange(0, len(xydict[0]))
+        X, Y = np.meshgrid(X, Y)
+        # R = np.sqrt(X ** 2 + Y ** 2)
+        # Z = np.sin(R)
+        Z = np.array(xydict).T
+
+        print(X.shape)
+        print(Y.shape)
+        print(Z.shape)
+
+        print(X)
+        print(Y)
+        print(Z)
+
+        ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=plt.cm.hot)  # plt.cm.jet
+        # ax.contourf(X, Y, Z, zdir='z', offset=0, cmap=plt.cm.hot)
+        ax.set_zlim(0, 1)
+        # ax.set_zlim(-2, 2)
+
+        plt.savefig('plot3d_ex.png', dpi=480)
+
+
 
     def __del_manual__(self):
         """
@@ -467,9 +541,59 @@ class heatmap:
     def run(self, mode, interval, plot_type, reader, **kwargs):
         """
 
+        :param plot_type:
         :param mode:
         :param interval:
-        :param cache_size:
+        :param reader:
+        :param kwargs: include num_of_process, figname
+        :return:
+        """
+        self.cache_size = kwargs['cache_size']
+        self.interval = interval
+        self.mode = mode
+        if 'num_of_process' in kwargs:
+            self.num_of_process = kwargs['num_of_process']
+        else:
+            self.num_of_process = 4
+
+        if 'calculate' in kwargs:
+            calculate = kwargs['calculate']
+        else:
+            calculate = True
+
+        if mode == 'r' or mode == 'v':
+            xydict = self.calculate_heatmap_dat(mode, reader, plot_type, calculate, **kwargs)
+        else:
+            raise RuntimeError("Cannot recognize this mode, it can only be either real time(r) or virtual time(v), "
+                               "but you input %s" % mode)
+
+        self.draw_heatmap(xydict, plot_type, **kwargs)
+        # self.draw_test(xydict, **kwargs)
+
+        # self.__del_manual__()
+
+    def draw_diff(self, xydict1, xydict2, plot_type, **kwargs):
+
+        print(xydict1.shape)
+        print(xydict2.shape)
+        print(xydict1)
+        print(xydict2)
+
+        xydict = xydict1 - xydict2
+
+        for i in range(len(xydict)):
+            for j in range(len(xydict[i])):
+                if xydict[i][j] < 0:
+                    print("({}, {})".format(i, j))
+
+        self.draw_heatmap(xydict, plot_type, **kwargs)
+
+    def run_diff_optimal(self, mode, interval, plot_type, reader, **kwargs):
+        """
+
+        :param plot_type:
+        :param mode:
+        :param interval:
         :param reader:
         :param kwargs: include num_of_process, figname
         :return:
@@ -487,21 +611,24 @@ class heatmap:
         else:
             calculate = True
         if mode == 'r':
-            xydict = self.calculate_heatmap_dat('r', reader, plot_type, calculate, **kwargs)
-            kwargs['interval'] = interval
+            xydict1 = self.calculate_heatmap_dat('r', reader, plot_type, calculate, LRU=False, cache='optimal',
+                                                 num_of_process=8)
+            reader.reset()
+            xydict2 = self.calculate_heatmap_dat('r', reader, plot_type, calculate, **kwargs)
+
         elif mode == 'v':
-            xydict = self.calculate_heatmap_dat('v', reader, plot_type, calculate, **kwargs)
+            xydict1 = self.calculate_heatmap_dat('r', reader, plot_type, calculate, LRU=False, cache='optimal',
+                                                 num_of_process=8)
+            reader.reset()
+            xydict2 = self.calculate_heatmap_dat('v', reader, plot_type, calculate, **kwargs)
         else:
             raise RuntimeError("Cannot recognize this mode, it can only be either real time(r) or virtual time(v), "
                                "but you input %s" % mode)
 
-        # if "change_label_rd_bucket" in kwargs and kwargs['change_label_rd_bucket']:
-        #     kwargs['gap'] = self.gap
-
-
-        self.draw(xydict, plot_type, **kwargs)
+        self.draw_diff(xydict1, xydict2, plot_type, **kwargs)
 
         # self.__del_manual__()
+
 
 
 def server_plot_all():
@@ -580,14 +707,13 @@ def server_request_num_plot():
                         continue
                     else:
                         result[o1][o2] = j - i
-            hm.draw(result, figname=filename + '_request_num.png')
+            hm.draw_heatmap(result, None, figname=filename + '_request_num.png')
 
 
 def server_plot_all_redis():
     for filename in os.listdir("../data/redis/"):
         print(filename)
         if filename.endswith('.csv'):
-            reader = csvCacheReader("../data/redis/" + filename, column=1)
             # print(reader)
             # for line in reader:
             #     print(line)
@@ -603,7 +729,18 @@ def server_plot_all_redis():
                    fixed_range="True")  # , change_label='True')
 
 
+def cold_miss_2d(mode, interval):
+    reader2 = vscsiCacheReader("../data/trace_CloudPhysics_bin")
 
+    hm = heatmap()
+    if mode == 'r':
+        break_points = hm._get_breakpoints_realtime(interval, reader2)
+    elif mode == 'v':
+        p = pardaProfiler(2000, reader2)
+        break_points = hm._get_breakpoints_virtualtime(interval, p.num_of_lines)
+
+    l = calc_cold_miss_count(break_points, reader2)
+    hm.draw2d(l)
 
 
 def localtest():
@@ -614,10 +751,35 @@ def localtest():
     reader2 = vscsiCacheReader("../data/trace_CloudPhysics_bin")
 
     hm = heatmap()
-    hm.run('v', 10, "rd_distribution", reader2, num_of_process=8, cache_size=2000, save=False,
-           change_label_rd_bucket=True)  # ,change_label='False'
-    # fixed_range=True, text="Hello word",  10000000
-    del hm
+    # hm.run('r', 1000000000, "hit_rate_start_time_cache_size", reader2, num_of_process=8, cache_size=2000, save=False,
+    #        change_label_rd_bucket=True, bin_size=1000)  # ,change_label='False'
+    # # fixed_range=True, text="Hello word",  10000000
+
+
+
+
+    # hm.run('r', 10000000, "hit_rate_start_time_end_time", reader2, LRU=False, num_of_process=8,
+    #        cache='optimal', cache_size=500, save=False, change_label=True, figname="optimal.png")
+
+    hm.run_diff_optimal('r', 10000000, "hit_rate_start_time_end_time", reader2, num_of_process=8, LRU=False,
+                        cache="ARC",
+                        cache_size=500, save=False, change_label=True, figname="temp_ARC_NONPARDA_Optimal.png")
+
+    reader2.reset()
+
+    # hm.run('r', 10000000, "hit_rate_start_time_end_time", reader2, LRU=False, num_of_process=8,
+    #        cache='LFU_RR', cache_size=500, save=False, change_label=True, figname="LFU_RR.png")
+    # reader2.reset()
+    # hm.run('r', 10000000, "hit_rate_start_time_end_time", reader2, LRU=False, num_of_process=8,
+    #        cache='ARC', cache_size=500, save=False, change_label=True, figname="ARC.png")
+    reader2.reset()
+    # hm.run('r', 10000000, "hit_rate_start_time_end_time", reader2, LRU=False, num_of_process=8,
+    #        cache='optimal', cache_size=500, save=False, change_label=True, figname="optimal.png")
+    # hm.run('r', 10000000, "hit_rate_start_time_end_time", reader2, LRU=True, num_of_process=8,
+    #       cache_size=500, save=False, change_label=True, figname="LRU.png")
+
+
+
     # p = pardaProfiler(20000, reader2)
     # p.run()
 
@@ -628,6 +790,7 @@ if __name__ == "__main__":
 
     t1 = time.time()
     localtest()
+    # cold_miss_2d('v', 100)
     t2 = time.time()
     print(t2 - t1)
 
