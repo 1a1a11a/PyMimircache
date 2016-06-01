@@ -88,8 +88,11 @@ static inline bool test_version(vscsi_version_t *test_buf,
 vscsi_version_t test_vscsi_version(void *trace)
 {
   vscsi_version_t test_buf[MAX_TEST] = {};
-
   int i;
+  // for (i=0; i<128; i++)
+  //   printf("%d\t", *(int*)(trace+(sizeof(int))));
+  // printf("\n");
+
   for (i=0; i<MAX_TEST; i++) {
     test_buf[i] = (vscsi_version_t)((((trace_v2_record_t *)trace)[i]).ver >> 8);
   }

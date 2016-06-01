@@ -47,8 +47,8 @@ def calc_hit_rate_start_time_end_time_subprocess_general(order, cache, break_poi
     :param q
     :return: nothing, but add to the queue a list of result in the form of (x, y, hit_rate) with x as fixed value
     """
-    if cache != 'optimal':
-        cache_size = kwargs['cache_size']
+
+    cache_size = kwargs['cache_size']
     if cache == 'RR':
         c = RR(cache_size=cache_size)
     if cache == 'SLRU':
@@ -68,10 +68,13 @@ def calc_hit_rate_start_time_end_time_subprocess_general(order, cache, break_poi
     total_mc = 0  # total miss count
     pos_in_break_points = order + 1
     line_num = 0
-    if type(reader) != plainCacheReader:
-        reader_new = plainCacheReader('temp.dat')
-    else:
-        reader_new = type(reader)(reader.file_loc)
+    # if type(reader) != plainCacheReader:
+    #     reader_new = plainCacheReader('temp.dat')
+    # else:
+    #     reader_new = type(reader)(reader.file_loc)
+
+    reader_new = type(reader)(reader.file_loc)
+
     # for i in range(break_points_share_array[order], ):
     # TODO: figure out line size here and add seek method in reader base class
     # TODO: use mmap here to improve performance
@@ -92,13 +95,14 @@ def calc_hit_rate_start_time_end_time_subprocess_general(order, cache, break_poi
             pos_in_break_points += 1
             # print("{}: {}".format(total_hc, total_mc))
     q.put(result_list)
-
+    reader_new.close()
     # return result_list
 
 
 # LRU
 
-def _hit_rate_start_time_end_time_calc_hit_count(reuse_dist_array, cache_size, begin_pos, end_pos, real_start,
+def _hit_rate_start_time_end_time_calc_hit_count(reuse_dist_array, last_access_array, cache_size, begin_pos, end_pos,
+                                                 real_start,
                                                  **kwargs):
     """
     called by hit_rate_start_time_end_time to calculate hit count
@@ -113,17 +117,20 @@ def _hit_rate_start_time_end_time_calc_hit_count(reuse_dist_array, cache_size, b
 
     hit_count = 0
     miss_count = 0
-    for i in range(begin_pos, end_pos):
-        if reuse_dist_array[i] == -1:
-            # never appear
-            miss_count += 1
-            continue
-        if reuse_dist_array[i] - (i - real_start) < 0 and reuse_dist_array[i] < cache_size:
-            # hit
-            hit_count += 1
-        else:
-            # miss
-            miss_count += 1
+    try:
+        for i in range(begin_pos, end_pos):
+            if reuse_dist_array[i] == -1:
+                # never appear
+                miss_count += 1
+                continue
+            if last_access_array[i] - (i - real_start) <= 0 and reuse_dist_array[i] < cache_size:
+                # hit
+                hit_count += 1
+            else:
+                # miss
+                miss_count += 1
+    except:
+        print("error: begin: {}, end: {}, i: {}".format(begin_pos, end_pos, i))
     return hit_count
 
 
@@ -172,11 +179,12 @@ def calc_hit_rate_start_time_end_time_subprocess(order, break_points_share_array
     """
 
     cache_size = kwargs['cache_size']
+    last_access_array = kwargs['last_access_array']
 
     result_list = []
     total_hc = 0
     for i in range(order + 1, len(break_points_share_array)):
-        hc = _hit_rate_start_time_end_time_calc_hit_count(reuse_dist_share_array, cache_size,
+        hc = _hit_rate_start_time_end_time_calc_hit_count(reuse_dist_share_array, last_access_array, cache_size,
                                                           break_points_share_array[i - 1],
                                                           break_points_share_array[i], break_points_share_array[order])
         total_hc += hc

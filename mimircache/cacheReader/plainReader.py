@@ -1,12 +1,14 @@
 from mimircache.cacheReader.abstractReader import cacheReaderAbstract
+import mimircache.c_cacheReader as c_cacheReader
+
 
 
 class plainCacheReader(cacheReaderAbstract):
     def __init__(self, file_loc):
         super(plainCacheReader, self).__init__(file_loc)
         # cacheReaderAbstract.__init__(self, file_loc)
-        # print("begin to call")
         self.trace_file = open(file_loc, 'r')
+        self.cReader = c_cacheReader.setup_reader(file_loc, 'p')
 
     def read_one_element(self):
         super().read_one_element()

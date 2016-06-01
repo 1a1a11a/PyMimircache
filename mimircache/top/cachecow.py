@@ -18,6 +18,7 @@ from mimircache.cache.S4LRU import S4LRU
 from mimircache.profiler.generalProfiler import generalProfiler
 from mimircache.profiler.pardaProfiler import pardaProfiler
 from mimircache.profiler.pardaProfiler import parda_mode
+from mimircache.profiler.LRUProfiler import LRUProfiler
 from mimircache.profiler.heatmap import heatmap
 
 class cachecow:
@@ -117,7 +118,7 @@ class cachecow:
         # print(cache_class)
 
         if cache_class.lower() == "lru":
-            profiler = pardaProfiler(size, reader)
+            profiler = LRUProfiler(size, reader)
             # print(profiler)
         else:
             if 'bin_size' in kargs:

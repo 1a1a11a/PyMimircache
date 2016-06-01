@@ -1,13 +1,13 @@
-import os
-import sys
+""" mimircache for analyzing cache traces.
+
+    developed by Juncheng Yang and Ymir group at Emory University
+.. moduleauthor:: Juncheng Yang <peter.waynechina@gmail.com>
+
+"""
+
 import matplotlib
 
 matplotlib.use('Agg')
-
-
-# PACKAGE_PARENT = '..'
-# SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
-# sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
 
 from _version import __version__
 

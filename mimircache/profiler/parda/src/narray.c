@@ -30,7 +30,7 @@ void narray_free(narray_t* na) {
 void narray_print(narray_t* na, void (*show_element)(void*, int, FILE*), FILE* fp) {
   mdebug(fprintf(fp, "enter narray_print len=%u\n",na->len);)
   unsigned len = narray_get_len(na);
-  int i;
+  unsigned int i;
 	for (i = 0; i < len; i++) {
       show_element(na->data, i, fp);
 			mdebug(printf("%s ", ((HKEY*)ga->data)[i]);)

@@ -40,7 +40,7 @@ class pardaProfiler(abstractLRUProfiler):
         if not isinstance(reader, plainCacheReader):
             self.prepare_file()
         else:
-            self.num_of_lines = self.reader.get_num_total_lines()
+            self.num_of_trace_elements = self.reader.get_num_total_lines()
 
         self.calculated = False
 
@@ -49,13 +49,37 @@ class pardaProfiler(abstractLRUProfiler):
             if 'libparda' in name and '.py' not in name:
                 return name
 
+    def prepare_file_remove_one(self):
+        """
+        this function will prepare the file, meanwhile remove the request that appear only once
+        :return:
+        """
+        self.num_of_trace_elements = 0
+        logging.debug("changing file format")
+        seen_dict = {}
+        for e in self.reader:
+            seen_dict[e] = seen_dict.get(e, 0) + 1
+        self.reader.reset()
+        print(len(seen_dict))
+        with open('temp.dat', 'w') as ofile:
+            i = self.reader.read_one_element()
+            while i != None:
+                self.num_of_trace_elements += 1
+                if seen_dict[i] > 1:
+                    ofile.write(str(i) + '\n')
+                i = self.reader.read_one_element()
+        self.reader = plainCacheReader('temp.dat')
+        print(self.num_of_trace_elements)
+
+
+
     def prepare_file(self):
-        self.num_of_lines = 0
+        self.num_of_trace_elements = 0
         logging.debug("changing file format")
         with open('temp.dat', 'w') as ofile:
             i = self.reader.read_one_element()
             while i != None:
-                self.num_of_lines += 1
+                self.num_of_trace_elements += 1
                 ofile.write(str(i) + '\n')
                 i = self.reader.read_one_element()
         self.reader = plainCacheReader('temp.dat')
@@ -67,7 +91,7 @@ class pardaProfiler(abstractLRUProfiler):
     def run(self, mode=parda_mode.seq, *args, **kargs):
         self.c_float_array = (c_float * (self.cache_size + 1))()
 
-        c_line_num = c_long(self.num_of_lines)
+        c_line_num = c_long(self.num_of_trace_elements)
         c_file_name = c_char_p(self.reader.file_loc.encode())
 
         if mode == parda_mode.seq:
@@ -95,8 +119,9 @@ class pardaProfiler(abstractLRUProfiler):
         self.run_aux()
 
     def run_with_specified_lines(self, begin_line, end_line):
-        c_line_num = c_long(self.num_of_lines)
+        c_line_num = c_long(self.num_of_trace_elements)
         c_file_name = c_char_p(self.reader.file_loc.encode())
+        self.c_float_array = (c_float * (self.cache_size + 1))()
 
         c_begin = c_long(begin_line)
         c_end = c_long(end_line)
@@ -124,9 +149,9 @@ class pardaProfiler(abstractLRUProfiler):
             pass
 
     def get_reuse_distance(self):
-        c_line_num = c_long(self.num_of_lines)
+        c_line_num = c_long(self.num_of_trace_elements)
         c_file_name = c_char_p(self.reader.file_loc.encode())
-        self.c_long_array = (c_long * (self.num_of_lines))()
+        self.c_long_array = (c_long * (self.num_of_trace_elements))()
 
         self.parda_seq.get_reuse_distance(c_file_name, c_line_num, self.c_cache_size, self.c_long_array)
         # for i in self.c_long_array:
@@ -135,9 +160,9 @@ class pardaProfiler(abstractLRUProfiler):
         return self.c_long_array
 
     def _test(self, cache_size=2000):
-        c_line_num = c_long(self.num_of_lines)
+        c_line_num = c_long(self.num_of_trace_elements)
         c_file_name = c_char_p(self.reader.file_loc.encode())
-        self.c_long_array = (c_long * (self.num_of_lines + 1))()
+        self.c_long_array = (c_long * (self.num_of_trace_elements + 1))()
 
         # self.parda_seq.main(c_line_num, c_file_name)
         self.parda_seq.get_reuse_distance_smart(c_file_name, c_line_num, self.c_cache_size, self.c_long_array)
@@ -162,22 +187,37 @@ class pardaProfiler(abstractLRUProfiler):
 
 
 if __name__ == "__main__":
-    p = pardaProfiler(30000, plainCacheReader("../data/parda.trace"))
-    # p = parda(LRU, 30000, csvCacheReader("../data/trace_CloudPhysics_txt", 4))
-    # p = parda(LRU, 30000, vscsiReader("../data/cloudPhysics/w02_vscsi1.vscsitrace"))
+    # p = pardaProfiler(30000, plainCacheReader("../data/parda.trace"))
+    # p = pardaProfiler(30000, csvCacheReader("../data/trace_CloudPhysics_txt", 4))
     # p = parda(LRU, 3000000, basicCacheReader("temp.dat"))
     # p.run(parda_mode.seq, threads=4)
     # p.get_reuse_distance()
     import os
+    import time
     import shutil
 
-    from pympler.tracker import SummaryTracker
+    # from pympler.tracker import SummaryTracker
 
-    tracker = SummaryTracker()
+    # tracker = SummaryTracker()
 
-    print(len(p.get_reuse_distance()))
+    t1 = time.time()
+    for i in range(6):
+        p = pardaProfiler(30000, vscsiCacheReader("../data//trace_CloudPhysics_bin"))
+        # rd_a = p.get_reuse_distance()
+    t2 = time.time()
 
-    tracker.print_diff()
+    print(t2 - t1)
+    p = pardaProfiler(30000, vscsiCacheReader("../data//trace_CloudPhysics_bin"))
+    p.run()
+    p.plotHRC()
+    # print(len())
+    # count = 0
+    # for i in rd_a:
+    #     if i==0:
+    #         count+=1
+    # print(count)
+
+    # tracker.print_diff()
 
 
     # p = pardaProfiler(2000, csvCacheReader('../data/mining/mining.dat.original', 1))

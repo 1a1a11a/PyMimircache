@@ -3,11 +3,14 @@ from ctypes import *
 import logging
 
 from mimircache.cacheReader.abstractReader import cacheReaderAbstract
+import mimircache.c_cacheReader as c_cacheReader
 
 
 class vscsiCacheReader(cacheReaderAbstract):
     def __init__(self, file_loc):
         super().__init__(file_loc)
+        self.cReader = c_cacheReader.setup_reader(file_loc, 'v')
+
         self.buffer_size = 0  # number of trace lines in the buffer
         self.buffer_pointer = 0  # point to the element in the buffer
         self.read_in_num = 0
@@ -37,6 +40,7 @@ class vscsiCacheReader(cacheReaderAbstract):
         self.vscsiC.read_trace2.resType = c_int
         self.mem_original = c_void_p(self.c_mem.value)
         self._read()
+        self.get_num_total_lines()
 
 
     def get_lib_name(self):
@@ -121,6 +125,9 @@ class vscsiCacheReader(cacheReaderAbstract):
         self.read_in_num += self.c_read_size.value
         self.vscsiC.read_trace2(byref(self.c_mem), byref(self.c_ver), self.c_read_size, self.c_long_ts, self.c_int_len,
                                 self.c_long_lbn, self.c_int_cmd)
+
+    # TODO: needs cleaning, otherwise it might take huge RAM!!!!!!!!!
+
 
     def __repr__(self):
         return "vscsi cache reader, %s" % super().__repr__()

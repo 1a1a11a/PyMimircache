@@ -1,5 +1,7 @@
 import abc
 import os
+import mimircache.c_cacheReader as c_cacheReader
+
 
 
 class cacheReaderAbstract(metaclass=abc.ABCMeta):
@@ -11,6 +13,9 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
         assert (os.path.exists(file_loc)), "data file does not exist"
         # self.trace_file = open(file_loc, 'r')
         self.counter = 0
+        self.trace_file = None
+        self.cReader = None
+        self.num_of_line = -1
 
     def reset(self):
         '''
@@ -19,14 +24,18 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
         '''
         self.counter = 0
         self.trace_file.seek(0, 0)
+        c_cacheReader.reset_reader(self.cReader)
 
     def get_num_total_lines(self):
-        self.num_of_line = 0
-        while self.read_one_element():
-            # use the one above, not output progress
-            # for i in self:
-            self.num_of_line += 1
-        self.reset()
+        # self.num_of_line = 0
+        # if self.cReader:
+        #     self.num_of_line = c_cacheReader.get_num_of_lines(self.cReader)
+        # else:
+        #     while self.read_one_element():
+        #         # use the one above, not output progress
+        #         self.num_of_line += 1
+        #     self.reset()
+        self.num_of_line = c_cacheReader.get_num_of_lines(self.cReader)
         return self.num_of_line
 
     def __iter__(self):
@@ -43,6 +52,15 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
         #     print('read in ' + str(self.counter) + ' records')
         # raise NotImplementedError
 
+    def close(self):
+        try:
+            # pass
+            self.trace_file.close()
+            if self.cReader:
+                c_cacheReader.close_reader(self.cReader)
+        except:
+            pass
+
     @abc.abstractclassmethod
     def __next__(self):  # Python 3
         self.counter += 1
@@ -52,8 +70,4 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
 
     # @atexit.register
     def __del__(self):
-        try:
-            # pass
-            self.trace_file.close()
-        except:
-            pass
+        self.close()
