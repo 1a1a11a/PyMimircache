@@ -3,8 +3,8 @@ from mimircache.cacheReader.csvReader import csvCacheReader
 from mimircache.cacheReader.plainReader import plainCacheReader
 from mimircache.cacheReader.vscsiReader import vscsiCacheReader
 from mimircache.oldModule.basicLRUProfiler import basicLRUProfiler
-from mimircache.profiler.pardaProfiler import pardaProfiler
-from mimircache.profiler.pardaProfiler import parda_mode
+from mimircache.oldModule.pardaProfiler import pardaProfiler
+from mimircache.oldModule.pardaProfiler import parda_mode
 
 # first step: construct a reader for reading any kind of trace
 

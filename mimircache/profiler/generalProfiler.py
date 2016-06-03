@@ -93,8 +93,8 @@ class generalProfiler(profilerAbstract):
             p.start()
 
         self.calculated = False
-        self._auto_output_filename = os.path.basename(self.reader.file_loc).split('.')[
-                                         0] + '_' + self.cache_class.__name__ + '_' + str(self.cache_size)
+        self._auto_output_filename = str(os.path.basename(self.reader.file_loc).split('.')[
+                                             0]) + '_' + self.cache_class.__name__ + '_' + str(self.cache_size)
 
     def addOneTraceElement(self, element):
         super().addOneTraceElement(element)
@@ -163,42 +163,6 @@ class generalProfiler(profilerAbstract):
             self.calculate()
         return self.HRC
 
-    # def plotMRC(self):
-    #     if not self.calculated:
-    #         self.calculate()
-    #     try:
-    #         plt.figure(1)
-    #         plt.plot(range(self.bin_size, self.bin_size * (self.num_of_blocks + 1), self.bin_size), self.MRC)
-    #         plt.xlabel("cache Size")
-    #         plt.ylabel("Miss Rate/%")
-    #         plt.title('Miss Rate Curve', fontsize=18, color='black')
-    #         plt.show()
-    #         plt.savefig(
-    #             os.path.basename(self.reader.file_loc).split('.')[0] + '_' + self.cache_class.__name__ + '_' + str(
-    #                 self.cache_size) + '_MRC')
-    #     except Exception as e:
-    #         print("the plotting function is not wrong, is this a headless server?")
-    #         print(e)
-    #
-    # def plotHRC(self):
-    #     if not self.calculated:
-    #         self.calculate()
-    #     try:
-    #         plt.figure(2)
-    #         plt.plot(range(self.bin_size, self.bin_size * (self.num_of_blocks + 1), self.bin_size), self.HRC)
-    #         plt.xlabel("cache Size")
-    #         plt.ylabel("Hit Rate/%")
-    #         plt.title('Hit Rate Curve', fontsize=18, color='black')
-    #         plt.show()
-    #         plt.savefig(
-    #             os.path.basename(self.reader.file_loc).split('.')[0] + '_' + self.cache_class.__name__ + '_' + str(
-    #                 self.cache_size) + '_HRC')
-    #         print("plot saved")
-    #     except Exception as e:
-    #         print("the plotting function is not wrong, is this a headless server?")
-    #         print(e)
-
-
     def plotMRC(self, autosize=False, autosize_threshold=0.01):
         if not self.calculated:
             self.calculate()
@@ -246,7 +210,7 @@ class generalProfiler(profilerAbstract):
             else:
                 num_of_blocks = self.num_of_blocks
 
-            line = plt.plot(range(0, self.bin_size * num_of_blocks, self.bin_size), self.HRC[:num_of_blocks])
+            plt.plot(range(0, self.bin_size * num_of_blocks, self.bin_size), self.HRC[:num_of_blocks])
             plt.xlabel("cache Size")
             plt.ylabel("Hit Rate/%")
             plt.title('Hit Rate Curve', fontsize=18, color='black')

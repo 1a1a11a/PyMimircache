@@ -1,7 +1,7 @@
-''' this module is used for all other cache replacement algorithms including LRU,
+""" this module is used for all other cache replacement algorithms including LRU,
     but for LRU, we can use reuse distance for more efficient profiling, see basicLRUProfiler
 
-'''
+"""
 import math
 import os
 
@@ -51,7 +51,7 @@ class generalProfiler(profilerAbstract):
         self.bin_size = bin_size
         self.num_of_process = num_of_process
 
-        if (self.cache_size != -1):
+        if self.cache_size != -1:
             if int(self.cache_size / bin_size) * bin_size == self.cache_size:
                 self.num_of_cache = self.num_of_blocks = int(self.cache_size / bin_size)
             else:
@@ -89,8 +89,8 @@ class generalProfiler(profilerAbstract):
             p.start()
 
         self.calculated = False
-        self._auto_output_filename = os.path.basename(self.reader.file_loc).split('.')[
-                                         0] + '_' + self.cache_class.__name__ + '_' + str(self.cache_size)
+        self._auto_output_filename = str(os.path.basename(self.reader.file_loc).split('.')[
+                                             0]) + '_' + self.cache_class.__name__ + '_' + str(self.cache_size)
 
     def addOneTraceElement(self, element):
         super().addOneTraceElement(element)
@@ -101,7 +101,7 @@ class generalProfiler(profilerAbstract):
 
         return
 
-    def _addOneTraceElementSingleProcess(self, num_of_process, process_num, cache_class, cache_size_list, \
+    def _addOneTraceElementSingleProcess(self, num_of_process, process_num, cache_class, cache_size_list,
                                          cache_args, pipe, MRC_array):
         '''
 
@@ -129,7 +129,7 @@ class generalProfiler(profilerAbstract):
                 # print("i = %d"%i)
                 # cache_list[i].printCacheLine()
                 # print('')
-                if cache_list[i].addElement(element) == False:
+                if not cache_list[i].addElement(element):
                     MRC_array[i * num_of_process + process_num] += 1
             element = pipe.recv()
             # print(element)
@@ -168,7 +168,7 @@ class generalProfiler(profilerAbstract):
             plt.title('Miss Rate Curve', fontsize=18, color='black')
             plt.show()
             plt.savefig(
-                os.path.basename(self.reader.file_loc).split('.')[0] + '_' + self.cache_class.__name__ + '_' + str(
+                str(os.path.basename(self.reader.file_loc).split('.')[0]) + '_' + self.cache_class.__name__ + '_' + str(
                     self.cache_size) + '_MRC')
         except Exception as e:
             print("the plotting function is not wrong, is this a headless server?")
@@ -185,7 +185,7 @@ class generalProfiler(profilerAbstract):
             plt.title('Hit Rate Curve', fontsize=18, color='black')
             plt.show()
             plt.savefig(
-                os.path.basename(self.reader.file_loc).split('.')[0] + '_' + self.cache_class.__name__ + '_' + str(
+                str(os.path.basename(self.reader.file_loc).split('.')[0]) + '_' + self.cache_class.__name__ + '_' + str(
                     self.cache_size) + '_HRC')
             print("plot saved")
         except Exception as e:
@@ -193,10 +193,10 @@ class generalProfiler(profilerAbstract):
             print(e)
 
     def outputMRC(self, file_loc="./"):
-        ''' save the MRC list to the given location
+        """ save the MRC list to the given location
         :param file_loc: can be a fileName or foldername
         :return:
-        '''
+        """
         if not self.calculated:
             self.calculate()
 
@@ -211,10 +211,10 @@ class generalProfiler(profilerAbstract):
         return True
 
     def outputHRC(self, file_loc="./"):
-        ''' save the HRC list to the given location
+        """ save the HRC list to the given location
         :param file_loc: can be a fileName or foldername
         :return:
-        '''
+        """
         if not self.calculated:
             self.calculate()
 

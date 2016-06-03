@@ -1,15 +1,10 @@
-import sys
-import os
-
-from mimircache.cache.abstractCache import cache
-from mimircache.utils.LinkedList import LinkedList
 from mimircache.cache.LRU import LRU
 
 
 class clock(LRU):
-    '''
+    """
     second chance page replacement algorithm
-    '''
+    """
 
     def __init__(self, cache_size=1000):
         # use node id to represent the reference bit
@@ -17,19 +12,19 @@ class clock(LRU):
         self.hand = None  # points to the node for examination/eviction
 
     def _updateElement(self, element):
-        ''' the given element is in the cache, now update it
+        """ the given element is in the cache, now update it
         :param element:
         :return: None
-        '''
+        """
         node = self.cacheDict[element]
         node.id = 1
 
     def _insertElement(self, element):
-        '''
+        """
         the given element is not in the cache, now insert it into cache
         :param element:
         :return: True on success, False on failure
-        '''
+        """
         if self.cacheLinkedList.size >= self.cache_size:
             self._evictOneElement()
 
@@ -59,7 +54,7 @@ class clock(LRU):
             return node
         else:
             # set reference bit to 0
-            while (node.id == 1):
+            while node.id == 1:
                 node.set_id(0)
                 node = node.next
                 if not node:
@@ -69,10 +64,10 @@ class clock(LRU):
             return node
 
     def _evictOneElement(self):
-        '''
+        """
         evict one element from the cache line
         :return: True on success, False on failure
-        '''
+        """
         node = self._find_evict_node()
         self.cacheLinkedList.removeNode(node)
         del self.cacheDict[node.content]
@@ -104,5 +99,5 @@ class clock(LRU):
             return False
 
     def __repr__(self):
-        return "second chance cache, given size: {}, current size: {}, {}".format( \
+        return "second chance cache, given size: {}, current size: {}, {}".format(
             self.cache_size, self.cacheLinkedList.size, super().__repr__())

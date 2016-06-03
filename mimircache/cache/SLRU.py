@@ -1,19 +1,15 @@
-import sys
-import os
-
-from mimircache.cache.abstractCache import cache
 from mimircache.cache.LRU import LRU
-from mimircache.utils.LinkedList import LinkedList
+from mimircache.cache.abstractCache import cache
 
 
 class SLRU(cache):
-    def __init__(self, cache_size=1000, ratio=1, *args, **kargs):
-        '''
+    def __init__(self, cache_size=1000, ratio=1, *args, **kwargs):
+        """
 
         :param cache_size: size of cache
         :param args: raio: the ratio of protected/probationary
         :return:
-        '''
+        """
         super().__init__(cache_size)
         self.ratio = ratio
         # Maybe use two linkedlist and a dict will be more efficient?
@@ -21,20 +17,20 @@ class SLRU(cache):
         self.probationary = LRU(int(self.cache_size * 1 / (self.ratio + 1)))
 
     def checkElement(self, element):
-        '''
-        :param content: the content for search
+        """
+        :param element:
         :return: whether the given element is in the cache
-        '''
+        """
         if element in self.protected or element in self.probationary:
             return True
         else:
             return False
 
     def _updateElement(self, element):
-        ''' the given element is in the cache, now update it to new location
+        """ the given element is in the cache, now update it to new location
         :param element:
         :return: None
-        '''
+        """
         if element in self.protected:
             self.protected._updateElement(element)
         else:
@@ -54,11 +50,11 @@ class SLRU(cache):
                 self.probationary._insertElement(evicted_key)
 
     def _insertElement(self, element):
-        '''
+        """
         the given element is not in the cache, now insert it into cache
         :param element:
         :return: evicted element
-        '''
+        """
         return self.probationary._insertElement(element)
 
     def _printCacheLine(self):
@@ -68,17 +64,17 @@ class SLRU(cache):
         self.probationary._printCacheLine()
 
     def _evictOneElement(self):
-        '''
+        """
         evict one element from the cache line
         :return: True on success, False on failure
-        '''
+        """
         pass
 
     def addElement(self, element):
-        '''
+        """
         :param element: a cache request, it can be in the cache, or not
         :return: None
-        '''
+        """
         if self.checkElement(element):
             self._updateElement(element)
             # self.printCacheLine()

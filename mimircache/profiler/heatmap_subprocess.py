@@ -1,12 +1,11 @@
-from mimircache.cacheReader.plainReader import plainCacheReader
-from mimircache.cache.FIFO import FIFO
-from mimircache.cache.RR import RR
-from mimircache.cache.SLRU import SLRU
+import math
+
 from mimircache.cache.ARC import ARC
 from mimircache.cache.LFU_RR import LFU_RR
-from mimircache.cache.optimal import optimal
 from mimircache.cache.LRU import LRU
-import math
+from mimircache.cache.RR import RR
+from mimircache.cache.SLRU import SLRU
+from mimircache.cache.optimal import optimal
 
 
 def _hit_rate_start_time_end_time_calc_hit_count_general(reuse_dist_array, cache_size, begin_pos, end_pos, real_start,
@@ -41,6 +40,7 @@ def calc_hit_rate_start_time_end_time_subprocess_general(order, cache, break_poi
     """
     the child process for calculating hit rate for a general cache replacement algorithm,
     each child process will calculate for a column with fixed starting time
+    :param cache:
     :param order: the order of column the child is working on
     :param break_points_share_array:
     :param reader:
@@ -121,6 +121,7 @@ def _hit_rate_start_time_end_time_calc_hit_count(reuse_dist_array, last_access_a
     hit_count = 0
     miss_count = 0
     try:
+        i = 0
         for i in range(begin_pos, end_pos):
             if reuse_dist_array[i] == -1:
                 # never appear

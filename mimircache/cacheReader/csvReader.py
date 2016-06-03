@@ -65,7 +65,7 @@ if __name__ == "__main__":
     # for i in reader:
     #     print(i)
 
-    for i in reader.lines():
+    for i in reader.lines_dict():
         print(i['op'])
 
         # usage two: best for reading one element each time

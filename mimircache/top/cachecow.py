@@ -1,25 +1,20 @@
-import os
-
-from mimircache.cacheReader.csvReader import csvCacheReader
-from mimircache.cacheReader.plainReader import plainCacheReader
-from mimircache.cacheReader.vscsiReader import vscsiCacheReader
-
-from mimircache.cache.LRU import LRU
 from mimircache.cache.ARC import ARC
-from mimircache.cache.clock import clock
 from mimircache.cache.FIFO import FIFO
 from mimircache.cache.LFU_MRU import LFU_MRU
 from mimircache.cache.LFU_RR import LFU_RR
+from mimircache.cache.LRU import LRU
 from mimircache.cache.MRU import MRU
 from mimircache.cache.RR import RR
-from mimircache.cache.SLRU import SLRU
 from mimircache.cache.S4LRU import S4LRU
-
-from mimircache.profiler.generalProfiler import generalProfiler
-from mimircache.profiler.pardaProfiler import pardaProfiler
-from mimircache.profiler.pardaProfiler import parda_mode
+from mimircache.cache.SLRU import SLRU
+from mimircache.cache.clock import clock
+from mimircache.cacheReader.csvReader import csvCacheReader
+from mimircache.cacheReader.plainReader import plainCacheReader
+from mimircache.cacheReader.vscsiReader import vscsiCacheReader
 from mimircache.profiler.LRUProfiler import LRUProfiler
+from mimircache.profiler.generalProfiler import generalProfiler
 from mimircache.profiler.heatmap import heatmap
+
 
 class cachecow:
     def __init__(self, **kargs):
@@ -67,6 +62,7 @@ class cachecow:
         :param kargs:
         :return:
         """
+        reader = None
         if 'size' in kargs:
             size = kargs['size']
         else:
@@ -76,7 +72,8 @@ class cachecow:
             if kargs['dataType'] == 'plain':
                 reader = plainCacheReader(kargs['data'])
             if kargs['dataType'] == 'csv':
-                reader = csvCacheReader(kargs['data'])
+                assert 'column' in kargs, "you didn't provide column number for csv reader"
+                reader = csvCacheReader(kargs['data'], kargs['column'])
             if kargs['dataType'] == 'vscsi':
                 reader = vscsiCacheReader(kargs['data'])
         elif 'reader' in kargs:
@@ -158,13 +155,15 @@ if __name__ == "__main__":
     # m.heatmap('r', 100000000)
 
     # m.test()
-    m.open('../data/parda.trace')
+    # m.open('../data/parda.trace')
     p = m.profiler("LRU")
+    print(p.get_reuse_distance())
+    p.plotHRC()
 
-    p = m.profiler('mru', bin_size=200, data='../data/parda.trace', dataType='plain', num_of_process=4)
-    p.run()
+    # p = m.profiler('mru', bin_size=200, data='../data/parda.trace', dataType='plain', num_of_process=4)
+    # p.run()
     # print(len(p.HRC))
-    print(p.HRC)
+    # print(p.HRC)
     # print(p.MRC[-1])
     # rdist = p.get_reuse_distance()
     # for i in rdist:

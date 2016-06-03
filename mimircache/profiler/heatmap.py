@@ -19,26 +19,23 @@ from collections import deque
 from multiprocessing import Array, Process, Queue
 
 import matplotlib
+import matplotlib.ticker as ticker
+import mimircache.c_heatmap as c_heatmap
 import numpy as np
-
-matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 
-from mimircache.cache.LRU import LRU
-from mimircache.cacheReader.vscsiReader import vscsiCacheReader
 from mimircache.cacheReader.csvReader import csvCacheReader
-from mimircache.profiler.pardaProfiler import pardaProfiler
+from mimircache.cacheReader.vscsiReader import vscsiCacheReader
+from mimircache.oldModule.pardaProfiler import pardaProfiler
 from mimircache.profiler.LRUProfiler import LRUProfiler
-from mimircache.profiler.generalProfiler import generalProfiler
-import mimircache.c_heatmap as c_heatmap
-import matplotlib.ticker as ticker
-from mimircache.utils.printing import *
 from mimircache.profiler.heatmap_subprocess import *
 from mimircache.profiler.heatmap_subprocess2d import *
+from mimircache.utils.printing import *
 
 DEBUG = True
 
 __all__ = ("run", "draw", "prepare_heatmap_dat")
+
 
 # heatmap gradient, only works in _calc_rd_count_subprocess
 # HEATMAP_GRADIENT = 10000
@@ -58,7 +55,6 @@ class heatmap:
         reader.reset()
 
         break_points = []
-        reuse_dist_python_list = []
 
         if calculate:
             # build profiler for extracting reuse distance (For LRU)
@@ -90,7 +86,6 @@ class heatmap:
             if os.path.exists(breakpoints_filename):
                 with open(breakpoints_filename, 'rb') as ifile:
                     break_points = pickle.load(ifile)
-
 
         # check break points are loaded or not, if not need to calculate it
         if not break_points:
@@ -208,11 +203,6 @@ class heatmap:
         5. rd_distribution
         6.
 
-        :param LRU: whether the cache replacement algorithm is LRU or not, the default is True, if it is set as False,
-                    then you must provide the type of cache replacement algorithm, in the form of cache=something,
-                    for example, cache="MRU", cache="ARC"
-        :param calculate: flag for checking whether we need to recalculate reuse distance and distribution table,
-                    the default is True, if it is set as false, then there must be a file named reuse.dat in the temp folder
         :param kwargs: possible key-arg includes the type of cache replacement algorithms(cache),
 
         :return: a two-dimension list, the first dimension is x, the second dimension is y, the value is the heat value
@@ -267,13 +257,11 @@ class heatmap:
         for i, j in enumerate(break_points):
             break_points_share_array[i] = j
 
-
         # Jason: efficiency can be further improved by porting into Cython and improve parallel logic
         # Jason: memory usage can be optimized by not copying whole reuse distance array in each sub process
         map_list = deque()
         for i in range(len(break_points) - 1):
             map_list.append(i)
-
 
         # new 0510
         q = Queue()
@@ -295,7 +283,6 @@ class heatmap:
                     p = Process(target=calc_hit_rate_start_time_end_time_subprocess_general,
                                 args=(map_list[map_list_pos], cache_type,
                                       break_points_share_array, reader, q), kwargs={'cache_size': cache_size})
-
 
                 p.start()
                 process_pool.append(p)
@@ -338,10 +325,9 @@ class heatmap:
         while True:
             l2 = math.log(max_rd, init_log_num)
             if l2 > length > l2_prev:
-                return init_log_num 
+                return init_log_num
             l2_prev = l2
             init_log_num = (init_log_num - 1) / 2 + 1
-
 
     @staticmethod
     def _get_breakpoints_virtualtime(bin_size, total_length):
@@ -422,11 +408,10 @@ class heatmap:
             else:
                 # miss
                 miss_count += 1
-        print("hit={}, hit+miss={}, total size:{}, hit rate:{}".format(hit_count, hit_count + miss_count, \
+        print("hit={}, hit+miss={}, total size:{}, hit rate:{}".format(hit_count, hit_count + miss_count,
                                                                        end_pos - begin_pos,
                                                                        hit_count / (end_pos - begin_pos)))
         return hit_count / (end_pos - begin_pos)
-
 
     @staticmethod
     def draw_heatmap(xydict, plot_type, **kwargs):
@@ -459,7 +444,6 @@ class heatmap:
                 ax = plt.gca()
                 ax.text(length2 // 3, length1 // 8, kwargs['text'], fontsize=20)  # , color='blue')
 
-
             if 'xlabel' in kwargs:
                 plt.xlabel(kwargs['xlabel'])
             if 'ylabel' in kwargs:
@@ -476,7 +460,6 @@ class heatmap:
                 plt.gca().yaxis.set_major_formatter(ticks)
                 plt.xlabel("time/hour")
                 plt.ylabel("time/hour")
-
 
             # plt.show()
             plt.savefig(filename, dpi=600)
@@ -562,8 +545,6 @@ class heatmap:
         plt.show()
         plt.savefig(filename, dpi=600)
 
-
-
     def __del_manual__(self):
         """
         cleaning
@@ -640,7 +621,6 @@ class heatmap:
         else:
             self.num_of_process = 4
 
-
         if mode == 'r':
             xydict1, kwargs_dict1 = self.calculate_heatmap_dat('r', reader, plot_type, LRU=False, cache='optimal',
                                                                num_of_process=8, cache_size=kwargs['cache_size'])
@@ -662,7 +642,6 @@ class heatmap:
         self.draw_diff(xydict1, xydict2, plot_type, **kwargs_dict)
 
         # self.__del_manual__()
-
 
 
 def server_plot_all():
@@ -749,7 +728,6 @@ def server_size_plot():
                 size *= 2
 
 
-
 def server_plot_all_redis():
     for filename in os.listdir("../data/redis/"):
         print(filename)
@@ -819,8 +797,6 @@ def localtest():
     reader2 = vscsiCacheReader("../data/trace_CloudPhysics_bin")
 
     hm = heatmap()
-
-
 
     # cold_miss_2d('r', 10000000, filename='cold_miss.png')
     # request_num_2d('r', 10000000, filename='request_num.png')
@@ -912,7 +888,6 @@ def localtest():
     # p = pardaProfiler(20000, reader2)
     # p.run()
 '''
-
 
 if __name__ == "__main__":
     import time

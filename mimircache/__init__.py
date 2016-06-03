@@ -4,27 +4,21 @@
 
 """
 
-# import matplotlib
-#
-# matplotlib.use('Agg')
+import matplotlib
 
-from _version import __version__
+matplotlib.use('Agg')
 
 import logging
 
 from mimircache.cache.LRU import LRU as LRU
-
 from mimircache.cacheReader.csvReader import csvCacheReader as csvReader
 from mimircache.cacheReader.plainReader import plainCacheReader as plainReader
 from mimircache.cacheReader.vscsiReader import vscsiCacheReader as vscsiReader
-
-from mimircache.profiler.pardaProfiler import pardaProfiler as pardaProfiler
-from mimircache.profiler.pardaProfiler import parda_mode as parda_mode
+from mimircache.oldModule.pardaProfiler import pardaProfiler as pardaProfiler
+from mimircache.oldModule.pardaProfiler import parda_mode as parda_mode
 from mimircache.profiler.LRUProfiler import LRUProfiler as LRUProfiler
 from mimircache.profiler.generalProfiler import generalProfiler as generalProfiler
-
 from mimircache.profiler.heatmap import heatmap as heatmap
-
 from mimircache.top.cachecow import cachecow as cachecow
 
 logging.basicConfig(filename="log", filemode='w', format='%(levelname)s:%(asctime)s:%(message)s', level=logging.DEBUG)

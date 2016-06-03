@@ -2,7 +2,6 @@ from mimircache.cacheReader.abstractReader import cacheReaderAbstract
 import mimircache.c_cacheReader as c_cacheReader
 
 
-
 class plainCacheReader(cacheReaderAbstract):
     def __init__(self, file_loc):
         super(plainCacheReader, self).__init__(file_loc)
@@ -40,7 +39,7 @@ if __name__ == "__main__":
     # usage two: best for reading one element each time
     s = reader.read_one_element()
     # s2 = next(reader)
-    while (s):
+    while s:
         print(s)
         s = reader.read_one_element()
         # s2 = next(reader)

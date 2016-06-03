@@ -1,7 +1,3 @@
-import sys
-import os
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 import math
 
 from mimircache.profiler.abstract.abstractLRUProfiler import abstractLRUProfiler

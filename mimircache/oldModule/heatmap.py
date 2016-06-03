@@ -1,24 +1,23 @@
-'''
+"""
 this module provides the heatmap ploting engine, it supports both virtual time (fixed number of trace requests) and
-real time, under both modes, it support using multiprocessing to do the plotting 
-'''
+real time, under both modes, it support using multiprocessing to do the plotting
+"""
 
-from mimircache.cacheReader.vscsiReader import vscsiCacheReader
-from mimircache.cacheReader.plainReader import plainCacheReader
-from mimircache.cacheReader.csvReader import csvCacheReader
-from mimircache.cache.LRU import LRU
-from mimircache.profiler.pardaProfiler import pardaProfiler
 import pickle
-import numpy as np
 import sys
-from matplotlib import pyplot as plt
 from multiprocessing import Process, Queue, Pool
-import time
+
+import numpy as np
+from matplotlib import pyplot as plt
+
+from mimircache.cacheReader.csvReader import csvCacheReader
+from mimircache.cacheReader.plainReader import plainCacheReader
+from mimircache.cacheReader.vscsiReader import vscsiCacheReader
+from mimircache.oldModule.pardaProfiler import pardaProfiler
 
 
-def prepare_heatmap_dat(bin_size=1000, cache_size=2000):
+def prepare_heatmap_dat(bin_size=1000):
     reader = csvCacheReader("../data/trace_CloudPhysics_txt", 4, delimiter=' ')
-    total_line = reader.get_num_total_lines()
     p = pardaProfiler(30000, reader)
     c_reuse_dist_long_array = p.get_reuse_distance()
 
@@ -86,7 +85,7 @@ def prepare_heatmap_dat_multiprocess(bin_size=1000, cache_size=2000, num_of_proc
             p.start()
 
     num_left = len(l)
-    while (num_left):
+    while num_left:
         t = q.get()
         result[t[0] // bin_size][t[1] // bin_size] = t[2]
         num_left -= 1
@@ -155,7 +154,7 @@ def prepare_heatmap_dat_multiprocess_ts(datapath="../data/trace_CloudPhysics_bin
 
     count = 0
     async_result_list = []
-    with Pool(processes=num_of_process, initializer=_cal_hit_rate_multiprocess_ts2_init, \
+    with Pool(processes=num_of_process, initializer=_cal_hit_rate_multiprocess_ts2_init,
               initargs=[reuse_dist_python_list, cache_size, break_points, q]) as p:
         for l in p.imap_unordered(_calc_hit_rate_multiprocess_ts2, map_list):
             count += 1
@@ -212,6 +211,8 @@ def _get_xy_distribution_list_timestamp(reader, time_interval):
     # reader.reset()
     break_points = []
     prev = 0
+    num = 0
+    line = None
     for num, line in enumerate(reader.lines()):
         if (line[0] - prev) > time_interval:
             break_points.append(num)
@@ -257,16 +258,16 @@ def _calc_hit_rate(reuse_dist_array, cache_size, begin_pos, end_pos):
 
 
 def _calc_hit_count(reuse_dist_array, cache_size, begin_pos, end_pos, real_start):
-    '''
+    """
 
-    :rtype: count of hit 
+    :rtype: count of hit
     :param reuse_dist_array:
     :param cache_size:
     :param begin_pos:
     :param end_pos:
     :param real_start: the real start position of cache trace
     :return:
-    '''
+    """
     hit_count = 0
     miss_count = 0
     for i in range(begin_pos, end_pos):
@@ -318,7 +319,7 @@ def _calc_hit_rate_multiprocess_ts2(order):
                              _calc_hit_rate_multiprocess_ts2.break_points[order])
         total_hc += hc
         hr = total_hc / (
-        _calc_hit_rate_multiprocess_ts2.break_points[i] - _calc_hit_rate_multiprocess_ts2.break_points[order])
+            _calc_hit_rate_multiprocess_ts2.break_points[i] - _calc_hit_rate_multiprocess_ts2.break_points[order])
         l.append((order, i, hr))
     # _calc_hit_rate_multiprocess_ts2.q.put(1)
     return l

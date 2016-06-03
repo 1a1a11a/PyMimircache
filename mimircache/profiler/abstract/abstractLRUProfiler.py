@@ -1,9 +1,3 @@
-import sys
-import os
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
-
 import traceback
 import abc
 import math
@@ -29,7 +23,7 @@ class abstractLRUProfiler(profilerAbstract):
     def __init__(self, cache_class, cache_size, bin_size, reader):
         super().__init__(cache_class, cache_size, reader)
         self.bin_size = bin_size
-        if (cache_size != -1):
+        if cache_size != -1:
             self.num_of_cache = self.num_of_blocks = math.ceil(cache_size / bin_size) + 1
             self.HRC = [0] * self.num_of_blocks
             self.MRC = [0] * self.num_of_blocks
@@ -82,11 +76,11 @@ class abstractLRUProfiler(profilerAbstract):
         if not self.calculated:
             self.calculate()
         try:
-            figure_MRC = plt.figure(1)
             # p_MRC = figure_MRC.add_subplot(1,1,1)
 
             # change the x-axis range according to threshhold
             if autosize:
+                i = 0
                 for i in range(len(self.MRC) - 1, 2, -1):
                     if (self.MRC[i - 1] - self.MRC[i]) / self.MRC[i] > autosize_threshold:
                         break
@@ -141,10 +135,10 @@ class abstractLRUProfiler(profilerAbstract):
             print(e)
 
     def outputMRC(self, file_loc=""):
-        ''' save the MRC list to the given location
+        """ save the MRC list to the given location
         :param file_loc: can be a fileName or foldername
         :return:
-        '''
+        """
         if not self.calculated:
             self.calculate()
 
@@ -159,10 +153,10 @@ class abstractLRUProfiler(profilerAbstract):
         return True
 
     def outputHRC(self, file_loc=""):
-        ''' save the MRC list to the given location
+        """ save the MRC list to the given location
         :param file_loc: can be a fileName or foldername
         :return:
-        '''
+        """
         if not self.calculated:
             self.calculate()
 

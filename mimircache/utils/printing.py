@@ -8,22 +8,10 @@ PURPLE = '\033[95m'
 BLUE = '\033[34m'
 END = '\033[0m'
 
-fcolor_dict = {}
-fcolor_dict['red'] = RED
-fcolor_dict['green'] = GREEN
-fcolor_dict['yellow'] = YELLOW
-fcolor_dict['blue'] = BLUE
-fcolor_dict['purple'] = PURPLE
+fcolor_dict = {'red': RED, 'green': GREEN, 'yellow': YELLOW, 'blue': BLUE, 'purple': PURPLE}
 
-bcolor_dict = {}
-bcolor_dict['red'] = '\033[41m'
-bcolor_dict['green'] = '\033[42m'
-bcolor_dict['yellow'] = '\033[43m'
-bcolor_dict['blue'] = '\033[44m'
-bcolor_dict['purple'] = '\033[45m'
-bcolor_dict['cyan'] = '\033[46m'
-bcolor_dict['white'] = '\033[47m'
-bcolor_dict['end'] = '\033[49m'
+bcolor_dict = {'red': '\033[41m', 'green': '\033[42m', 'yellow': '\033[43m', 'blue': '\033[44m', 'purple': '\033[45m',
+               'cyan': '\033[46m', 'white': '\033[47m', 'end': '\033[49m'}
 
 
 def colorfulPrint(color, s):

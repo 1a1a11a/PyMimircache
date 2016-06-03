@@ -17,7 +17,7 @@
             '''
             :param element: the key of cache request
             :return: whether the given key is in the cache or not
-        '''
+            '''
 >>>         if element in self.cache_dict:
 >>>             return True
 >>>         else:
@@ -60,7 +60,7 @@
 >>>         count += 1
             # mark this element as deleted, put a hole on it
 >>>         self.cache_line_list[rand_num] = None
->>>         if (count > 10):
+>>>         if count > 10:
                 # if there are too many holes, then we need to resize the list
 >>>             new_list = [e for e in self.cache_line_list if e]
 >>>             del self.cache_line_list

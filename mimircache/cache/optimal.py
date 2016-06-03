@@ -1,11 +1,10 @@
 import sys
-import os
-import random
 from queue import PriorityQueue
 
 from mimircache.cache.abstractCache import cache
 import mimircache.c_LRUProfiler as c_LRUProfiler
 import mimircache.c_heatmap as c_heatmap
+
 
 class optimal(cache):
     def __init__(self, cache_size, reader):
@@ -26,27 +25,26 @@ class optimal(cache):
     def get_reversed_reuse_dist(self):
         return c_LRUProfiler.get_reversed_reuse_dist(self.reader.cReader)
 
-
     def checkElement(self, element):
-        '''
-        :param content: the content for search
+        """
+        :param element:
         :return: whether the given element is in the cache
-        '''
+        """
         if element in self.seenset:
             return True
         else:
             return False
 
     def _updateElement(self, element):
-        ''' the given element is in the cache, now update it to new location
+        """ the given element is in the cache, now update it to new location
         :param element:
         :return: None
-        '''
+        """
 
         # TERRIBLE ALGORITHM HERE, NEEDS to BE CHANGED
 
         pq_new = PriorityQueue()
-        while (self.pq.qsize()):
+        while self.pq.qsize():
             element_t = self.pq.get()
             if element_t[1] == element:
                 if self.next_access[self.ts] != -1:
@@ -68,14 +66,12 @@ class optimal(cache):
         #     pass
         #     # self.real_ts[element[1]] = -sys.maxsize
 
-
-
     def _insertElement(self, element):
-        '''
+        """
         the given element is not in the cache, now insert it into cache
         :param element:
         :return: True on success, False on failure
-        '''
+        """
         # self.seenset.add(element[1])
         # self.pq.put(-(self.reversed_rd[element[0]]+element[0], element[1]))
 
@@ -94,10 +90,10 @@ class optimal(cache):
         print('')
 
     def _evictOneElement(self):
-        '''
+        """
         evict one element from the cache line
         :return: True on success, False on failure
-        '''
+        """
         # needs to change this for performance
         element = self.pq.get()
         self.seenset.remove(element[1])
@@ -123,13 +119,13 @@ class optimal(cache):
         #         break
 
     def addElement(self, element):
-        '''
+        """
         :param element: the element in the reference, it can be in the cache, or not,
                         !!! Attention, for optimal, the element is a tuple of
                         (timestamp, real_request)
         :return: True if element in the cache
-        '''
-        if (self.pq.qsize() != len(self.seenset)):
+        """
+        if self.pq.qsize() != len(self.seenset):
             print("ERROR: %d: %d" % (self.pq.qsize(), len(self.seenset)))
             print(self.seenset)
             sys.exit(1)
@@ -139,7 +135,7 @@ class optimal(cache):
             return True
         else:
             self._insertElement(element)
-            if (self.pq.qsize() > self.cache_size):
+            if self.pq.qsize() > self.cache_size:
                 self._evictOneElement()
             self.ts += 1
             return False

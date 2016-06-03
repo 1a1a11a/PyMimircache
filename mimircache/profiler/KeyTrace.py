@@ -33,8 +33,6 @@ class KeyTrace:
         logical_time = 0
         d = {}
 
-        values = None
-
         if min_frequency > 0:
             for element in self.reader:
                 if element in d:

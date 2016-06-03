@@ -3,7 +3,6 @@ import os
 import mimircache.c_cacheReader as c_cacheReader
 
 
-
 class cacheReaderAbstract(metaclass=abc.ABCMeta):
     __metaclass__ = abc.ABCMeta
 
@@ -18,10 +17,10 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
         self.num_of_line = -1
 
     def reset(self):
-        '''
+        """
         reset the read location back to beginning
         :return:
-        '''
+        """
         self.counter = 0
         self.trace_file.seek(0, 0)
         c_cacheReader.reset_reader(self.cReader)
@@ -66,7 +65,7 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
         self.counter += 1
         # if (self.counter % 100000 == 0):
         #     print('read in ' + str(self.counter) + ' records')
-            # raise NotImplementedError
+        # raise NotImplementedError
 
     # @atexit.register
     def __del__(self):

@@ -1,19 +1,15 @@
-import sys
-import os
-
-from mimircache.cache.abstractCache import cache
 from mimircache.cache.LRU import LRU
-from mimircache.utils.LinkedList import LinkedList
+from mimircache.cache.abstractCache import cache
 
 
 class S4LRU(cache):
     def __init__(self, cache_size=1000):
-        '''
+        """
         add the fourth part first, then gradually goes up to third, second and first level,
         final eviction is from fourth part
         :param cache_size: size of cache
         :return:
-        '''
+        """
         super(S4LRU, self).__init__(cache_size)
 
         # Maybe use four linkedlist and a dict will be more efficient?
@@ -23,10 +19,10 @@ class S4LRU(cache):
         self.fourthLRU = LRU(self.cache_size // 4)
 
     def checkElement(self, element):
-        '''
-        :param content: the content for search
+        """
+        :param element:
         :return: whether the given element is in the cache
-        '''
+        """
         if element in self.firstLRU or element in self.secondLRU or \
                         element in self.thirdLRU or element in self.fourthLRU:
             return True
@@ -34,10 +30,10 @@ class S4LRU(cache):
             return False
 
     def _updateElement(self, element):
-        ''' the given element is in the cache, now update it to new location
+        """ the given element is in the cache, now update it to new location
         :param element:
         :return: None
-        '''
+        """
         if element in self.firstLRU:
             self.firstLRU._updateElement(element)
         elif element in self.secondLRU:
@@ -50,14 +46,14 @@ class S4LRU(cache):
             self._move_to_upper_level(element, self.fourthLRU, self.thirdLRU)
 
     def _move_to_upper_level(self, element, lowerLRU, upperLRU):
-        '''
+        """
         move the element from lowerLRU to upperLRU, remove the element from lowerLRU,
         insert into upperLRU, if upperLRU is full, evict one into lowerLRU
         :param element: move the element from lowerLRU to upperLRU
         :param lowerLRU: element in lowerLRU is easier to be evicted
         :param upperLRU: element in higherLRU is evicted into lowerLRU first
         :return:
-        '''
+        """
 
         # get the node and remove from lowerLRU
         node = lowerLRU.cacheDict[element]
@@ -72,11 +68,11 @@ class S4LRU(cache):
             lowerLRU._insertElement(evicted_key)
 
     def _insertElement(self, element):
-        '''
+        """
         the given element is not in the cache, now insert it into cache
         :param element:
         :return: evicted element
-        '''
+        """
         return self.fourthLRU._insertElement(element)
 
     def _printCacheLine(self):
@@ -90,17 +86,17 @@ class S4LRU(cache):
         self.fourthLRU._printCacheLine()
 
     def _evictOneElement(self):
-        '''
+        """
         evict one element from the cache line
         :return: True on success, False on failure
-        '''
+        """
         pass
 
     def addElement(self, element):
-        '''
+        """
         :param element: a cache request, it can be in the cache, or not
         :return: None
-        '''
+        """
         if self.checkElement(element):
             self._updateElement(element)
             return True

@@ -57,7 +57,7 @@ class vscsiCacheReader(cacheReaderAbstract):
         self.c_mem = c_void_p(self.mem_original.value + self.c_delta.value * (self.c_num_of_rec.value - 1))
         self.vscsiC.read_trace2(byref(self.c_mem), byref(self.c_ver), c_int(1), self.c_long_ts, self.c_int_len,
                                 self.c_long_lbn, self.c_int_cmd)
-        return (self.c_long_ts[0], self.c_int_cmd[0], self.c_int_len[0], self.c_long_lbn[0])
+        return self.c_long_ts[0], self.c_int_cmd[0], self.c_int_len[0], self.c_long_lbn[0]
 
 
     def reset(self):
@@ -71,12 +71,12 @@ class vscsiCacheReader(cacheReaderAbstract):
     def read_one_element(self):
         if self.buffer_pointer < self.c_read_size.value:
             self.buffer_pointer += 1
-            return (self.c_long_lbn[self.buffer_pointer - 1])
+            return self.c_long_lbn[self.buffer_pointer - 1]
 
         elif self.read_in_num < self.c_num_of_rec.value:
             self._read()
             self.buffer_pointer = 1
-            return (self.c_long_lbn[self.buffer_pointer - 1])
+            return self.c_long_lbn[self.buffer_pointer - 1]
         else:
             return None
 
@@ -87,33 +87,33 @@ class vscsiCacheReader(cacheReaderAbstract):
 
     def lines(self):
         # ts, cmd, size, lbn
-        '''
+        """
         return detailed information in vscsi reader
         :return:
-        '''
+        """
         self.reset()
-        while (self.read_in_num < self.c_num_of_rec.value or self.buffer_pointer < self.c_read_size.value):
+        while self.read_in_num < self.c_num_of_rec.value or self.buffer_pointer < self.c_read_size.value:
             if self.buffer_pointer < self.c_read_size.value:
                 self.buffer_pointer += 1
-                yield (self.c_long_ts[self.buffer_pointer - 1], self.c_int_cmd[self.buffer_pointer - 1], \
+                yield (self.c_long_ts[self.buffer_pointer - 1], self.c_int_cmd[self.buffer_pointer - 1],
                        self.c_int_len[self.buffer_pointer - 1], self.c_long_lbn[self.buffer_pointer - 1])
 
             elif self.read_in_num < self.c_num_of_rec.value:
                 self._read()
                 self.buffer_pointer = 1
-                yield (self.c_long_ts[self.buffer_pointer - 1], self.c_int_cmd[self.buffer_pointer - 1], \
+                yield (self.c_long_ts[self.buffer_pointer - 1], self.c_int_cmd[self.buffer_pointer - 1],
                        self.c_int_len[self.buffer_pointer - 1], self.c_long_lbn[self.buffer_pointer - 1])
 
     def __next__(self):  # Python 3
         super().__next__()
         if self.buffer_pointer < self.c_read_size.value:
             self.buffer_pointer += 1
-            return (self.c_long_lbn[self.buffer_pointer - 1])
+            return self.c_long_lbn[self.buffer_pointer - 1]
 
         elif self.read_in_num < self.c_num_of_rec.value:
             self._read()
             self.buffer_pointer = 1
-            return (self.c_long_lbn[self.buffer_pointer - 1])
+            return self.c_long_lbn[self.buffer_pointer - 1]
         else:
             raise StopIteration
 

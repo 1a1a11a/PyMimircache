@@ -1,19 +1,8 @@
-import sys
-import os
-
 import logging
-
-from ctypes import *
-
-from mimircache.cache.LRU import LRU
-from mimircache.cacheReader.plainReader import plainCacheReader
-from mimircache.cacheReader.csvReader import csvCacheReader
-from mimircache.cacheReader.vscsiReader import vscsiCacheReader
-from mimircache.profiler.abstract.abstractLRUProfiler import abstractLRUProfiler
 import mimircache.c_LRUProfiler as c_LRUProfiler
-import matplotlib
 
-matplotlib.use('Agg')
+from mimircache.cacheReader.plainReader import plainCacheReader
+from mimircache.cacheReader.vscsiReader import vscsiCacheReader
 import matplotlib.pyplot as plt
 
 
@@ -41,12 +30,12 @@ class LRUProfiler:
         self.reader.reset()
         print(len(seen_dict))
         with open('temp.dat', 'w') as ofile:
-            i = self.reader.read_one_element()
-            while i != None:
+            j = self.reader.read_one_element()
+            while j is not None:
                 self.num_of_lines += 1
-                if seen_dict[i] > 1:
-                    ofile.write(str(i) + '\n')
-                i = self.reader.read_one_element()
+                if seen_dict[j] > 1:
+                    ofile.write(str(j) + '\n')
+                j = self.reader.read_one_element()
         self.reader = plainCacheReader('temp.dat')
         print(self.num_of_lines)
 
@@ -55,7 +44,7 @@ class LRUProfiler:
         logging.debug("changing file format")
         with open('temp.dat', 'w') as ofile:
             i = self.reader.read_one_element()
-            while i != None:
+            while i is not None:
                 self.num_of_lines += 1
                 ofile.write(str(i) + '\n')
                 i = self.reader.read_one_element()
@@ -101,7 +90,7 @@ class LRUProfiler:
 
             plt.plot(range(0, num_of_blocks, 1), MRC[:num_of_blocks])
             plt.xlabel("cache Size")
-            plt.ylabel("Miss Rate/%")
+            plt.ylabel("Miss Rate")
             plt.title('Miss Rate Curve', fontsize=18, color='black')
             plt.show()
             plt.savefig("figure_MRC.png")
@@ -127,7 +116,7 @@ class LRUProfiler:
 
             plt.plot(range(0, num_of_blocks, 1), HRC[:num_of_blocks])
             plt.xlabel("cache Size")
-            plt.ylabel("Hit Rate/%")
+            plt.ylabel("Hit Rate")
             plt.title('Hit Rate Curve', fontsize=18, color='black')
             plt.show()
             plt.savefig("figure_HRC.png")
@@ -150,7 +139,6 @@ if __name__ == "__main__":
     # p.get_reuse_distance()
     import os
     import time
-    import shutil
 
     # from pympler.tracker import SummaryTracker
 

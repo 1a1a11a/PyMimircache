@@ -1,6 +1,8 @@
+import glob
+import os
+
 import imageio
 from PIL import Image
-import glob, os
 
 DIRECTORY = 'temp/'
 

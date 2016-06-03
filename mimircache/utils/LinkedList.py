@@ -10,11 +10,11 @@ class LinkedListNode:
 
 
 class LinkedList:
-    def __init__(self, maxlen=-1):
-        '''
+    def __init__(self):
+        """
         initialization of the linkedlist, head does not contain any element, but head contains last element
         :return:
-        '''
+        """
         self.head = LinkedListNode()
         self.tail = None
         self.size = 0
@@ -148,7 +148,7 @@ class LinkedList:
         return self.__next__()
 
     def __next__(self):  # Python 3
-        if self.currentNode.next == None:
+        if self.currentNode.next is None:
             # self.currentNode = self.head
             raise StopIteration
         else:
