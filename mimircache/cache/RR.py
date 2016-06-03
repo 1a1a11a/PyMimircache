@@ -10,13 +10,13 @@ class RR(cache):
     def __init__(self, cache_size=1000):
         super().__init__(cache_size)
         self.cacheDict = dict()  # key -> linked list node (in reality, it should also contains value)
-        self.cache_line_list = []  # to save all the keys, otherwise needs to populate from cacheDict every time
+        self.cache_line_list = []  # to save all the keys, otherwise needs to populate from cache_dict every time
 
 
     def checkElement(self, element):
         '''
-        :param content: the content for search
-        :return: whether the given element is in the cache
+        :param element: the key of cache request
+        :return: whether the given key is in the cache or not
         '''
         if element in self.cacheDict:
             return True
@@ -24,8 +24,9 @@ class RR(cache):
             return False
 
     def _updateElement(self, element):
-        ''' the given element is in the cache, now update it to new location
-        :param element:
+        ''' the given element is in the cache, when it is requested again,
+         usually we need to update it to new location, but in random, we don't need to do that
+        :param element: the key of cache request
         :return: None
         '''
 
@@ -34,16 +35,16 @@ class RR(cache):
     def _insertElement(self, element):
         '''
         the given element is not in the cache, now insert it into cache
-        :param element:
-        :return: True on success, False on failure
+        :param element: the key of cache request
+        :return: None
         '''
         if len(self.cacheDict) >= self.cache_size:
             self._evictOneElement()
         self.cacheDict[element] = ""
         self.cache_line_list.append(element)
 
-    def printCacheLine(self):
-        for i in self.cacheSet:
+    def _printCacheLine(self):
+        for i in self.cacheDict:
             try:
                 print(i.content, end='\t')
             except:
@@ -54,9 +55,12 @@ class RR(cache):
     def _evictOneElement(self):
         '''
         evict one element from the cache line
-        :return: True on success, False on failure
+        if we delete one element from list every time, it would be O(N) on
+        every request, which is too expensive, so we choose to put a hole
+        on the list every time we delete it, when there are too many holes
+        we re-generate the cache line list
+        :return: None
         '''
-        # element = random.choice(list(self.cacheDict.keys()))
         rand_num = random.randrange(0, len(self.cache_line_list))
         element = self.cache_line_list[rand_num]
         count = 0
@@ -78,7 +82,7 @@ class RR(cache):
 
     def addElement(self, element):
         '''
-        :param element: the element in the reference, it can be in the cache, or not
+        :param element: the key of cache request, it can be in the cache, or not in the cache
         :return: True if element in the cache
         '''
         if self.checkElement(element):

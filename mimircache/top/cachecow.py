@@ -130,10 +130,11 @@ class cachecow:
                 num_of_process = kargs['num_of_process']
             else:
                 num_of_process = 4
-
-            profiler = generalProfiler(self.cacheclass_mapping[cache_class.lower()], size, bin_size,
-                                       reader, num_of_process)
-
+            if type(cache_class) == str:
+                profiler = generalProfiler(self.cacheclass_mapping[cache_class.lower()], size, bin_size,
+                                           reader, num_of_process)
+            else:
+                profiler = generalProfiler(cache_class, size, bin_size, reader, num_of_process)
 
         return profiler
 

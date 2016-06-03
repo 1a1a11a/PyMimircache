@@ -79,15 +79,15 @@ class S4LRU(cache):
         '''
         return self.fourthLRU._insertElement(element)
 
-    def printCacheLine(self):
+    def _printCacheLine(self):
         print("first: ")
-        self.firstLRU.printCacheLine()
+        self.firstLRU._printCacheLine()
         print("second: ")
-        self.secondLRU.printCacheLine()
+        self.secondLRU._printCacheLine()
         print("third: ")
-        self.thirdLRU.printCacheLine()
+        self.thirdLRU._printCacheLine()
         print("fourth: ")
-        self.fourthLRU.printCacheLine()
+        self.fourthLRU._printCacheLine()
 
     def _evictOneElement(self):
         '''

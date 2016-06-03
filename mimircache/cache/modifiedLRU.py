@@ -33,7 +33,7 @@ class modifiedLRU():
     def getRank(self, content):
         '''
 
-        :param content: the content of element, which is also the key in cacheDict
+        :param content: the content of element, which is also the key in cache_dict
         :return: rank if in the cache, otherwise -1
         '''
         return self.cacheDict.get(content, (-1, -1))[0]

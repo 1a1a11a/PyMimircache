@@ -24,7 +24,7 @@ class LRU(cache):
     def getReuseDist(self, content):
         '''
 
-        :param content: the content of element, which is also the key in cacheDict
+        :param content: the content of element, which is also the key in cache_dict
         :return: rank if in the cache, otherwise -1
         '''
         return self.cacheDict.get(content, -1)
@@ -37,9 +37,9 @@ class LRU(cache):
         rank = self.getReuseDist(element)
         # if rank >= 10:
         #     print("WWWWWWWWHHHHHHHHAAAAAAATTTTTTT")
-        #     print(len(self.cacheDict))
+        #     print(len(self.cache_dict))
         #     print(element)
-        #     print(self.cacheDict)
+        #     print(self.cache_dict)
         #     self.printLinkedList()
         # even if reuse distance is 0, it still needs at least one cache line
         self.cacheDict[element] = 1
@@ -73,7 +73,7 @@ class LRU(cache):
         if self.cacheLinkedList.size > self.cache_size:
             self._evictOneElement()
 
-    def printCacheLine(self):
+    def _printCacheLine(self):
         for i in self.cacheLinkedList:
             try:
                 print(i.content, end='\t')
@@ -98,12 +98,12 @@ class LRU(cache):
         # print(element, end=': \t')
         if self.checkElement(element):
             rank = self._updateElement(element)
-            # print(self.cacheDict)
+            # print(self.cache_dict)
             # self.printLinkedList()
             return rank
         else:
             self._insertElement(element)
-            # print(self.cacheDict)
+            # print(self.cache_dict)
             # self.printLinkedList()
             return -1
 

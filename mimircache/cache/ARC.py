@@ -110,7 +110,7 @@ class ARC(cache):
             self.lru_list_head_p1 = node
         return return_content
 
-    def printCacheLine(self):
+    def _printCacheLine(self):
         print('list 1(including ghost list): ')
         for i in self.linkedList1:
             try:

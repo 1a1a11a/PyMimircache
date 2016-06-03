@@ -40,7 +40,7 @@ class clock(LRU):
             assert self.cacheLinkedList.size == 1, "insert element error"
             self.hand = node
 
-    def printCacheLine(self):
+    def _printCacheLine(self):
         for i in self.cacheLinkedList:
             try:
                 print("{}({})".format(i.content, i.id), end='\t')

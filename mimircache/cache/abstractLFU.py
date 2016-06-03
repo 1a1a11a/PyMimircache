@@ -32,8 +32,8 @@ class abstractLFU(cache):
         :return: original rank
         '''
         self.cacheDict[element] += 1
-        # if self.cacheDict[element]>self.largest_freq:
-        #     self.largest_freq = self.cacheDict[element]
+        # if self.cache_dict[element]>self.largest_freq:
+        #     self.largest_freq = self.cache_dict[element]
         #     self.largest_freq_element = element
         if element in self.least_freq_elements_set:
             if len(self.least_freq_elements_set) > 1:
@@ -58,8 +58,8 @@ class abstractLFU(cache):
             self._evictOneElement()
 
         self.cacheDict[element] = 1
-        # if self.cacheDict[element]>self.largest_freq:
-        #     self.largest_freq = self.cacheDict[element]
+        # if self.cache_dict[element]>self.largest_freq:
+        #     self.largest_freq = self.cache_dict[element]
         #     self.largest_freq_element = element
         if self.least_freq == 1:
             # this one needs to be added
@@ -77,7 +77,7 @@ class abstractLFU(cache):
     def find_evict_key(self):
         pass
 
-    def printCacheLine(self):
+    def _printCacheLine(self):
         for key, value in self.cacheDict.items():
             print("{}: {}".format(key, value))
 

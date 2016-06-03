@@ -61,11 +61,11 @@ class SLRU(cache):
         '''
         return self.probationary._insertElement(element)
 
-    def printCacheLine(self):
+    def _printCacheLine(self):
         print("protected: ")
-        self.protected.printCacheLine()
+        self.protected._printCacheLine()
         print("probationary: ")
-        self.probationary.printCacheLine()
+        self.probationary._printCacheLine()
 
     def _evictOneElement(self):
         '''

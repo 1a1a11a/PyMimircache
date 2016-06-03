@@ -60,7 +60,7 @@ def calc_hit_rate_start_time_end_time_subprocess_general(order, cache, break_poi
     if cache == 'LRU':
         c = LRU(cache_size=cache_size)
     if cache == "optimal":
-        c = optimal()
+        c = optimal(cache_size, reader)
 
 
     result_list = []
@@ -82,6 +82,9 @@ def calc_hit_rate_start_time_end_time_subprocess_general(order, cache, break_poi
         if line_num < break_points_share_array[order]:
             line_num += 1
             continue
+        # fix this hack
+        if cache == 'optimal':
+            c.ts = line_num
         line_num += 1
         if c.addElement(line):
             total_hc += 1

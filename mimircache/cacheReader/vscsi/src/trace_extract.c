@@ -64,7 +64,7 @@ int setup(char *argv, void** mem, int* ver, int* delta, int* num_of_rec)
 	switch (test_vscsi_version (*mem))
 	{
 		case VSCSI1:
-			fprintf (stderr, "Detected VSCSI1 format.\n");
+			// fprintf (stderr, "Detected VSCSI1 format.\n");
 			// fptr = print_trace_v1;
 			*delta = sizeof(trace_v1_record_t);
 			*ver = VSCSI1; 
@@ -72,7 +72,7 @@ int setup(char *argv, void** mem, int* ver, int* delta, int* num_of_rec)
 			break;
 
 		case VSCSI2:
-			fprintf (stderr, "Detected VSCSI2 format.\n");
+			// fprintf (stderr, "Detected VSCSI2 format.\n");
 			// fptr = print_trace_v2;
 			*delta = sizeof(trace_v2_record_t);
 			*ver = VSCSI2;

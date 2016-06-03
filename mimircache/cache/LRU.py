@@ -41,14 +41,14 @@ class LRU(cache):
             # print("{}: {}".format(self.cacheLinkedList.size, self.cache_size))
             # if self.cacheLinkedList.size == self.cache_size:
             #     self.printCacheLine()
-            # print(self.cacheDict)
+            # print(self.cache_dict)
             return_content = self._evictOneElement()
 
         node = self.cacheLinkedList.insertAtTail(element)
         self.cacheDict[element] = node
         return return_content
 
-    def printCacheLine(self):
+    def _printCacheLine(self):
         for i in self.cacheLinkedList:
             try:
                 print(i.content, end='\t')
@@ -65,7 +65,7 @@ class LRU(cache):
         content = self.cacheLinkedList.removeFromHead()
         # print(content)
         # self.printCacheLine()
-        # print(self.cacheDict)
+        # print(self.cache_dict)
         del self.cacheDict[content]
         return content
 

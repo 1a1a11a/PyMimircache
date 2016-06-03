@@ -240,11 +240,12 @@ class heatmap:
             # if it is not LRU, then there should be a cache replacement algorithm in kwargs
             assert 'cache' in kwargs, "you didn't provide any cache replacement algorithm"
             cache_type = kwargs['cache']
+            cache_size = kwargs['cache_size']
 
             # for general cache replacement algorithm, uncomment the following, it is just for
             # transform the data from other format to plain txt
             # p = pardaProfiler(30000, reader)
-            p = LRUProfiler(30000, reader)
+            p = LRUProfiler(cache_size, reader)
 
             # prepare break points
             if mode == 'r':
@@ -293,7 +294,7 @@ class heatmap:
                 else:
                     p = Process(target=calc_hit_rate_start_time_end_time_subprocess_general,
                                 args=(map_list[map_list_pos], cache_type,
-                                      break_points_share_array, reader, q), kwargs={'cache_size': self.cache_size})
+                                      break_points_share_array, reader, q), kwargs={'cache_size': cache_size})
 
 
                 p.start()
@@ -642,13 +643,13 @@ class heatmap:
 
         if mode == 'r':
             xydict1, kwargs_dict1 = self.calculate_heatmap_dat('r', reader, plot_type, LRU=False, cache='optimal',
-                                                               num_of_process=8)
+                                                               num_of_process=8, cache_size=kwargs['cache_size'])
             reader.reset()
             xydict2, kwargs_dict2 = self.calculate_heatmap_dat('r', reader, plot_type, **kwargs)
 
         elif mode == 'v':
             xydict1, kwargs_dict1 = self.calculate_heatmap_dat('r', reader, plot_type, LRU=False, cache='optimal',
-                                                               num_of_process=8)
+                                                               num_of_process=8, cache_size=kwargs['cache_size'])
             reader.reset()
             xydict2, kwargs_dict2 = self.calculate_heatmap_dat('v', reader, plot_type, **kwargs)
         else:
@@ -785,7 +786,9 @@ def request_num_2d(reader, mode, interval, **kwargs):
             continue
         else:
             l.append(break_points[i] - break_points[i - 1])
-    hm.draw2d(l, figname=kwargs['figname'])
+    xticks = ticker.FuncFormatter(lambda x, pos: '{:2.0f}%'.format(x * 100 / len(break_points)))
+    hm.draw2d(l, figname=kwargs['figname'], xticks=xticks)
+
     reader.reset()
 
 
@@ -802,7 +805,8 @@ def cold_miss_2d(reader, mode, interval, **kwargs):
                                                        reader.get_num_total_lines())  # p.num_of_trace_elements)
 
     l = calc_cold_miss_count(break_points, reader)
-    hm.draw2d(l, figname=kwargs['figname'])
+    xticks = ticker.FuncFormatter(lambda x, pos: '{:2.0f}%'.format(x * 100 / len(break_points)))
+    hm.draw2d(l, figname=kwargs['figname'], xticks=xticks)
     reader.reset()
 
 
@@ -843,18 +847,18 @@ def localtest():
     # reader2.reset()
 
 
-    # hm.run('r', 10000000, "hit_rate_start_time_end_time", reader2, num_of_process=2,  # LRU=False, cache='optimal',
+    # hm.run('r', 10000000, "hit_rate_start_time_end_time", reader2, num_of_process=8,  # LRU=False, cache='optimal',
     #        cache_size=CACHE_SIZE, save=False, fixed_range=True, change_label=True,
-    #        figname="0529/small_LRU_hit_rate_start_time_end_time_" + str(CACHE_SIZE) + ".png")
-    #
-    #
-    # reader2.reset()
+    #        figname="small_LRU_hit_rate_start_time_end_time_" + str(CACHE_SIZE) + ".png")
 
-    # hm.run_diff_optimal('r', 10000000, "hit_rate_start_time_end_time", reader2, num_of_process=8,
-    #                     # LRU=False, cache="LRU",
-    #                     cache_size=CACHE_SIZE, save=False, change_label=True,
-    #                     figname="0529/LRU_NONPARDA_Optimal_" + str(CACHE_SIZE) + ".png")
-    #
+
+    reader2.reset()
+
+    hm.run_diff_optimal('r', 10000000, "hit_rate_start_time_end_time", reader2, num_of_process=8,
+                        LRU=False, cache="LRU",
+                        cache_size=CACHE_SIZE, save=False, change_label=True,
+                        figname="LRU_NONPARDA_Optimal_" + str(CACHE_SIZE) + ".png")
+
     # reader2.reset()
 
 
@@ -914,8 +918,8 @@ if __name__ == "__main__":
     import time
 
     t1 = time.time()
-    # localtest()
-    server_plot_all()
+    localtest()
+    # server_plot_all()
     # cold_miss_2d('v', 100)
     t2 = time.time()
     print(t2 - t1)

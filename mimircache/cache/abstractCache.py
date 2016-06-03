@@ -8,11 +8,9 @@
 
 """
 
-import sys
-import os
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 import abc
+
+all = []
 
 
 class cache:
@@ -66,7 +64,7 @@ class cache:
         raise NotImplementedError("add_element class is not implemented")
 
     @abc.abstractmethod
-    def printCacheLine(self):
+    def _printCacheLine(self):
         return
 
     def __contains__(self, item):
@@ -75,5 +73,5 @@ class cache:
     def __repr__(self):
         return "abstract cache class, {}".format(super().__repr__())
 
-    def __repr__(self):
+    def __str__(self):
         return "abstract cache class, {}".format(super().__str__())

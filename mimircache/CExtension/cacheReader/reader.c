@@ -1,0 +1,345 @@
+//
+//  reader.c
+//  LRUAnalyzer
+//
+//  Created by Juncheng on 5/25/16.
+//  Copyright © 2016 Juncheng. All rights reserved.
+//
+
+#include "reader.h"
+#include "vscsi_trace_format.h"
+
+// extern inline int vscsi_read(READER* reader, cache_line* c); 
+
+
+READER* setup_reader(char* file_loc, char file_type){
+    /* setup the reader struct for reading trace
+     file_type: c: csv, v: vscsi, p: plain text
+     Return value: a pointer to READER struct, the returned reader
+     needs to be explicitly closed by calling close_reader */
+    
+    READER* reader = (READER*) malloc(sizeof(READER));
+    if (strlen(file_loc)>1023){
+        printf("file name/path is too long(>1023), please make it short\n");
+        exit(1);
+    }
+    else{
+        strcpy(reader->file_loc, file_loc);
+    }
+
+    switch (file_type) {
+        case 'c':
+            printf("currently c reader is not supported yet\n");
+            exit(1);
+            break;
+        case 'p':
+            reader->total_num = -1;
+            reader->type = 'p';
+            reader->ts = 0;
+            reader->file = fopen(file_loc, "r");
+            if (reader->file == 0){
+                perror("open trace file failed\n");
+                exit(1);
+            }
+            break;
+        case 'v':
+            vscsi_setup(file_loc, reader);
+            break;
+        default:
+            printf("cannot recognize trace file type, it can only be c(csv), "
+                   "p(plain text), v(vscsi)\n");
+            exit(1);
+            break;
+    }
+    return reader;
+}
+
+void read_one_element(READER* reader, cache_line* c){
+    /* read one cache line from reader, 
+     and store it in the pre-allocated cache_line c, current given 
+     size for the element(label) is 128 bytes(cache_line_label_size).
+     */
+    switch (reader->type) {
+        case 'c':
+            printf("currently c reader is not supported yet\n");
+            exit(1);
+            break;
+        case 'p':
+
+            if (fscanf(reader->file, "%s", c->str_content) == EOF)
+                c->valid = FALSE;
+                // c->str_content[0] = 0;
+            else {
+                if (c->str_content[0] == '\n' && c->str_content[1] == '\0')
+                    return read_one_element(reader, c);
+                c->ts = (reader->ts)++;
+            }
+//            printf("%s\n", c->str_content);
+            
+            break;
+        case 'v':
+            vscsi_read(reader, c);
+            c->ts = (reader->ts)++;
+            break;
+        default:
+            printf("cannot recognize reader type, it can only be c(csv), p(plain text), "
+                   "v(vscsi), but got %c\n", reader->type);
+            exit(1);
+            break;
+    }
+}
+
+int go_back_one_line(READER* reader){
+    /* go back two cache lines
+     return 0 on successful, non-zero otherwise
+     */
+    switch (reader->type) {
+        case 'c':
+        case 'p':
+            ;
+            int r;
+            
+            fseek(reader->file, -2L, SEEK_CUR);
+            while( getc(reader->file) != '\n' )
+                if (( r= fseek(reader->file, -2L, SEEK_CUR)) != 0)
+                    return r;
+            
+            return 0;
+        case 'v':
+            reader->offset -= (reader->record_size);
+            if (reader->offset<0)
+                return -1;
+            return 0;
+        default:
+            printf("cannot recognize reader type, it can only be c(csv), p(plain text), "
+                   "v(vscsi), but got %c\n", reader->type);
+            exit(1);
+    }    
+}
+
+
+
+int go_back_two_lines(READER* reader){
+    /* go back two cache lines 
+     return 0 on successful, non-zero otherwise 
+     */
+    switch (reader->type) {
+        case 'c':
+        case 'p':
+            ;
+            int r;
+            if ( (r=fseek(reader->file, -2L, SEEK_CUR)) != 0){
+                return r;
+            }
+            
+            while( getc(reader->file) != '\n' )
+                if ( (r= fseek(reader->file, -2L, SEEK_CUR)) != 0){
+                    return r;
+                }
+            fseek(reader->file, -2L, SEEK_CUR);
+            while( getc(reader->file) != '\n' )
+                if ( (r=fseek(reader->file, -2L, SEEK_CUR)) != 0){
+                    fseek(reader->file, -1L, SEEK_CUR);
+                    break;
+                }
+
+            return 0;
+        case 'v':
+            reader->offset -= (reader->record_size)*2;
+            if (reader->offset < 0)
+                return -1;
+            return 0;
+        default:
+            printf("cannot recognize reader type, it can only be c(csv), p(plain text), "
+                   "v(vscsi), but got %c\n", reader->type);
+            exit(1);
+    }    
+}
+
+
+
+void read_one_element_above(READER* reader, cache_line* c){
+    /* read one cache line from reader precede current position,  
+     and store it in the pre-allocated cache_line c, current given 
+     size for the element(label) is 128 bytes(cache_line_label_size).
+     after reading the new position is at the beginning of readed cache line 
+     in other words, this method is called for reading from end to beginngng
+     */
+    if (go_back_two_lines(reader) == 0)
+        read_one_element(reader, c);
+    else{
+        c->valid = FALSE;
+    }
+    
+    
+}
+
+
+
+long skip_N_elements(READER* reader, long long N){
+    /* skip the next following N elements, 
+     Return value: the number of elements that are actually skipped, 
+     this will differ from N when it reaches the end of file
+     */
+    int i, count=0;
+    char temp[cache_line_label_size];
+    switch (reader->type) {
+        case 'c':
+            printf("currently c reader is not supported yet\n");
+            exit(1);
+            break;
+        case 'p':
+            for (i=0; i<N; i++)
+                if (fscanf(reader->file, "%s", temp)!=EOF)
+                    count++;
+                else
+                    break;
+            reader->ts += i;
+            break;
+        case 'v':
+            reader->offset = reader->offset + N * reader->record_size;
+            reader->ts += N;
+            count = N;
+            break;
+        default:
+            printf("cannot recognize reader type, it can only be c(csv), p(plain text), \
+                   v(vscsi), but got %c\n", reader->type);
+            exit(1);
+            break;
+    }
+    return count;
+}
+
+void reset_reader(READER* reader){
+    /* rewind the reader back to beginning 
+     */
+    switch (reader->type) {
+        case 'c':
+            printf("currently c reader is not supported yet\n");
+            exit(1);
+            break;
+        case 'p':
+            fseek(reader->file, 0L, SEEK_SET);
+            reader->ts = 0;
+            break;
+        case 'v':
+            reader->offset = 0;
+            reader->ts = 0;
+            break;
+        default:
+            printf("cannot recognize reader type, it can only be c(csv), p(plain text), \
+                   v(vscsi), but got %c\n", reader->type);
+            exit(1);
+            break;
+    }
+}
+
+
+void reader_set_read_pos(READER* reader, float pos){
+    /* jump to given postion, like 1/3, or 1/2 and so on
+     * 
+     */
+    switch (reader->type) {
+        case 'c':
+        case 'p':
+            ;
+            struct stat statbuf;
+            if (fstat(fileno(reader->file), &statbuf) < 0)
+                printf("fstat error");
+            long long fsize= (long long)statbuf.st_size;
+            fseek(reader->file, (long)(fsize*pos), SEEK_SET);
+            char c = getc(reader->file);
+            while (c!='\n' && c!=EOF)
+                c = getc(reader->file);
+            reader->ts = 0;
+            break;
+            
+        case 'v':
+            reader->offset = (long long)reader->record_size * ((long)(reader->total_num));
+            reader->ts = 0;
+            break;
+        default:
+            printf("cannot recognize reader type, it can only be c(csv), p(plain text), \
+                   v(vscsi), but got %c\n", reader->type);
+            exit(1);
+            break;
+    }
+    
+}
+
+
+long long get_num_of_cache_lines(READER* reader){
+    
+#define BUFFER_SIZE 1024*1024*5
+    long long num_of_lines = 0;
+    char temp[BUFFER_SIZE+1];       // 5MB buffer
+    int fd, i=0;
+    long size;
+    
+    switch (reader->type) {
+        case 'c':
+            // same as plain text
+        case 'p':
+            fd = fileno(reader->file);
+            char last_char = 0; 
+            while ((size=read(fd, (void*)temp, BUFFER_SIZE))!=0){
+                if (temp[0] == '\n' && last_char != '\n')
+                    num_of_lines++;
+                for (i=1;i<size;i++)
+                    if (temp[i] == '\n' && temp[i-1] != '\n')
+                        num_of_lines++;
+                last_char = temp[size-1];
+            }
+            if (last_char!='\n'){
+                num_of_lines++;
+            }
+//            while (fscanf(reader->file, "%s", temp)!=EOF)
+//                num_of_lines++;
+            break;
+        case 'v':
+            printf("vscsi reader has total number of records when initialization, "
+                "so you don't need to call this function\n");
+            return reader->total_num;
+        default:
+            printf("cannot recognize reader type, it can only be c(csv), p(plain text), \
+                   v(vscsi), but got %c\n", reader->type);
+            exit(1);
+            break;
+    }
+    reader->total_num = num_of_lines;
+    reset_reader(reader);
+    return num_of_lines;
+}
+
+
+
+
+int close_reader(READER* reader){
+    /* close the file in the reader or unmmap the memory in the file
+     then free the memory of reader object
+     Return value: Upon successful completion 0 is returned.
+     Otherwise, EOF is returned and the global variable errno is set to 
+     indicate the error.  In either case no further
+     access to the stream is possible.*/
+    
+    switch (reader->type) {
+        case 'c':
+            printf("currently c reader is not supported yet\n");
+            return(1);
+            break;
+        case 'p':
+            return fclose(reader->file);
+            break;
+        case 'v':
+            munmap (reader->p, reader->total_num * reader->record_size);
+            return 1;
+            break;
+        default:
+            printf("cannot recognize reader type, it can only be c(csv), p(plain text), \
+                   v(vscsi), but got %c\n", reader->type);
+            return(1);
+    }
+
+}
+
+
