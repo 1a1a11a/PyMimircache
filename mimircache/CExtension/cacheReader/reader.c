@@ -9,7 +9,8 @@
 #include "reader.h"
 #include "vscsi_trace_format.h"
 
-// extern inline int vscsi_read(READER* reader, cache_line* c); 
+// add support for lock in reader to prevent simultaneous access reader
+
 
 
 READER* setup_reader(char* file_loc, char file_type){
@@ -19,6 +20,11 @@ READER* setup_reader(char* file_loc, char file_type){
      needs to be explicitly closed by calling close_reader */
     
     READER* reader = (READER*) malloc(sizeof(READER));
+    reader->break_points_v = NULL;
+    reader->break_points_r = NULL;
+    reader->last_access = NULL;
+    reader->reuse_dist = NULL; 
+    
     if (strlen(file_loc)>1023){
         printf("file name/path is too long(>1023), please make it short\n");
         exit(1);
@@ -70,7 +76,7 @@ void read_one_element(READER* reader, cache_line* c){
                 c->valid = FALSE;
                 // c->str_content[0] = 0;
             else {
-                if (c->str_content[0] == '\n' && c->str_content[1] == '\0')
+                if (strlen(c->str_content)==2 && c->str_content[0] == '\n' && c->str_content[1] == '\0')
                     return read_one_element(reader, c);
                 c->ts = (reader->ts)++;
             }
@@ -181,7 +187,8 @@ long skip_N_elements(READER* reader, long long N){
      Return value: the number of elements that are actually skipped, 
      this will differ from N when it reaches the end of file
      */
-    int i, count=0;
+    int i;
+    long long count=0;
     char temp[cache_line_label_size];
     switch (reader->type) {
         case 'c':
@@ -275,12 +282,14 @@ long long get_num_of_cache_lines(READER* reader){
     char temp[BUFFER_SIZE+1];       // 5MB buffer
     int fd, i=0;
     long size;
+    reset_reader(reader);
     
     switch (reader->type) {
         case 'c':
             // same as plain text
         case 'p':
             fd = fileno(reader->file);
+            lseek(fd, 0L, SEEK_SET);
             char last_char = 0; 
             while ((size=read(fd, (void*)temp, BUFFER_SIZE))!=0){
                 if (temp[0] == '\n' && last_char != '\n')
@@ -312,6 +321,20 @@ long long get_num_of_cache_lines(READER* reader){
 }
 
 
+READER* copy_reader(READER* reader_in){
+    // duplicate reader
+    READER* reader = (READER*) malloc(sizeof(READER));
+    memcpy(reader, reader_in, sizeof(READER));
+    
+    if (reader->type == 'v')
+        reader->offset = 0;
+    else{
+        reader->file = fopen(reader->file_loc, "r");
+    }
+    return reader;
+}
+
+
 
 
 int close_reader(READER* reader){
@@ -339,7 +362,59 @@ int close_reader(READER* reader){
                    v(vscsi), but got %c\n", reader->type);
             return(1);
     }
+    // free break_points GArray
+    if (!reader->break_points_r)
+        g_array_free(reader->break_points_r, TRUE);
+    if (!reader->break_points_v)
+        g_array_free(reader->break_points_v, TRUE);
+    if (!reader->last_access)
+        free(reader->last_access);
+    if (!reader->reuse_dist)
+        free(reader->reuse_dist);
+}
 
+int read_one_request_all_info(READER* reader, void* storage){
+    /* read one cache line from reader,
+     and store it in the pre-allocated memory pointed at storage.
+     return 1 when finished or error, otherwise, return 0.
+     */
+    switch (reader->type) {
+        case 'c':
+            printf("currently c reader is not supported yet\n");
+            exit(1);
+            break;
+        case 'p':
+            if (fscanf(reader->file, "%s", (char*)storage) == EOF)
+                return 1;
+            else {
+                if (strlen((char*)storage)==2 && ((char*)storage)[0] == '\n' && ((char*)storage)[1] == '\0')
+                    return read_one_request_all_info(reader, storage);
+                return 0;
+            }
+            break;
+        case 'v':
+            printf("currently v reader is not supported yet\n");
+            exit(1);
+            break;
+        default:
+            printf("cannot recognize reader type, it can only be c(csv), p(plain text), "
+                   "v(vscsi), but got %c\n", reader->type);
+            exit(1);
+            break;
+    }
+    return 0;
 }
 
 
+guint64 read_one_timestamp(READER* reader){
+    return 0;
+}
+
+
+void read_one_op(READER* reader, void* op){
+    ;
+}
+
+guint64 read_one_request_size(READER* reader){
+    return 0;
+}

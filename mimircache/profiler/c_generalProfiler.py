@@ -6,7 +6,6 @@
 
 import math
 import os
-import time
 
 # deal with headless situation
 import traceback
@@ -88,7 +87,9 @@ class generalProfiler(profilerAbstract):
 
             # build pipes for communication between main process and children process
             # the pipe mainly sends element from main process to children
+
         self.pipe_list = []
+
         for i in range(self.num_of_process):
             self.pipe_list.append(Pipe())
             p = Process(target=self._addOneTraceElementSingleProcess,
@@ -316,14 +317,14 @@ if __name__ == "__main__":
     # p = generalProfiler(ARC, (10, 0.5), 10, r, 1)
     # p = generalProfiler(LRU, 800, 5, r, 4)
     # p = generalProfiler(ARC, 5, 5, r, 1)
-    p = generalProfiler(optimal, (2000, r), 200, r, 8)
-    p.run()
-    print(p.HRC)
+    # p = generalProfiler(optimal, (2000, r), 500, r, 8)
+    # p.run()
+    # print(p.HRC)
     t2 = time.time()
     print("TIME: %f" % (t2 - t1))
     t1 = time.time()
 
-    hr = c_generalProfiler.get_hit_rate(r.cReader, 2000, "Optimal", bin_size=200, num_of_threads=8)
+    hr = c_generalProfiler.get_hit_rate(r.cReader, 2000, "Optimal", bin_size=500, num_of_threads=8)
     print(hr)
 
     t2 = time.time()

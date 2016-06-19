@@ -15,7 +15,7 @@ long long* get_hit_count_seq(READER* reader, long size, long long begin, long lo
     /* get the hit count, if size==-1, then do all the counting, otherwise, 
      * treat the ones with reuse distance larger than size as out of range, 
      * and put it in the second to the last bucket of hit_count_array
-     * in other words, 0~size(included) are for counting rd=0~size, size+1 is 
+     * in other words, 0~size(included) are for counting rd=0~size-1, size+1 is
      * out of range, size+2 is cold miss, so total is size+3 buckets
      */
 
@@ -49,7 +49,7 @@ long long* get_hit_count_seq(READER* reader, long size, long long begin, long lo
         hit_count_array[i] = 0;
     
     
-    // create cache lize struct and initializa
+    // create cache lize struct and initialization
     cache_line* cp = (cache_line*)malloc(sizeof(cache_line));
     cp->op = -1;
     cp->size = -1;
@@ -84,10 +84,10 @@ long long* get_hit_count_seq(READER* reader, long size, long long begin, long lo
         splay_tree = process_one_element(cp, splay_tree, hash_table, ts, &reuse_dist);
         if (reuse_dist == -1)
             hit_count_array[size+2] += 1;
-        else if (reuse_dist>size)
+        else if (reuse_dist>=size)
             hit_count_array[size+1] += 1;
         else
-            hit_count_array[reuse_dist] += 1;
+            hit_count_array[reuse_dist+1] += 1;
         if (reader->ts >= end)
             break;
         read_one_element(reader, cp);
@@ -109,11 +109,17 @@ float* get_hit_rate_seq(READER* reader, long size, long long begin, long long en
     int i=0;
     if (reader->total_num == -1)
         reader->total_num = get_num_of_cache_lines(reader);
-    double total_num = (double)reader->total_num;
     
     long long* hit_count_array = get_hit_count_seq(reader, size, begin, end);
     if (size == -1)
         size = reader->total_num;
+    if (end == -1)
+        end = reader->total_num;
+    if (begin == -1)
+        begin = 0;
+    float total_num = (float)(end - begin);
+    
+
     float* hit_rate_array = malloc(sizeof(float)*(size+3));
     hit_rate_array[0] = hit_count_array[0]/total_num;
     for (i=1; i<size+1; i++){
@@ -158,7 +164,7 @@ long long* get_reuse_dist_seq(READER* reader, long long begin, long long end){
 
     if (begin < 0)
         begin = 0;
-    if (end < 0)
+    if (end <= 0)
         end = reader->total_num; 
 
     long long * reuse_dist_array = malloc(sizeof(long long)*(end-begin));
@@ -201,6 +207,9 @@ long long* get_reuse_dist_seq(READER* reader, long long begin, long long end){
         ts++;
     }
     
+    reader->reuse_dist = reuse_dist_array; 
+
+    
     // clean up
     free(cp);
     g_hash_table_destroy(hash_table);
@@ -212,6 +221,10 @@ long long* get_reuse_dist_seq(READER* reader, long long begin, long long end){
 
 
 long long* get_reversed_reuse_dist(READER* reader, long long begin, long long end){
+    /* the reuse distance of the last element is at last 
+     
+     */
+    
     /*
      * TODO: might be better to split return result, in case the hit rate array is too large
      * Is there a better way to do this? this will cause huge amount memory
@@ -417,10 +430,10 @@ static inline sTree* process_one_element(cache_line* cp, sTree* splay_tree, GHas
         long long old_ts = *(long long*)gp;
         newtree = splay(old_ts, splay_tree);
         *reuse_dist = node_value(newtree->right);
-        *(long long*)gp = cp->ts;
+        *(long long*)gp = ts;
         
         newtree = delete(old_ts, newtree);
-        newtree = insert(cp->ts, newtree);
+        newtree = insert(ts, newtree);
         
     }
     return newtree;

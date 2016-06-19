@@ -42,12 +42,15 @@ class cachecow:
     def open(self, file_path):
         # assert os.path.exists(file_path), "data file does not exist"
         self.reader = plainCacheReader(file_path)
+        return self.reader
 
     def csv(self, file_path, column):
         self.reader = csvCacheReader(file_path, column=column)
+        return self.reader
 
     def vscsi(self, file_path):
         self.reader = vscsiCacheReader(file_path)
+        return self.reader
 
     def set_size(self, size):
         assert isinstance(size, int), "size can only be an integer"
@@ -67,6 +70,7 @@ class cachecow:
             size = kargs['size']
         else:
             size = self.cache_size
+        assert size!=-1, "you didn't provide size for cache"
 
         if 'data' in kargs and 'dataType' in kargs:
             if kargs['dataType'] == 'plain':
@@ -83,10 +87,12 @@ class cachecow:
 
         assert size != -1, "you didn't provide size for cache"
         assert reader, "you didn't provide a reader nor data (data file and data type)"
+        self.size = size
+        self.reader = reader
 
         return size, reader
 
-    def heatmap(self, mode, interval, **kargs):
+    def heatmap(self, mode, interval, plot_type, **kargs):
         """
 
         :param mode:
@@ -98,7 +104,7 @@ class cachecow:
         size, reader = self._profiler_pre_check(**kargs)
 
         hm = heatmap()
-        hm.run(mode, interval, size, reader, kargs=kargs)
+        hm.run(mode, interval, plot_type, self.reader, **kargs)
 
 
     def profiler(self, cache_class, **kargs):
@@ -127,7 +133,7 @@ class cachecow:
                 num_of_process = kargs['num_of_process']
             else:
                 num_of_process = 4
-            if type(cache_class) == str:
+            if isinstance(cache_class, str):
                 profiler = generalProfiler(self.cacheclass_mapping[cache_class.lower()], size, bin_size,
                                            reader, num_of_process)
             else:
@@ -159,6 +165,10 @@ if __name__ == "__main__":
     p = m.profiler("LRU")
     print(p.get_reuse_distance())
     p.plotHRC()
+    m.heatmap('r', 10000000, "hit_rate_start_time_end_time", data='../data/trace.vscsi', dataType='vscsi',
+              num_of_process=8, # LRU=False, cache='optimal',
+               cache_size=2000, save=False, fixed_range=True, change_label=True,
+               figname="r.png")
 
     # p = m.profiler('mru', bin_size=200, data='../data/parda.trace', dataType='plain', num_of_process=4)
     # p.run()
@@ -172,7 +182,7 @@ if __name__ == "__main__":
     #     print('no element')
     # print(rdist)
     # print(rdist[-1])
-    p.plotHRC()
+    # p.plotHRC()
     # p.plotMRC()
 
     # line_num = 0

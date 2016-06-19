@@ -1,3 +1,4 @@
+import os
 import logging
 import mimircache.c_LRUProfiler as c_LRUProfiler
 

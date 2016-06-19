@@ -67,6 +67,7 @@ class vscsiCacheReader(cacheReaderAbstract):
         self.counter = 0
         self.c_read_size.value = 0
         self.c_mem = c_void_p(self.mem_original.value)
+        c_cacheReader.reset_reader(self.cReader)
 
     def read_one_element(self):
         if self.buffer_pointer < self.c_read_size.value:

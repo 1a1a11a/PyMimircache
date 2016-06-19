@@ -1,5 +1,6 @@
 import abc
 import os
+from multiprocessing import Lock
 import mimircache.c_cacheReader as c_cacheReader
 
 
@@ -15,6 +16,7 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
         self.trace_file = None
         self.cReader = None
         self.num_of_line = -1
+        self.lock = Lock()
 
     def reset(self):
         """

@@ -5,7 +5,8 @@ from mimircache.cache.LFU_RR import LFU_RR
 from mimircache.cache.LRU import LRU
 from mimircache.cache.RR import RR
 from mimircache.cache.SLRU import SLRU
-from mimircache.cache.optimal import optimal
+from mimircache.cache.Optimal import optimal
+import mimircache.c_generalProfiler as c_generalProfiler
 
 
 def _hit_rate_start_time_end_time_calc_hit_count_general(reuse_dist_array, cache_size, begin_pos, end_pos, real_start,
@@ -47,6 +48,12 @@ def calc_hit_rate_start_time_end_time_subprocess_general(order, cache, break_poi
     :param q
     :return: nothing, but add to the queue a list of result in the form of (x, y, hit_rate) with x as fixed value
     """
+
+    # new for optimal using c_generalProfiler
+    # c_generalProfiler.get_hit_rate()
+
+
+
 
     cache_size = kwargs['cache_size']
     if cache == 'RR':

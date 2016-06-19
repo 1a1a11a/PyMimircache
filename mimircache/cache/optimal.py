@@ -5,16 +5,17 @@ from mimircache.cache.abstractCache import cache
 import mimircache.c_LRUProfiler as c_LRUProfiler
 import mimircache.c_heatmap as c_heatmap
 
+import time
 
 class optimal(cache):
     def __init__(self, cache_size, reader):
         super().__init__(cache_size)
+        reader.reset()
         self.reader = reader
+        self.reader.lock.acquire()
         self.next_access = c_heatmap.get_next_access_dist(self.reader.cReader)
-        # self.reversed_last_access = c_heatmap.get_last_access_dist(self.reader.cReader)
-        # for i in self.next_access:
-        #     print(i)
-        # pass
+        self.reader.lock.release()
+        # print(self.next_access)
         self.pq = PriorityQueue()
         self.seenset = set()
 

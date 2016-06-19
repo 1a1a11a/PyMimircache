@@ -47,7 +47,7 @@ int setup(char *argv, void** mem, int* ver, int* delta, int* num_of_rec)
 	}
 
 	/* Version 2 records are the bigger of the two */
-	if (st.st_size < sizeof(trace_v2_record_t) * MAX_TEST)
+	if ((unsigned long long) st.st_size < (unsigned long long) sizeof(trace_v2_record_t) * MAX_TEST)
 	{
 		close (f);
 		fprintf (stderr, "File too small, unable to read header.\n");
@@ -57,7 +57,7 @@ int setup(char *argv, void** mem, int* ver, int* delta, int* num_of_rec)
 	if ( (memT = (mmap (NULL, st.st_size, PROT_READ, MAP_PRIVATE, f, 0))) == MAP_FAILED)
 	{
 		close (f);
-		fprintf (stderr, "Unable to allocate %lu bytes of memory\n", st.st_size);
+		fprintf (stderr, "Unable to allocate %lu bytes of memory\n", (unsigned long) st.st_size);
 		return -1;
 	}
 	*mem = memT;

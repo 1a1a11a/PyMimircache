@@ -1,0 +1,64 @@
+//
+//  FIFO.h
+//  mimircache
+//
+//  Created by Juncheng on 6/2/16.
+//  Copyright © 2016 Juncheng. All rights reserved.
+//
+
+#ifndef fifo_h
+#define fifo_h
+
+
+#include "cache.h" 
+
+/* need add support for p and c type of data 
+ 
+ */
+
+
+
+
+typedef struct{
+    cache_type type;
+    long size;
+    char data_type;
+    long long hit_count;
+    long long miss_count;
+    void* cache_init_params;
+    struct cache* (*cache_init)(long long, char, void*);
+    void (*destroy)(struct_cache* );
+    void (*destroy_unique)(struct cache* );
+    gboolean (*add_element)(struct_cache*, cache_line* cp);
+    gboolean (*check_element)(struct_cache*, cache_line* cp);
+    
+    union{
+        struct{
+            GHashTable *hashtable;
+            GSList *list;
+        };
+        char cache_params[1024];
+    };
+}FIFO;
+
+
+
+
+inline void __fifo_insert_element_long(FIFO* fifo, cache_line* cp);
+
+inline gboolean fifo_check_element_long(struct_cache* cache, cache_line* cp);
+
+inline void __fifo_update_element_long(FIFO* fifo, cache_line* cp);
+
+inline void __fifo_evict_element(FIFO* fifo);
+
+inline gboolean fifo_add_element_long(struct_cache* cache, cache_line* cp);
+
+inline void fifo_destroy(struct_cache* cache);
+inline void fifo_destroy_unique(struct_cache* cache);
+
+
+struct_cache* fifo_init(long long size, char data_type, void* params);
+
+
+#endif

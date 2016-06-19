@@ -1,0 +1,1 @@
+.. |exampleMRC| image:: images/example_MRC.png

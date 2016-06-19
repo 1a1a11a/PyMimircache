@@ -137,7 +137,7 @@ class heatmap:
             # print("max rd = %d"%max_rd)
             kwargs_dict['max_rd'] = max_rd
             kwargs_dict['log_num'] = self._cal_log_num(max_rd, len(break_points))
-            plt.xlabel("virtual time")
+            plt.xlabel("time")
             plt.ylabel('reuse distance')
             plt.gca().yaxis.set_major_formatter(
                 ticker.FuncFormatter(lambda x, pos: '{:2.0f}'.format(kwargs_dict['log_num'] ** x)))
@@ -623,13 +623,16 @@ class heatmap:
 
         if mode == 'r':
             xydict1, kwargs_dict1 = self.calculate_heatmap_dat('r', reader, plot_type, LRU=False, cache='optimal',
-                                                               num_of_process=8, cache_size=kwargs['cache_size'])
+                                                               num_of_process=self.num_of_process,
+                                                               cache_size=kwargs['cache_size'])
+
             reader.reset()
             xydict2, kwargs_dict2 = self.calculate_heatmap_dat('r', reader, plot_type, **kwargs)
 
         elif mode == 'v':
-            xydict1, kwargs_dict1 = self.calculate_heatmap_dat('r', reader, plot_type, LRU=False, cache='optimal',
-                                                               num_of_process=8, cache_size=kwargs['cache_size'])
+            xydict1, kwargs_dict1 = self.calculate_heatmap_dat('v', reader, plot_type, LRU=False, cache='optimal',
+                                                               num_of_process=self.num_of_process,
+                                                               cache_size=kwargs['cache_size'])
             reader.reset()
             xydict2, kwargs_dict2 = self.calculate_heatmap_dat('v', reader, plot_type, **kwargs)
         else:
@@ -645,7 +648,6 @@ class heatmap:
 
 
 def server_plot_all():
-    import gc
     mem_sizes = []
     with open('memSize', 'r') as ifile:
         for line in ifile:
@@ -656,44 +658,47 @@ def server_plot_all():
         if filename.endswith('.vscsitrace'):
             # if int(filename.split('_')[0][1:]) in [1, 3, 4, 5, 51, 99, 83, 87]:
             #     continue
-            if os.path.exists('0601/' + filename + "_hit_rate_start_time_end_time_" + str(mem_size) + "_r.png"):
-                continue
+
             hm = heatmap()
             mem_size = mem_sizes[int(filename.split('_')[0][1:]) - 1] * 16
             reader = vscsiCacheReader("../data/cloudphysics/" + filename)
+            if os.path.exists("0601/"+filename+"LRU_Optimal_" + str(mem_size) + "_r.png"):
+                continue
 
-            cold_miss_2d(reader, 'r', 10000000, figname='0601/' + filename + '_cold_miss_r.png')
-            request_num_2d(reader, 'r', 10000000, figname='0601/' + filename + '_request_num_r.png')
+            # cold_miss_2d(reader, 'r', 10000000, figname='0601/' + filename + '_cold_miss_r.png')
+            # request_num_2d(reader, 'r', 10000000, figname='0601/' + filename + '_request_num_r.png')
+            #
+            # hm.run('r', 1000000000, "hit_rate_start_time_cache_size", reader, num_of_process=48, cache_size=mem_size,
+            #        save=True, bin_size=1000, text="size = " + str(mem_size), fixed_range=True,
+            #        figname='0601/' + filename + '_hit_rate_start_time_cache_size_r.png')
+            # # ,change_label='False'     ,   10000000
+            #
+            #
+            # hm.run('r', 1000000000, "avg_rd_start_time_end_time", reader, num_of_process=48,
+            #        # LRU=False, cache='optimal',
+            #        calculated=True, cache_size=mem_size,
+            #        figname='0601/' + filename + "_avg_rd_start_time_end_time_r.png")
+            #
+            # hm.run('r', 1000000000, "rd_distribution", reader, num_of_process=48,  # LRU=False, cache='optimal',
+            #        calculated=True, cache_size=mem_size,
+            #        figname='0601/' + filename + "_rd_distribution_r.png")
+            #
+            # hm.run('r', 1000000000, "cold_miss_count_start_time_end_time", reader, num_of_process=48,
+            #        calculated=True, cache_size=mem_size,
+            #        figname='0601/' + filename + "_cold_miss_count_start_time_end_time_r.png")
+            #
+            # hm.run('r', 1000000000, "hit_rate_start_time_end_time", reader, num_of_process=48,
+            #        cache_size=mem_size, calculated=True, fixed_range=True, change_label=True,
+            #        figname='0601/' + filename + "_hit_rate_start_time_end_time_" + str(mem_size) + "_r.png")
+            # reader.reset()
 
-            hm.run('r', 1000000000, "hit_rate_start_time_cache_size", reader, num_of_process=48, cache_size=mem_size,
-                   save=True, bin_size=1000, text="size = " + str(mem_size), fixed_range=True,
-                   figname='0601/' + filename + '_hit_rate_start_time_cache_size_r.png')
-            # ,change_label='False'     ,   10000000
 
+            hm.run_diff_optimal('r', 1000000000, "hit_rate_start_time_end_time", reader, num_of_process=48,
+                                cache_size=mem_size, save=False, change_label=True,
+                                figname='0601/'+filename+"LRU_Optimal_" + str(mem_size) + "_r.png")
 
-            hm.run('r', 1000000000, "avg_rd_start_time_end_time", reader, num_of_process=48,
-                   # LRU=False, cache='optimal',
-                   calculated=True, cache_size=mem_size,
-                   figname='0601/' + filename + "_avg_rd_start_time_end_time_r.png")
-
-            hm.run('r', 1000000000, "rd_distribution", reader, num_of_process=48,  # LRU=False, cache='optimal',
-                   calculated=True, cache_size=mem_size,
-                   figname='0601/' + filename + "_rd_distribution_r.png")
-
-            hm.run('r', 1000000000, "cold_miss_count_start_time_end_time", reader, num_of_process=48,
-                   calculated=True, cache_size=mem_size,
-                   figname='0601/' + filename + "_cold_miss_count_start_time_end_time_r.png")
-
-            hm.run('r', 1000000000, "hit_rate_start_time_end_time", reader, num_of_process=48,
-                   cache_size=mem_size, calculated=True, fixed_range=True, change_label=True,
-                   figname='0601/' + filename + "_hit_rate_start_time_end_time_" + str(mem_size) + "_r.png")
-            reader.reset()
-
-            # hm.run('r', 1000000000, mem_size, reader, num_of_process=48, figname=filename + '_rd_no_miss_r.png',
-            #        change_label='True')  # , fixed_range="True",
             del hm
             del reader
-            gc.collect()
 
 
 def server_size_plot():
@@ -789,7 +794,7 @@ def cold_miss_2d(reader, mode, interval, **kwargs):
 
 
 def localtest():
-    CACHE_SIZE = 200
+    CACHE_SIZE = 2000
     # reader1 = plainCacheReader("../data/parda.trace")
 
 
@@ -811,10 +816,10 @@ def localtest():
     #        figname="0529/small_LRU_avg_rd_start_time_end_time.png")
     # reader2.reset()
 
-    # hm.run('r', 10000000, "rd_distribution", reader2, num_of_process=8,  # LRU=False, cache='optimal',
-    #        save=False, cache_size=CACHE_SIZE,
-    #        figname="0529/small_LRU_rd_distribution.png")
-    # reader2.reset()
+    hm.run('r', 10000000, "rd_distribution", reader2, num_of_process=8,  # LRU=False, cache='optimal',
+           save=False, cache_size=CACHE_SIZE,
+           figname="small_LRU_rd_distribution1.png")
+    reader2.reset()
 
     # hm.run('r', 10000000, "cold_miss_count_start_time_end_time", reader2, num_of_process=8,
     #        # LRU=False, cache='optimal',
@@ -830,10 +835,10 @@ def localtest():
 
     reader2.reset()
 
-    hm.run_diff_optimal('r', 10000000, "hit_rate_start_time_end_time", reader2, num_of_process=8,
-                        LRU=False, cache="LRU",
-                        cache_size=CACHE_SIZE, save=False, change_label=True,
-                        figname="LRU_NONPARDA_Optimal_" + str(CACHE_SIZE) + ".png")
+    # hm.run_diff_optimal('r', 100000000, "hit_rate_start_time_end_time", reader2, num_of_process=47,
+    #                     # LRU=False, cache="LRU",
+    #                     cache_size=CACHE_SIZE, save=False, change_label=True,
+    #                     figname="LRU_NONPARDA_Optimal_" + str(CACHE_SIZE) + "3.png")
 
     # reader2.reset()
 
