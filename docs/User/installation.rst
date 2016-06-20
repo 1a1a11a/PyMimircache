@@ -6,7 +6,7 @@ Installation
 	mimircache has been tested on python3.4 and python3.5. Theoretically, all python3 are supported, but if you are using python 3.1~3.3, you might have a hard time install pip, here we suggest using the latest version of python3. 
 
 This part of the documentation covers the installation of mimircache. Mimircache currently has the following dependencies: 
-**pkg-config, glib, scipy, numpy, matplotlib**  
+**pkg-config, glib, scipy, numpy, matplotlib**
 
 First Step: Install C Library
 ----------------------------- 

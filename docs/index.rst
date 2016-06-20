@@ -18,9 +18,9 @@ Welcome to the documentation of mimircache, mimircache is developed by Juncheng 
     >>> c.heatmap('r', 10000000, "hit_rate_start_time_end_time", data='../data/trace.vscsi', dataType='vscsi')
 
 .. image::  images/example_MRC.png
-    :width: 45%
+:width: 45%
 .. image::  images/example_heatmap.png
-    :width: 48%
+:width: 48%
     
 An example of MRC plot and hit rate heatmap.
 
@@ -28,21 +28,21 @@ An example of MRC plot and hit rate heatmap.
 The User Guide 
 -------------- 
 .. toctree::
-   :maxdepth: 2
+:maxdepth: 2
 
-   User/intro
-   User/installation
-   User/quick_start
-
-
-
-User/advanced
-User/API 
+       User/intro
+       User/installation
+       User/quick_start
 
 
 
+    User/advanced
+    User/API
 
-    See quick start for a more complete tutorial
+
+
+
+        See quick start for a more complete tutorial
 
 
 
@@ -90,10 +90,10 @@ In mimircache, underneath cachecow, there are totally three types of objects, th
 the second one is cacheReader, which provides all the necessary functions for reading and examing trace data file, and most important of all, for extracting data for profiling. The third type of objects are the profilers. Currently, we have three kinds of profilers, the first one is LRU profiler, specially tailored for LRU; the second one is a general profiler for profiling all non-LRU cache replacement algorithms, of course, if you want, you can also use it for profiling LRU, but it runs more slowly than the LRU profiler; the third profiler is heatmap plot engine, currently supports a variety of heatmap. 
 
 .. toctree:: 
-    :maxdepth: 1 
+:maxdepth: 1
 
 
-which has abstractCache as a base class, ; 
+    which has abstractCache as a base class, ;
 
 Customization 
 ------------- 
@@ -111,13 +111,13 @@ If you want to know more mimircache and even advanced usage, please check this s
 .. automodule:: mimircache
 
 .. automodule::
-    mimircache.cache
+mimircache.cache
 
 .. automodule::
-    mimircache.cacheReader
+mimircache.cacheReader
 
 .. automodule::
-    mimircache.profiler
+mimircache.profiler
 
 
 

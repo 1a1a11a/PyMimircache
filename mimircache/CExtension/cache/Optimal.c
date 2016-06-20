@@ -116,7 +116,7 @@ inline void __optimal_update_element_long(Optimal* optimal, cache_line* cp){
 inline void __optimal_evict_element(Optimal* optimal){
     node_t* node = (node_t*) pqueue_pop(optimal->pq);
     g_hash_table_remove(optimal->hashtable, (gconstpointer)&(node->long_item));
-    free(node);
+//    free(node);
 }
 
 
@@ -152,7 +152,7 @@ inline void optimal_destroy(struct_cache* cache){
     g_hash_table_destroy(optimal->hashtable);
     pqueue_free(optimal->pq);
     g_array_free (((Optimal*)cache)->next_access, TRUE);
-    free(optimal);
+    free(cache);
 }
 
 
@@ -193,7 +193,7 @@ struct_cache* optimal_init(long long size, char data_type, void* params){
     if (data_type == 'v'){
         optimal->add_element = optimal_add_element_long;
         optimal->check_element = optimal_check_element_long;
-        optimal->hashtable = g_hash_table_new_full(g_int64_hash, g_int64_equal, simple_key_value_destroyed, NULL);
+        optimal->hashtable = g_hash_table_new_full(g_int64_hash, g_int64_equal, simple_key_value_destroyed, simple_key_value_destroyed);
     }
     
     else if (data_type == 'p'){

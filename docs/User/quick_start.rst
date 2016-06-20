@@ -48,37 +48,37 @@ To get hit count, hit rate, miss rate, we can do the following, the returned res
     [  9.76420879e-01   9.70607340e-01   9.65680778e-01 ...,   4.30216432e-01   1.75635796e-04   4.30079401e-01]
 
 .. note:: 
-    for reuse distance, hit count, hit rate, miss rate, if you don't specify a size parameter or specify size=-1, it will use the largest possible size.
+for reuse distance, hit count, hit rate, miss rate, if you don't specify a size parameter or specify size=-1, it will use the largest possible size.
 
 .. note::
-    the numpy array returned from hit count, hit rate, miss rate has a length of cache_size+3, the first cache_size+1 elements correspond to cache_size 0~cachesize, and the second to the last element corresponds to hit count/hit rate larger than the specified cache_size, while the last element corresponds to the cold miss count/cold miss rate (the requests that appear only once). 
+the numpy array returned from hit count, hit rate, miss rate has a length of cache_size+3, the first cache_size+1 elements correspond to cache_size 0~cachesize, and the second to the last element corresponds to hit count/hit rate larger than the specified cache_size, while the last element corresponds to the cold miss count/cold miss rate (the requests that appear only once).
 
 With the data calculated from profiler, you can do plotting yourself, or any other calculation. But for your convenience, we have also provided several plotting functions for you to use. 
     
     >>> profiler_LRU.plotHRC()
 
 .. image::  ../images/example_HRC.png
-    :width: 45%
+:width: 45%
     :align: center
 
-MRC: 
-    
-    >>> profiler_LRU.plotMRC() 
-    
+            MRC:
+
+                >>> profiler_LRU.plotMRC()
+
 .. image::  ../images/example_MRC.png
-    :width: 45%
+:width: 45%
     :align: center
 
 
-As a special characteristic of LRU, reuse distance has a lot of important usages, so here we also provided a function to help you to calculate the reuse distance distribution, basically it is a numpy array of length=cache_size+1 (0~cache_size), each element of the array corresponds to a bucket of the same size and it is used to calculate the number of reuse distance at this cache_size. 
-    
-    >>> profiler_LRU.get_rd_distribution()
-    [ 2685   662   561 ...,     0     0 48974]
+            As a special characteristic of LRU, reuse distance has a lot of important usages, so here we also provided a function to help you to calculate the reuse distance distribution, basically it is a numpy array of length=cache_size+1 (0~cache_size), each element of the array corresponds to a bucket of the same size and it is used to calculate the number of reuse distance at this cache_size.
 
-Apart from LRU, we have also provided a varieties of other cache replacement algorithms for you to play with, including MRU, LFU_RR, LFU_MRU, LFU_LRU, RR(Random), optimal, SLRU, S4LRU, FIFO, clock, ARC, to play with these cache replacement algorithms, you just substitue 'LRU' in the examples above with cache replacement algorithm you want. If you want to test your own cache replacement algorithms, check here_. !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Link 
+                >>> profiler_LRU.get_rd_distribution()
+                [ 2685   662   561 ...,     0     0 48974]
+
+            Apart from LRU, we have also provided a varieties of other cache replacement algorithms for you to play with, including MRU, LFU_RR, LFU_MRU, LFU_LRU, RR(Random), optimal, SLRU, S4LRU, FIFO, clock, ARC, to play with these cache replacement algorithms, you just substitue 'LRU' in the examples above with cache replacement algorithm you want. If you want to test your own cache replacement algorithms, check here_. !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Link
 
 .. warning:: 
-    reuse distance related operation is only allowed on LRU, so don't call get_reuse_distance and get_rd_distribution on non-LRU cache replacement algorithms. 
+reuse distance related operation is only allowed on LRU, so don't call get_reuse_distance and get_rd_distribution on non-LRU cache replacement algorithms.
 
 
 Plotting Heatmaps 
@@ -121,6 +121,6 @@ Currently five types of heatmaps are supported:
 
 
 .. note:: 
-   Currently, heatmap real time plotting is only supported on vscsi format data, supporting for other kinds of data will be included later.  
+Currently, heatmap real time plotting is only supported on vscsi format data, supporting for other kinds of data will be included later.
 
 

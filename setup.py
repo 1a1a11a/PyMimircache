@@ -17,7 +17,7 @@ from _version import __version__
 
 extensions = []
 extra_compile_args = []
-extra_link_args = []
+extra_link_args = ["-lm"]
 numpy_headers = []
 
 # --------------------- Get OpenMP compiler flag --------------------
@@ -106,7 +106,7 @@ def setPlatformRelatedConfig():
 
 def getNumpyHeader():
     try:
-        import numpy 
+        import numpy
         numpy_headers.append(numpy.get_include())
     except Exception as e:
         print(e)
@@ -144,23 +144,20 @@ extensions.append(Extension(
     language="c"
 ))
 
-
-
 extensions.append(Extension(
-    'mimircache.c_cacheReader', 
+    'mimircache.c_cacheReader',
     glob("mimircache/CExtension/cacheReader/*.c"),
-    include_dirs=["mimircache/CExtension/headers"] +  numpy_headers,
+    include_dirs=["mimircache/CExtension/headers"] + numpy_headers,
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args,
     language="c"))
 
-
 extensions.append(Extension(
-    'mimircache.c_LRUProfiler', 
-    glob("mimircache/CExtension/profiler/LRUProfiler/*.c") + 
-    ['mimircache/CExtension/utils/glib_related.c'] + 
+    'mimircache.c_LRUProfiler',
+    glob("mimircache/CExtension/profiler/LRUProfiler/*.c") +
+    ['mimircache/CExtension/utils/glib_related.c'] +
     glob('mimircache/CExtension/cacheReader/*.c'),
-    include_dirs=["mimircache/CExtension/headers"] +  numpy_headers,
+    include_dirs=["mimircache/CExtension/headers"] + numpy_headers,
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args,
     language="c"))
@@ -235,16 +232,16 @@ setup(
     # packages = ['cache', 'cacheReader', 'profiler', 'utils'],
     packages=find_packages(exclude=(['mimircache.bin', 'mimircache.test', 'mimircache.data', 'mimircache.1a1a11a'])),
     # modules = 
-    package_data={  'plain': ['mimircache/data/trace.txt'], 
-                    'csv': ['mimircache/data/trace.csv'], 
-                    'vscsi': ['mimircache/data/trace.vscsi']},
+    package_data={'plain': ['mimircache/data/trace.txt'],
+                  'csv': ['mimircache/data/trace.csv'],
+                  'vscsi': ['mimircache/data/trace.vscsi']},
 
     author="Juncheng Yang",
     author_email="peter.waynechina@gmail.com",
     description="mimircache platform for analyzing cache traces, developed by Ymir group @ Emory University",
     license="GPLv3",
     keywords="mimircache cache Ymir",
-    url="http://www.google.com", 
+    url="http://www.google.com",
 
     # libraries = [libparda, libvscsi],
     # cmdclass = {'build_clib' : build_clib},
@@ -253,7 +250,7 @@ setup(
     ext_modules=extensions,
     classifiers=[
         'Development Status :: 3 - Alpha',
-    
+
         # 'Topic :: Operating System :: cache analysis'
 
         'Programming Language :: Python :: 3',
@@ -261,7 +258,7 @@ setup(
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
-    ], 
+    ],
     # install_requires=['numpy', 'matplotlib', 'scipy'],
     # long_description=long_description
 )

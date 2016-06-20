@@ -142,36 +142,36 @@ return_res** profiler(READER* reader_in, struct_cache* cache_in, int num_of_thre
 
 
 
-#include "reader.h"
-#include "FIFO.h"
-#include "Optimal.h"
-
-int main(int argc, char* argv[]){
-# define CACHESIZE 1
-# define BIN_SIZE 1
-    
-    
-    printf("test_begin!\n");
-    
-    READER* reader = setup_reader(argv[1], 'v');
-    
-//    struct_cache* cache = fifo_init(CACHESIZE, 'v', NULL);
-    
-    struct optimal_init_params init_params = {.reader=reader, .next_access=NULL};
-    
-    struct_cache* cache = optimal_init(CACHESIZE, 'v', (void*)&init_params);
-    
-    
-
-    printf("after initialization, begin profiling\n");
-    return_res** res = profiler(reader, cache, 4, BIN_SIZE, 23, 43);
-    
-    int i;
-    for (i=0; i<CACHESIZE/BIN_SIZE; i++){
-        printf("%lld: %f\n", res[i]->cache_size, res[i]->hit_rate);
-    }
-    
-    
-    printf("test_finished!\n");
-    return 0;
-}
+//#include "reader.h"
+//#include "FIFO.h"
+//#include "Optimal.h"
+//
+//int main(int argc, char* argv[]){
+//# define CACHESIZE 1
+//# define BIN_SIZE 1
+//    
+//    
+//    printf("test_begin!\n");
+//    
+//    READER* reader = setup_reader(argv[1], 'v');
+//    
+////    struct_cache* cache = fifo_init(CACHESIZE, 'v', NULL);
+//    
+//    struct optimal_init_params init_params = {.reader=reader, .next_access=NULL};
+//    
+//    struct_cache* cache = optimal_init(CACHESIZE, 'v', (void*)&init_params);
+//    
+//    
+//
+//    printf("after initialization, begin profiling\n");
+//    return_res** res = profiler(reader, cache, 4, BIN_SIZE, 23, 43);
+//    
+//    int i;
+//    for (i=0; i<CACHESIZE/BIN_SIZE; i++){
+//        printf("%lld: %f\n", res[i]->cache_size, res[i]->hit_rate);
+//    }
+//    
+//    
+//    printf("test_finished!\n");
+//    return 0;
+//}

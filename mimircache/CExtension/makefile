@@ -15,6 +15,7 @@ endif
 
 CFLAGS += $(shell pkg-config --cflags glib-2.0)
 LIBS    = $(shell pkg-config --libs glib-2.0 --libs gthread-2.0)
+LIBS   += -lm
 
 # OBJS = splay.o LRUAnalyzer.o 
 # SOURCES := $(wildcard cache/*.c) 

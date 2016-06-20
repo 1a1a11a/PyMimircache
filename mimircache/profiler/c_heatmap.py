@@ -188,34 +188,66 @@ def server_plot_all():
             del reader
 
 
+
+def checker(xydict):
+    for i in range(len(xydict)):
+        for j in range(len(xydict[0])):
+            if xydict[i][j]>1 or xydict[i][j]<0:
+                print("{},{}: {}".format(i, j, xydict[i][j]))
+
 if __name__ == "__main__":
-    CACHESIZE = 200
+    import time
+    t1 = time.time()
+    # server_plot_all()
+
+    CACHESIZE = 327680
     BINSIZE = 1
-    TIME_INTERVAL = 10000000
-    CACHE_TYPE = "LRU"
+    TIME_INTERVAL = 1000000000
+    CACHE_TYPE = "Optimal"
     TIME_TYPE = 'r'
     PLOT_TYPE = "hit_rate_start_time_end_time"
+    NUM_OF_THREADS = 48
     import mimircache.c_LRUProfiler as c_LRUProfiler
     from mimircache.cacheReader.plainReader import plainCacheReader
     from mimircache.profiler.generalProfiler import generalProfiler
 
-    reader = vscsiCacheReader('../data/trace.vscsi')
-    # xydict = c_heatmap.heatmap(reader.cReader, 2000, 'LRU', 'r', 10000000, "hit_rate_start_time_end_time", num_of_threads=8)
-    xydict = c_heatmap.differential_heatmap_with_Optimal(reader.cReader, CACHESIZE, CACHE_TYPE, TIME_TYPE,
-                                                         TIME_INTERVAL, PLOT_TYPE, num_of_threads=8)
-    # for i in range(len(xydict)):
-    #     for j in range(len(xydict)):
-    #         if (xydict[i][j]< 0):
-    #             print("%d, %d: %f"%(i, j, xydict[i][j]))
     hm = heatmap()
-    text = " cache size: {},\n cache type: {},\n time type: {},\n time interval: {},\n plot type: \n{}".format(
-        CACHESIZE, CACHE_TYPE, TIME_TYPE, TIME_INTERVAL, PLOT_TYPE)
-    x1, y1 = xydict.shape
-    x1 /= 3
-    y1 /= 8
-    hm.set_plot_params('x', 'real_time', xydict=xydict, label='start time (real)', text=(x1, y1, text))
-    hm.set_plot_params('y', 'real_time', xydict=xydict, label='end time (real)')
-    hm.draw_heatmap(xydict, figname='1.png')  # "hit_rate_start_time_end_time") #, fixed_range=True, figname='LRU.png')
+    # reader = vscsiCacheReader('../data/trace.vscsi')
+    reader = vscsiCacheReader('/home/cloudphysics/traces/w84_vscsi1.vscsitrace')
+
+    # xydict = c_heatmap.heatmap(reader.cReader, CACHESIZE, 'LRU', 'r', 1000000000, "hit_rate_start_time_end_time", num_of_threads=NUM_OF_THREADS)
+    # hm.draw_heatmap(xydict, figname='LRU.png')  # "hit_rate_start_time_end_time") #, fixed_range=True, figname='LRU.png')
+    # print("Time: " + str(time.time() - t1))
+    # t1 = time.time()
+    # print("0,2: {}".format(xydict[0][2]))
+    # checker(xydict)
+    #
+    # xydict = c_heatmap.heatmap(reader.cReader, CACHESIZE, 'Optimal', 'r', 1000000000, "hit_rate_start_time_end_time", num_of_threads=NUM_OF_THREADS)
+    # hm.draw_heatmap(xydict, figname='Optimal.png')  # "hit_rate_start_time_end_time") #, fixed_range=True, figname='LRU.png')
+    # print("Time: " + str(time.time() - t1))
+    # t1 = time.time()
+    # print("0,2: {}".format(xydict[0][2]))
+    # checker(xydict)
+    #
+    # xydict = c_heatmap.differential_heatmap_with_Optimal(reader.cReader, CACHESIZE, CACHE_TYPE, TIME_TYPE,
+    #                                                      TIME_INTERVAL, PLOT_TYPE, num_of_threads=NUM_OF_THREADS)
+    # text = "   cache size: {},\n   cache type: {},\n   time type: {},\n   time interval: {},\n   plot type: \n{}".format(
+    #     CACHESIZE, CACHE_TYPE, TIME_TYPE, TIME_INTERVAL, PLOT_TYPE)
+    # x1, y1 = xydict.shape
+    # x1 /= 3
+    # y1 /= 8
+    # hm.set_plot_params('x', 'real_time', xydict=xydict, label='start time (real)', text=(x1, y1, text))
+    # hm.set_plot_params('y', 'real_time', xydict=xydict, label='end time (real)')
+    # hm.draw_heatmap(xydict, figname='Optimal_LRU.png')  # "hit_rate_start_time_end_time") #, fixed_range=True, figname='LRU.png')
+    # print("Time: " + str(time.time() - t1))
+    # t1 = time.time()
+    # print("0,2: {}".format(xydict[0][2]))
+    # checker(xydict)
+
+    xydict = c_heatmap.heatmap_rd_distribution(reader.cReader, TIME_TYPE, TIME_INTERVAL)
+    hm.draw_heatmap(xydict, figname='rd_dist.png')
+
+
 
     # print("Reuse dist")
     # rd = c_LRUProfiler.get_reuse_dist_seq(reader.cReader, begin=23, end=43)
@@ -233,7 +265,6 @@ if __name__ == "__main__":
     # na = c_heatmap.get_next_access_dist(reader.cReader, 23, 43)
     # print(na)
     #
-    # server_plot_all()
 
     # print("Hit rate Optimal")
     # hr = c_generalProfiler.get_hit_rate(reader.cReader, CACHESIZE, "Optimal", BINSIZE, 8, begin=23, end=43)

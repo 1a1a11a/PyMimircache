@@ -44,6 +44,7 @@ typedef struct{
     GArray* break_points_r;
     long long* reuse_dist;
     int* last_access;
+    guint64 max_reuse_dist; 
     // long long *hit_count;
     union{
         struct{

@@ -70,7 +70,7 @@ class cachecow:
             size = kargs['size']
         else:
             size = self.cache_size
-        assert size!=-1, "you didn't provide size for cache"
+        assert size != -1, "you didn't provide size for cache"
 
         if 'data' in kargs and 'dataType' in kargs:
             if kargs['dataType'] == 'plain':
@@ -166,9 +166,9 @@ if __name__ == "__main__":
     print(p.get_reuse_distance())
     p.plotHRC()
     m.heatmap('r', 10000000, "hit_rate_start_time_end_time", data='../data/trace.vscsi', dataType='vscsi',
-              num_of_process=8, # LRU=False, cache='optimal',
-               cache_size=2000, save=False, fixed_range=True, change_label=True,
-               figname="r.png")
+              num_of_process=8,  # LRU=False, cache='optimal',
+              cache_size=2000, save=False, fixed_range=True, change_label=True,
+              figname="r.png")
 
     # p = m.profiler('mru', bin_size=200, data='../data/parda.trace', dataType='plain', num_of_process=4)
     # p.run()

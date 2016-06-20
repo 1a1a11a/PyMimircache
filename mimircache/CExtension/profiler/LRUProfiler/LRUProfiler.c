@@ -157,7 +157,7 @@ long long* get_reuse_dist_seq(READER* reader, long long begin, long long end){
      * It is the user's responsibility to release the memory of hit count array returned by this function
      */
     
-    long long ts, reuse_dist;
+    long long ts, reuse_dist, max_rd=0;
     ts = 0;
     if (reader->total_num == -1)
         get_num_of_cache_lines(reader);
@@ -201,13 +201,16 @@ long long* get_reuse_dist_seq(READER* reader, long long begin, long long end){
     while (cp->valid){
         splay_tree = process_one_element(cp, splay_tree, hash_table, ts, &reuse_dist);
         reuse_dist_array[ts] = reuse_dist;
+        if (reuse_dist > max_rd)
+            max_rd = reuse_dist;
         if (reader->ts >= end)
             break;
         read_one_element(reader, cp);
         ts++;
     }
     
-    reader->reuse_dist = reuse_dist_array; 
+    reader->reuse_dist = reuse_dist_array;
+    reader->max_reuse_dist = (guint64) max_rd;
 
     
     // clean up

@@ -23,7 +23,8 @@ READER* setup_reader(char* file_loc, char file_type){
     reader->break_points_v = NULL;
     reader->break_points_r = NULL;
     reader->last_access = NULL;
-    reader->reuse_dist = NULL; 
+    reader->reuse_dist = NULL;
+    reader->max_reuse_dist = 0;
     
     if (strlen(file_loc)>1023){
         printf("file name/path is too long(>1023), please make it short\n");
@@ -348,29 +349,35 @@ int close_reader(READER* reader){
     switch (reader->type) {
         case 'c':
             printf("currently c reader is not supported yet\n");
-            return(1);
             break;
         case 'p':
-            return fclose(reader->file);
+            fclose(reader->file);
             break;
         case 'v':
             munmap (reader->p, reader->total_num * reader->record_size);
-            return 1;
             break;
         default:
             printf("cannot recognize reader type, it can only be c(csv), p(plain text), \
                    v(vscsi), but got %c\n", reader->type);
             return(1);
     }
+    
     // free break_points GArray
-    if (!reader->break_points_r)
+    if (reader->break_points_r){
+//        printf("begin free real break points %p\n", reader->break_points_r);
         g_array_free(reader->break_points_r, TRUE);
-    if (!reader->break_points_v)
+    }
+    if (reader->break_points_v){
+//        printf("begin free virtual break points %p\n", reader->break_points_v);
         g_array_free(reader->break_points_v, TRUE);
-    if (!reader->last_access)
+    }
+    if (reader->last_access)
         free(reader->last_access);
-    if (!reader->reuse_dist)
+    if (reader->reuse_dist)
         free(reader->reuse_dist);
+
+    free(reader);
+    return 0;
 }
 
 int read_one_request_all_info(READER* reader, void* storage){

@@ -182,8 +182,10 @@ static PyObject* heatmap_computation(PyObject* self, PyObject* args, PyObject* k
         plot_type = avg_rd_start_time_end_time;
     else if (strcmp(plot_type_s, "cold_miss_count_start_time_end_time") == 0)
         plot_type = cold_miss_count_start_time_end_time;
-    else if (strcmp(plot_type_s, "rd_distribution") == 0)
-        plot_type = rd_distribution;
+    else if (strcmp(plot_type_s, "rd_distribution") == 0){
+        printf("please use function heatmap_rd_distribution\n");
+        return;
+    }
     else {
         printf("unsupported plot type\n");
         exit(1);
@@ -196,27 +198,22 @@ static PyObject* heatmap_computation(PyObject* self, PyObject* args, PyObject* k
     // create numpy array
     npy_intp dims[2] = { dd->xlength, dd->ylength };
 
-    PyObject* ret_array = PyArray_EMPTY(2, dims, NPY_FLOAT32, 0);
-    printf("after create numpy array\n");
+    PyObject* ret_array = PyArray_EMPTY(2, dims, NPY_DOUBLE, 0);
 
     
-    //    PyObject* ret_array = PyArray_SimpleNew(2, dims, NPY_FLOAT);
     int i, j;
-    float* array, **matrix = dd->matrix;
+    double **matrix = dd->matrix;
+    double *array;
     for (i=0; i<dd->ylength; i++){
-        array = (float*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
+        array = (double*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
         for (j=0; j<dd->xlength; j++)
             if (matrix[i][j])
                 array[j] = matrix[i][j];
     }
-    printf("done copy\n");
-    printf("matrix[100][200] = %f, array[100][200] = %f\n", matrix[100][200], ((float*) PyArray_GETPTR1((PyArrayObject *)ret_array, 100))[200]);
 
     
     // clean up
-    printf("free None\n");
     free_draw_dict(dd);
-    printf("free one\n");
     if (cache->destroy){
         // if it is LRU, then it doesn't have a destroy function
         cache->destroy(cache);
@@ -224,7 +221,6 @@ static PyObject* heatmap_computation(PyObject* self, PyObject* args, PyObject* k
     else{
         free(cache);
     }
-    printf("before return\n");
     return ret_array;
 }
 
@@ -285,14 +281,12 @@ static PyObject* differential_heatmap_with_Optimal(PyObject* self, PyObject* arg
         plot_type = avg_rd_start_time_end_time;
     else if (strcmp(plot_type_s, "cold_miss_count_start_time_end_time") == 0)
         plot_type = cold_miss_count_start_time_end_time;
-    else if (strcmp(plot_type_s, "rd_distribution") == 0)
-        plot_type = rd_distribution;
     else {
         printf("unsupported plot type\n");
         exit(1);
     }
     
-    struct optimal_init_params init_params = {.reader=reader, .next_access=NULL};
+    struct optimal_init_params init_params = {.reader=reader, .next_access=NULL, .ts=0};
     struct_cache* optimal = optimal_init(cache_size, data_type, (void*)&init_params);
     
 
@@ -305,26 +299,22 @@ static PyObject* differential_heatmap_with_Optimal(PyObject* self, PyObject* arg
     // create numpy array
     npy_intp dims[2] = { dd->xlength, dd->ylength };
     
-    PyObject* ret_array = PyArray_EMPTY(2, dims, NPY_FLOAT32, 0);
-    printf("after create numpy array\n");
+    PyObject* ret_array = PyArray_EMPTY(2, dims, NPY_DOUBLE, 0);
     
     
-    //    PyObject* ret_array = PyArray_SimpleNew(2, dims, NPY_FLOAT);
     int i, j;
-    float* array, **matrix = dd->matrix;
+    double **matrix = dd->matrix;
+    double *array;
     for (i=0; i<dd->ylength; i++){
-        array = (float*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
+        array = (double*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
         for (j=0; j<dd->xlength; j++)
             if (matrix[i][j])
                 array[j] = matrix[i][j];
     }
-    printf("done copy\n");
     
     
     // clean up
-    printf("free None\n");
     free_draw_dict(dd);
-    printf("free one\n");
     if (cache->destroy){
         // if it is LRU, then it doesn't have a destroy function
         cache->destroy(cache);
@@ -333,7 +323,6 @@ static PyObject* differential_heatmap_with_Optimal(PyObject* self, PyObject* arg
         free(cache);
     }
     optimal->destroy(optimal);
-    printf("before return\n");
     return ret_array;
 }
 
@@ -397,8 +386,6 @@ static PyObject* differential_heatmap_py(PyObject* self, PyObject* args, PyObjec
         plot_type = avg_rd_start_time_end_time;
     else if (strcmp(plot_type_s, "cold_miss_count_start_time_end_time") == 0)
         plot_type = cold_miss_count_start_time_end_time;
-    else if (strcmp(plot_type_s, "rd_distribution") == 0)
-        plot_type = rd_distribution;
     else {
         printf("unsupported plot type\n");
         exit(1);
@@ -406,31 +393,26 @@ static PyObject* differential_heatmap_py(PyObject* self, PyObject* args, PyObjec
     
     printf("before computation\n");
     draw_dict* dd = differential_heatmap(reader, cache[0], cache[1], *mode, time_interval, plot_type, num_of_threads);
-//    draw_dict* dd = heatmap(reader, cache, *mode, time_interval, plot_type, num_of_threads);
     printf("after computation\n");
     
     // create numpy array
     npy_intp dims[2] = { dd->xlength, dd->ylength };
-    
-    PyObject* ret_array = PyArray_EMPTY(2, dims, NPY_FLOAT32, 0);
-    printf("after create numpy array\n");
+    PyObject* ret_array = PyArray_EMPTY(2, dims, NPY_DOUBLE, 0);
     
     
-    //    PyObject* ret_array = PyArray_SimpleNew(2, dims, NPY_FLOAT);
-    float* array, **matrix = dd->matrix;
+    //    PyObject* ret_array = PyArray_SimpleNew(2, dims, NPY_DOUBLE);
+    double **matrix = dd->matrix;
+    double *array;
     for (i=0; i<dd->ylength; i++){
-        array = (float*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
+        array = (double*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
         for (j=0; j<dd->xlength; j++)
             if (matrix[i][j])
                 array[j] = matrix[i][j];
     }
-    printf("done copy\n");
     
     
     // clean up
-    printf("free None\n");
     free_draw_dict(dd);
-    printf("free one\n");
     for (i=0; i<2; i++){
         if (cache[i]->destroy){
             // if it is LRU, then it doesn't have a destroy function
@@ -440,11 +422,55 @@ static PyObject* differential_heatmap_py(PyObject* self, PyObject* args, PyObjec
             free(cache[i]);
         }
     }
-    printf("before return\n");
     return ret_array;
 }
 
 
+static PyObject* heatmap_rd_distribution_py(PyObject* self, PyObject* args, PyObject* keywds)
+{
+    PyObject* po;
+    READER* reader;
+    int num_of_threads = 4;
+    char* mode;
+    long time_interval;
+    
+    static char *kwlist[] = {"reader", "mode", "time_interval", "num_of_threads", NULL};
+    
+    // parse arguments
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osl|$i", kwlist, &po, &mode, &time_interval, &num_of_threads)) {
+        printf("parsing argument failed in heatmap_rd_distribution\n");
+        return NULL;
+    }
+    
+    if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
+        return NULL;
+    }
+    
+    
+    printf("before computation\n");
+    draw_dict* dd = heatmap_rd_distribution(reader, *mode, time_interval, num_of_threads);
+    printf("after computation\n");
+    
+    // create numpy array
+    npy_intp dims[2] = { dd->xlength, dd->ylength };
+    
+    PyObject* ret_array = PyArray_EMPTY(2, dims, NPY_LONGLONG, 0);
+    
+    
+    int i, j;
+    double **matrix = dd->matrix;
+    long long *array;
+    for (i=0; i<dd->ylength; i++){
+        array = (long long*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
+        for (j=0; j<dd->xlength; j++)
+                array[j] = (long long)matrix[i][j];
+    }
+    
+    
+    // clean up
+    free_draw_dict(dd);
+    return ret_array;
+}
 
 
 static PyMethodDef c_heatmap_funcs[] = {
@@ -460,6 +486,8 @@ static PyMethodDef c_heatmap_funcs[] = {
         METH_VARARGS | METH_KEYWORDS, "differential heatmap pixel computation compared with Optimal"},
     {"differential_heatmap", (PyCFunction)differential_heatmap_py,
         METH_VARARGS | METH_KEYWORDS, "differential heatmap pixel computation"},
+    {"heatmap_rd_distribution", (PyCFunction)heatmap_rd_distribution_py,
+        METH_VARARGS | METH_KEYWORDS, "reuse distance distribution heatmap"},
     {NULL, NULL, 0, NULL}
 };
 

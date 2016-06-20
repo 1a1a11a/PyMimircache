@@ -154,6 +154,7 @@ GArray* gen_breakpoints_virtualtime(READER* reader, guint64 time_interval){
         printf("%snumber of pixels in one dimension are less than 20, exact size: %d, each pixel will be very large, if you didn't intend to do it, please try with a smaller time stamp", KRED, break_points->len);
 
     reader->break_points_v = break_points;
+
     reset_reader(reader);
     return break_points;
 }
@@ -200,6 +201,8 @@ GArray* gen_breakpoints_realtime(READER* reader, guint64 time_interval){
         printf("%snumber of pixels in one dimension are less than 20, exact size: %d, each pixel will be very large, if you didn't intend to do it, please try with a smaller time stamp", KRED, break_points->len);
 
     reader->break_points_r = break_points;
+    
+    free(cp);
     reset_reader(reader);
     return break_points;
 }

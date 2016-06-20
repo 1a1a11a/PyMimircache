@@ -3,7 +3,7 @@
 #include "heatmap.h"
 
 
-void heatmap_nonLRU_hit_rate_start_time_end_time(gpointer data, gpointer user_data){
+void heatmap_nonLRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer user_data){
     guint64 i, j, hit_count, miss_count;
     struct multithreading_params_heatmap* params = (struct multithreading_params_heatmap*) user_data;
     READER* reader_thread = copy_reader(params->reader);
@@ -61,12 +61,13 @@ void heatmap_nonLRU_hit_rate_start_time_end_time(gpointer data, gpointer user_da
     free(cp);
     if (reader_thread->type != 'v')
         close_reader(reader_thread);
+    else
+        free(reader_thread);
     cache->destroy_unique(cache);
-    free(reader_thread);
 }
 
 
-void heatmap_LRU_hit_rate_start_time_end_time(gpointer data, gpointer user_data){
+void heatmap_LRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer user_data){
 
     guint64 i, j, hit_count, miss_count;
     struct multithreading_params_heatmap* params = (struct multithreading_params_heatmap*) user_data;
@@ -84,12 +85,6 @@ void heatmap_LRU_hit_rate_start_time_end_time(gpointer data, gpointer user_data)
     hit_count = 0;
     miss_count = 0;
     
-    
-    // create cache line struct and initialization
-    cache_line* cp = (cache_line*)malloc(sizeof(cache_line));
-    cp->op = -1;
-    cp->size = -1;
-    cp->valid = TRUE;
 
     skip_N_elements(reader_thread, g_array_index(break_points, guint64, order));
 
@@ -121,12 +116,47 @@ void heatmap_LRU_hit_rate_start_time_end_time(gpointer data, gpointer user_data)
     g_mutex_lock(&(params->mtx));
     (*progress) ++ ;
     g_mutex_unlock(&(params->mtx));
-    free(cp);
     if (reader_thread->type != 'v')
         close_reader(reader_thread);
-    free(reader_thread);
+    else
+        free(reader_thread);
 }
 
 
+void heatmap_rd_distribution_thread(gpointer data, gpointer user_data){
+    
+    guint64 j;
+    struct multithreading_params_heatmap* params = (struct multithreading_params_heatmap*) user_data;
+    READER* reader_thread = copy_reader(params->reader);
+    GArray* break_points = params->break_points;
+    guint64* progress = params->progress;
+    draw_dict* dd = params->dd;
+    long long* reuse_dist = reader_thread->reuse_dist;
+    double log_base = params->log_base;
+    
+    int order = GPOINTER_TO_INT(data)-1;
+    guint64 real_start = g_array_index(break_points, guint64, order);
+    double* array = dd->matrix[order];
+    
+    
+    skip_N_elements(reader_thread, real_start);
+    
+    for(j=g_array_index(break_points, guint64, order); j< g_array_index(break_points, guint64, order+1); j++)
+//        if (reuse_dist[j] == -1)
+//            array[dd->ylength-1] += 1;
+        if (reuse_dist[j] == 0 ||reuse_dist[j] == 1)
+            array[0] += 1;
+        else
+            array[(long)(log(reuse_dist[j])/(log(log_base)))] += 1;
 
+        
+    // clean up
+    g_mutex_lock(&(params->mtx));
+    (*progress) ++ ;
+    g_mutex_unlock(&(params->mtx));
+    if (reader_thread->type != 'v')
+        close_reader(reader_thread);
+    else
+        free(reader_thread);
+}
 

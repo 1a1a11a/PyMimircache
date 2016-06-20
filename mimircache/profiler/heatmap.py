@@ -662,7 +662,7 @@ def server_plot_all():
             hm = heatmap()
             mem_size = mem_sizes[int(filename.split('_')[0][1:]) - 1] * 16
             reader = vscsiCacheReader("../data/cloudphysics/" + filename)
-            if os.path.exists("0601/"+filename+"LRU_Optimal_" + str(mem_size) + "_r.png"):
+            if os.path.exists("0601/" + filename + "LRU_Optimal_" + str(mem_size) + "_r.png"):
                 continue
 
             # cold_miss_2d(reader, 'r', 10000000, figname='0601/' + filename + '_cold_miss_r.png')
@@ -695,7 +695,7 @@ def server_plot_all():
 
             hm.run_diff_optimal('r', 1000000000, "hit_rate_start_time_end_time", reader, num_of_process=48,
                                 cache_size=mem_size, save=False, change_label=True,
-                                figname='0601/'+filename+"LRU_Optimal_" + str(mem_size) + "_r.png")
+                                figname='0601/' + filename + "LRU_Optimal_" + str(mem_size) + "_r.png")
 
             del hm
             del reader
