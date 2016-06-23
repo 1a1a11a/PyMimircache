@@ -17,7 +17,8 @@
 #include "glib_related.h" 
 #include "cache.h" 
 #include "LRUProfiler.h"
-#include "Optimal.h" 
+#include "Optimal.h"
+#include "FIFO.h"
 #include "utils.h"
 #include "const.h"
 #include <math.h>

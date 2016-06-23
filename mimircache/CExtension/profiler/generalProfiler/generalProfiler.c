@@ -33,7 +33,7 @@ static void profiler_thread(gpointer data, gpointer user_data){
     read_one_element(reader_thread, cp);
     while (cp->valid && pos<end_pos){
         for (i=0; i<params->num_of_cache; i++){
-            if ((caches[i*num_of_threads+order])->add_element(caches[i*num_of_threads+order], cp))
+            if ((caches[i*num_of_threads+order])->core->add_element(caches[i*num_of_threads+order], cp))
                 result[i*num_of_threads+order]->hit_count ++;
             else
                 result[i*num_of_threads+order]->miss_count ++;
@@ -77,9 +77,9 @@ return_res** profiler(READER* reader_in, struct_cache* cache_in, int num_of_thre
     int num_of_threads = num_of_threads_in;
     int bin_size = bin_size_in;
     
-    long num_of_bins = cache_in->size/bin_size;
+    long num_of_bins = cache_in->core->size/bin_size;
     
-    if (num_of_bins * bin_size < cache_in->size)
+    if (num_of_bins * bin_size < cache_in->core->size)
         num_of_bins ++;                         // this happens when size is not a multiple of bin_size
     
     if (end_pos==-1)
@@ -93,7 +93,7 @@ return_res** profiler(READER* reader_in, struct_cache* cache_in, int num_of_thre
     for (i=0; i<num_of_bins; i++){
         result[i] = (return_res*) calloc(1, sizeof(return_res));
         result[i]->cache_size = bin_size * (i+1);
-        caches[i] = cache_in->cache_init(bin_size * (i+1), cache_in->data_type, cache_in->cache_init_params);
+        caches[i] = cache_in->core->cache_init(bin_size * (i+1), cache_in->core->data_type, cache_in->core->cache_init_params);
     }
 
     
@@ -127,7 +127,7 @@ return_res** profiler(READER* reader_in, struct_cache* cache_in, int num_of_thre
 
     // clean up
     for (i=0; i<num_of_bins; i++)
-        caches[i]->destroy(caches[i]);
+        caches[i]->core->destroy(caches[i]);
     for (i=0; i<num_of_threads; i++)
         free(params[i]);
     free(caches);

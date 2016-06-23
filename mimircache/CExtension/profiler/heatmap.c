@@ -22,7 +22,7 @@ draw_dict* heatmap(READER* reader, struct_cache* cache, char mode, guint64 time_
     }
     DEBUG(printf("after break points\n"));
     // check cache is LRU or not
-    if (cache && cache->type == e_LRU){
+    if (cache && cache->core->type == e_LRU){
         return heatmap_LRU(reader, cache, mode, time_interval, plot_type, num_of_threads);
     }
     else{
@@ -167,7 +167,7 @@ draw_dict* heatmap_hit_rate_start_time_end_time(READER* reader, struct_cache* ca
     
     // build the thread pool
     GThreadPool * gthread_pool;
-    if (cache->type == e_LRU)
+    if (cache->core->type == e_LRU)
         gthread_pool = g_thread_pool_new ( (GFunc) heatmap_LRU_hit_rate_start_time_end_time_thread, (gpointer)params, num_of_threads, TRUE, NULL);
     else
         gthread_pool = g_thread_pool_new ( (GFunc) heatmap_nonLRU_hit_rate_start_time_end_time_thread, (gpointer)params, num_of_threads, TRUE, NULL);
@@ -276,14 +276,14 @@ draw_dict* differential_heatmap(READER* reader, struct_cache* cache1, struct_cac
 
     draw_dict *draw_dict1, *draw_dict2;
     // check cache is LRU or not
-    if (cache1->type == e_LRU){
+    if (cache1->core->type == e_LRU){
         draw_dict1 = heatmap_LRU(reader, cache1, mode, time_interval, plot_type, num_of_threads);
     }
     else{
         draw_dict1 = heatmap_nonLRU(reader, cache1, mode, time_interval, plot_type, num_of_threads);
     }
 
-    if (cache2->type == e_LRU){
+    if (cache2->core->type == e_LRU){
         draw_dict2 = heatmap_LRU(reader, cache2, mode, time_interval, plot_type, num_of_threads);
     }
     else{
@@ -306,7 +306,7 @@ draw_dict* differential_heatmap(READER* reader, struct_cache* cache1, struct_cac
 
 
 void free_draw_dict(draw_dict* dd){
-    int i;
+    guint64 i;
     for (i=0; i<dd->xlength; i++){
         free(dd->matrix[i]);
     }
@@ -315,66 +315,65 @@ void free_draw_dict(draw_dict* dd){
 }
 
 
-//#include "reader.h"
-//#include "FIFO.h"
-//#include "Optimal.h"
-//
-//int main(int argc, char* argv[]){
-//# define CACHESIZE 2000
-//# define BIN_SIZE 200
-//# define TIME_INTERVAL 1000000
-//
-//
-//    printf("test_begin!\n");
-//
-//    READER* reader = setup_reader(argv[1], 'v');
-//
-////    struct_cache* cache = fifo_init(CACHESIZE, 'v', NULL);
-//
-//    struct optimal_init_params init_params = {.reader=reader, .next_access=NULL};
-//    struct_cache* optimal = optimal_init(CACHESIZE, 'v', (void*)&init_params);
-//    
-//    struct_cache* cache;
-//    cache = (struct_cache*)calloc(1, sizeof(struct_cache));
-//    cache->type = e_LRU;
+#include "reader.h"
+#include "FIFO.h"
+#include "Optimal.h"
+
+int main(int argc, char* argv[]){
+# define CACHESIZE 2000
+# define BIN_SIZE 200
+# define TIME_INTERVAL 10000000
+
+
+    printf("test_begin!\n");
+
+    READER* reader = setup_reader(argv[1], 'v');
+
+//    struct_cache* cache = fifo_init(CACHESIZE, 'v', NULL);
+
+    struct optimal_init_params init_params = {.reader=reader, .next_access=NULL, .ts=0};
+    struct_cache* optimal = optimal_init(CACHESIZE, 'v', (void*)&init_params);
+    
+    
+    struct_cache* cache = cache_init(CACHESIZE, reader->type);
+    cache->core->type = e_LRU;
+
+    
+//    struct_cache* cache = (struct_cache*) malloc(sizeof(struct_cache));
 //    cache->size = CACHESIZE;
-//    cache->data_type = reader->type;
-//
-//    
-////    struct_cache* cache = (struct_cache*) malloc(sizeof(struct_cache));
-////    cache->size = CACHESIZE;
-//
-//    draw_dict* dd ;
-//    
-//    printf("after initialization, begin profiling\n");
-//    dd = differential_heatmap(reader, cache, optimal, 'r', 1000000, hit_rate_start_time_end_time, 8);
-////    draw_dict* dd = heatmap(reader, NULL, 'r', 10000000, rd_distribution, 8);
-////    draw_dict* dd = heatmap_rd_distribution(reader, 'r', 1000000, 8);
-//    dd = heatmap(reader, NULL, 'r', TIME_INTERVAL, rd_distribution, 8);
-//
-//
-//    long long count;
-//    guint64 i, j;
-//    for (i=0; i<dd->xlength; i++){
-//        for (j=0; j<dd->ylength; j++)
-//            count = (long long) dd->matrix[i][j];
-////            printf("%llu, %llu: %f\n", i, j, dd->matrix[i][j]);
-//            ;
-//    }
-//    free_draw_dict(dd);
-//    dd = heatmap(reader, NULL, 'r', TIME_INTERVAL, future_rd_distribution, 8);
-//
-//    printf("computation finished\n");
-//    free_draw_dict(dd);
-////    cache->destroy(cache);
-//    free(cache);
-//    optimal->destroy(optimal);
-//    close_reader(reader);
-//    
-//    printf("test_finished!\n");
-//
-//    return 0;
-//}
+
+    draw_dict* dd ;
+    
+    printf("after initialization, begin profiling\n");
+    dd = differential_heatmap(reader, cache, optimal, 'r', 1000000, hit_rate_start_time_end_time, 8);
+//    draw_dict* dd = heatmap(reader, NULL, 'r', 10000000, rd_distribution, 8);
+//    draw_dict* dd = heatmap_rd_distribution(reader, 'r', 1000000, 8);
+    dd = heatmap(reader, NULL, 'r', TIME_INTERVAL, rd_distribution, 8);
+
+    printf("cache init params: %p\n", optimal->core->cache_init_params);
+
+    long long count;
+    guint64 i, j;
+    for (i=0; i<dd->xlength; i++){
+        for (j=0; j<dd->ylength; j++)
+            count = (long long) dd->matrix[i][j];
+//            printf("%llu, %llu: %f\n", i, j, dd->matrix[i][j]);
+            ;
+    }
+    free_draw_dict(dd);
+    dd = heatmap(reader, NULL, 'r', TIME_INTERVAL, future_rd_distribution, 8);
+
+    printf("computation finished\n");
+    free_draw_dict(dd);
+//    cache->destroy(cache);
+    cache_destroy(cache);
+    optimal->core->destroy(optimal);
+    close_reader(reader);
+    
+    printf("test_finished!\n");
+
+    return 0;
+}
 
 
 

@@ -234,7 +234,8 @@ setup(
     # modules = 
     package_data={'plain': ['mimircache/data/trace.txt'],
                   'csv': ['mimircache/data/trace.csv'],
-                  'vscsi': ['mimircache/data/trace.vscsi']},
+                  'vscsi': ['mimircache/data/trace.vscsi'],
+                  'conf': ['mimircache/conf']},
 
     author="Juncheng Yang",
     author_email="peter.waynechina@gmail.com",

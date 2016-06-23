@@ -14,6 +14,8 @@ from mimircache.cacheReader.vscsiReader import vscsiCacheReader
 from mimircache.profiler.LRUProfiler import LRUProfiler
 from mimircache.profiler.generalProfiler import generalProfiler
 from mimircache.profiler.heatmap import heatmap
+import mimircache.const as const
+from mimircache.profiler.cHeatmap import cHeatmap
 
 
 class cachecow:
@@ -92,7 +94,7 @@ class cachecow:
 
         return size, reader
 
-    def heatmap(self, mode, interval, plot_type, **kargs):
+    def heatmap(self, cache_class, mode, interval, plot_type, **kwargs):
         """
 
         :param mode:
@@ -101,10 +103,16 @@ class cachecow:
         :return:
         """
 
-        size, reader = self._profiler_pre_check(**kargs)
+        size, reader = self._profiler_pre_check(**kwargs)
+        if cache_class.lower() in const.c_available_cache:
+            hm = cHeatmap()
+            hm.heatmap(reader, mode, interval, plot_type, cache_size=size, **kwargs)
+        else:
+            hm = heatmap()
+            hm.run(mode, interval, plot_type, reader, **kwargs)
 
-        hm = heatmap()
-        hm.run(mode, interval, plot_type, self.reader, **kargs)
+    def differential_heatmap(self):
+        pass
 
 
     def profiler(self, cache_class, **kargs):
@@ -121,7 +129,7 @@ class cachecow:
         # print(cache_class)
 
         if cache_class.lower() == "lru":
-            profiler = LRUProfiler(size, reader)
+            profiler = LRUProfiler(reader, size)
             # print(profiler)
         else:
             if 'bin_size' in kargs:
@@ -157,7 +165,7 @@ class cachecow:
 
 if __name__ == "__main__":
     m = cachecow(size=2000)
-    m.vscsi('../data/trace_CloudPhysics_bin')
+    m.vscsi('../data/trace.vscsi')
     # m.heatmap('r', 100000000)
 
     # m.test()
@@ -165,10 +173,13 @@ if __name__ == "__main__":
     p = m.profiler("LRU")
     print(p.get_reuse_distance())
     p.plotHRC()
-    m.heatmap('r', 10000000, "hit_rate_start_time_end_time", data='../data/trace.vscsi', dataType='vscsi',
-              num_of_process=8,  # LRU=False, cache='optimal',
-              cache_size=2000, save=False, fixed_range=True, change_label=True,
-              figname="r.png")
+
+    m.heatmap('LRU', 'r', 100000000, "hit_rate_start_time_end_time")
+
+    # m.heatmap('lru', 'r', 10000000, "hit_rate_start_time_end_time", data='../data/trace.vscsi', dataType='vscsi',
+    #           num_of_process=8,  # LRU=False, cache='optimal',
+    #           cache_size=2000, save=False, fixed_range=True, change_label=True,
+    #           figname="r.png")
 
     # p = m.profiler('mru', bin_size=200, data='../data/parda.trace', dataType='plain', num_of_process=4)
     # p.run()

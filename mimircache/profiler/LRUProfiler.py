@@ -4,6 +4,7 @@ import mimircache.c_LRUProfiler as c_LRUProfiler
 
 from mimircache.cacheReader.plainReader import plainCacheReader
 from mimircache.cacheReader.vscsiReader import vscsiCacheReader
+from mimircache.cacheReader.abstractReader import cacheReaderAbstract
 import matplotlib.pyplot as plt
 
 
@@ -11,6 +12,7 @@ class LRUProfiler:
     def __init__(self, reader, cache_size=-1):
         self.cache_size = cache_size
         self.reader = reader
+        assert isinstance(reader, cacheReaderAbstract), "you provided an invalid cacheReader"
 
         # if the given file is not basic reader, needs conversion
         if not isinstance(reader, plainCacheReader) and not isinstance(reader, vscsiCacheReader):
@@ -93,7 +95,7 @@ class LRUProfiler:
             plt.xlabel("cache Size")
             plt.ylabel("Miss Rate")
             plt.title('Miss Rate Curve', fontsize=18, color='black')
-            # plt.show()
+            plt.show()
             plt.savefig(figname)
             plt.clf()
         except Exception as e:
@@ -119,11 +121,11 @@ class LRUProfiler:
             plt.xlabel("cache Size")
             plt.ylabel("Hit Rate")
             plt.title('Hit Rate Curve', fontsize=18, color='black')
-            # plt.show()
+            plt.show()
             plt.savefig(figname)
             plt.clf()
         except Exception as e:
-            plt.savefig()
+            plt.savefig(figname)
             print("the plotting function is not wrong, is this a headless server?")
             print(e)
 
@@ -183,11 +185,11 @@ if __name__ == "__main__":
 
     t1 = time.time()
     # for i in range(6):
-    #     p = LRUProfiler(30000, vscsiCacheReader("../data//trace_CloudPhysics_bin"))
-    #     rd_a = p.get_reuse_dist()
-    #     print(rd_a)
+    p = LRUProfiler(vscsiCacheReader("../data/trace.vscsi"))
+    rd_a = p.get_reuse_distance()
+    print(rd_a)
 
-    _server_plot_all('/run/shm/traces/', 48)
+    # _server_plot_all('/run/shm/traces/', 48)
 
     t2 = time.time()
 

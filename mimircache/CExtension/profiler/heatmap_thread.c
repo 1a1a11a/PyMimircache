@@ -10,7 +10,8 @@ void heatmap_nonLRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer 
     GArray* break_points = params->break_points;
     guint64* progress = params->progress;
     draw_dict* dd = params->dd;
-    struct cache* cache = params->cache->cache_init(params->cache->size, params->cache->data_type, params->cache->cache_init_params);
+    struct cache* cache = params->cache->core->cache_init(params->cache->core->size, params->cache->core->data_type,
+                                                          params->cache->core->cache_init_params);
     
     int order = GPOINTER_TO_INT(data)-1;
     
@@ -27,13 +28,13 @@ void heatmap_nonLRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer 
     skip_N_elements(reader_thread, g_array_index(break_points, guint64, order));
     
     // this is for synchronizing ts in cache, which is used as index for access next_access array 
-    if (cache->type == e_Optimal)
-        ((Optimal*)cache)->ts = g_array_index(break_points, guint64, order);
+    if (cache->core->type == e_Optimal)
+        ((struct optimal_params*)(cache->cache_params))->ts = g_array_index(break_points, guint64, order);
     
     for (i=order; i<break_points->len-1; i++){
         for(j=0; j< g_array_index(break_points, guint64, i+1) - g_array_index(break_points, guint64, i); j++){
             read_one_element(reader_thread, cp);
-            if (cache->add_element(cache, cp))
+            if (cache->core->add_element(cache, cp))
                 hit_count++;
             else
                 miss_count++;
@@ -46,7 +47,7 @@ void heatmap_nonLRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer 
         if (!cp->valid)
             printf("detect error in heatmap_nonLRU_hit_rate_start_time_end_time, difference: %llu\n",
                    reader_thread->total_num - g_array_index(break_points, guint64, break_points->len - 1) - j);
-        if (cache->add_element(cache, cp))
+        if (cache->core->add_element(cache, cp))
             hit_count++;
         else
             miss_count++;
@@ -63,7 +64,7 @@ void heatmap_nonLRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer 
         close_reader(reader_thread);
     else
         free(reader_thread);
-    cache->destroy_unique(cache);
+    cache->core->destroy_unique(cache);
 }
 
 
@@ -75,7 +76,7 @@ void heatmap_LRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer use
     GArray* break_points = params->break_points;
     guint64* progress = params->progress;
     draw_dict* dd = params->dd;
-    guint64 cache_size = (guint64)params->cache->size;
+    guint64 cache_size = (guint64)params->cache->core->size;
     gint* last_access = reader_thread->last_access;
     long long* reuse_dist = reader_thread->reuse_dist;
     
@@ -134,7 +135,7 @@ void heatmap_rd_distribution_thread(gpointer data, gpointer user_data){
     long long* reuse_dist = params->reader->reuse_dist;
     double log_base = params->log_base;
     
-    int order = GPOINTER_TO_INT(data)-1;
+    guint64 order = (guint64)GPOINTER_TO_INT(data)-1;
     double* array = dd->matrix[order];
     
     
@@ -147,7 +148,7 @@ void heatmap_rd_distribution_thread(gpointer data, gpointer user_data){
         }
     }
     else{
-        for(j=g_array_index(break_points, guint64, order); j< params->reader->total_num; j++)
+        for(j=g_array_index(break_points, guint64, order); (long long)j< params->reader->total_num; j++)
             if (reuse_dist[j] == 0 ||reuse_dist[j] == 1)
                 array[0] += 1;
             else

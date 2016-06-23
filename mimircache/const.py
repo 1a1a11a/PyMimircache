@@ -12,8 +12,8 @@ def init():
 def init_C_available_cache():
     import configparser
     config = configparser.ConfigParser()
-
-    config.read(BASE_DIR + '/conf')
+    # print(BASE_DIR + '/conf')
+    config.read(BASE_DIR + '/conf.py')
     if 'C_available_cache' in config.sections():
         c_available_cache.extend(config['C_available_cache'])
     else:

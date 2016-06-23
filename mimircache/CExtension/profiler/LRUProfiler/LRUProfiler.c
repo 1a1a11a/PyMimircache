@@ -415,7 +415,7 @@ guint64 cal_best_LRU_cache_size(READER* reader, double threshhold){
     if (!reader->hit_rate)
         get_hit_rate_seq(reader, -1, 0, -1);
     
-    
+    return cache_size;
 }
 
 
@@ -491,34 +491,34 @@ static inline sTree* process_one_element(cache_line* cp, sTree* splay_tree, GHas
 
 
 
-#include "reader.h"
-
-int main(int argc, char* argv[]){
-# define CACHESIZE 1
-# define BIN_SIZE 1
-
-
-    printf("test_begin!\n");
-
-    READER* reader = setup_reader(argv[1], 'v');
-
-
-    printf("after initialization, begin profiling\n");
-    double* hr = get_hit_rate_seq(reader, -1, 0, -1);
-    printf("hit rate p: %p\n", hr);
-    
-    hr = get_hit_rate_seq(reader, -1, 10, 20);
-    printf("hit rate p: %p\n", hr);
-    long long *hc = get_hit_count_seq(reader, -1, 10, 20);
-    
-    int i;
-        for (i=0; i<20-10+3; i++){
-            printf("%d: %f\n", i, hr[i]);
-        }
-    for (i=0; i<20-10+3; i++){
-        printf("%d: %lld\n", i, hc[i]);
-    }
-
-    printf("test_finished!\n");
-    return 0;
-}
+//#include "reader.h"
+//
+//int main(int argc, char* argv[]){
+//# define CACHESIZE 1
+//# define BIN_SIZE 1
+//
+//
+//    printf("test_begin!\n");
+//
+//    READER* reader = setup_reader(argv[1], 'v');
+//
+//
+//    printf("after initialization, begin profiling\n");
+//    double* hr = get_hit_rate_seq(reader, -1, 0, -1);
+//    printf("hit rate p: %p\n", hr);
+//    
+//    hr = get_hit_rate_seq(reader, -1, 10, 20);
+//    printf("hit rate p: %p\n", hr);
+//    long long *hc = get_hit_count_seq(reader, -1, 10, 20);
+//    
+//    int i;
+//        for (i=0; i<20-10+3; i++){
+//            printf("%d: %f\n", i, hr[i]);
+//        }
+//    for (i=0; i<20-10+3; i++){
+//        printf("%d: %lld\n", i, hc[i]);
+//    }
+//
+//    printf("test_finished!\n");
+//    return 0;
+//}

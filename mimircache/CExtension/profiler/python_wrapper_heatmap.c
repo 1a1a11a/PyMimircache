@@ -11,6 +11,7 @@
 #include "cache.h"
 #include "FIFO.h" 
 #include "Optimal.h"
+#include "const.h"
 
 
 #define NPY_NO_DEPRECATED_API 11
@@ -163,10 +164,8 @@ static PyObject* heatmap_computation(PyObject* self, PyObject* args, PyObject* k
         cache = optimal_init(cache_size, data_type, (void*)&init_params);
     }
     else if (strcmp(name, "LRU") == 0){
-        cache = (struct_cache*)calloc(1, sizeof(struct_cache));
-        cache->type = e_LRU;
-        cache->size = cache_size;
-        cache->data_type = data_type;
+        cache = cache_init(cache_size, data_type);
+        cache->core->type = e_LRU;
     }
     else {
         printf("does not support given cache replacement algorithm: %s\n", name);
@@ -200,7 +199,7 @@ static PyObject* heatmap_computation(PyObject* self, PyObject* args, PyObject* k
     PyObject* ret_array = PyArray_EMPTY(2, dims, NPY_DOUBLE, 0);
 
     
-    long i, j;
+    guint64 i, j;
     double **matrix = dd->matrix;
     double *array;
     for (i=0; i<dd->ylength; i++){
@@ -214,12 +213,12 @@ static PyObject* heatmap_computation(PyObject* self, PyObject* args, PyObject* k
     
     // clean up
     free_draw_dict(dd);
-    if (cache->destroy){
+    if (cache->core->destroy){
         // if it is LRU, then it doesn't have a destroy function
-        cache->destroy(cache);
+        cache->core->destroy(cache);
     }
     else{
-        free(cache);
+        cache_destroy(cache);
     }
     return ret_array;
 }
@@ -263,10 +262,8 @@ static PyObject* differential_heatmap_with_Optimal(PyObject* self, PyObject* arg
         cache = optimal_init(cache_size, data_type, (void*)&init_params);
     }
     else if (strcmp(name, "LRU") == 0){
-        cache = (struct_cache*)calloc(1, sizeof(struct_cache));
-        cache->type = e_LRU;
-        cache->size = cache_size;
-        cache->data_type = data_type;
+        cache = cache_init(cache_size, data_type);
+        cache->core->type = e_LRU;
     }
     else {
         printf("does not support given cache replacement algorithm: %s\n", name);
@@ -302,7 +299,7 @@ static PyObject* differential_heatmap_with_Optimal(PyObject* self, PyObject* arg
     PyObject* ret_array = PyArray_EMPTY(2, dims, NPY_DOUBLE, 0);
     
     
-    long i, j;
+    guint64 i, j;
     double **matrix = dd->matrix;
     double *array;
     for (i=0; i<dd->ylength; i++){
@@ -316,14 +313,14 @@ static PyObject* differential_heatmap_with_Optimal(PyObject* self, PyObject* arg
     
     // clean up
     free_draw_dict(dd);
-    if (cache->destroy){
+    if (cache->core->destroy){
         // if it is LRU, then it doesn't have a destroy function
-        cache->destroy(cache);
+        cache->core->destroy(cache);
     }
     else{
-        free(cache);
+        cache_destroy(cache);
     }
-    optimal->destroy(optimal);
+    optimal->core->destroy(optimal);
     return ret_array;
 }
 
@@ -357,7 +354,7 @@ static PyObject* differential_heatmap_py(PyObject* self, PyObject* args, PyObjec
     // build cache
     char data_type = reader->type;
     
-    long i, j;
+    guint64 i, j;
     for (i=0; i<2; i++){
         if (strcmp(name[i], "FIFO") == 0){
             cache[i] = fifo_init(cache_size, data_type, NULL);
@@ -368,10 +365,8 @@ static PyObject* differential_heatmap_py(PyObject* self, PyObject* args, PyObjec
             cache[i] = optimal_init(cache_size, data_type, (void*)&init_params);
         }
         else if (strcmp(name[i], "LRU") == 0){
-            cache[i] = (struct_cache*)calloc(1, sizeof(struct_cache));
-            cache[i]->type = e_LRU;
-            cache[i]->size = cache_size;
-            cache[i]->data_type = data_type;
+            cache[i] = cache_init(cache_size, data_type);
+            cache[i]->core->type = e_LRU;
         }
         else {
             printf("does not support given cache replacement algorithm: %s\n", name[i]);
@@ -392,9 +387,9 @@ static PyObject* differential_heatmap_py(PyObject* self, PyObject* args, PyObjec
         exit(1);
     }
     
-    printf("before computation\n");
+    DEBUG(printf("before computation\n"));
     draw_dict* dd = differential_heatmap(reader, cache[0], cache[1], *mode, time_interval, plot_type, num_of_threads);
-    printf("after computation\n");
+    DEBUG(printf("after computation\n"));
     
     // create numpy array
     npy_intp dims[2] = { dd->ylength, dd->xlength };
@@ -415,12 +410,12 @@ static PyObject* differential_heatmap_py(PyObject* self, PyObject* args, PyObjec
     // clean up
     free_draw_dict(dd);
     for (i=0; i<2; i++){
-        if (cache[i]->destroy){
+        if (cache[i]->core->destroy){
             // if it is LRU, then it doesn't have a destroy function
-            cache[i]->destroy(cache[i]);
+            cache[i]->core->destroy(cache[i]);
         }
         else{
-            free(cache[i]);
+            cache_destroy(cache[i]);
         }
     }
     return ret_array;
@@ -458,7 +453,7 @@ static PyObject* heatmap_rd_distribution_py(PyObject* self, PyObject* args, PyOb
     PyObject* ret_array = PyArray_EMPTY(2, dims, NPY_LONGLONG, 0);
     
     
-    long i, j;
+    guint64 i, j;
     double **matrix = dd->matrix;
     long long *array;
     for (i=0; i<dd->ylength; i++){
@@ -506,7 +501,7 @@ static PyObject* heatmap_future_rd_distribution_py(PyObject* self, PyObject* arg
     PyObject* ret_array = PyArray_EMPTY(2, dims, NPY_LONGLONG, 0);
     
     
-    long i, j;
+    guint64 i, j;
     double **matrix = dd->matrix;
     long long *array;
     for (i=0; i<dd->ylength; i++){

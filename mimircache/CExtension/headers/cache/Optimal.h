@@ -22,32 +22,34 @@
 
 
 
-typedef struct optimal{
-    cache_type type;
-    long size;
-    char data_type;
-    long long hit_count;
-    long long miss_count;
-    void* cache_init_params;
-    struct cache* (*cache_init)(long long, char, void*);
-    void (*destroy)(struct_cache* );
-    void (*destroy_unique)(struct cache* );
-    gboolean (*add_element)(struct_cache*, cache_line* cp);
-    gboolean (*check_element)(struct_cache*, cache_line* cp);
-    
-    union{
-        struct{
-            GHashTable *hashtable;
-            pqueue_t *pq;
-            GArray* next_access;
-            long long ts;       // virtual time stamp
-            READER* reader;
-        };
-        char cache_params[1024];
-    };
-    
-    
-}Optimal;
+//typedef struct optimal{
+//    cache_type type;
+//    long size;
+//    char data_type;
+//    long long hit_count;
+//    long long miss_count;
+//    void* cache_init_params;
+//    struct cache* (*cache_init)(long long, char, void*);
+//    void (*destroy)(struct_cache* );
+//    void (*destroy_unique)(struct cache* );
+//    gboolean (*add_element)(struct_cache*, cache_line* cp);
+//    gboolean (*check_element)(struct_cache*, cache_line* cp);
+//    
+//    union{
+//        char cache_params[1024];
+//    };
+//    
+//    
+//}Optimal;
+
+
+struct optimal_params{
+    GHashTable *hashtable;
+    pqueue_t *pq;
+    GArray* next_access;
+    long long ts;       // virtual time stamp
+    READER* reader;
+};
 
 
 struct optimal_init_params{
@@ -61,13 +63,13 @@ struct optimal_init_params{
 
 
 
-inline void __optimal_insert_element_long(Optimal* optimal, cache_line* cp);
+inline void __optimal_insert_element_long(struct_cache* optimal, cache_line* cp);
 
 inline gboolean optimal_check_element_long(struct_cache* cache, cache_line* cp);
 
-inline void __optimal_update_element_long(Optimal* optimal, cache_line* cp);
+inline void __optimal_update_element_long(struct_cache* optimal, cache_line* cp);
 
-inline void __optimal_evict_element(Optimal* optimal);
+inline void __optimal_evict_element(struct_cache* optimal);
 
 inline gboolean optimal_add_element_long(struct_cache* cache, cache_line* cp);
 

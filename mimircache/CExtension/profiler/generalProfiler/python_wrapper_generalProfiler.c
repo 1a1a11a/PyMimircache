@@ -92,7 +92,7 @@ static PyObject* generalProfiler_get_hit_rate(PyObject* self, PyObject* args, Py
     }
     
     free(results);
-    cache->destroy(cache);
+    cache->core->destroy(cache);
     return d;
 }
 

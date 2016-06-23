@@ -8,6 +8,10 @@ import matplotlib
 
 matplotlib.use('Agg')
 
+import warnings
+
+warnings.filterwarnings("ignore")
+
 import logging
 
 from mimircache.cache.LRU import LRU as LRU
@@ -17,9 +21,9 @@ from mimircache.cacheReader.vscsiReader import vscsiCacheReader as vscsiReader
 from mimircache.oldModule.pardaProfiler import pardaProfiler as pardaProfiler
 from mimircache.oldModule.pardaProfiler import parda_mode as parda_mode
 from mimircache.profiler.LRUProfiler import LRUProfiler as LRUProfiler
-from mimircache.profiler.generalProfiler import generalProfiler as generalProfiler
-from mimircache.profiler.heatmap import heatmap as heatmap
-from mimircache.top.cachecow import cachecow as cachecow
+# from mimircache.profiler.generalProfiler import generalProfiler as generalProfiler
+# from mimircache.profiler.heatmap import heatmap as heatmap
+# from mimircache.top.cachecow import cachecow as cachecow
 
 from mimircache.const import init
 
