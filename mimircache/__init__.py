@@ -21,8 +21,13 @@ from mimircache.profiler.generalProfiler import generalProfiler as generalProfil
 from mimircache.profiler.heatmap import heatmap as heatmap
 from mimircache.top.cachecow import cachecow as cachecow
 
+from mimircache.const import init
+
+init()
+
+
 # from _version import __version__
 
-logging.basicConfig(filename="log", filemode='w', format='%(levelname)s:%(asctime)s:%(message)s', level=logging.DEBUG)
+# logging.basicConfig(filename="log", filemode='w', format='%(levelname)s:%(asctime)s:%(message)s', level=logging.DEBUG)
 
 # print(__version__)

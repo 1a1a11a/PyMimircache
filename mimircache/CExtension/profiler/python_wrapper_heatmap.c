@@ -130,7 +130,6 @@ static PyObject* heatmap_computation(PyObject* self, PyObject* args, PyObject* k
     READER* reader;
     int num_of_threads = 4;
     long cache_size;
-    int bin_size = -1;
     char* name;
     char* plot_type_s;
     int plot_type;
@@ -184,7 +183,7 @@ static PyObject* heatmap_computation(PyObject* self, PyObject* args, PyObject* k
         plot_type = cold_miss_count_start_time_end_time;
     else if (strcmp(plot_type_s, "rd_distribution") == 0){
         printf("please use function heatmap_rd_distribution\n");
-        return;
+        Py_RETURN_NONE;
     }
     else {
         printf("unsupported plot type\n");
@@ -196,19 +195,20 @@ static PyObject* heatmap_computation(PyObject* self, PyObject* args, PyObject* k
     printf("after computation\n");
     
     // create numpy array
-    npy_intp dims[2] = { dd->xlength, dd->ylength };
+    npy_intp dims[2] = { dd->ylength, dd->xlength };
 
     PyObject* ret_array = PyArray_EMPTY(2, dims, NPY_DOUBLE, 0);
 
     
-    int i, j;
+    long i, j;
     double **matrix = dd->matrix;
     double *array;
     for (i=0; i<dd->ylength; i++){
         array = (double*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
         for (j=0; j<dd->xlength; j++)
-            if (matrix[i][j])
-                array[j] = matrix[i][j];
+            if (matrix[j][i])
+                array[j] = matrix[j][i];
+        /* change it to opposite will help with cache, but become confusing */
     }
 
     
@@ -297,19 +297,20 @@ static PyObject* differential_heatmap_with_Optimal(PyObject* self, PyObject* arg
     printf("after computation\n");
     
     // create numpy array
-    npy_intp dims[2] = { dd->xlength, dd->ylength };
+    npy_intp dims[2] = { dd->ylength, dd->xlength };
     
     PyObject* ret_array = PyArray_EMPTY(2, dims, NPY_DOUBLE, 0);
     
     
-    int i, j;
+    long i, j;
     double **matrix = dd->matrix;
     double *array;
     for (i=0; i<dd->ylength; i++){
         array = (double*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
         for (j=0; j<dd->xlength; j++)
-            if (matrix[i][j])
-                array[j] = matrix[i][j];
+//            if (matrix[j][i])
+                array[j] = matrix[j][i];
+            
     }
     
     
@@ -356,7 +357,7 @@ static PyObject* differential_heatmap_py(PyObject* self, PyObject* args, PyObjec
     // build cache
     char data_type = reader->type;
     
-    int i, j;
+    long i, j;
     for (i=0; i<2; i++){
         if (strcmp(name[i], "FIFO") == 0){
             cache[i] = fifo_init(cache_size, data_type, NULL);
@@ -396,7 +397,7 @@ static PyObject* differential_heatmap_py(PyObject* self, PyObject* args, PyObjec
     printf("after computation\n");
     
     // create numpy array
-    npy_intp dims[2] = { dd->xlength, dd->ylength };
+    npy_intp dims[2] = { dd->ylength, dd->xlength };
     PyObject* ret_array = PyArray_EMPTY(2, dims, NPY_DOUBLE, 0);
     
     
@@ -406,8 +407,8 @@ static PyObject* differential_heatmap_py(PyObject* self, PyObject* args, PyObjec
     for (i=0; i<dd->ylength; i++){
         array = (double*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
         for (j=0; j<dd->xlength; j++)
-            if (matrix[i][j])
-                array[j] = matrix[i][j];
+//            if (matrix[j][i])
+                array[j] = matrix[j][i];
     }
     
     
@@ -448,28 +449,77 @@ static PyObject* heatmap_rd_distribution_py(PyObject* self, PyObject* args, PyOb
     
     
     printf("before computation\n");
-    draw_dict* dd = heatmap_rd_distribution(reader, *mode, time_interval, num_of_threads);
+    draw_dict* dd = heatmap(reader, NULL, *mode, time_interval, rd_distribution, num_of_threads); 
     printf("after computation\n");
     
     // create numpy array
-    npy_intp dims[2] = { dd->xlength, dd->ylength };
+    npy_intp dims[2] = { dd->ylength, dd->xlength };
     
     PyObject* ret_array = PyArray_EMPTY(2, dims, NPY_LONGLONG, 0);
     
     
-    int i, j;
+    long i, j;
     double **matrix = dd->matrix;
     long long *array;
     for (i=0; i<dd->ylength; i++){
         array = (long long*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
         for (j=0; j<dd->xlength; j++)
-                array[j] = (long long)matrix[i][j];
+                array[j] = (long long)matrix[j][i];
     }
-    
+    printf("done copy\n");
     
     // clean up
     free_draw_dict(dd);
-    return ret_array;
+//    return ret_array;
+    return Py_BuildValue("Nf", ret_array, reader->log_base);
+}
+
+
+static PyObject* heatmap_future_rd_distribution_py(PyObject* self, PyObject* args, PyObject* keywds)
+{
+    PyObject* po;
+    READER* reader;
+    int num_of_threads = 4;
+    char* mode;
+    long time_interval;
+    
+    static char *kwlist[] = {"reader", "mode", "time_interval", "num_of_threads", NULL};
+    
+    // parse arguments
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osl|$i", kwlist, &po, &mode, &time_interval, &num_of_threads)) {
+        printf("parsing argument failed in heatmap_rd_distribution\n");
+        return NULL;
+    }
+    
+    if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
+        return NULL;
+    }
+    
+    
+    printf("before computation\n");
+    draw_dict* dd = heatmap(reader, NULL, *mode, time_interval, future_rd_distribution, num_of_threads);
+    printf("after computation\n");
+    
+    // create numpy array
+    npy_intp dims[2] = { dd->ylength, dd->xlength };
+    
+    PyObject* ret_array = PyArray_EMPTY(2, dims, NPY_LONGLONG, 0);
+    
+    
+    long i, j;
+    double **matrix = dd->matrix;
+    long long *array;
+    for (i=0; i<dd->ylength; i++){
+        array = (long long*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
+        for (j=0; j<dd->xlength; j++)
+            array[j] = (long long)matrix[j][i];
+    }
+    printf("done copy\n");
+    
+    // clean up
+    free_draw_dict(dd);
+    //    return ret_array;
+    return Py_BuildValue("Nf", ret_array, reader->log_base);
 }
 
 
@@ -487,6 +537,8 @@ static PyMethodDef c_heatmap_funcs[] = {
     {"differential_heatmap", (PyCFunction)differential_heatmap_py,
         METH_VARARGS | METH_KEYWORDS, "differential heatmap pixel computation"},
     {"heatmap_rd_distribution", (PyCFunction)heatmap_rd_distribution_py,
+        METH_VARARGS | METH_KEYWORDS, "reuse distance distribution heatmap"},
+    {"heatmap_future_rd_distribution", (PyCFunction)heatmap_future_rd_distribution_py,
         METH_VARARGS | METH_KEYWORDS, "reuse distance distribution heatmap"},
     {NULL, NULL, 0, NULL}
 };

@@ -38,7 +38,7 @@ void heatmap_nonLRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer 
             else
                 miss_count++;
         }
-        dd->matrix[order][i] = (float)(hit_count)/(hit_count+miss_count);
+        dd->matrix[order][i] = (double)(hit_count)/(hit_count+miss_count);
     }
 
     for(j=0; j< reader_thread->total_num - g_array_index(break_points, guint64, break_points->len - 1); j++){
@@ -51,7 +51,7 @@ void heatmap_nonLRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer 
         else
             miss_count++;
     }
-    dd->matrix[order][i] = (float)(hit_count)/(hit_count+miss_count);
+    dd->matrix[order][i] = (double)(hit_count)/(hit_count+miss_count);
     
 
     // clean up
@@ -99,7 +99,7 @@ void heatmap_LRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer use
                 miss_count ++;
 //            printf("last access %d, j %lu, real_start %lu, reuse dist %lld, cache_size %lu, hitcount: %lu\n", last_access[j], j, real_start, reuse_dist[j], cache_size, hit_count);
         }
-        dd->matrix[order][i] = (float)(hit_count)/(hit_count+miss_count);
+        dd->matrix[order][i] = (double)(hit_count)/(hit_count+miss_count);
     }
     
     for(j=g_array_index(break_points, guint64, break_points->len - 1); j<(guint64)reader_thread->total_num; j++){
@@ -110,7 +110,8 @@ void heatmap_LRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer use
         else
             miss_count ++;
     }
-    dd->matrix[order][i] = (float)(hit_count)/(hit_count+miss_count);
+    dd->matrix[order][i] = (double)(hit_count)/(hit_count+miss_count);
+//    printf("one around, hit count: %lu, miss count: %lu, matrix hr: %lf\n", hit_count, miss_count, dd->matrix[order][i]);
     
     // clean up
     g_mutex_lock(&(params->mtx));
@@ -127,36 +128,36 @@ void heatmap_rd_distribution_thread(gpointer data, gpointer user_data){
     
     guint64 j;
     struct multithreading_params_heatmap* params = (struct multithreading_params_heatmap*) user_data;
-    READER* reader_thread = copy_reader(params->reader);
     GArray* break_points = params->break_points;
     guint64* progress = params->progress;
     draw_dict* dd = params->dd;
-    long long* reuse_dist = reader_thread->reuse_dist;
+    long long* reuse_dist = params->reader->reuse_dist;
     double log_base = params->log_base;
     
     int order = GPOINTER_TO_INT(data)-1;
-    guint64 real_start = g_array_index(break_points, guint64, order);
     double* array = dd->matrix[order];
     
     
-    skip_N_elements(reader_thread, real_start);
-    
-    for(j=g_array_index(break_points, guint64, order); j< g_array_index(break_points, guint64, order+1); j++)
-//        if (reuse_dist[j] == -1)
-//            array[dd->ylength-1] += 1;
-        if (reuse_dist[j] == 0 ||reuse_dist[j] == 1)
-            array[0] += 1;
-        else
-            array[(long)(log(reuse_dist[j])/(log(log_base)))] += 1;
+    if (order != break_points->len-1){
+        for(j=g_array_index(break_points, guint64, order); j< g_array_index(break_points, guint64, order+1); j++){
+            if (reuse_dist[j] == 0 ||reuse_dist[j] == 1)
+                array[0] += 1;
+            else
+                array[(long)(log(reuse_dist[j])/(log(log_base)))] += 1;
+        }
+    }
+    else{
+        for(j=g_array_index(break_points, guint64, order); j< params->reader->total_num; j++)
+            if (reuse_dist[j] == 0 ||reuse_dist[j] == 1)
+                array[0] += 1;
+            else
+                array[(long)(log(reuse_dist[j])/(log(log_base)))] += 1;
+    }
 
-        
+    
     // clean up
     g_mutex_lock(&(params->mtx));
     (*progress) ++ ;
     g_mutex_unlock(&(params->mtx));
-    if (reader_thread->type != 'v')
-        close_reader(reader_thread);
-    else
-        free(reader_thread);
 }
 

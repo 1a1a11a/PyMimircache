@@ -1,3 +1,5 @@
+
+
 #define cache_line_label_size 128
 #define FILE_LOC_STR_SIZE 1024 
 
@@ -16,3 +18,10 @@
 #define avg_rd_start_time_end_time                      3
 #define cold_miss_count_start_time_end_time             4
 #define rd_distribution                                 5
+#define future_rd_distribution                          6
+
+//#define DEBUG 
+
+#ifndef DEBUG
+#define DEBUG(stat) ()
+#endif 

@@ -1,3 +1,0 @@
-INFO:2016-06-04 22:18:20,108:Generating grammar tables from /Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/site-packages/sphinx/pycode/Grammar-py3.txt
-INFO:2016-06-04 22:18:20,165:Writing grammar tables to /Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/site-packages/sphinx/pycode/Grammar-py3-sphinx1.4.pickle
-INFO:2016-06-04 22:18:20,166:Writing failed:[Errno 13] Permission denied: '/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/site-packages/sphinx/pycode/Grammar-py3-sphinx1.4.pickle'

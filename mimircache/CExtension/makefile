@@ -1,4 +1,4 @@
-DEBUG = 1
+# DEBUG = 1
 
 cc=gcc
 
@@ -6,12 +6,12 @@ cc=gcc
 CFLAGS += -Wall 
 CFLAGS += -I/Library/Frameworks/Python.framework/Versions/3.5/include/python3.5m 
 CFLAGS += -I/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/site-packages/numpy/core/include
-CFLAGS += -Iheaders/ -Icache/ -Iheaders/cache
-ifdef DEBUG
+CFLAGS += -Iheaders/ -Icache/ -Iheaders/cache -I/usr/lib/python3/dist-packages/numpy/core/include -I/usr/include/python3.4m/
+# ifdef DEBUG
 CFLAGS+= -g -O0
-else
-CFLAGS+= -O2
-endif
+# else
+# CFLAGS+= -O2
+# endif
 
 CFLAGS += $(shell pkg-config --cflags glib-2.0)
 LIBS    = $(shell pkg-config --libs glib-2.0 --libs gthread-2.0)

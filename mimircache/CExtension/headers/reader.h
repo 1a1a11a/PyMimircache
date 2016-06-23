@@ -23,6 +23,13 @@
 #include "const.h"
 
 
+struct break_point{
+    GArray* array;
+    char mode;
+    guint64 time_interval;
+};
+
+
 
 typedef struct{
     union {
@@ -40,12 +47,15 @@ typedef struct{
     long long ts;           /* current timestamp, record current line, even if some 
                              * lines are not processed(skipped) */
     char file_loc[FILE_LOC_STR_SIZE];
-    GArray* break_points_v;
-    GArray* break_points_r;
+//    GArray* break_points_v;
+//    GArray* break_points_r;
+    struct break_point* break_points;
     long long* reuse_dist;
     int* last_access;
-    guint64 max_reuse_dist; 
+    guint64 max_reuse_dist;
+    double log_base;
     // long long *hit_count;
+    double* hit_rate;
     union{
         struct{
             int vscsi_ver;        // version

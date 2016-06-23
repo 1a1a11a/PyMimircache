@@ -9,6 +9,7 @@ log
 *.o
 
 
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -81,3 +82,8 @@ oldModule/
 
 # pycharm 
 .idea/
+docs/_static/
+docs/_templates/
+docs/advanced/
+docs/images/
+mimircache/data/

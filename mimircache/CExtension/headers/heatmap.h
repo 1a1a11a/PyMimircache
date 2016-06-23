@@ -19,6 +19,7 @@
 #include "LRUProfiler.h"
 #include "Optimal.h" 
 #include "utils.h"
+#include "const.h"
 #include <math.h>
 
 
@@ -48,6 +49,7 @@ struct multithreading_params_heatmap{
     GMutex mtx;
     double log_base;
 };
+
 
 void free_draw_dict(draw_dict* dd);
 

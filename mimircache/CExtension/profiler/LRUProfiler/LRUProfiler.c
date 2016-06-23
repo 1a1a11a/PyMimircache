@@ -38,6 +38,16 @@ long long* get_hit_count_seq(READER* reader, long size, long long begin, long lo
     if (size == -1)
         size = reader->total_num;
 
+    if (begin == -1)
+        begin = 0;
+    
+    if (end == -1)
+        end = reader->total_num+1;
+    
+    
+    if (end-begin<size)
+        size = end-begin;
+
     /* for a cache_size=size, we need size+1 bucket for size 0~size(included),
      * the last element(size+1) is used for storing count of reuse distance > size
      * if size==reader->total_num, then the last two is not used
@@ -73,9 +83,6 @@ long long* get_hit_count_seq(READER* reader, long size, long long begin, long lo
     // create splay tree
     sTree* splay_tree = NULL;
     
-    if (end == -1)
-        end = reader->total_num+1;
-
     if (begin != -1 && begin != 0)
         skip_N_elements(reader, begin);
 
@@ -105,22 +112,26 @@ long long* get_hit_count_seq(READER* reader, long size, long long begin, long lo
 }
 
 
-float* get_hit_rate_seq(READER* reader, long size, long long begin, long long end){
+double* get_hit_rate_seq(READER* reader, long size, long long begin, long long end){
     int i=0;
     if (reader->total_num == -1)
         reader->total_num = get_num_of_cache_lines(reader);
-    
-    long long* hit_count_array = get_hit_count_seq(reader, size, begin, end);
+
     if (size == -1)
         size = reader->total_num;
     if (end == -1)
         end = reader->total_num;
     if (begin == -1)
         begin = 0;
-    float total_num = (float)(end - begin);
+
+    if (reader->hit_rate && (size==-1 || size==reader->total_num) && end-begin==reader->total_num)
+        return reader->hit_rate;
+    
+    long long* hit_count_array = get_hit_count_seq(reader, size, begin, end);
+    double total_num = (double)(end - begin);
     
 
-    float* hit_rate_array = malloc(sizeof(float)*(size+3));
+    double* hit_rate_array = malloc(sizeof(double)*(size+3));
     hit_rate_array[0] = hit_count_array[0]/total_num;
     for (i=1; i<size+1; i++){
         hit_rate_array[i] = hit_count_array[i]/total_num + hit_rate_array[i-1];
@@ -131,15 +142,18 @@ float* get_hit_rate_seq(READER* reader, long size, long long begin, long long en
     hit_rate_array[size+2] = hit_count_array[size+2]/total_num;
     
     free(hit_count_array);
+    if (size==reader->total_num && end-begin==reader->total_num)
+        reader->hit_rate = hit_rate_array; 
+
     return hit_rate_array;
 }
 
 
-float* get_miss_rate_seq(READER* reader, long size, long long begin, long long end){
+double* get_miss_rate_seq(READER* reader, long size, long long begin, long long end){
     int i=0;
     if (reader->total_num == -1)
         reader->total_num = get_num_of_cache_lines(reader);
-    float* miss_rate_array = get_hit_rate_seq(reader, size, begin, end);
+    double* miss_rate_array = get_hit_rate_seq(reader, size, begin, end);
     if (size == -1)
         size = reader->total_num;
 
@@ -166,8 +180,17 @@ long long* get_reuse_dist_seq(READER* reader, long long begin, long long end){
         begin = 0;
     if (end <= 0)
         end = reader->total_num; 
-
+    
     long long * reuse_dist_array = malloc(sizeof(long long)*(end-begin));
+
+    
+    // check whether the reuse dist computation has been finished or not
+    if (reader->reuse_dist){
+        long long i;
+        for (i=begin; i<end; i++)
+            reuse_dist_array[i-begin] = reader->reuse_dist[i];
+        return reuse_dist_array;
+    }
     
     // create cache lize struct and initializa
     cache_line* cp = (cache_line*)malloc(sizeof(cache_line));
@@ -209,9 +232,13 @@ long long* get_reuse_dist_seq(READER* reader, long long begin, long long end){
         ts++;
     }
     
-    reader->reuse_dist = reuse_dist_array;
-    reader->max_reuse_dist = (guint64) max_rd;
-
+    if (reader->reuse_dist)
+        free(reader->reuse_dist);
+    
+    if (end-begin == reader->total_num){
+        reader->reuse_dist = reuse_dist_array;
+        reader->max_reuse_dist = (guint64) max_rd;
+    }
     
     // clean up
     free(cp);
@@ -223,7 +250,7 @@ long long* get_reuse_dist_seq(READER* reader, long long begin, long long end){
 }
 
 
-long long* get_reversed_reuse_dist(READER* reader, long long begin, long long end){
+long long* get_future_reuse_dist(READER* reader, long long begin, long long end){
     /* the reuse distance of the last element is at last 
      
      */
@@ -234,7 +261,7 @@ long long* get_reversed_reuse_dist(READER* reader, long long begin, long long en
      * It is the user's responsibility to release the memory of hit count array returned by this function
      */
     
-    long long ts, reuse_dist;
+    long long ts, reuse_dist, max_rd=0;
     ts = 0;
     if (reader->total_num == -1)
         get_num_of_cache_lines(reader);
@@ -250,7 +277,6 @@ long long* get_reversed_reuse_dist(READER* reader, long long begin, long long en
     cache_line* cp = (cache_line*)malloc(sizeof(cache_line));
     cp->op = -1;
     cp->size = -1;
-    
     cp->valid = TRUE;
     
     // create hashtable
@@ -280,17 +306,23 @@ long long* get_reversed_reuse_dist(READER* reader, long long begin, long long en
     while (cp->valid){
         splay_tree = process_one_element(cp, splay_tree, hash_table, ts, &reuse_dist);
         reuse_dist_array[end-begin-1-ts] = reuse_dist;
+        if (reuse_dist > max_rd)
+            max_rd = reuse_dist; 
         if (reader->ts >= end)
             break;
         read_one_element_above(reader, cp);
         ts++;
     }
     
+    if (reader->reuse_dist)
+        free(reader->reuse_dist);
+    reader->reuse_dist = reuse_dist_array;
+    reader->max_reuse_dist = (guint64) max_rd;
+
     // clean up
     free(cp);
     g_hash_table_destroy(hash_table);
     free_sTree(splay_tree);
-    
     reset_reader(reader);
     return reuse_dist_array;
 }
@@ -374,6 +406,21 @@ long long* get_rd_distribution(READER* reader, long long begin, long long end){
 }
 
 
+guint64 cal_best_LRU_cache_size(READER* reader, double threshhold){
+
+#define point_spacing 5 
+    
+    
+    guint64 cache_size = 0;
+    if (!reader->hit_rate)
+        get_hit_rate_seq(reader, -1, 0, -1);
+    
+    
+}
+
+
+
+
 
 static inline sTree* process_one_element(cache_line* cp, sTree* splay_tree, GHashTable* hash_table, long long ts, long long* reuse_dist){
     gpointer gp;
@@ -440,4 +487,38 @@ static inline sTree* process_one_element(cache_line* cp, sTree* splay_tree, GHas
         
     }
     return newtree;
+}
+
+
+
+#include "reader.h"
+
+int main(int argc, char* argv[]){
+# define CACHESIZE 1
+# define BIN_SIZE 1
+
+
+    printf("test_begin!\n");
+
+    READER* reader = setup_reader(argv[1], 'v');
+
+
+    printf("after initialization, begin profiling\n");
+    double* hr = get_hit_rate_seq(reader, -1, 0, -1);
+    printf("hit rate p: %p\n", hr);
+    
+    hr = get_hit_rate_seq(reader, -1, 10, 20);
+    printf("hit rate p: %p\n", hr);
+    long long *hc = get_hit_count_seq(reader, -1, 10, 20);
+    
+    int i;
+        for (i=0; i<20-10+3; i++){
+            printf("%d: %f\n", i, hr[i]);
+        }
+    for (i=0; i<20-10+3; i++){
+        printf("%d: %lld\n", i, hc[i]);
+    }
+
+    printf("test_finished!\n");
+    return 0;
 }

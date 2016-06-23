@@ -20,10 +20,12 @@ READER* setup_reader(char* file_loc, char file_type){
      needs to be explicitly closed by calling close_reader */
     
     READER* reader = (READER*) malloc(sizeof(READER));
-    reader->break_points_v = NULL;
-    reader->break_points_r = NULL;
+//    reader->break_points_v = NULL;
+//    reader->break_points_r = NULL;
+    reader->break_points = NULL;
     reader->last_access = NULL;
     reader->reuse_dist = NULL;
+    reader->hit_rate = NULL;
     reader->max_reuse_dist = 0;
     
     if (strlen(file_loc)>1023){
@@ -363,19 +365,27 @@ int close_reader(READER* reader){
     }
     
     // free break_points GArray
-    if (reader->break_points_r){
-//        printf("begin free real break points %p\n", reader->break_points_r);
-        g_array_free(reader->break_points_r, TRUE);
-    }
-    if (reader->break_points_v){
-//        printf("begin free virtual break points %p\n", reader->break_points_v);
-        g_array_free(reader->break_points_v, TRUE);
-    }
+//    if (reader->break_points_r){
+//        g_array_free(reader->break_points_r, TRUE);
+//    }
+//    if (reader->break_points_v){
+//        g_array_free(reader->break_points_v, TRUE);
+//    }
+   
     if (reader->last_access)
         free(reader->last_access);
+    
     if (reader->reuse_dist)
         free(reader->reuse_dist);
 
+    if (reader->break_points){
+        g_array_free(reader->break_points->array, TRUE);
+        free(reader->break_points);
+    }
+    
+    if (reader->hit_rate)
+        free(reader->hit_rate);
+    
     free(reader);
     return 0;
 }

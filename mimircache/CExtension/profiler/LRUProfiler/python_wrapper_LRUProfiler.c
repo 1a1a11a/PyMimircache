@@ -73,17 +73,31 @@ static PyObject* LRUProfiler_get_hit_rate_seq(PyObject* self, PyObject* args, Py
         return NULL;
     }
 
-    // get hit rate 
-    float* hit_rate = get_hit_rate_seq(reader, cache_size, begin, end);
+    if (begin == -1)
+        begin = 0;
+    
+    // get hit rate
+    DEBUG(printf("before get hit rate\n"));
+    double* hit_rate = get_hit_rate_seq(reader, cache_size, begin, end);
+    DEBUG(printf("after get hit rate\n"));
 
     // create numpy array 
     if (cache_size == -1)
         cache_size = reader->total_num; 
 
     npy_intp dims[1] = { cache_size+3 };
-    PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_FLOAT); 
-    memcpy(PyArray_DATA((PyArrayObject*)ret_array), hit_rate, sizeof(float)*(cache_size+3));
-    free(hit_rate); 
+    PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    memcpy(PyArray_DATA((PyArrayObject*)ret_array), hit_rate, sizeof(double)*(cache_size+3));
+//    long long i;
+//    for (i=0; i<cache_size; i++){
+//        *((double*)PyArray_GETPTR1((PyArrayObject*)ret_array, i)) = hit_rate[i];
+//        printf("after  %lld\n", i);
+//    }
+    
+    if (!(begin==0 && (end==-1 || end==reader->total_num))){
+        DEBUG(printf("free hit rate in LRUProfiler_get_hit_rate_seq\n"));
+        free(hit_rate);
+    }
 
     return ret_array;
 }
@@ -107,15 +121,15 @@ static PyObject* LRUProfiler_get_miss_rate_seq(PyObject* self, PyObject* args, P
     }
     
     // get miss rate 
-    float* miss_rate = get_miss_rate_seq(reader, cache_size, begin, end);
+    double* miss_rate = get_miss_rate_seq(reader, cache_size, begin, end);
 
     // create numpy array 
     if (cache_size == -1)
         cache_size = reader->total_num; 
 
     npy_intp dims[1] = { cache_size+3 };
-    PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_FLOAT); 
-    memcpy(PyArray_DATA((PyArrayObject*)ret_array), miss_rate, sizeof(float)*(cache_size+3));
+    PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    memcpy(PyArray_DATA((PyArrayObject*)ret_array), miss_rate, sizeof(double)*(cache_size+3));
     free(miss_rate); 
 
     return ret_array;
@@ -138,6 +152,9 @@ static PyObject* LRUProfiler_get_reuse_dist_seq(PyObject* self, PyObject* args, 
     if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
     }
+    
+    if (begin==-1)
+        begin = 0;
 
     // get reuse dist 
     long long* reuse_dist = get_reuse_dist_seq(reader, begin, end);
@@ -152,13 +169,14 @@ static PyObject* LRUProfiler_get_reuse_dist_seq(PyObject* self, PyObject* args, 
     PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_LONGLONG); 
     memcpy(PyArray_DATA((PyArrayObject*)ret_array), reuse_dist, sizeof(long long)*(end-begin));
     
-    free(reuse_dist); 
+    if (!(begin==0 && (end==-1 || end==reader->total_num)))
+        free(reuse_dist);
 
     return ret_array;
 }
 
 
-static PyObject* LRUProfiler_get_reversed_reuse_dist(PyObject* self, PyObject* args, PyObject* keywds)
+static PyObject* LRUProfiler_get_future_reuse_dist(PyObject* self, PyObject* args, PyObject* keywds)
 {
     PyObject* po;
     READER* reader;
@@ -176,7 +194,7 @@ static PyObject* LRUProfiler_get_reversed_reuse_dist(PyObject* self, PyObject* a
     }
     
     // get reuse dist
-    long long* reuse_dist = get_reversed_reuse_dist(reader, begin, end);
+    long long* reuse_dist = get_future_reuse_dist(reader, begin, end);
     
     // create numpy array
     if (begin < 0)
@@ -241,7 +259,7 @@ static PyMethodDef c_LRUProfiler_funcs[] = {
     {"get_miss_rate_seq", (PyCFunction)LRUProfiler_get_miss_rate_seq,
         METH_VARARGS | METH_KEYWORDS, "get miss rate array in the form of numpy array, \
         the last one is cold miss, the second to last is out of cache_size"},
-    {"get_reversed_reuse_dist", (PyCFunction)LRUProfiler_get_reversed_reuse_dist,
+    {"get_future_reuse_dist", (PyCFunction)LRUProfiler_get_future_reuse_dist,
         METH_VARARGS | METH_KEYWORDS, "get reuse distance array of the reversed trace file in the form of numpy array"},
     {"get_reuse_dist_seq", (PyCFunction)LRUProfiler_get_reuse_dist_seq,
         METH_VARARGS | METH_KEYWORDS, "get reuse distance array in the form of numpy array"},

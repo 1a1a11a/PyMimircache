@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 
 class LRUProfiler:
-    def __init__(self, cache_size, reader):
+    def __init__(self, reader, cache_size=-1):
         self.cache_size = cache_size
         self.reader = reader
 
@@ -75,7 +75,7 @@ class LRUProfiler:
         rd_dist = c_LRUProfiler.get_rd_distribution_seq(self.reader.cReader, **kargs)
         return rd_dist
 
-    def plotMRC(self, autosize=False, autosize_threshold=0.01, **kwargs):
+    def plotMRC(self, autosize=False, autosize_threshold=0.01, figname="MRC.png", **kwargs):
         MRC = self.get_miss_rate(**kwargs)
         try:
             # change the x-axis range according to threshhold
@@ -93,15 +93,15 @@ class LRUProfiler:
             plt.xlabel("cache Size")
             plt.ylabel("Miss Rate")
             plt.title('Miss Rate Curve', fontsize=18, color='black')
-            plt.show()
-            plt.savefig("figure_MRC.png")
+            # plt.show()
+            plt.savefig(figname)
             plt.clf()
         except Exception as e:
-            plt.savefig("figure_MRC.png")
+            plt.savefig(figname)
             print("the plotting function is not wrong, is this a headless server?")
             print(e)
 
-    def plotHRC(self, autosize=False, autosize_threshold=0.001):
+    def plotHRC(self, autosize=False, autosize_threshold=0.001, figname="HRC.png"):
         HRC = self.get_hit_rate()
         try:
             # change the x-axis range according to threshhold
@@ -119,17 +119,53 @@ class LRUProfiler:
             plt.xlabel("cache Size")
             plt.ylabel("Hit Rate")
             plt.title('Hit Rate Curve', fontsize=18, color='black')
-            plt.show()
-            plt.savefig("figure_HRC.png")
+            # plt.show()
+            plt.savefig(figname)
             plt.clf()
         except Exception as e:
-            plt.savefig("figure_HRC.png")
+            plt.savefig()
             print("the plotting function is not wrong, is this a headless server?")
             print(e)
 
-    def __del__(self):
-        if os.path.exists('temp.dat'):
-            os.remove('temp.dat')
+
+def _plot_HRC(filepath):
+    reader = vscsiCacheReader(filepath)
+    print("begin plotting " + filepath)
+    LRUProfiler(reader).get_hit_count()
+    print('after hit count')
+    LRUProfiler(reader).plotHRC(figname='HRC/' + filepath.split('/')[-1] + '_HRC.png')
+    reader.close()
+    print("finish plotting " + filepath)
+
+
+def process_test(a):
+    print("get " + str(a))
+
+
+def _server_plot_all(path, threads):
+    import os
+    from multiprocessing import Pool
+
+    file_list = []
+    for filename in os.listdir(path):
+        if filename.endswith('.vscsitrace'):
+            figname = 'HRC_' + filename + '.png'
+            if os.path.exists('HRC/' + figname):
+                continue
+            else:
+                file_list.append(path + '/' + filename)
+        else:
+            print(filename)
+
+    print(file_list)
+    p = Pool(processes=threads)
+    r = p.imap_unordered(_plot_HRC, file_list)
+    print('after pool')
+    p.close()
+    p.join()
+
+    # for i in file_list:
+    #     _plot_HRC(i)
 
 
 if __name__ == "__main__":
@@ -146,16 +182,19 @@ if __name__ == "__main__":
     # tracker = SummaryTracker()
 
     t1 = time.time()
-    for i in range(6):
-        p = LRUProfiler(30000, vscsiCacheReader("../data//trace_CloudPhysics_bin"))
-        rd_a = p.get_reuse_dist()
-        print(rd_a)
+    # for i in range(6):
+    #     p = LRUProfiler(30000, vscsiCacheReader("../data//trace_CloudPhysics_bin"))
+    #     rd_a = p.get_reuse_dist()
+    #     print(rd_a)
+
+    _server_plot_all('/run/shm/traces/', 48)
+
     t2 = time.time()
 
     print(t2 - t1)
 
-    p = LRUProfiler(30000, vscsiCacheReader("../data//trace_CloudPhysics_bin"))
-    p.plotHRC()
+    # p = LRUProfiler(30000, vscsiCacheReader("../data//trace_CloudPhysics_bin"))
+    # p.plotHRC()
 
     # print(len())
     # count = 0
