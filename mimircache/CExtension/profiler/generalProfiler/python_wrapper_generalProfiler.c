@@ -72,9 +72,7 @@ static PyObject* generalProfiler_get_hit_rate(PyObject* self, PyObject* args, Py
     // get hit rate
     return_res** results = profiler(reader, cache, num_of_threads, bin_size, (gint64)begin, (gint64)end);
 
-    // create numpy array
-    long num_of_bins = cache_size/bin_size;
-    
+    long num_of_bins = cache_size/bin_size;    
     if (num_of_bins * bin_size < cache_size)
         num_of_bins ++;                         // this happens when size is not a multiple of bin_size
 

@@ -20,6 +20,9 @@ class LRUProfiler:
         else:
             self.num_of_lines = self.reader.get_num_total_lines()
 
+    all = ["get_hit_count", "get_hit_rate", "get_miss_rate", "get_reuse_distance", "get_rd_distribution", \
+           "plotMRC", "plotHRC", "get_best_cache_sizes"]
+
     def prepare_file_remove_one(self):
         """
         this function will prepare the file, meanwhile remove the request that appear only once
