@@ -42,7 +42,7 @@ debug = True
 
 
 class generalProfiler(profilerAbstract):
-    def __init__(self, cache_class, cache_size, cache_params, bin_size, reader, num_of_process=4):
+    def __init__(self, reader, cache_class, cache_size, bin_size, cache_params=None, num_of_process=4):
         super(generalProfiler, self).__init__(cache_class, cache_size, reader)
         self.cache_params = cache_params
         self.num_of_process = num_of_process
@@ -52,10 +52,8 @@ class generalProfiler(profilerAbstract):
         self.num_of_process = num_of_process
 
         if self.cache_size != -1:
-            if int(self.cache_size / bin_size) * bin_size == self.cache_size:
-                self.num_of_cache = self.num_of_blocks = int(self.cache_size / bin_size)
-            else:
-                self.num_of_cache = self.num_of_blocks = math.ceil(self.cache_size / bin_size)
+
+            self.num_of_cache = self.num_of_blocks = math.ceil(self.cache_size / bin_size)
 
             self.HRC = np.zeros((self.num_of_blocks + 1,), dtype=np.double)
             self.MRC = np.zeros((self.num_of_blocks + 1,), dtype=np.double)
@@ -250,9 +248,9 @@ if __name__ == "__main__":
     r = vscsiCacheReader('../data/trace.vscsi')
 
     arc_dict = {'p': 0.5, 'ghostlist_size': -1}
-    p = generalProfiler(ARC, 1000, arc_dict, 10, r, 8)
+    # p = generalProfiler(r, ARC, 1000, 100, arc_dict, 8)
 
-    # p = generalProfiler(RR, 2000, None, 20, r, 8)
+    p = generalProfiler(r, RR, 30, 20, num_of_process=8)
     p.run()
     print(p.get_hit_rate())
     print(p.get_hit_count())
