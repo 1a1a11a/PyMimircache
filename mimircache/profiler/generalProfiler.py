@@ -208,7 +208,7 @@ class generalProfiler(profilerAbstract):
 
             plt.plot(range(0, self.bin_size * num_of_blocks, self.bin_size), self.MRC[:num_of_blocks])
             plt.xlabel("cache Size")
-            plt.ylabel("Miss Rate/%")
+            plt.ylabel("Miss Rate")
             plt.title('Miss Rate Curve', fontsize=18, color='black')
             plt.savefig(figname)
             plt.show()
@@ -227,7 +227,7 @@ class generalProfiler(profilerAbstract):
 
             plt.plot(range(0, self.bin_size * num_of_blocks, self.bin_size), self.HRC[:num_of_blocks])
             plt.xlabel("cache Size")
-            plt.ylabel("Hit Rate/%")
+            plt.ylabel("Hit Rate")
             plt.title('Hit Rate Curve', fontsize=18, color='black')
             plt.savefig(figname)
             plt.show()
@@ -258,7 +258,7 @@ if __name__ == "__main__":
     print("TIME: %f" % (t2 - t1))
 
     t1 = time.time()
-
+    p.plotMRC()
     # hr = c_generalProfiler.get_hit_rate(r.cReader, 2000, "Optimal", bin_size=200, num_of_threads=8)
     # print(hr)
 
