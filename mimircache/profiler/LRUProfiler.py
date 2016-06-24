@@ -77,57 +77,61 @@ class LRUProfiler:
         rd_dist = c_LRUProfiler.get_rd_distribution_seq(self.reader.cReader, **kargs)
         return rd_dist
 
-    def plotMRC(self, autosize=False, autosize_threshold=0.01, figname="MRC.png", **kwargs):
+    def plotMRC(self, autosize=False, autosize_threshold=0.00001, figname="MRC.png", **kwargs):
         MRC = self.get_miss_rate(**kwargs)
         try:
             # change the x-axis range according to threshhold
             num_of_blocks = 0
             if autosize:
                 for i in range(len(MRC) - 3, 2, -1):
-                    if (MRC[i - 1] - MRC[i]) / MRC[i] > autosize_threshold:
+                    if (MRC[i - 1] - MRC[i]) > autosize_threshold:
                         break
                 num_of_blocks = i
 
             else:
                 num_of_blocks = len(MRC) - 2
 
-            plt.plot(range(0, num_of_blocks, 1), MRC[:num_of_blocks])
+            plt.plot(MRC[:num_of_blocks])
             plt.xlabel("cache Size")
             plt.ylabel("Miss Rate")
             plt.title('Miss Rate Curve', fontsize=18, color='black')
+            plt.savefig(figname, dpi=300)
             plt.show()
-            plt.savefig(figname)
             plt.clf()
         except Exception as e:
             plt.savefig(figname)
             print("the plotting function is not wrong, is this a headless server?")
             print(e)
 
-    def plotHRC(self, autosize=False, autosize_threshold=0.001, figname="HRC.png"):
+    def plotHRC(self, autosize=False, autosize_threshold=0.00001, figname="HRC.png"):
         HRC = self.get_hit_rate()
         try:
             # change the x-axis range according to threshhold
             num_of_blocks = 0
             if autosize:
                 for i in range(len(HRC) - 3, 2, -1):
-                    if (HRC[i] - HRC[i - 1]) / HRC[i] > autosize_threshold:
+                    if (HRC[i] - HRC[i - 1]) > autosize_threshold:
                         break
-                num_of_blocks = i
+                num_of_blocks = i + 20
 
             else:
                 num_of_blocks = len(HRC) - 2
 
-            plt.plot(range(0, num_of_blocks, 1), HRC[:num_of_blocks])
+            plt.plot(HRC[:num_of_blocks])
             plt.xlabel("cache Size")
             plt.ylabel("Hit Rate")
             plt.title('Hit Rate Curve', fontsize=18, color='black')
+            plt.savefig(figname, dpi=600)
             plt.show()
-            plt.savefig(figname)
             plt.clf()
         except Exception as e:
             plt.savefig(figname)
             print("the plotting function is not wrong, is this a headless server?")
             print(e)
+
+    def get_best_cache_sizes(self, num, force_spacing=200, cut_off_divider=20):
+        best_cache_sizes = c_LRUProfiler.get_best_cache_sizes(self.reader.cReader, num, force_spacing, cut_off_divider)
+        return best_cache_sizes
 
 
 def _plot_HRC(filepath):
@@ -135,7 +139,7 @@ def _plot_HRC(filepath):
     print("begin plotting " + filepath)
     LRUProfiler(reader).get_hit_count()
     print('after hit count')
-    LRUProfiler(reader).plotHRC(figname='HRC/' + filepath.split('/')[-1] + '_HRC.png')
+    LRUProfiler(reader).plotHRC(figname='HRC/' + filepath.split('/')[-1] + '_HRC.png', autosize=True)
     reader.close()
     print("finish plotting " + filepath)
 
@@ -185,9 +189,18 @@ if __name__ == "__main__":
 
     t1 = time.time()
     # for i in range(6):
-    p = LRUProfiler(vscsiCacheReader("../data/trace.vscsi"))
+    # reader = vscsiCacheReader("/run/shm/traces/w106_vscsi1.vscsitrace") # ""../data/trace.vscsi")
+    reader = vscsiCacheReader("../data/trace.vscsi")
+    p = LRUProfiler(reader)
     rd_a = p.get_reuse_distance()
     print(rd_a)
+
+    hrs = p.get_hit_rate()
+    with open('HR', 'w') as ofile:
+        for hr in hrs:
+            ofile.write("{}\n".format(hr))
+
+    # print(p.get_best_cache_sizes(20, 600, 10))
 
     # _server_plot_all('/run/shm/traces/', 48)
 
@@ -195,7 +208,7 @@ if __name__ == "__main__":
 
     print(t2 - t1)
 
-    # p = LRUProfiler(30000, vscsiCacheReader("../data//trace_CloudPhysics_bin"))
+    # p = LRUProfiler(vscsiCacheReader(" /run/shm/traces/w106_vscsi1.vscsitrace"), 10000)
     # p.plotHRC()
 
     # print(len())

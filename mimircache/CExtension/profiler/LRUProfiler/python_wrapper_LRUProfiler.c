@@ -249,6 +249,43 @@ static PyObject* LRUProfiler_get_rd_distribution_seq(PyObject* self, PyObject* a
 }
 
 
+static PyObject* LRUProfiler_get_best_cache_sizes(PyObject* self, PyObject* args, PyObject* keywds)
+{
+    PyObject* po;
+    READER* reader;
+    int num;
+    int force_spacing=200, cut_off_divider=20;
+    static char *kwlist[] = {"reader", "num", "force_spacing", "cut_off_divider", NULL};
+    
+    // parse arguments
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Oi|ii", kwlist,
+                                     &po, &num, &force_spacing, &cut_off_divider)) {
+        return NULL;
+    }
+    if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
+        return NULL;
+    }
+    
+    // get best cache sizes
+    GQueue * gq = cal_best_LRU_cache_size(reader, num, force_spacing, cut_off_divider);
+    
+    // create numpy array
+    if (gq == NULL)
+        Py_RETURN_NONE;
+    npy_intp dims[1] = { gq->length };
+    PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_LONGLONG);
+    guint i;
+    for(i=0; i<gq->length; i++){
+        *(long long*)PyArray_GETPTR1((PyArrayObject*)ret_array, i) = (long long)GPOINTER_TO_UINT( g_queue_peek_nth(gq, i) );
+    }
+    
+    return ret_array;
+}
+
+
+
+
+
 static PyMethodDef c_LRUProfiler_funcs[] = {
     {"get_hit_count_seq", (PyCFunction)LRUProfiler_get_hit_count_seq,
         METH_VARARGS | METH_KEYWORDS, "get hit count array in the form of numpy array, \
@@ -263,6 +300,8 @@ static PyMethodDef c_LRUProfiler_funcs[] = {
         METH_VARARGS | METH_KEYWORDS, "get reuse distance array of the reversed trace file in the form of numpy array"},
     {"get_reuse_dist_seq", (PyCFunction)LRUProfiler_get_reuse_dist_seq,
         METH_VARARGS | METH_KEYWORDS, "get reuse distance array in the form of numpy array"},
+    {"get_best_cache_sizes", (PyCFunction)LRUProfiler_get_best_cache_sizes,
+        METH_VARARGS | METH_KEYWORDS, "get best cache sizes"},
 
     {"get_rd_distribution_seq", (PyCFunction)LRUProfiler_get_rd_distribution_seq,
         METH_VARARGS | METH_KEYWORDS, "get reuse distance distribution in the form of numpy array"},        

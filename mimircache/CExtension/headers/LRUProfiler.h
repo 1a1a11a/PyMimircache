@@ -16,14 +16,7 @@
 #include "reader.h"
 #include "glib_related.h" 
 #include "const.h" 
-
-
-typedef struct count_array{
-    // TODO use this instead of pure C array, in case trace file are is too large
-    
-    
-}count_array;
-
+#include "pqueue.h"
 
 
 
@@ -34,5 +27,6 @@ long long* get_reuse_dist_seq(READER* reader, long long begin, long long end);
 long long* get_rd_distribution(READER* reader, long long begin, long long end);
 long long* get_future_reuse_dist(READER* reader, long long begin, long long end);
 
+GQueue * cal_best_LRU_cache_size(READER* reader, unsigned int num, int force_spacing, int cut_off_divider);
 
 #endif /* LRUAnalyzer_h */

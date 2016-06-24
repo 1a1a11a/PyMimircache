@@ -18,7 +18,6 @@
  */
 
 
-
 /** priority queue structs and def 
  */
 
@@ -34,35 +33,35 @@ typedef struct node_t
 } node_t;
 
 
-int
+static inline int
 cmp_pri(pqueue_pri_t next, pqueue_pri_t curr)
 {
     return (next < curr);
 }
 
 
-pqueue_pri_t
+static inline pqueue_pri_t
 get_pri(void *a)
 {
     return ((node_t *) a)->pri;
 }
 
 
-void
+static inline void
 set_pri(void *a, pqueue_pri_t pri)
 {
     ((node_t *) a)->pri = pri;
 }
 
 
-size_t
+static inline size_t
 get_pos(void *a)
 {
     return ((node_t *) a)->pos;
 }
 
 
-void
+static inline void
 set_pos(void *a, size_t pos)
 {
     ((node_t *) a)->pos = pos;
@@ -149,9 +148,7 @@ inline gboolean optimal_add_element_long(struct_cache* cache, cache_line* cp){
 }
 
 
-
-
-inline void optimal_destroy(struct_cache* cache){
+void optimal_destroy(struct_cache* cache){
     struct optimal_params* optimal_params = (struct optimal_params*)(cache->cache_params);
 
     g_hash_table_destroy(optimal_params->hashtable);
@@ -162,7 +159,7 @@ inline void optimal_destroy(struct_cache* cache){
 }
 
 
-inline void optimal_destroy_unique(struct_cache* cache){
+void optimal_destroy_unique(struct_cache* cache){
     /* the difference between destroy_unique and destroy 
      is that the former one only free the resources that are 
      unique to the cache, freeing these resources won't affect 

@@ -14,8 +14,6 @@
  
  */
 
-
-
 inline void __fifo_insert_element_long(struct_cache* fifo, cache_line* cp){
     struct FIFO_params* fifo_params = (struct FIFO_params*)(fifo->cache_params);
     
@@ -26,7 +24,8 @@ inline void __fifo_insert_element_long(struct_cache* fifo, cache_line* cp){
     }
     *key = cp->long_content;
     g_hash_table_add(fifo_params->hashtable, (gpointer)key);
-    fifo_params->list = g_slist_append(fifo_params->list, (gpointer)key);
+    // store in a reversed order 
+    g_queue_push_tail(fifo_params->list, (gpointer)key);
 }
 
 inline gboolean fifo_check_element_long(struct_cache* cache, cache_line* cp){
@@ -42,8 +41,7 @@ inline void __fifo_update_element_long(struct_cache* fifo, cache_line* cp){
 
 inline void __fifo_evict_element(struct_cache* fifo){
     struct FIFO_params* fifo_params = (struct FIFO_params*)(fifo->cache_params);
-    gpointer data = fifo_params->list->data;
-    fifo_params->list = g_slist_remove (fifo_params->list, (gconstpointer)data);
+    gpointer data = g_queue_pop_head(fifo_params->list);
     g_hash_table_remove(fifo_params->hashtable, (gconstpointer)data);
 }
 
@@ -66,15 +64,15 @@ inline gboolean fifo_add_element_long(struct_cache* cache, cache_line* cp){
 
 
 
-inline void fifo_destroy(struct_cache* cache){
+void fifo_destroy(struct_cache* cache){
     struct FIFO_params* fifo_params = (struct FIFO_params*)(cache->cache_params);
 
-    g_slist_free(fifo_params->list);
+    g_queue_free(fifo_params->list);
     g_hash_table_destroy(fifo_params->hashtable);
     cache_destroy(cache);
 }
 
-inline void fifo_destroy_unique(struct_cache* cache){
+void fifo_destroy_unique(struct_cache* cache){
     /* the difference between destroy_unique and destroy
      is that the former one only free the resources that are
      unique to the cache, freeing these resources won't affect
@@ -113,7 +111,7 @@ struct_cache* fifo_init(long long size, char data_type, void* params){
     else{
         g_error("does not support given data type: %c\n", data_type);
     }
-    fifo_params->list = NULL;
+    fifo_params->list = g_queue_new();
     
     
     return cache;

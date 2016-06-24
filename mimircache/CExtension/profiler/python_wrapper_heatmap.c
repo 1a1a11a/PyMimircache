@@ -429,11 +429,12 @@ static PyObject* heatmap_rd_distribution_py(PyObject* self, PyObject* args, PyOb
     int num_of_threads = 4;
     char* mode;
     long time_interval;
+    int CDF = 0;
     
-    static char *kwlist[] = {"reader", "mode", "time_interval", "num_of_threads", NULL};
+    static char *kwlist[] = {"reader", "mode", "time_interval", "num_of_threads", "CDF", NULL};
     
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osl|$i", kwlist, &po, &mode, &time_interval, &num_of_threads)) {
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osl|$ii", kwlist, &po, &mode, &time_interval, &num_of_threads, &CDF)) {
         printf("parsing argument failed in heatmap_rd_distribution\n");
         return NULL;
     }
@@ -444,23 +445,43 @@ static PyObject* heatmap_rd_distribution_py(PyObject* self, PyObject* args, PyOb
     
     
     printf("before computation\n");
-    draw_dict* dd = heatmap(reader, NULL, *mode, time_interval, rd_distribution, num_of_threads); 
+    draw_dict* dd;
+    if (CDF){
+        dd = heatmap(reader, NULL, *mode, time_interval, rd_distribution_CDF, num_of_threads);
+    }
+    else
+        dd = heatmap(reader, NULL, *mode, time_interval, rd_distribution, num_of_threads);
     printf("after computation\n");
     
     // create numpy array
     npy_intp dims[2] = { dd->ylength, dd->xlength };
     
-    PyObject* ret_array = PyArray_EMPTY(2, dims, NPY_LONGLONG, 0);
-    
-    
+    PyObject* ret_array;
     guint64 i, j;
     double **matrix = dd->matrix;
-    long long *array;
-    for (i=0; i<dd->ylength; i++){
-        array = (long long*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
-        for (j=0; j<dd->xlength; j++)
+
+    
+    if (!CDF){
+        ret_array = PyArray_EMPTY(2, dims, NPY_LONGLONG, 0);
+    
+        long long *array;
+        for (i=0; i<dd->ylength; i++){
+            array = (long long*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
+            for (j=0; j<dd->xlength; j++)
                 array[j] = (long long)matrix[j][i];
+        }
     }
+    else{
+        ret_array = PyArray_EMPTY(2, dims, NPY_DOUBLE, 0);
+        double *array;
+        for (i=0; i<dd->ylength; i++){
+            array = (double*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
+            for (j=0; j<dd->xlength; j++)
+                array[j] = matrix[j][i];
+        }
+
+    }
+        
     printf("done copy\n");
     
     // clean up
@@ -516,6 +537,7 @@ static PyObject* heatmap_future_rd_distribution_py(PyObject* self, PyObject* arg
     //    return ret_array;
     return Py_BuildValue("Nf", ret_array, reader->log_base);
 }
+
 
 
 static PyMethodDef c_heatmap_funcs[] = {

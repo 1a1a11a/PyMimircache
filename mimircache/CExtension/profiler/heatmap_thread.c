@@ -162,3 +162,45 @@ void heatmap_rd_distribution_thread(gpointer data, gpointer user_data){
     g_mutex_unlock(&(params->mtx));
 }
 
+void heatmap_rd_distribution_CDF_thread(gpointer data, gpointer user_data){
+    
+    guint64 j;
+    struct multithreading_params_heatmap* params = (struct multithreading_params_heatmap*) user_data;
+    GArray* break_points = params->break_points;
+    guint64* progress = params->progress;
+    draw_dict* dd = params->dd;
+    long long* reuse_dist = params->reader->reuse_dist;
+    double log_base = params->log_base;
+    
+    guint64 order = (guint64)GPOINTER_TO_INT(data)-1;
+    double* array = dd->matrix[order];
+    
+    
+    if (order != break_points->len-1){
+        for(j=g_array_index(break_points, guint64, order); j< g_array_index(break_points, guint64, order+1); j++){
+            if (reuse_dist[j] == 0 ||reuse_dist[j] == 1)
+                array[0] += 1;
+            else
+                array[(long)(log(reuse_dist[j])/(log(log_base)))] += 1;
+        }
+    }
+    else{
+        for(j=g_array_index(break_points, guint64, order); (long long)j< params->reader->total_num; j++)
+            if (reuse_dist[j] == 0 ||reuse_dist[j] == 1)
+                array[0] += 1;
+            else
+                array[(long)(log(reuse_dist[j])/(log(log_base)))] += 1;
+    }
+    
+    for (j=1; j<dd->ylength; j++)
+        array[j] += array[j-1];
+    
+    for (j=0; j<dd->ylength; j++)
+        array[j] = array[j]/array[dd->ylength-1];
+    
+    // clean up
+    g_mutex_lock(&(params->mtx));
+    (*progress) ++ ;
+    g_mutex_unlock(&(params->mtx));
+}
+

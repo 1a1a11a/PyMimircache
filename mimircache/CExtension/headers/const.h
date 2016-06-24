@@ -19,6 +19,7 @@
 #define cold_miss_count_start_time_end_time             4
 #define rd_distribution                                 5
 #define future_rd_distribution                          6
+#define rd_distribution_CDF                             7
 
 //#define DEBUG 
 

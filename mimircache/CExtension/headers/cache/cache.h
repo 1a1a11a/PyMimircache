@@ -43,9 +43,13 @@ struct cache_core{
 
 typedef struct cache{
     struct cache_core *core;
+    void* cache_params;
+}struct_cache;
 
-//#define type core->type;
-//#define size core->size;
+
+
+//#define core->type type;
+//#define core->size size;
 //#define data_type core->data_type;
 //#define hit_count core->hit_count;
 //#define miss_count core->miss_count;
@@ -56,16 +60,10 @@ typedef struct cache{
 //#define add_element core->add_element;
 //#define check_element core->check_element;
 
-    
+
 //    union{
 //        char cache_param[1024];
 //    };
-    void* cache_params;
-    
-    
-}struct_cache;
-
-
 
 struct_cache* cache_init(long long size, char data_type);
 void cache_destroy(struct_cache* cache);

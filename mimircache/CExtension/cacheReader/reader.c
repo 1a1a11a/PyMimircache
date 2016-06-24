@@ -26,6 +26,7 @@ READER* setup_reader(char* file_loc, char file_type){
     reader->last_access = NULL;
     reader->reuse_dist = NULL;
     reader->hit_rate = NULL;
+    reader->best_LRU_cache_size = NULL;
     reader->max_reuse_dist = 0;
     
     if (strlen(file_loc)>1023){
@@ -364,13 +365,7 @@ int close_reader(READER* reader){
             return(1);
     }
     
-    // free break_points GArray
-//    if (reader->break_points_r){
-//        g_array_free(reader->break_points_r, TRUE);
-//    }
-//    if (reader->break_points_v){
-//        g_array_free(reader->break_points_v, TRUE);
-//    }
+
    
     if (reader->last_access)
         free(reader->last_access);
@@ -385,6 +380,10 @@ int close_reader(READER* reader){
     
     if (reader->hit_rate)
         free(reader->hit_rate);
+
+    if (reader->best_LRU_cache_size)
+        g_queue_free(reader->best_LRU_cache_size);
+
     
     free(reader);
     return 0;
