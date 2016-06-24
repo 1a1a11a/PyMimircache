@@ -11,9 +11,7 @@ import time
 # deal with headless situation
 import traceback
 
-import matplotlib
-# matplotlib.use('Agg')
-
+import numpy as np
 from multiprocessing import Process, Pipe, Array
 from os import path
 
@@ -58,9 +56,12 @@ class generalProfiler(profilerAbstract):
                 self.num_of_cache = self.num_of_blocks = int(self.cache_size / bin_size)
             else:
                 self.num_of_cache = self.num_of_blocks = math.ceil(self.cache_size / bin_size)
-            self.HRC = [0] * (self.num_of_blocks + 1)
-            self.MRC = [0] * (self.num_of_blocks + 1)
 
+            self.HRC = np.zeros((self.num_of_blocks + 1,), dtype=np.double)
+            self.MRC = np.zeros((self.num_of_blocks + 1,), dtype=np.double)
+
+        else:
+            raise RuntimeError("you input -1 as cache size")
         self.cache = None
         self.cache_list = None
 
@@ -184,8 +185,8 @@ class generalProfiler(profilerAbstract):
         if not self.calculated:
             self.run()
 
-        HC = [0] * (self.num_of_blocks + 1)
-        for i in range(1, len(self.HC), 1):
+        HC = np.zeros((self.num_of_blocks + 1,), dtype=np.longlong)
+        for i in range(1, len(HC), 1):
             HC[i] = self.num_of_trace_elements - self.MRC_shared_array[i - 1]
 
         return HC
@@ -254,6 +255,7 @@ if __name__ == "__main__":
     # p = generalProfiler(RR, 2000, None, 20, r, 8)
     p.run()
     print(p.get_hit_rate())
+    print(p.get_hit_count())
     t2 = time.time()
     print("TIME: %f" % (t2 - t1))
 
