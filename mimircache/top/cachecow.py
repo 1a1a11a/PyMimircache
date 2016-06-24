@@ -61,7 +61,7 @@ class cachecow:
     def reset(self):
         self.reader.reset()
 
-    def _profiler_pre_check(self, **kargs):
+    def _profiler_pre_check(self, cache_class, **kargs):
         """
         check whether user has provided new cache size and data information
         :param kargs:
@@ -72,7 +72,6 @@ class cachecow:
             size = kargs['size']
         else:
             size = self.cache_size
-        assert size != -1, "you didn't provide size for cache"
 
         if 'data' in kargs and 'dataType' in kargs:
             if kargs['dataType'] == 'plain':
@@ -87,7 +86,8 @@ class cachecow:
         else:
             reader = self.reader
 
-        assert size != -1, "you didn't provide size for cache"
+        if cache_class.lower() != 'lru':
+            assert size != -1, "you didn't provide size for cache"
         assert reader, "you didn't provide a reader nor data (data file and data type)"
         self.size = size
         self.reader = reader
@@ -103,7 +103,7 @@ class cachecow:
         :return:
         """
 
-        size, reader = self._profiler_pre_check(**kwargs)
+        size, reader = self._profiler_pre_check(cache_class, **kwargs)
         if cache_class.lower() in const.c_available_cache:
             hm = cHeatmap()
             hm.heatmap(reader, mode, interval, plot_type, cache_size=size, **kwargs)
@@ -114,6 +114,9 @@ class cachecow:
     def differential_heatmap(self):
         pass
 
+    def twoDplot(self):
+        pass
+
 
     def profiler(self, cache_class, **kargs):
         """
@@ -122,7 +125,7 @@ class cachecow:
         :param kargs:
         :return:
         """
-        size, reader = self._profiler_pre_check(**kargs)
+        size, reader = self._profiler_pre_check(cache_class, **kargs)
 
         profiler = None
 
@@ -164,17 +167,17 @@ class cachecow:
 
 
 if __name__ == "__main__":
-    m = cachecow(size=2000)
-    m.vscsi('../data/trace.vscsi')
+    c = cachecow(size=48000)
+    c.vscsi('../data/trace.vscsi')
     # m.heatmap('r', 100000000)
 
     # m.test()
     # m.open('../data/parda.trace')
-    p = m.profiler("LRU")
+    p = c.profiler("LRU")
     print(p.get_reuse_distance())
     p.plotHRC()
 
-    m.heatmap('LRU', 'r', 100000000, "hit_rate_start_time_end_time")
+    # c.heatmap('LRU', 'r', 100000000, "hit_rate_start_time_end_time")
 
     # m.heatmap('lru', 'r', 10000000, "hit_rate_start_time_end_time", data='../data/trace.vscsi', dataType='vscsi',
     #           num_of_process=8,  # LRU=False, cache='optimal',

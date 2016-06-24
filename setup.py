@@ -112,6 +112,13 @@ def getNumpyHeader():
         print(e)
 
 
+def remove_inline_kw(path='mimircache/CExtension/cache'):
+    for file in os.listdir(path):
+        if file.endswith('.c'):
+            shutil.copyfile(path + '/' + file, path + '/' + file + '.temp')
+
+
+
 getGlibFlag()
 getGlibLibrary()
 getNumpyHeader()
@@ -155,8 +162,8 @@ extensions.append(Extension(
 extensions.append(Extension(
     'mimircache.c_LRUProfiler',
     glob("mimircache/CExtension/profiler/LRUProfiler/*.c") +
-    ['mimircache/CExtension/utils/glib_related.c'] +
-    glob('mimircache/CExtension/cacheReader/*.c'),
+    glob('mimircache/CExtension/cacheReader/*.c') +
+    glob('mimircache/CExtension/utils/*.c'),
     include_dirs=["mimircache/CExtension/headers"] + numpy_headers,
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args,
@@ -236,7 +243,7 @@ setup(
                   'csv': ['mimircache/data/trace.csv'],
                   'vscsi': ['mimircache/data/trace.vscsi'],
                   'conf': ['mimircache/conf']},
-
+    include_package_data=True,
     author="Juncheng Yang",
     author_email="peter.waynechina@gmail.com",
     description="mimircache platform for analyzing cache traces, developed by Ymir group @ Emory University",
