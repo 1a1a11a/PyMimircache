@@ -2,6 +2,7 @@ import os
 import logging
 import mimircache.c_LRUProfiler as c_LRUProfiler
 
+from mimircache.const import *
 from mimircache.cacheReader.plainReader import plainCacheReader
 from mimircache.cacheReader.vscsiReader import vscsiCacheReader
 from mimircache.cacheReader.abstractReader import cacheReaderAbstract
@@ -15,10 +16,14 @@ class LRUProfiler:
         assert isinstance(reader, cacheReaderAbstract), "you provided an invalid cacheReader"
 
         # if the given file is not basic reader, needs conversion
-        if not isinstance(reader, plainCacheReader) and not isinstance(reader, vscsiCacheReader):
+        need_convert = True
+        for instance in c_available_cacheReader:
+            if isinstance(reader, instance):
+                need_convert = False
+                break
+        if need_convert:
             self.prepare_file()
-        else:
-            self.num_of_lines = self.reader.get_num_total_lines()
+        self.num_of_lines = self.reader.get_num_of_total_requests()
 
     all = ["get_hit_count", "get_hit_rate", "get_miss_rate", "get_reuse_distance", "get_rd_distribution", \
            "plotMRC", "plotHRC", "get_best_cache_sizes"]
@@ -47,7 +52,6 @@ class LRUProfiler:
 
     def prepare_file(self):
         self.num_of_lines = 0
-        logging.debug("changing file format")
         with open('temp.dat', 'w') as ofile:
             i = self.reader.read_one_element()
             while i is not None:
@@ -132,6 +136,11 @@ class LRUProfiler:
             print("the plotting function is not wrong, is this a headless server?")
             print(e)
 
+    def __del__(self):
+        if (os.path.exists('temp.dat')):
+            os.remove('temp.dat')
+
+
     def get_best_cache_sizes(self, num, force_spacing=200, cut_off_divider=20):
         best_cache_sizes = c_LRUProfiler.get_best_cache_sizes(self.reader.cReader, num, force_spacing, cut_off_divider)
         return best_cache_sizes
@@ -140,9 +149,11 @@ class LRUProfiler:
 def _plot_HRC(filepath):
     reader = vscsiCacheReader(filepath)
     print("begin plotting " + filepath)
-    LRUProfiler(reader).get_hit_count()
-    print('after hit count')
-    LRUProfiler(reader).plotHRC(figname='HRC/' + filepath.split('/')[-1] + '_HRC.png', autosize=True)
+    cache_size = max(LRUProfiler(reader, cache_size=-1).get_best_cache_sizes(20, 200, 10))
+    # LRUProfiler(reader, cache_size=cache_size).get_hit_count()
+    # print('after hit count')
+    LRUProfiler(reader, cache_size=int(cache_size * 1.5)).plotHRC(
+        figname='0625_HRC/' + filepath.split('/')[-1] + '_HRC.png')
     reader.close()
     print("finish plotting " + filepath)
 
@@ -159,7 +170,7 @@ def _server_plot_all(path, threads):
     for filename in os.listdir(path):
         if filename.endswith('.vscsitrace'):
             figname = 'HRC_' + filename + '.png'
-            if os.path.exists('HRC/' + figname):
+            if os.path.exists('0625_HRC/' + figname):
                 continue
             else:
                 file_list.append(path + '/' + filename)

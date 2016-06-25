@@ -40,7 +40,7 @@ class vscsiCacheReader(cacheReaderAbstract):
         self.vscsiC.read_trace2.resType = c_int
         self.mem_original = c_void_p(self.c_mem.value)
         self._read()
-        self.get_num_total_lines()
+        self.get_num_of_total_requests()
 
 
     def get_lib_name(self):
@@ -81,8 +81,7 @@ class vscsiCacheReader(cacheReaderAbstract):
         else:
             return None
 
-
-    def get_num_total_lines(self):
+    def get_num_of_total_requests(self):
         return self.c_num_of_rec.value
 
 

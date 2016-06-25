@@ -1,20 +1,25 @@
 import os
+import configparser
+from mimircache.cacheReader.csvReader import csvCacheReader
+from mimircache.cacheReader.plainReader import plainCacheReader
+from mimircache.cacheReader.vscsiReader import vscsiCacheReader
 
 # global c_available_cache
 c_available_cache = []
+c_available_cacheReader = [plainCacheReader, vscsiCacheReader, csvCacheReader]
 cache_alg_mapping = {}
 BASE_DIR = os.path.dirname(__file__)
 
 DEFAULT_BIN_NUM_PROFILER = 100
+DEFAULT_NUM_OF_PROCESS = 4
 
 
 def init():
-    _init_C_available_cache()
+    _init_C_available_modules()
     _init_cache_alg_mapping()
 
 
-def _init_C_available_cache():
-    import configparser
+def _init_C_available_modules():
     config = configparser.ConfigParser()
     # print(BASE_DIR + '/conf')
     config.read(BASE_DIR + '/conf.py')
@@ -22,6 +27,14 @@ def _init_C_available_cache():
         c_available_cache.extend(config['C_available_cache'])
     else:
         raise RuntimeWarning("cannot find any cache module in C")
+
+        # if 'C_available_reader' in config.sections():
+        #     c_available_cacheReader.extend(config['C_available_reader'])
+        # else:
+        #     raise RuntimeWarning("cannot find any cacheReader module in C")
+
+
+
 
 
 def _init_cache_alg_mapping():

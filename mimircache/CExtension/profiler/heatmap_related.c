@@ -166,9 +166,6 @@ GArray* gen_breakpoints_virtualtime(READER* reader, guint64 time_interval){
     bp->array = break_points;
     reader->break_points = bp;
     
-    
-//    reader->break_points_v = break_points;
-
     reset_reader(reader);
     return break_points;
 }
@@ -183,11 +180,12 @@ GArray* gen_breakpoints_realtime(READER* reader, guint64 time_interval){
         printf("gen_breakpoints_realtime currently only support vscsi reader, program exit\n");
         exit(1);
     }
-
+    printf("here1\n");
     if (reader->break_points){
         if (reader->break_points->mode == 'r' && reader->break_points->time_interval == time_interval)
             return reader->break_points->array;
     }
+    printf("here2\n");
 
     guint64 previous_time = 0;
     GArray* break_points = g_array_new(FALSE, FALSE, sizeof(guint64));
@@ -223,9 +221,8 @@ GArray* gen_breakpoints_realtime(READER* reader, guint64 time_interval){
     bp->time_interval = time_interval;
     bp->array = break_points;
     reader->break_points = bp;
-
-//    reader->break_points_r = break_points;
     
+    // clean up
     free(cp);
     reset_reader(reader);
     return break_points;

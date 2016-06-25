@@ -27,16 +27,18 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
         self.trace_file.seek(0, 0)
         c_cacheReader.reset_reader(self.cReader)
 
-    def get_num_total_lines(self):
-        # self.num_of_line = 0
-        # if self.cReader:
-        #     self.num_of_line = c_cacheReader.get_num_of_lines(self.cReader)
-        # else:
-        #     while self.read_one_element():
-        #         # use the one above, not output progress
-        #         self.num_of_line += 1
-        #     self.reset()
-        self.num_of_line = c_cacheReader.get_num_of_lines(self.cReader)
+    def get_num_of_total_requests(self):
+        if self.num_of_line != -1:
+            return self.num_of_line
+
+        if self.cReader:
+            self.num_of_line = c_cacheReader.get_num_of_lines(self.cReader)
+        else:
+            while self.read_one_element():
+                # use the one above, not output progress
+                self.num_of_line += 1
+            self.reset()
+
         return self.num_of_line
 
     def __iter__(self):

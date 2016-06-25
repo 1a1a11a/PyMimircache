@@ -157,7 +157,7 @@ if __name__ == "__main__":
     #     print(i)
 
     # reader.reset()
-    print(reader.get_num_total_lines())
+    print(reader.get_num_of_total_requests())
 
     # for i in c_LRUProfiler.get_reuse_dist_seq(reader.cReader):
     #     print(i)

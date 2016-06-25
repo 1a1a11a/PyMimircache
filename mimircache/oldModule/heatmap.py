@@ -49,7 +49,7 @@ def prepare_heatmap_dat(bin_size=1000):
 
 def prepare_heatmap_dat_multiprocess(bin_size=1000, cache_size=2000, num_of_process=8):
     reader = plainCacheReader("../data/parda.trace")
-    total_line = reader.get_num_total_lines()
+    total_line = reader.get_num_of_total_requests()
     p = pardaProfiler(30000, reader)
     c_reuse_dist_long_array = p.get_reuse_distance()
 

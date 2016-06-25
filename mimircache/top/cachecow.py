@@ -4,7 +4,7 @@ from mimircache.cache.LFU_MRU import LFU_MRU
 from mimircache.cache.LFU_RR import LFU_RR
 from mimircache.cache.LRU import LRU
 from mimircache.cache.MRU import MRU
-from mimircache.cache.RR import RR
+from mimircache.cache.Random import Random
 from mimircache.cache.S4LRU import S4LRU
 from mimircache.cache.SLRU import SLRU
 from mimircache.cache.clock import clock
@@ -15,7 +15,9 @@ from mimircache.profiler.LRUProfiler import LRUProfiler
 from mimircache.profiler.generalProfiler import generalProfiler
 from mimircache.profiler.heatmap import heatmap
 import mimircache.const as const
+from mimircache.profiler.cGeneralProfiler import cGeneralProfiler
 from mimircache.profiler.cHeatmap import cHeatmap
+from mimircache.const import *
 
 
 class cachecow:
@@ -37,7 +39,7 @@ class cachecow:
         self.cacheclass_mapping['lfu_mru'] = LFU_MRU
         self.cacheclass_mapping['lfu_rr'] = LFU_RR
         self.cacheclass_mapping['mru'] = MRU
-        self.cacheclass_mapping['rr'] = RR
+        self.cacheclass_mapping['random'] = Random
         self.cacheclass_mapping['slru'] = SLRU
         self.cacheclass_mapping['s4lru'] = S4LRU
 
@@ -117,38 +119,42 @@ class cachecow:
     def twoDplot(self):
         pass
 
-
-    def profiler(self, cache_class, **kargs):
+    def profiler(self, cache_name, **kargs):
         """
         profiler
         :param cache_class:
         :param kargs:
         :return:
         """
-        size, reader = self._profiler_pre_check(cache_class, **kargs)
+        size, reader = self._profiler_pre_check(cache_name, **kargs)
 
         profiler = None
+        cache_params = None
+        bin_size = -1
+        num_of_process = DEFAULT_NUM_OF_PROCESS
 
         # print(cache_class)
 
-        if cache_class.lower() == "lru":
+        if cache_name.lower() == "lru":
             profiler = LRUProfiler(reader, size)
-            # print(profiler)
         else:
             if 'bin_size' in kargs:
                 bin_size = kargs['bin_size']
-            else:
-                raise RuntimeError("please give bin_size parameter if you want to profile on non-LRU cache "
-                                   "replacement algorithm")
+
             if 'num_of_process' in kargs:
                 num_of_process = kargs['num_of_process']
+
+            if 'cache_params' in kargs:
+                cache_params = kargs['cache_params']
+
+            if isinstance(cache_name, str):
+                if cache_name.lower() in c_available_cache:
+                    profiler = cGeneralProfiler(reader, cache_name, size, bin_size, cache_params, num_of_process)
+                else:
+                    profiler = generalProfiler(reader, self.cacheclass_mapping[cache_name.lower()], size, bin_size,
+                                               cache_params, num_of_process)
             else:
-                num_of_process = 4
-            if isinstance(cache_class, str):
-                profiler = generalProfiler(self.cacheclass_mapping[cache_class.lower()], size, bin_size,
-                                           reader, num_of_process)
-            else:
-                profiler = generalProfiler(cache_class, size, bin_size, reader, num_of_process)
+                profiler = generalProfiler(reader, cache_name, size, bin_size, cache_params, num_of_process)
 
         return profiler
 
@@ -176,6 +182,9 @@ if __name__ == "__main__":
     p = c.profiler("LRU")
     print(p.get_reuse_distance())
     p.plotHRC()
+
+    p = c.profiler('optimal')
+    print(p.get_hit_count())
 
     # c.heatmap('LRU', 'r', 100000000, "hit_rate_start_time_end_time")
 

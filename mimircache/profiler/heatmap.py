@@ -12,7 +12,6 @@ currently supported plot type:
         # 5. rd_distribution
 """
 
-import logging
 import os
 import pickle
 from collections import deque
@@ -336,6 +335,7 @@ class heatmap:
         :param bin_size: the size of the group (virtual time slice)
         :param total_length: the total length of trace requests
         :return: a list of break points
+
         """
         break_points = []
         assert total_length // bin_size > 10, "bin size too large, please choose a smaller one, " \
@@ -470,33 +470,6 @@ class heatmap:
             plt.pcolormesh(masked_array.T, cmap=cmap)
             plt.savefig(filename)
 
-    @staticmethod
-    def draw2d(l, **kwargs):
-        if 'figname' in kwargs:
-            filename = kwargs['figname']
-        else:
-            filename = '2d_plot.png'
-
-        try:
-            # print(l)
-            plt.plot(l)
-
-            if 'xlabel' in kwargs:
-                plt.xlabel(kwargs['xlabel'])
-            if 'ylabel' in kwargs:
-                plt.ylabel(kwargs['ylabel'])
-            if 'xticks' in kwargs:
-                plt.gca().xaxis.set_major_formatter(kwargs['xticks'])
-            if 'yticks' in kwargs:
-                plt.gca().yaxis.set_major_formatter(kwargs['yticks'])
-
-            # plt.show()
-            plt.savefig(filename)
-            colorfulPrint("red", "plot is saved at the same directory")
-            plt.clf()
-        except Exception as e:
-            logging.warning(str(e))
-            plt.savefig(filename)
 
     @staticmethod
     def draw_3D(xydict, **kwargs):
@@ -751,46 +724,6 @@ def server_plot_all_redis():
             hm.run('r', 20, 2000, reader, num_of_process=48, figname=filename + '_r.png',
                    fixed_range="True")  # , change_label='True')
 
-
-def request_num_2d(reader, mode, interval, **kwargs):
-    # reader = vscsiCacheReader("../data/trace_CloudPhysics_bin")
-
-    hm = heatmap()
-    if mode == 'r':
-        break_points = hm._get_breakpoints_realtime(reader, interval)
-    elif mode == 'v':
-        # p = pardaProfiler(2000, reader2)
-        p = LRUProfiler(2000, reader)
-        break_points = hm._get_breakpoints_virtualtime(interval, p.num_of_lines)
-
-    l = []
-    for i in range(len(break_points)):
-        if i == 0:
-            continue
-        else:
-            l.append(break_points[i] - break_points[i - 1])
-    xticks = ticker.FuncFormatter(lambda x, pos: '{:2.0f}%'.format(x * 100 / len(break_points)))
-    hm.draw2d(l, figname=kwargs['figname'], xticks=xticks)
-
-    reader.reset()
-
-
-def cold_miss_2d(reader, mode, interval, **kwargs):
-    # reader2 = vscsiCacheReader("../data/trace_CloudPhysics_bin")
-
-    hm = heatmap()
-    break_points = None
-    if mode == 'r':
-        break_points = hm._get_breakpoints_realtime(reader, interval)
-    elif mode == 'v':
-        p = pardaProfiler(2000, reader)
-        break_points = hm._get_breakpoints_virtualtime(interval,
-                                                       reader.get_num_total_lines())  # p.num_of_trace_elements)
-
-    l = calc_cold_miss_count(break_points, reader)
-    xticks = ticker.FuncFormatter(lambda x, pos: '{:2.0f}%'.format(x * 100 / len(break_points)))
-    hm.draw2d(l, figname=kwargs['figname'], xticks=xticks)
-    reader.reset()
 
 
 def localtest():

@@ -444,14 +444,14 @@ static PyObject* heatmap_rd_distribution_py(PyObject* self, PyObject* args, PyOb
     }
     
     
-    printf("before computation\n");
+    DEBUG(printf("before computation\n"));
     draw_dict* dd;
     if (CDF){
         dd = heatmap(reader, NULL, *mode, time_interval, rd_distribution_CDF, num_of_threads);
     }
     else
         dd = heatmap(reader, NULL, *mode, time_interval, rd_distribution, num_of_threads);
-    printf("after computation\n");
+    DEBUG(printf("after computation\n"));
     
     // create numpy array
     npy_intp dims[2] = { dd->ylength, dd->xlength };
@@ -512,9 +512,9 @@ static PyObject* heatmap_future_rd_distribution_py(PyObject* self, PyObject* arg
     }
     
     
-    printf("before computation\n");
+    DEBUG(printf("before computation\n"));
     draw_dict* dd = heatmap(reader, NULL, *mode, time_interval, future_rd_distribution, num_of_threads);
-    printf("after computation\n");
+    DEBUG(printf("after computation\n"));
     
     // create numpy array
     npy_intp dims[2] = { dd->ylength, dd->xlength };
@@ -539,6 +539,54 @@ static PyObject* heatmap_future_rd_distribution_py(PyObject* self, PyObject* arg
 }
 
 
+static PyObject* heatmap_get_break_points(PyObject* self, PyObject* args, PyObject* keywds)
+{
+    PyObject* po;
+    READER* reader;
+    int num_of_threads = 4;
+    char* mode;
+    long time_interval;
+    
+    static char *kwlist[] = {"reader", "mode", "time_interval", NULL};
+    
+    // parse arguments
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osl", kwlist, &po, &mode, &time_interval, &num_of_threads)) {
+        printf("parsing argument failed in heatmap_get_break_points\n");
+        return NULL;
+    }
+    
+    if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
+        return NULL;
+    }
+    
+    
+    DEBUG(printf("before get break points\n"));
+    GArray* breakpoints;
+    if (mode[0] == 'r')
+        breakpoints = gen_breakpoints_realtime(reader, (guint64)time_interval);
+    else
+        breakpoints = gen_breakpoints_virtualtime(reader, (guint64)time_interval);
+    DEBUG(printf("after get break points\n"));
+    
+    // create numpy array
+    npy_intp dims[1] = { breakpoints->len };
+    
+    PyObject* ret_array = PyArray_EMPTY(1, dims, NPY_LONGLONG, 0);
+    
+    
+    guint64 i;
+    for (i=0; i<breakpoints->len; i++)
+        *(long long*) PyArray_GETPTR1((PyArrayObject *)ret_array, i) = (long long)g_array_index(breakpoints, guint64, i);
+
+    printf("done copy\n");
+    
+    // clean up
+    g_array_free(breakpoints, TRUE);
+    return ret_array;
+}
+
+
+
 
 static PyMethodDef c_heatmap_funcs[] = {
     {"get_last_access_dist", (PyCFunction)heatmap_get_last_access_dist_seq,
@@ -557,6 +605,8 @@ static PyMethodDef c_heatmap_funcs[] = {
         METH_VARARGS | METH_KEYWORDS, "reuse distance distribution heatmap"},
     {"heatmap_future_rd_distribution", (PyCFunction)heatmap_future_rd_distribution_py,
         METH_VARARGS | METH_KEYWORDS, "reuse distance distribution heatmap"},
+    {"gen_breakpoints", (PyCFunction)heatmap_get_break_points,
+        METH_VARARGS | METH_KEYWORDS, "generate virtual/real break points"},
     {NULL, NULL, 0, NULL}
 };
 

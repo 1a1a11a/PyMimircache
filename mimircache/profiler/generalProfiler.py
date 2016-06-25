@@ -43,13 +43,14 @@ from mimircache.const import *
 
 
 class generalProfiler(profilerAbstract):
-    def __init__(self, reader, cache_class, cache_size, bin_size=-1, cache_params=None, num_of_process=4):
+    def __init__(self, reader, cache_class, cache_size, bin_size=-1, cache_params=None,
+                 num_of_process=DEFAULT_NUM_OF_PROCESS):
         super(generalProfiler, self).__init__(cache_class, cache_size, reader)
         self.cache_params = cache_params
         self.num_of_process = num_of_process
 
         if bin_size == -1:
-            self.bin_size = cache_size / DEFAULT_BIN_NUM_PROFILER
+            self.bin_size = int(self.cache_size / DEFAULT_BIN_NUM_PROFILER)
         else:
             self.bin_size = bin_size
         self.num_of_process = num_of_process

@@ -43,7 +43,8 @@ from mimircache.const import *
 
 
 class cGeneralProfiler:
-    def __init__(self, reader, cache_name, cache_size, bin_size=-1, cache_params=None, num_of_threads=4):
+    def __init__(self, reader, cache_name, cache_size, bin_size=-1, cache_params=None,
+                 num_of_threads=DEFAULT_NUM_OF_PROCESS):
         assert cache_name.lower() in cache_alg_mapping, "please check your cache replacement algorithm: " + cache_name
         assert cache_name.lower() in c_available_cache, \
             "cGeneralProfiler currently only available on the following caches: {}\n, " \
@@ -53,13 +54,33 @@ class cGeneralProfiler:
         self.cache_size = cache_size
         self.cache_name = cache_alg_mapping[cache_name.lower()]
         if bin_size == -1:
-            self.bin_size = self.cache_size / DEFAULT_BIN_NUM_PROFILER
+            self.bin_size = int(self.cache_size / DEFAULT_BIN_NUM_PROFILER)
         else:
             self.bin_size = bin_size
         self.cache_params = cache_params
         self.num_of_threads = num_of_threads
 
+        # if the given file is not basic reader, needs conversion
+        need_convert = True
+        for instance in c_available_cacheReader:
+            if isinstance(reader, instance):
+                need_convert = False
+                break
+        if need_convert:
+            self.prepare_file()
+
     all = ["get_hit_count", "get_hit_rate", "get_miss_rate", "plotMRC", "plotHRC"]
+
+    def prepare_file(self):
+        self.num_of_lines = 0
+        with open('temp.dat', 'w') as ofile:
+            i = self.reader.read_one_element()
+            while i is not None:
+                self.num_of_lines += 1
+                ofile.write(str(i) + '\n')
+                i = self.reader.read_one_element()
+        self.reader = plainCacheReader('temp.dat')
+
 
     def get_hit_count(self, **kwargs):
         """
@@ -122,6 +143,9 @@ class cGeneralProfiler:
             print("the plotting function is not wrong, is this a headless server?")
             print(e)
 
+    def __del__(self):
+        if (os.path.exists('temp.dat')):
+            os.remove('temp.dat')
 
 
 if __name__ == "__main__":

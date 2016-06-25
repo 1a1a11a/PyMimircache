@@ -1,13 +1,11 @@
 def calc_cold_miss_count(break_points, reader, **kwargs):
     """
-    the function for calculating cold miss count in each block, each child process will calculate for
-    a column with fixed starting time
+    the function for calculating cold miss count in each block
     :param reader:
     :param break_points:
-    :return: a list of result in the form of (x, y, miss_count) with x as fixed value
+    :return:
     """
 
-    reader.reset()
     result_list = [0] * (len(break_points) - 1)
     seen_set = set()
     for i in range(len(break_points) - 1):

@@ -26,6 +26,9 @@ class cHeatmap:
         self.other_plot_kwargs = {}
         self.cache_size = -1
 
+    def gen_breakpoints(self, reader, mode, time_interval):
+        return c_heatmap.gen_breakpoints(reader.cReader, mode, time_interval)
+
     def set_plot_params(self, axis, axis_type, **kwargs):
         log_base = 1
         label = ''
@@ -450,9 +453,9 @@ if __name__ == "__main__":
     import time
 
     t1 = time.time()
-    server_plot_all(path="/run/shm/traces/")
+    # server_plot_all(path="/run/shm/traces/")
     # server_plot_all(path="../../../../disk/traces/", num_of_threads=16)
-    localtest()
+    # localtest()
 
     CACHESIZE = 327680
     BINSIZE = 1
@@ -465,38 +468,12 @@ if __name__ == "__main__":
     from mimircache.cacheReader.plainReader import plainCacheReader
     from mimircache.profiler.generalProfiler import generalProfiler
 
-    # hm = heatmap()
+    from mimircache.profiler.heatmap import heatmap
+
+    hm = cHeatmap()
     reader = vscsiCacheReader('../data/trace.vscsi')
+    print(hm.gen_breakpoints(reader, 'r', 1000000))
+    print(heatmap()._get_breakpoints_realtime(reader, 1000000))
     # reader = vscsiCacheReader('/home/cloudphysics/traces/w84_vscsi1.vscsitrace')
 
 
-
-
-    # print("Reuse dist")
-    # rd = c_LRUProfiler.get_reuse_dist_seq(reader.cReader, begin=23, end=43)
-    # print(rd)
-    #
-    # print("hit count")
-    # hc = c_LRUProfiler.get_hit_count_seq(reader.cReader, CACHESIZE, begin=23, end=43)
-    # print(hc)
-    #
-    # print("Hit rate_LRU")
-    # hr_LRU = c_LRUProfiler.get_hit_rate_seq(reader.cReader, CACHESIZE, begin=23, end=43)
-    # print(hr_LRU[:-2])
-    #
-    # print("next access")
-    # na = c_heatmap.get_next_access_dist(reader.cReader, 23, 43)
-    # print(na)
-    #
-
-    # print("Hit rate Optimal")
-    # hr = c_generalProfiler.get_hit_rate(reader.cReader, CACHESIZE, "Optimal", BINSIZE, 8, begin=23, end=43)
-    # print(hr)
-
-    # reader = plainCacheReader('../data/test.dat')
-    # from mimircache.cache.Optimal import optimal
-    # p = generalProfiler(optimal, (CACHESIZE, reader), BINSIZE, reader, 2)
-    import time
-    # p.run()
-    # hr_Optimal_py = p.HRC
-    # print(hr_Optimal_py)
