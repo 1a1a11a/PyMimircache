@@ -63,6 +63,7 @@ return_res** profiler(READER* reader_in, struct_cache* cache_in, int num_of_thre
     /**
      if profiling from the very beginning, then set begin_pos=0, 
      if porfiling till the end of trace, then set end_pos=-1 or the length of trace+1; 
+     return results do not include size 0 
      **/
     
     int i;
@@ -77,10 +78,7 @@ return_res** profiler(READER* reader_in, struct_cache* cache_in, int num_of_thre
     int num_of_threads = num_of_threads_in;
     int bin_size = bin_size_in;
     
-    long num_of_bins = cache_in->core->size/bin_size;
-    
-    if (num_of_bins * bin_size < cache_in->core->size)
-        num_of_bins ++;                         // this happens when size is not a multiple of bin_size
+    long num_of_bins = ceil(cache_in->core->size/bin_size);
     
     if (end_pos==-1)
         if (reader_in->total_num == -1)
@@ -127,7 +125,8 @@ return_res** profiler(READER* reader_in, struct_cache* cache_in, int num_of_thre
 
     // clean up
     for (i=0; i<num_of_bins; i++)
-        caches[i]->core->destroy(caches[i]);
+        caches[i]->core->destroy_unique(caches[i]);
+    
     for (i=0; i<num_of_threads; i++)
         free(params[i]);
     free(caches);
@@ -142,36 +141,70 @@ return_res** profiler(READER* reader_in, struct_cache* cache_in, int num_of_thre
 
 
 
-//#include "reader.h"
-//#include "FIFO.h"
-//#include "Optimal.h"
-//
-//int main(int argc, char* argv[]){
-//# define CACHESIZE 1
-//# define BIN_SIZE 1
-//    
-//    
-//    printf("test_begin!\n");
-//    
-//    READER* reader = setup_reader(argv[1], 'v');
-//    
-////    struct_cache* cache = fifo_init(CACHESIZE, 'v', NULL);
-//    
-//    struct optimal_init_params init_params = {.reader=reader, .next_access=NULL};
-//    
-//    struct_cache* cache = optimal_init(CACHESIZE, 'v', (void*)&init_params);
-//    
-//    
-//
-//    printf("after initialization, begin profiling\n");
-//    return_res** res = profiler(reader, cache, 4, BIN_SIZE, 23, 43);
-//    
-//    int i;
-//    for (i=0; i<CACHESIZE/BIN_SIZE; i++){
-//        printf("%lld: %f\n", res[i]->cache_size, res[i]->hit_rate);
-//    }
-//    
-//    
-//    printf("test_finished!\n");
-//    return 0;
-//}
+#include "reader.h"
+#include "FIFO.h"
+#include "Optimal.h"
+
+int main(int argc, char* argv[]){
+# define CACHESIZE 200
+# define BIN_SIZE 20
+    
+    
+    printf("test_begin!\n");
+    
+    READER* reader = setup_reader(argv[1], 'v');
+    
+//    struct_cache* cache = fifo_init(CACHESIZE, 'v', NULL);
+    
+    struct optimal_init_params init_params = {.reader=reader, .next_access=NULL, .ts=0};
+    
+    struct_cache* cache = optimal_init(CACHESIZE, 'v', (void*)&init_params);
+    
+    
+    printf("after initialization, begin profiling\n");
+    return_res** res = profiler(reader, cache, CACHESIZE, BIN_SIZE, 23, 43);
+    
+    int i;
+    for (i=0; i<CACHESIZE/BIN_SIZE; i++){
+        printf("%lld: %f\n", res[i]->cache_size, res[i]->hit_rate);
+        free(res[i]);
+    }
+    
+    cache->core->destroy(cache);
+    free(res);
+    printf("after profiling\n");
+
+    cache = optimal_init(CACHESIZE, 'v', (void*)&init_params);
+    
+    printf("after initialization, begin profiling\n");
+    res = profiler(reader, cache, CACHESIZE, BIN_SIZE, 23, 43);
+    
+    for (i=0; i<CACHESIZE/BIN_SIZE; i++){
+        printf("%lld: %f\n", res[i]->cache_size, res[i]->miss_rate);
+        free(res[i]);
+    }
+    
+    cache->core->destroy(cache);
+    free(res);
+    printf("after profiling\n");
+
+    
+    cache = optimal_init(CACHESIZE, 'v', (void*)&init_params);
+    
+    printf("after initialization, begin profiling\n");
+    res = profiler(reader, cache, CACHESIZE, BIN_SIZE, 23, 43);
+    
+    for (i=0; i<CACHESIZE/BIN_SIZE; i++){
+        printf("%lld: %f\n", res[i]->cache_size, res[i]->miss_rate);
+        free(res[i]);
+    }
+    
+    cache->core->destroy(cache);
+    free(res);
+    
+    close_reader(reader);
+    
+    
+    printf("test_finished!\n");
+    return 0;
+}

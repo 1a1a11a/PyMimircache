@@ -332,8 +332,6 @@ class cHeatmap:
         else:
             plot_array = np.ma.array(xydict, mask=np.tri(len(xydict), dtype=int).T)
 
-        print(plot_array)
-
         cmap = plt.cm.jet
         cmap.set_bad('w', 1.)
 

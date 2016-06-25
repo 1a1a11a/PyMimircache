@@ -25,7 +25,7 @@ from mimircache.cache.LFU_MRU import LFU_MRU
 from mimircache.cache.LFU_RR import LFU_RR
 from mimircache.cache.LRU import LRU
 from mimircache.cache.MRU import MRU
-from mimircache.cache.RR import RR
+from mimircache.cache.Random import Random
 from mimircache.cache.SLRU import SLRU
 from mimircache.cache.S4LRU import S4LRU
 from mimircache.cache.Optimal import optimal
@@ -42,13 +42,15 @@ debug = True
 
 
 class generalProfiler(profilerAbstract):
-    def __init__(self, reader, cache_class, cache_size, bin_size, cache_params=None, num_of_process=4):
+    def __init__(self, reader, cache_class, cache_size, bin_size=-1, cache_params=None, num_of_process=4):
         super(generalProfiler, self).__init__(cache_class, cache_size, reader)
         self.cache_params = cache_params
         self.num_of_process = num_of_process
 
-
-        self.bin_size = bin_size
+        if bin_size == -1:
+            self.bin_size = cache_size / 100
+        else:
+            self.bin_size = bin_size
         self.num_of_process = num_of_process
 
         if self.cache_size != -1:
@@ -250,7 +252,7 @@ if __name__ == "__main__":
     arc_dict = {'p': 0.5, 'ghostlist_size': -1}
     # p = generalProfiler(r, ARC, 1000, 100, arc_dict, 8)
 
-    p = generalProfiler(r, RR, 30, 20, num_of_process=8)
+    p = generalProfiler(r, Random, 30, 20, num_of_process=8)
     p.run()
     print(p.get_hit_rate())
     print(p.get_hit_count())

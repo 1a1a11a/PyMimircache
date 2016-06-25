@@ -3,7 +3,7 @@ import math
 from mimircache.cache.ARC import ARC
 from mimircache.cache.LFU_RR import LFU_RR
 from mimircache.cache.LRU import LRU
-from mimircache.cache.RR import RR
+from mimircache.cache.Random import Random
 from mimircache.cache.SLRU import SLRU
 from mimircache.cache.Optimal import optimal
 import mimircache.c_generalProfiler as c_generalProfiler
@@ -57,7 +57,7 @@ def calc_hit_rate_start_time_end_time_subprocess_general(order, cache, break_poi
 
     cache_size = kwargs['cache_size']
     if cache == 'RR':
-        c = RR(cache_size=cache_size)
+        c = Random(cache_size=cache_size)
     if cache == 'SLRU':
         c = SLRU(cache_size=cache_size)
     if cache == 'ARC':

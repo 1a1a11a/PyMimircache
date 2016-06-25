@@ -11,10 +11,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include <glib.h>
 #include "reader.h"
 #include "glib_related.h"
 #include "cache.h" 
+#include "const.h"
 
 typedef struct{
     long long total_count;
