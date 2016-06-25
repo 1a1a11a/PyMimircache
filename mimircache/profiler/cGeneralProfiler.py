@@ -39,6 +39,7 @@ import matplotlib.pyplot as plt
 
 from mimircache.const import c_available_cache, cache_alg_mapping
 from mimircache.profiler.abstract.abstractProfiler import profilerAbstract
+from mimircache.const import *
 
 
 class cGeneralProfiler:
@@ -52,7 +53,7 @@ class cGeneralProfiler:
         self.cache_size = cache_size
         self.cache_name = cache_alg_mapping[cache_name.lower()]
         if bin_size == -1:
-            self.bin_size = self.cache_size / 100
+            self.bin_size = self.cache_size / DEFAULT_BIN_NUM_PROFILER
         else:
             self.bin_size = bin_size
         self.cache_params = cache_params

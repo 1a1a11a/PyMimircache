@@ -30,6 +30,7 @@ from mimircache.cache.SLRU import SLRU
 from mimircache.cache.S4LRU import S4LRU
 from mimircache.cache.Optimal import optimal
 
+
 from mimircache.cacheReader.plainReader import plainCacheReader
 
 import mimircache.c_generalProfiler as c_generalProfiler
@@ -38,7 +39,7 @@ import matplotlib.pyplot as plt
 
 from mimircache.profiler.abstract.abstractProfiler import profilerAbstract
 
-debug = True
+from mimircache.const import *
 
 
 class generalProfiler(profilerAbstract):
@@ -48,7 +49,7 @@ class generalProfiler(profilerAbstract):
         self.num_of_process = num_of_process
 
         if bin_size == -1:
-            self.bin_size = cache_size / 100
+            self.bin_size = cache_size / DEFAULT_BIN_NUM_PROFILER
         else:
             self.bin_size = bin_size
         self.num_of_process = num_of_process

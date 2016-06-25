@@ -23,6 +23,7 @@ from mimircache.profiler.LRUProfiler import LRUProfiler as LRUProfiler
 from mimircache.profiler.generalProfiler import generalProfiler as generalProfiler
 from mimircache.profiler.heatmap import heatmap as heatmap
 from mimircache.top.cachecow import cachecow as cachecow
+from mimircache.const import *
 
 from mimircache.const import init
 

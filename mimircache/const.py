@@ -5,6 +5,8 @@ c_available_cache = []
 cache_alg_mapping = {}
 BASE_DIR = os.path.dirname(__file__)
 
+DEFAULT_BIN_NUM_PROFILER = 100
+
 
 def init():
     _init_C_available_cache()
