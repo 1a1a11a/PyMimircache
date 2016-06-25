@@ -4,8 +4,8 @@
 
 """
 
-import matplotlib
-matplotlib.use('Agg')
+# import matplotlib
+# matplotlib.use('Agg')
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -17,8 +17,8 @@ from mimircache.cache.LRU import LRU as LRU
 from mimircache.cacheReader.csvReader import csvCacheReader as csvReader
 from mimircache.cacheReader.plainReader import plainCacheReader as plainReader
 from mimircache.cacheReader.vscsiReader import vscsiCacheReader as vscsiReader
-from mimircache.oldModule.pardaProfiler import pardaProfiler as pardaProfiler
-from mimircache.oldModule.pardaProfiler import parda_mode as parda_mode
+# from mimircache.oldModule.pardaProfiler import pardaProfiler as pardaProfiler
+# from mimircache.oldModule.pardaProfiler import parda_mode as parda_mode
 from mimircache.profiler.LRUProfiler import LRUProfiler as LRUProfiler
 from mimircache.profiler.generalProfiler import generalProfiler as generalProfiler
 from mimircache.profiler.heatmap import heatmap as heatmap
