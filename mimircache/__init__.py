@@ -4,14 +4,14 @@
 
 """
 
-# import matplotlib
-# matplotlib.use('Agg')
+import matplotlib
+
+matplotlib.use('Agg')
 
 import warnings
 warnings.filterwarnings("ignore")
 
-
-import logging
+# import logging
 
 from mimircache.cache.LRU import LRU as LRU
 from mimircache.cacheReader.csvReader import csvCacheReader as csvReader

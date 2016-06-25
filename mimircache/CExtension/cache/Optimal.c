@@ -154,6 +154,7 @@ void optimal_destroy(struct_cache* cache){
     g_hash_table_destroy(optimal_params->hashtable);
     pqueue_free(optimal_params->pq);
     g_array_free (optimal_params->next_access, TRUE);
+    ((struct optimal_init_params*)(cache->core->cache_init_params))->next_access = NULL;
    
     cache_destroy(cache);
 }
@@ -223,10 +224,10 @@ struct_cache* optimal_init(long long size, char data_type, void* params){
         GSList* list_move = list;
     
     
-        gint64 dist = (gint64)(GPOINTER_TO_INT(list_move->data));
+        gint dist = (GPOINTER_TO_INT(list_move->data));
         g_array_append_val(array, dist );
         while ( (list_move=g_slist_next(list_move)) != NULL){
-            dist = (gint64)(GPOINTER_TO_INT(list_move->data));
+            dist = (GPOINTER_TO_INT(list_move->data));
             g_array_append_val(array, dist);
         }
         g_slist_free(list);

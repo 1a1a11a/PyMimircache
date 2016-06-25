@@ -3,7 +3,7 @@ import random
 from mimircache.cache.abstractCache import cache
 
 
-class RR(cache):
+class Random(cache):
     def __init__(self, cache_size=1000):
         super().__init__(cache_size)
         self.cacheDict = dict()  # key -> linked list node (in reality, it should also contains value)

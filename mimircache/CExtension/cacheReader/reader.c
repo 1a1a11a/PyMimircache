@@ -281,7 +281,7 @@ void reader_set_read_pos(READER* reader, float pos){
 
 long long get_num_of_cache_lines(READER* reader){
     
-#define BUFFER_SIZE 1024*1024*5
+#define BUFFER_SIZE 1024*1024
     long long num_of_lines = 0;
     char temp[BUFFER_SIZE+1];       // 5MB buffer
     int fd, i=0;

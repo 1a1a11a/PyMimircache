@@ -1,0 +1,5 @@
+1. if you want to write your own cache replacement algorithm in C, here are the procedures:
+a. write your own cache replacement algorithm, put C file under CExtension/cache, put header file under Cextension/headers/cache
+b. modify python_generalProfiler_wrapper and python_heatmap to add your cache replacement algorithms
+c. add cache_alg_mapping in const.py file
+d.
