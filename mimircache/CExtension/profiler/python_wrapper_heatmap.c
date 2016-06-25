@@ -581,7 +581,7 @@ static PyObject* heatmap_get_break_points(PyObject* self, PyObject* args, PyObje
     printf("done copy\n");
     
     // clean up
-    g_array_free(breakpoints, TRUE);
+//    g_array_free(breakpoints, TRUE);      DON'T FREE it, if you are going to free it, also remember to free break point struct
     return ret_array;
 }
 

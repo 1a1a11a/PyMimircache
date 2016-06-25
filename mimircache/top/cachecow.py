@@ -18,6 +18,7 @@ import mimircache.const as const
 from mimircache.profiler.cGeneralProfiler import cGeneralProfiler
 from mimircache.profiler.cHeatmap import cHeatmap
 from mimircache.const import *
+from mimircache.profiler.twoDPlots import *
 
 
 class cachecow:
@@ -168,8 +169,14 @@ class cachecow:
     def __next__(self):  # Python 3
         return self.reader.next()
 
-    def test(self):
-        print(self.cache_size)
+    def twoDPlot(self, plot_type, mode, time_interval):
+        if plot_type == 'cold_miss':
+            cold_miss_2d(self.reader, mode, time_interval)
+        elif plot_type == 'request_num':
+            request_num_2d(self.reader, mode, time_interval)
+        else:
+            print("currently don't support your specified plot_type: " + str(plot_type))
+
 
 
 if __name__ == "__main__":

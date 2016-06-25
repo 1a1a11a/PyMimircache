@@ -180,12 +180,10 @@ GArray* gen_breakpoints_realtime(READER* reader, guint64 time_interval){
         printf("gen_breakpoints_realtime currently only support vscsi reader, program exit\n");
         exit(1);
     }
-    printf("here1\n");
-    if (reader->break_points){
-        if (reader->break_points->mode == 'r' && reader->break_points->time_interval == time_interval)
+    if (reader->break_points)
+        if (reader->break_points->mode == 'r' && reader->break_points->time_interval == time_interval){
             return reader->break_points->array;
-    }
-    printf("here2\n");
+        }
 
     guint64 previous_time = 0;
     GArray* break_points = g_array_new(FALSE, FALSE, sizeof(guint64));
@@ -229,7 +227,7 @@ GArray* gen_breakpoints_realtime(READER* reader, guint64 time_interval){
 }
 
 
-
+//
 //#include "reader.h"
 //#include "FIFO.h"
 //#include "Optimal.h"
@@ -245,21 +243,27 @@ GArray* gen_breakpoints_realtime(READER* reader, guint64 time_interval){
 //
 ////    struct_cache* cache = fifo_init(CACHESIZE, 'v', NULL);
 //
-//    struct optimal_init_params init_params = {.reader=reader, .next_access=NULL};
-//
-//    struct_cache* cache = optimal_init(CACHESIZE, 'v', (void*)&init_params);
+////    struct optimal_init_params init_params = {.reader=reader, .next_access=NULL};
+////
+////    struct_cache* cache = optimal_init(CACHESIZE, 'v', (void*)&init_params);
 //
 //
 //
 //    printf("after initialization, begin profiling\n");
 //    
-//    GArray* break_points = gen_breakpoints_realtime(reader, 10000000);
+//    GArray* break_points = gen_breakpoints_realtime(reader, 1000000000);
+//    for (i=0; i<break_points->len; i++)
+//        printf("%lu\n", g_array_index(break_points, guint64, i));
+////    g_array_free(break_points, TRUE);
+//    
+//    break_points = gen_breakpoints_realtime(reader, 1000000000);
 //    for (i=0; i<break_points->len; i++)
 //        printf("%lu\n", g_array_index(break_points, guint64, i));
 //    
-//
+//    close_reader(reader);
 //    printf("test_finished!\n");
 //    return 0;
 //}
-//
-//
+
+
+
