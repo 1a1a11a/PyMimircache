@@ -42,17 +42,17 @@ void heatmap_nonLRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer 
         dd->matrix[order][i] = (double)(hit_count)/(hit_count+miss_count);
     }
 
-    for(j=0; j< reader_thread->total_num - g_array_index(break_points, guint64, break_points->len - 1); j++){
-        read_one_element(reader_thread, cp);
-        if (!cp->valid)
-            printf("detect error in heatmap_nonLRU_hit_rate_start_time_end_time, difference: %llu\n",
-                   reader_thread->total_num - g_array_index(break_points, guint64, break_points->len - 1) - j);
-        if (cache->core->add_element(cache, cp))
-            hit_count++;
-        else
-            miss_count++;
-    }
-    dd->matrix[order][i] = (double)(hit_count)/(hit_count+miss_count);
+//    for(j=0; j< reader_thread->total_num - g_array_index(break_points, guint64, break_points->len - 1); j++){
+//        read_one_element(reader_thread, cp);
+//        if (!cp->valid)
+//            printf("detect error in heatmap_nonLRU_hit_rate_start_time_end_time, difference: %llu\n",
+//                   reader_thread->total_num - g_array_index(break_points, guint64, break_points->len - 1) - j);
+//        if (cache->core->add_element(cache, cp))
+//            hit_count++;
+//        else
+//            miss_count++;
+//    }
+//    dd->matrix[order][i] = (double)(hit_count)/(hit_count+miss_count);
     
 
     // clean up
@@ -98,20 +98,19 @@ void heatmap_LRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer use
                 hit_count ++;
             else
                 miss_count ++;
-//            printf("last access %d, j %lu, real_start %lu, reuse dist %lld, cache_size %lu, hitcount: %lu\n", last_access[j], j, real_start, reuse_dist[j], cache_size, hit_count);
         }
         dd->matrix[order][i] = (double)(hit_count)/(hit_count+miss_count);
     }
     
-    for(j=g_array_index(break_points, guint64, break_points->len - 1); j<(guint64)reader_thread->total_num; j++){
-        if (reuse_dist[j] == -1)
-            miss_count ++;
-        else if (last_access[j] - (j - real_start) <=0 && (guint64)reuse_dist[j] < cache_size)
-            hit_count ++;
-        else
-            miss_count ++;
-    }
-    dd->matrix[order][i] = (double)(hit_count)/(hit_count+miss_count);
+//    for(j=g_array_index(break_points, guint64, break_points->len - 1); j<(guint64)reader_thread->total_num; j++){
+//        if (reuse_dist[j] == -1)
+//            miss_count ++;
+//        else if (last_access[j] - (j - real_start) <=0 && (guint64)reuse_dist[j] < cache_size)
+//            hit_count ++;
+//        else
+//            miss_count ++;
+//    }
+//    dd->matrix[order][i] = (double)(hit_count)/(hit_count+miss_count);
 //    printf("one around, hit count: %lu, miss count: %lu, matrix hr: %lf\n", hit_count, miss_count, dd->matrix[order][i]);
     
     // clean up
@@ -147,13 +146,13 @@ void heatmap_rd_distribution_thread(gpointer data, gpointer user_data){
                 array[(long)(log(reuse_dist[j])/(log(log_base)))] += 1;
         }
     }
-    else{
-        for(j=g_array_index(break_points, guint64, order); (long long)j< params->reader->total_num; j++)
-            if (reuse_dist[j] == 0 ||reuse_dist[j] == 1)
-                array[0] += 1;
-            else
-                array[(long)(log(reuse_dist[j])/(log(log_base)))] += 1;
-    }
+//    else{
+//        for(j=g_array_index(break_points, guint64, order); (long long)j< params->reader->total_num; j++)
+//            if (reuse_dist[j] == 0 ||reuse_dist[j] == 1)
+//                array[0] += 1;
+//            else
+//                array[(long)(log(reuse_dist[j])/(log(log_base)))] += 1;
+//    }
 
     
     // clean up
@@ -184,14 +183,14 @@ void heatmap_rd_distribution_CDF_thread(gpointer data, gpointer user_data){
                 array[(long)(log(reuse_dist[j])/(log(log_base)))] += 1;
         }
     }
-    else{
-        for(j=g_array_index(break_points, guint64, order); (long long)j< params->reader->total_num; j++)
-            if (reuse_dist[j] == 0 ||reuse_dist[j] == 1)
-                array[0] += 1;
-            else
-                array[(long)(log(reuse_dist[j])/(log(log_base)))] += 1;
-    }
-    
+//    else{
+//        for(j=g_array_index(break_points, guint64, order); (long long)j< params->reader->total_num; j++)
+//            if (reuse_dist[j] == 0 ||reuse_dist[j] == 1)
+//                array[0] += 1;
+//            else
+//                array[(long)(log(reuse_dist[j])/(log(log_base)))] += 1;
+//    }
+//    
     for (j=1; j<dd->ylength; j++)
         array[j] += array[j-1];
     

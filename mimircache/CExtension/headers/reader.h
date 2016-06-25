@@ -49,7 +49,7 @@ typedef struct{
     char file_loc[FILE_LOC_STR_SIZE];
     struct break_point* break_points;
     long long* reuse_dist;
-    int* last_access;
+    gint* last_access;
     guint64 max_reuse_dist;
     GQueue * best_LRU_cache_size;
     double log_base;

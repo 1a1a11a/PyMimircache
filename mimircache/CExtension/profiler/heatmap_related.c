@@ -133,7 +133,7 @@ static inline int process_one_element_last_access(cache_line* cp, GHashTable* ha
 
 GArray* gen_breakpoints_virtualtime(READER* reader, guint64 time_interval){
     /* 
-     return a GArray of break points, not including the last break points 
+     return a GArray of break points, including the last break points
      */
     
     if (reader->total_num == -1)
@@ -145,14 +145,16 @@ GArray* gen_breakpoints_virtualtime(READER* reader, guint64 time_interval){
     }
     
     guint i;
-    guint array_size = (guint) (reader->total_num/time_interval) ;
-    if ( reader->total_num % time_interval )
-        array_size ++ ;
+    guint array_size = (guint) ceil((reader->total_num/time_interval)) ;
+    array_size ++ ;
+    
     GArray* break_points = g_array_sized_new(FALSE, FALSE, sizeof(guint64), array_size);
-    for (i=0; i<array_size; i++){
+    for (i=0; i<array_size-1; i++){
         long long value = i * time_interval;
         g_array_append_val(break_points, value);
     }
+    g_array_prepend_val(break_points, reader->total_num);
+    
     
     if (break_points->len > 10000)
         printf("%snumber of pixels in one dimension are more than 10000, exact size: %d, it may take a very long time, if you didn't intend to do it, please try with a larger time stamp", KRED, break_points->len);
@@ -174,7 +176,7 @@ GArray* gen_breakpoints_virtualtime(READER* reader, guint64 time_interval){
 GArray* gen_breakpoints_realtime(READER* reader, guint64 time_interval){
     /*
      currently this only works for vscsi reader !!!
-     return a GArray of break points, not including the last break points
+     return a GArray of break points, including the last break points
      */
     if (reader->type != 'v'){
         printf("gen_breakpoints_realtime currently only support vscsi reader, program exit\n");
@@ -208,6 +210,8 @@ GArray* gen_breakpoints_realtime(READER* reader, guint64 time_interval){
         read_one_element(reader, cp);
         num++;
     }
+    if (num != reader->total_num)
+        g_array_prepend_val(break_points, reader->total_num);
 
     if (break_points->len > 10000)
         printf("%snumber of pixels in one dimension are more than 10000, exact size: %d, it may take a very long time, if you didn't intend to do it, please try with a larger time stamp", KRED, break_points->len);
