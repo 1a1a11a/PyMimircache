@@ -161,7 +161,7 @@ draw_dict* heatmap_hit_rate_start_time_end_time(READER* reader, struct_cache* ca
     
     GArray* break_points;
     break_points = reader->break_points->array;
-        
+    
 
     // create draw_dict storage
     draw_dict* dd = (draw_dict*) malloc(sizeof(draw_dict));
@@ -342,7 +342,8 @@ void free_draw_dict(draw_dict* dd){
 int main(int argc, char* argv[]){
 # define CACHESIZE 2000
 # define BIN_SIZE 200
-# define TIME_INTERVAL 100000000
+# define TIME_INTERVAL 10000
+# define MODE 'v'
 
 
     printf("test_begin!\n");
@@ -363,23 +364,23 @@ int main(int argc, char* argv[]){
     
     printf("after initialization, begin profiling\n");
     printf("hit_rate_start_time_end_time\n");
-    dd = differential_heatmap(reader, cache, optimal, 'r', TIME_INTERVAL, hit_rate_start_time_end_time, 8);
+    dd = differential_heatmap(reader, cache, optimal, MODE, TIME_INTERVAL, hit_rate_start_time_end_time, 1);
     free_draw_dict(dd);
 
     printf("rd_distribution CDF\n");
-    dd = heatmap_rd_distribution(reader, 'r', TIME_INTERVAL, 8, 1);
+    dd = heatmap_rd_distribution(reader, MODE, TIME_INTERVAL, 8, 1);
     free_draw_dict(dd);
     
     printf("rd_distribution\n");
-    dd = heatmap(reader, NULL, 'r', TIME_INTERVAL, rd_distribution, 8);
+    dd = heatmap(reader, NULL, MODE, TIME_INTERVAL, rd_distribution, 8);
     free_draw_dict(dd);
 
     printf("future rd_distribution\n");
-    dd = heatmap(reader, NULL, 'r', TIME_INTERVAL, future_rd_distribution, 8);
+    dd = heatmap(reader, NULL, MODE, TIME_INTERVAL, future_rd_distribution, 8);
     free_draw_dict(dd);
 
     printf("hit_rate_start_time_end_time\n");
-    dd = differential_heatmap(reader, cache, optimal, 'r', TIME_INTERVAL, hit_rate_start_time_end_time, 8);
+    dd = differential_heatmap(reader, cache, optimal, MODE, TIME_INTERVAL, hit_rate_start_time_end_time, 8);
     free_draw_dict(dd);
     
     printf("computation finished\n");

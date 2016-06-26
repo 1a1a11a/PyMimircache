@@ -14,7 +14,6 @@ from mimircache.cacheReader.vscsiReader import vscsiCacheReader
 from mimircache.profiler.LRUProfiler import LRUProfiler
 from mimircache.profiler.generalProfiler import generalProfiler
 from mimircache.profiler.heatmap import heatmap
-import mimircache.const as const
 from mimircache.profiler.cGeneralProfiler import cGeneralProfiler
 from mimircache.profiler.cHeatmap import cHeatmap
 from mimircache.const import *
@@ -22,13 +21,8 @@ from mimircache.profiler.twoDPlots import *
 
 
 class cachecow:
-    def __init__(self, **kargs):
-        self.cache_size = -1
-        if 'size' in kargs:
-            assert isinstance(kargs['size'], int), "size can only be an integer"
-            self.cache_size = kargs['size']
+    def __init__(self, **kwargs):
         self.reader = None
-
         self.cacheclass_mapping = {}
         self.prepare_cacheclass_mapping()
 
@@ -64,98 +58,169 @@ class cachecow:
     def reset(self):
         self.reader.reset()
 
-    def _profiler_pre_check(self, cache_class, **kargs):
+    def _profiler_pre_check(self, **kwargs):
         """
         check whether user has provided new cache size and data information
-        :param kargs:
+        :param kwargs:
         :return:
         """
         reader = None
-        if 'size' in kargs:
-            size = kargs['size']
-        else:
-            size = self.cache_size
 
-        if 'data' in kargs and 'dataType' in kargs:
-            if kargs['dataType'] == 'plain':
-                reader = plainCacheReader(kargs['data'])
-            if kargs['dataType'] == 'csv':
-                assert 'column' in kargs, "you didn't provide column number for csv reader"
-                reader = csvCacheReader(kargs['data'], kargs['column'])
-            if kargs['dataType'] == 'vscsi':
-                reader = vscsiCacheReader(kargs['data'])
-        elif 'reader' in kargs:
-            reader = kargs['reader']
+        if 'num_of_process' in kwargs:
+            num_of_process = kwargs['num_of_process']
+        else:
+            num_of_process = DEFAULT_NUM_OF_PROCESS
+
+        if 'data' in kwargs and 'dataType' in kwargs:
+            if kwargs['dataType'] == 'plain':
+                reader = plainCacheReader(kwargs['data'])
+            if kwargs['dataType'] == 'csv':
+                assert 'column' in kwargs, "you didn't provide column number for csv reader"
+                reader = csvCacheReader(kwargs['data'], kwargs['column'])
+            if kwargs['dataType'] == 'vscsi':
+                reader = vscsiCacheReader(kwargs['data'])
+        elif 'reader' in kwargs:
+            reader = kwargs['reader']
         else:
             reader = self.reader
 
-        if cache_class.lower() != 'lru':
-            assert size != -1, "you didn't provide size for cache"
         assert reader, "you didn't provide a reader nor data (data file and data type)"
-        self.size = size
         self.reader = reader
 
-        return size, reader
+        return reader, num_of_process
 
-    def heatmap(self, cache_class, mode, interval, plot_type, **kwargs):
+    def heatmap(self, mode, interval, plot_type, algorithm="LRU", cache_params=None, cache_size=-1, **kwargs):
         """
 
         :param mode:
         :param interval:
-        :param kargs:
+        :param kwargs: algorithm:
         :return:
         """
 
-        size, reader = self._profiler_pre_check(cache_class, **kwargs)
-        if cache_class.lower() in const.c_available_cache:
+        reader, num_of_process = self._profiler_pre_check(**kwargs)
+        if algorithm.lower() in c_available_cache:
             hm = cHeatmap()
-            hm.heatmap(reader, mode, interval, plot_type, cache_size=size, **kwargs)
+            print("cache size : " + str(cache_size))
+            hm.heatmap(reader, mode, interval, plot_type,
+                       cache_size=cache_size,
+                       algorithm=cache_alg_mapping[algorithm.lower()],
+                       cache_params=cache_params,
+                       num_of_threads=num_of_process,
+                       **kwargs)
         else:
             hm = heatmap()
-            hm.heatmap(mode, interval, plot_type, reader, **kwargs)
+            hm.heatmap(reader, mode, interval, plot_type,
+                       cache_size=cache_size,
+                       algorithm=cache_alg_mapping[algorithm.lower()],
+                       cache_params=cache_params,
+                       **kwargs)
 
-    def differential_heatmap(self):
-        pass
+    def differential_heatmap(self, mode, interval, plot_type, algorithm1,
+                             algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs):
+        """
+        alg2 - alg1
+        :param alg1:
+        :param alg2:
+        :param mode:
+        :param interval:
+        :param plot_type:
+        :param kwargs:
+        :return:
+        """
+        figname = 'differential_heatmap.png'
+        if 'figname' in kwargs:
+            figname = kwargs['figname']
 
-    def twoDplot(self):
-        pass
+        assert cache_size != -1, "you didn't provide size for cache"
 
-    def profiler(self, cache_name, **kargs):
+        reader, num_of_process = self._profiler_pre_check(**kwargs)
+
+        if algorithm1.lower() in c_available_cache and algorithm2.lower() in c_available_cache:
+            hm = cHeatmap()
+            hm.differential_heatmap(reader, mode, interval, plot_type,
+                                    cache_size=cache_size,
+                                    algorithm1=cache_alg_mapping[algorithm1.lower()],
+                                    algorithm2=cache_alg_mapping[algorithm2.lower()],
+                                    cache_params1=cache_params1,
+                                    cache_params2=cache_params2,
+                                    num_of_threads=num_of_process,
+                                    **kwargs)
+
+        else:
+            hm = heatmap()
+            if algorithm1.lower() not in c_available_cache:
+                xydict1 = hm.calculate_heatmap_dat(reader, mode, interval, plot_type,
+                                                   cache_size=cache_size, algorithm=algorithm1,
+                                                   cache_params=cache_params1,
+                                                   **kwargs)[0]
+            else:
+                xydict1 = c_heatmap.heatmap(reader.cReader, mode, interval, plot_type,
+                                            cache_size=cache_size, algorithm=algorithm1,
+                                            cache_params=cache_params1,
+                                            num_of_threads=num_of_process)
+
+            if algorithm2.lower() not in c_available_cache:
+                xydict2 = hm.calculate_heatmap_dat(reader, mode, interval, plot_type,
+                                                   cache_size=cache_size, algorithm=algorithm2,
+                                                   cache_params=cache_params2,
+                                                   **kwargs)[0]
+            else:
+                xydict2 = c_heatmap.heatmap(reader.cReader, mode, interval, plot_type,
+                                            cache_size=cache_size, algorithm=algorithm2,
+                                            cache_params=cache_params2,
+                                            num_of_threads=num_of_process)
+
+            print(xydict1.shape)
+            print(xydict2.shape)
+
+            cHm = cHeatmap()
+            text = "      differential heatmap\n      cache size: {},\n      cache type: {}-{},\n" \
+                   "      time type: {},\n      time interval: {},\n      plot type: \n{}".format(
+                cache_size, algorithm2, algorithm1, mode, interval, plot_type)
+
+            x1, y1 = xydict1.shape
+            x1 = int(x1 / 2.8)
+            y1 /= 8
+            if mode == 'r':
+                cHm.set_plot_params('x', 'real_time', xydict=xydict1, label='start time (real)',
+                                    text=(x1, y1, text))
+                cHm.set_plot_params('y', 'real_time', xydict=xydict1, label='end time (real)')
+            else:
+                cHm.set_plot_params('x', 'virtual_time', xydict=xydict1, label='start time (virtual)',
+                                    text=(x1, y1, text))
+                cHm.set_plot_params('y', 'virtual_time', xydict=xydict1, label='end time (virtual)')
+
+            cHm.draw_heatmap(xydict2 - xydict1, figname=figname)
+
+    def profiler(self, algorithm, cache_params=None, cache_size=-1, **kwargs):
         """
         profiler
         :param cache_class:
-        :param kargs:
+        :param kwargs:
         :return:
         """
-        size, reader = self._profiler_pre_check(cache_name, **kargs)
+        reader, num_of_process = self._profiler_pre_check(**kwargs)
 
         profiler = None
         cache_params = None
         bin_size = -1
-        num_of_process = DEFAULT_NUM_OF_PROCESS
 
-        # print(cache_class)
-
-        if cache_name.lower() == "lru":
-            profiler = LRUProfiler(reader, size)
+        if algorithm.lower() == "lru":
+            profiler = LRUProfiler(reader, cache_size)
         else:
-            if 'bin_size' in kargs:
-                bin_size = kargs['bin_size']
+            assert cache_size != -1, "you didn't provide size for cache"
+            if 'bin_size' in kwargs:
+                bin_size = kwargs['bin_size']
 
-            if 'num_of_process' in kargs:
-                num_of_process = kargs['num_of_process']
-
-            if 'cache_params' in kargs:
-                cache_params = kargs['cache_params']
-
-            if isinstance(cache_name, str):
-                if cache_name.lower() in c_available_cache:
-                    profiler = cGeneralProfiler(reader, cache_name, size, bin_size, cache_params, num_of_process)
+            if isinstance(algorithm, str):
+                if algorithm.lower() in c_available_cache:
+                    profiler = cGeneralProfiler(reader, algorithm, cache_size, bin_size, cache_params, num_of_process)
                 else:
-                    profiler = generalProfiler(reader, self.cacheclass_mapping[cache_name.lower()], size, bin_size,
+                    profiler = generalProfiler(reader, self.cacheclass_mapping[algorithm.lower()], cache_size, bin_size,
                                                cache_params, num_of_process)
             else:
-                profiler = generalProfiler(reader, cache_name, size, bin_size, cache_params, num_of_process)
+                profiler = generalProfiler(reader, algorithm, cache_size, bin_size, cache_params, num_of_process)
 
         return profiler
 
@@ -169,7 +234,7 @@ class cachecow:
     def __next__(self):  # Python 3
         return self.reader.next()
 
-    def twoDPlot(self, plot_type, mode, time_interval):
+    def twoDPlot(self, mode, time_interval, plot_type):
         if plot_type == 'cold_miss':
             cold_miss_2d(self.reader, mode, time_interval)
         elif plot_type == 'request_num':
@@ -180,7 +245,8 @@ class cachecow:
 
 
 if __name__ == "__main__":
-    c = cachecow(size=48000)
+    CACHE_SIZE = 2000
+    c = cachecow()
     c.vscsi('../data/trace.vscsi')
     # m.heatmap('r', 100000000)
 
@@ -190,34 +256,21 @@ if __name__ == "__main__":
     print(p.get_reuse_distance())
     p.plotHRC()
 
-    p = c.profiler('optimal')
+    p = c.profiler('optimal', cache_size=CACHE_SIZE)
     print(p.get_hit_count())
 
-    # c.heatmap('LRU', 'r', 100000000, "hit_rate_start_time_end_time")
+    c.twoDPlot('v', 1000, "cold_miss")
 
-    # m.heatmap('lru', 'r', 10000000, "hit_rate_start_time_end_time", data='../data/trace.vscsi', dataType='vscsi',
-    #           num_of_process=8,  # LRU=False, cache='optimal',
-    #           cache_size=2000, save=False, fixed_range=True, change_label=True,
-    #           figname="r.png")
+    c.heatmap('r', 1000000, "hit_rate_start_time_end_time", "LRU", cache_size=CACHE_SIZE, num_of_process=8,
+              figname="abc.png")
+
+    c.differential_heatmap('r', 1000000, "hit_rate_start_time_end_time", "LRU", cache_size=CACHE_SIZE, num_of_process=8,
+                           figname='2.png')
+
+    c.differential_heatmap('r', 10000000, "hit_rate_start_time_end_time", "LRU", "ARC", cache_size=CACHE_SIZE,
+                           num_of_process=8, figname='3.png')
+
+    # c.differential_heatmap('r', 1000000, "hit_rate_start_time_end_time", "LRU", num_of_process=8, figname='2.png')
+
 
     # p = m.profiler('mru', bin_size=200, data='../data/parda.trace', dataType='plain', num_of_process=4)
-    # p.run()
-    # print(len(p.HRC))
-    # print(p.HRC)
-    # print(p.MRC[-1])
-    # rdist = p.get_reuse_distance()
-    # for i in rdist:
-    #     print(i)
-    # else:
-    #     print('no element')
-    # print(rdist)
-    # print(rdist[-1])
-    # p.plotHRC()
-    # p.plotMRC()
-
-    # line_num = 0
-    # for i in m:
-    #     print(i)
-    #     line_num += 1
-    #     if line_num > 10:
-    #         break

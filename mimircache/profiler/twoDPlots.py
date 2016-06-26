@@ -27,7 +27,6 @@ def request_num_2d(reader, mode, time_interval, **kwargs):
     l = []
     for i in range(1, len(break_points)):
         l.append(break_points[i] - break_points[i - 1])
-    l.append(reader.get_num_of_total_requests() - break_points[-1])
     xticks = ticker.FuncFormatter(lambda x, pos: '{:2.0f}%'.format(x * 100 / len(break_points)))
     draw2d(l, figname=figname, xticks=xticks, xlabel='time{}'.format(mode),
            ylabel='request num count(interval={})'.format(time_interval),
@@ -41,7 +40,7 @@ def cold_miss_2d(reader, mode, time_interval, **kwargs):
     assert mode == 'r' or mode == 'v', "currently only support mode r and v, what mode are you using?"
     break_points = cHeatmap().gen_breakpoints(reader, mode, time_interval)
 
-    cold_miss_list = [0] * len(break_points)
+    cold_miss_list = [0] * len(break_points - 1)
     seen_set = set()
     never_see = 0
     for i in range(len(break_points) - 1):
@@ -52,13 +51,6 @@ def cold_miss_2d(reader, mode, time_interval, **kwargs):
                 seen_set.add(r)
                 never_see += 1
         cold_miss_list[i] = never_see
-    for j in range(break_points[-1], reader.get_num_of_total_requests()):
-        never_see = 0
-        r = next(reader)
-        if r not in seen_set:
-            seen_set.add(r)
-            never_see += 1
-    cold_miss_list[-1] = never_see
 
     xticks = ticker.FuncFormatter(lambda x, pos: '{:2.0f}%'.format(x * 100 / len(break_points)))
     draw2d(cold_miss_list, figname=figname, xticks=xticks, xlabel='time{}'.format(mode),
@@ -86,7 +78,7 @@ def draw2d(l, **kwargs):
     if 'title' in kwargs:
         plt.title(kwargs['title'])
 
-    plt.savefig(filename)
+    plt.savefig(filename, dpi=600)
     # plt.show()
     colorfulPrint("red", "plot is saved at the same directory")
     plt.clf()

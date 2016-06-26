@@ -12,8 +12,8 @@
 
 #include "cache.h"
 
-/** priority data type */
-typedef unsigned long long pqueue_pri_t;
+///** priority data type */
+//typedef unsigned long long pqueue_pri_t;
 
 #include "pqueue.h"
 #include "heatmap.h"
@@ -24,27 +24,6 @@ typedef unsigned long long pqueue_pri_t;
  */
 
 
-
-
-//typedef struct optimal{
-//    cache_type type;
-//    long size;
-//    char data_type;
-//    long long hit_count;
-//    long long miss_count;
-//    void* cache_init_params;
-//    struct cache* (*cache_init)(long long, char, void*);
-//    void (*destroy)(struct_cache* );
-//    void (*destroy_unique)(struct cache* );
-//    gboolean (*add_element)(struct_cache*, cache_line* cp);
-//    gboolean (*check_element)(struct_cache*, cache_line* cp);
-//    
-//    union{
-//        char cache_params[1024];
-//    };
-//    
-//    
-//}Optimal;
 
 
 struct optimal_params{

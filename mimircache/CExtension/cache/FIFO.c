@@ -55,7 +55,7 @@ inline gboolean fifo_add_element_long(struct_cache* cache, cache_line* cp){
     }
     else{
         __fifo_insert_element_long(cache, cp);
-        if ( (long)g_hash_table_size( fifo_params->hashtable ) > cache->core->size)
+        if ( (long)g_hash_table_size( fifo_params->hashtable) > cache->core->size)
             __fifo_evict_element(cache);
         return FALSE;
     }

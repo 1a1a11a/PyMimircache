@@ -145,15 +145,15 @@ GArray* gen_breakpoints_virtualtime(READER* reader, guint64 time_interval){
     }
     
     guint i;
-    guint array_size = (guint) ceil((reader->total_num/time_interval)) ;
+    guint array_size = (guint) ceil((reader->total_num/time_interval)+1) ;
     array_size ++ ;
     
     GArray* break_points = g_array_sized_new(FALSE, FALSE, sizeof(guint64), array_size);
     for (i=0; i<array_size-1; i++){
-        long long value = i * time_interval;
+        guint64 value = i * time_interval;
         g_array_append_val(break_points, value);
     }
-    g_array_prepend_val(break_points, reader->total_num);
+    g_array_append_val(break_points, reader->total_num);
     
     
     if (break_points->len > 10000)
@@ -167,7 +167,7 @@ GArray* gen_breakpoints_virtualtime(READER* reader, guint64 time_interval){
     bp->time_interval = time_interval;
     bp->array = break_points;
     reader->break_points = bp;
-    
+
     reset_reader(reader);
     return break_points;
 }

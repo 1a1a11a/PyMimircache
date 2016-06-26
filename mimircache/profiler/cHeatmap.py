@@ -1,8 +1,6 @@
 import logging
 import os
-import pickle
-from collections import deque
-import time
+
 import matplotlib
 import matplotlib.ticker as ticker
 import mimircache.c_heatmap as c_heatmap
@@ -10,23 +8,22 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from mimircache import const
-from mimircache.cacheReader.csvReader import csvCacheReader
 from mimircache.cacheReader.vscsiReader import vscsiCacheReader
-from mimircache.oldModule.pardaProfiler import pardaProfiler
-from mimircache.profiler.LRUProfiler import LRUProfiler
-from mimircache.profiler.heatmap_subprocess import *
-from mimircache.profiler.heatmap_subprocess2d import *
 from mimircache.utils.printing import *
 
 
 class cHeatmap:
     def __init__(self):
-        # if not os.path.exists('temp/'):
-        #     os.mkdir('temp')
         self.other_plot_kwargs = {}
-        self.cache_size = -1
 
     def gen_breakpoints(self, reader, mode, time_interval):
+        """
+
+        :param reader:
+        :param mode:
+        :param time_interval:
+        :return: a numpy list of break points begin with 0, ends with total_num_requests
+        """
         return c_heatmap.gen_breakpoints(reader.cReader, mode, time_interval)
 
     def set_plot_params(self, axis, axis_type, **kwargs):
@@ -107,7 +104,7 @@ class cHeatmap:
         else:
             print("unsupported axis: " + str(axis))
 
-    def heatmap(self, reader, mode, time_interval, plot_type, **kwargs):
+    def heatmap(self, reader, mode, time_interval, plot_type, algorithm="LRU", cache_params=None, **kwargs):
         """
 
         :param plot_type:
@@ -118,22 +115,20 @@ class cHeatmap:
         :return:
         """
 
-        algorithm = "LRU"
         figname = None
         self.time_interval = time_interval
         self.mode = mode
         reader.reset()
 
         if 'cache_size' in kwargs:
-            self.cache_size = kwargs['cache_size']
+            cache_size = kwargs['cache_size']
+        else:
+            cache_size = -1            
 
         if 'num_of_threads' in kwargs:
-            self.num_of_threads = kwargs['num_of_threads']
+            num_of_threads = kwargs['num_of_threads']
         else:
-            self.num_of_threads = 4
-
-        if 'algorithm' in kwargs:
-            algorithm = kwargs['algorithm']
+            num_of_threads = 4
 
         if 'figname' in kwargs:
             figname = kwargs['figname']
@@ -141,20 +136,24 @@ class cHeatmap:
         if mode == 'r' or mode == 'v':
             if plot_type == "hit_rate_start_time_end_time":
                 # assert algorithm!=None, "please specify your cache replacement algorithm in heatmap plotting"
-                assert self.cache_size != -1, "please provide cache_size parameter for plotting hit_rate_start_time_end_time"
+                assert cache_size != -1, "please provide cache_size parameter for plotting hit_rate_start_time_end_time"
                 print("going to plot heatmap of hit_rate_start_time_end_time using {} "
-                      "of cache size: {}".format(algorithm, self.cache_size))
+                      "of cache size: {}".format(algorithm, cache_size))
 
                 if algorithm.lower() in const.c_available_cache:
-                    xydict = c_heatmap.heatmap(reader.cReader, self.cache_size, algorithm, mode, time_interval,
-                                               plot_type, num_of_threads=self.num_of_threads)
+                    print('time: {}, size: {}, threads: {}'.format(time_interval, cache_size, num_of_threads))
+                    xydict = c_heatmap.heatmap(reader.cReader, mode, time_interval, plot_type,
+                                               cache_size, algorithm,
+                                               num_of_threads=num_of_threads)
                 else:
-                    # xydict =
-                    raise RuntimeError("haven't provide support yet")
+                    raise RuntimeError("haven't provide support given algorithm yet: " + str(algorithm))
                     pass
 
-                text = "      cache size: {},\n      cache type: {},\n      time type: {},\n      time interval: " \
-                       "{},\n      plot type: \n{}".format(self.cache_size, algorithm, mode, time_interval, plot_type)
+                text = "      " \
+                       "cache size: {},\n      cache type: {},\n      " \
+                       "time type:  {},\n      time interval: {},\n      " \
+                       "plot type: \n{}".format(cache_size,
+                                                algorithm, mode, time_interval, plot_type)
 
                 x1, y1 = xydict.shape
                 x1 = int(x1 / 2.8)
@@ -170,7 +169,7 @@ class cHeatmap:
                                          fixed_range=(0, 1))
 
                 if not figname:
-                    figname = '_'.join([algorithm, str(self.cache_size), plot_type]) + '.png'
+                    figname = '_'.join([algorithm, str(cache_size), plot_type]) + '.png'
                 self.draw_heatmap(xydict, figname=figname)
 
 
@@ -198,7 +197,7 @@ class cHeatmap:
                     figname = 'rd_distribution.png'
 
                 xydict, log_base = c_heatmap.heatmap_rd_distribution(reader.cReader, mode, time_interval,
-                                                                     num_of_threads=self.num_of_threads)
+                                                                     num_of_threads=num_of_threads)
                 self.set_plot_params('x', 'real_time', xydict=xydict)
                 self.set_plot_params('y', 'reuse_dist', xydict=xydict, log_base=log_base)
                 self.set_plot_params('cb', 'count')
@@ -209,7 +208,7 @@ class cHeatmap:
                     figname = 'rd_distribution_CDF.png'
 
                 xydict, log_base = c_heatmap.heatmap_rd_distribution(reader.cReader, mode, time_interval,
-                                                                     num_of_threads=self.num_of_threads, CDF=1)
+                                                                     num_of_threads=num_of_threads, CDF=1)
                 self.set_plot_params('x', 'real_time', xydict=xydict)
                 self.set_plot_params('y', 'reuse_dist', xydict=xydict, log_base=log_base)
                 # self.set_plot_params('cb', 'count')
@@ -221,7 +220,7 @@ class cHeatmap:
                     figname = 'future_rd_distribution.png'
 
                 xydict, log_base = c_heatmap.heatmap_future_rd_distribution(reader.cReader, mode, time_interval,
-                                                                            num_of_threads=self.num_of_threads)
+                                                                            num_of_threads=num_of_threads)
                 self.set_plot_params('x', 'real_time', xydict=xydict)
                 self.set_plot_params('y', 'reuse_dist', xydict=xydict, log_base=log_base)
                 self.set_plot_params('cb', 'count')
@@ -238,7 +237,8 @@ class cHeatmap:
 
         reader.reset()
 
-    def differential_heatmap(self, reader, mode, time_interval, plot_type, alg1, alg2="Optimal", **kwargs):
+    def differential_heatmap(self, reader, mode, time_interval, plot_type, algorithm1, algorithm2="Optimal",
+                             cache_params1=None, cache_params2=None, **kwargs):
         """
 
         :param plot_type:
@@ -251,35 +251,39 @@ class cHeatmap:
 
         self.time_interval = time_interval
         self.mode = mode
-        figname = '_'.join([alg2 + '-' + alg1, str(self.cache_size), plot_type]) + '.png'
         reader.reset()
 
         if 'cache_size' in kwargs:
-            self.cache_size = kwargs['cache_size']
+            cache_size = kwargs['cache_size']
+        else:
+            cache_size = -1
+
+        figname = '_'.join([algorithm2 + '-' + algorithm1, str(cache_size), plot_type]) + '.png'
 
         if 'num_of_threads' in kwargs:
-            self.num_of_threads = kwargs['num_of_threads']
+            num_of_threads = kwargs['num_of_threads']
         else:
-            self.num_of_threads = 4
+            num_of_threads = 4
 
         if 'figname' in kwargs:
             figname = kwargs['figname']
 
         if mode == 'r' or mode == 'v':
             if plot_type == "hit_rate_start_time_end_time":
-                assert self.cache_size != -1, "please provide cache_size for plotting hit_rate_start_time_end_time"
+                assert cache_size != -1, "please provide cache_size for plotting hit_rate_start_time_end_time"
                 print("going to plot differential heatmap of hit_rate_start_time_end_time using {} - {} "
-                      "of cache size: {}".format(alg2, alg1, self.cache_size))
+                      "of cache size: {}".format(algorithm2, algorithm1, cache_size))
 
-                xydict = c_heatmap.differential_heatmap(reader.cReader, self.cache_size, alg1, alg2, mode,
-                                                        time_interval,
-                                                        plot_type, num_of_threads=self.num_of_threads)
-                # xydict = c_heatmap.differential_heatmap_with_Optimal(reader.cReader, self.cache_size, alg1, mode,
+                xydict = c_heatmap.differential_heatmap(reader.cReader, mode, time_interval,
+                                                        plot_type, cache_size, algorithm1, algorithm2,
+                                                        num_of_threads=num_of_threads)
+                # xydict = c_heatmap.differential_heatmap_with_Optimal(reader.cReader, cache_size, alg1, mode,
                 #                                         time_interval,
-                #                                         plot_type, num_of_threads=self.num_of_threads)
+                #                                         plot_type, num_of_threads=num_of_threads)
 
-                text = "      differential heatmap\n      cache size: {},\n      cache type: {}-{},\n      time type: {},\n      time interval: " \
-                       "{},\n      plot type: \n{}".format(self.cache_size, alg2, alg1, mode, time_interval, plot_type)
+                text = "      differential heatmap\n      cache size: {},\n      cache type: {}-{},\n" \
+                       "      time type: {},\n      time interval: {},\n      plot type: \n{}".format(
+                    cache_size, algorithm2, algorithm1, mode, time_interval, plot_type)
 
                 x1, y1 = xydict.shape
                 x1 = int(x1 / 2.8)
@@ -370,29 +374,31 @@ class cHeatmap:
 
 
 def server_plot_all(path="../data/cloudphysics/", num_of_threads=48):
-    TIME_INTERVAL = 1000000000
+    TIME_INTERVAL = 10000000
     PLOT_TYPE = "hit_rate_start_time_end_time"
-    MODE = 'r'
-    mem_sizes = []
-    with open('memSize', 'r') as ifile:
-        for line in ifile:
-            mem_sizes.append(int(line.strip()))
+    MODE = 'v'
+    mem_sizes = [int(100 * (i ** 2)) for i in range(2, 16)]
+    # with open('memSize', 'r') as ifile:
+    #     for line in ifile:
+    #         mem_sizes.append(int(line.strip()))
+    # mem_sizes.append()
 
     for filename in os.listdir(path):
         print(filename)
         if filename.endswith('.vscsitrace'):
             hm = cHeatmap()
-            mem_size = mem_sizes[int(filename.split('_')[0][1:]) - 1] * 16
+            # mem_size = mem_sizes[int(filename.split('_')[0][1:]) - 1] * 16
             reader = vscsiCacheReader(path + filename)
+            TIME_INTERVAL = int(reader.get_num_of_total_requests() / 200)
             # mem_sizes = LRUProfiler(reader).get_best_cache_sizes(12, 200, 20)
-            #
+
             # if os.path.exists("0624/" + '_'.join([filename, "_LRU_Optimal_", str(mem_sizes[-1]), MODE]) + "_.png"):
             #     continue
 
-            t1 = time.time()
-            hm.heatmap(reader, MODE, TIME_INTERVAL, "rd_distribution_CDF", num_of_threads=num_of_threads, figname=
-            "0624/" + '_'.join([filename, "_rd_distribution_CDF", MODE]) + "_.png")
-            print("time: " + str(time.time() - t1))
+            # t1 = time.time()
+            # hm.heatmap(reader, MODE, TIME_INTERVAL, "rd_distribution_CDF", num_of_threads=num_of_threads, figname=
+            # "0624/" + '_'.join([filename, "_rd_distribution_CDF", MODE]) + "_.png")
+            # print("time: " + str(time.time() - t1))
 
             # t1 = time.time()
             # hm.heatmap(reader, MODE, TIME_INTERVAL, "future_rd_distribution", num_of_threads=num_of_threads,
@@ -400,18 +406,15 @@ def server_plot_all(path="../data/cloudphysics/", num_of_threads=48):
             # print("time: " + str(time.time() - t1))
 
 
-            # for mem_size in mem_sizes:
-            #     t1 = time.time()
-            #     hm.differential_heatmap(reader, MODE, TIME_INTERVAL, PLOT_TYPE, "LRU", cache_size=mem_size,
-            #                             num_of_threads=num_of_threads, figname=
-            #                             "0624/" + '_'.join([filename, "_LRU_Optimal_", str(mem_size), MODE]) + "_.png")
-            #     print("cache size: " + str(mem_size) + ", time: " + str(time.time() - t1))
+            for mem_size in mem_sizes:
+                t1 = time.time()
+                hm.differential_heatmap(reader, MODE, TIME_INTERVAL, PLOT_TYPE, "LRU", cache_size=mem_size,
+                                        num_of_threads=num_of_threads, figname=
+                                        "0626/" + '_'.join([filename, "_LRU_Optimal_", str(mem_size), MODE]) + "_.png")
+                print("cache size: " + str(mem_size) + ", time: " + str(time.time() - t1))
 
             # xydict = c_heatmap.differential_heatmap_with_Optimal(reader.cReader, mem_size, 'LRU', 'r', ,
             #                                                      "hit_rate_start_time_end_time", num_of_threads=48)
-            # heatmap.draw_heatmap(xydict, "hit_rate_start_time_end_time",
-            #                      figname="0619/" + filename + "LRU_Optimal_" + str(
-            #                          mem_size) + "_r.png")  # , fixed_range=True, figname='LRU.png')
 
 
             reader.close()
@@ -436,9 +439,13 @@ def localtest():
                figname="rd_dist_CDF_relative.png")
 
     print('b')
+    hm.heatmap(reader, MODE, TIME_INTERVAL, PLOT_TYPE, cache_size=CACHE_SIZE, num_of_threads=int(NUM_OF_THREADS),
+               figname=PLOT_TYPE + ".png")
+
+    print('c')
     t1 = time.time()
-    # hm.differential_heatmap(reader, MODE, TIME_INTERVAL, PLOT_TYPE, "FIFO", cache_size=CACHE_SIZE,
-    #                         num_of_threads=NUM_OF_THREADS, figname="heatmap.png")
+    hm.differential_heatmap(reader, MODE, TIME_INTERVAL, PLOT_TYPE, "FIFO", cache_size=CACHE_SIZE,
+                            num_of_threads=NUM_OF_THREADS, figname="heatmap.png")
     print(time.time() - t1)
 
 
@@ -453,7 +460,7 @@ if __name__ == "__main__":
     import time
 
     t1 = time.time()
-    # server_plot_all(path="/run/shm/traces/")
+    server_plot_all(path="/run/shm/traces/")
     # server_plot_all(path="../../../../disk/traces/", num_of_threads=16)
     # localtest()
 
@@ -464,16 +471,14 @@ if __name__ == "__main__":
     TIME_TYPE = 'r'
     PLOT_TYPE = "hit_rate_start_time_end_time"
     NUM_OF_THREADS = 8
-    import mimircache.c_LRUProfiler as c_LRUProfiler
-    from mimircache.cacheReader.plainReader import plainCacheReader
-    from mimircache.profiler.generalProfiler import generalProfiler
 
     from mimircache.profiler.heatmap import heatmap
 
     hm = cHeatmap()
     reader = vscsiCacheReader('../data/trace.vscsi')
     print(hm.gen_breakpoints(reader, 'r', 1000000))
-    print(heatmap()._get_breakpoints_realtime(reader, 1000000))
+
+    # print(heatmap()._get_breakpoints_realtime(reader, 1000000))
     # reader = vscsiCacheReader('/home/cloudphysics/traces/w84_vscsi1.vscsitrace')
 
 

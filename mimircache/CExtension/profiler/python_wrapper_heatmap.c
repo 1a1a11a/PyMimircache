@@ -127,24 +127,47 @@ static PyObject* heatmap_get_next_access_dist_seq(PyObject* self, PyObject* args
 
 static PyObject* heatmap_computation(PyObject* self, PyObject* args, PyObject* keywds)
 {
+//    PyObject* po;
+//    READER* reader;
+//    int num_of_threads = 4;
+//    long cache_size;
+//    char* name;
+//    char* plot_type_s;
+//    int plot_type;
+//    char* mode;
+//    long time_interval;
+//    struct_cache* cache;
+//    
+//    static char *kwlist[] = {"reader", "cache_size", "cache_type", "mode", "time_interval", "plot_type", "num_of_threads", NULL};
+//    
+//    // parse arguments
+//    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Olssls|$Oi", kwlist, &po, &cache_size, &name, &mode, &time_interval, &plot_type_s, &num_of_threads)) {
+//        printf("parsing argument failed in heatmap_computation\n");
+//        return NULL;
+//    }
+    
+    
     PyObject* po;
+    PyObject* cache_params;
     READER* reader;
     int num_of_threads = 4;
     long cache_size;
-    char* name;
+    char *algorithm;
     char* plot_type_s;
     int plot_type;
     char* mode;
     long time_interval;
     struct_cache* cache;
     
-    static char *kwlist[] = {"reader", "cache_size", "cache_type", "mode", "time_interval", "plot_type", "num_of_threads", NULL};
+    
+    static char *kwlist[] = {"reader", "mode", "time_interval", "plot_type", "cache_size", "algorithm", "cache_params", "num_of_threads", NULL};
     
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Olssls|$i", kwlist, &po, &cache_size, &name, &mode, &time_interval, &plot_type_s, &num_of_threads)) {
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Oslsls|$Oi", kwlist, &po, &mode, &time_interval, &plot_type_s, &cache_size, &algorithm, &cache_params, &num_of_threads)) {
         printf("parsing argument failed in heatmap_computation\n");
         return NULL;
     }
+
     
     printf("plot type: %s, cache size: %ld, mode: %s, time_interval: %ld, num_of_threads: %d\n", plot_type_s, cache_size, mode, time_interval, num_of_threads);
     
@@ -155,20 +178,20 @@ static PyObject* heatmap_computation(PyObject* self, PyObject* args, PyObject* k
     // build cache
     char data_type = reader->type;
     
-    if (strcmp(name, "FIFO") == 0){
+    if (strcmp(algorithm, "FIFO") == 0){
         cache = fifo_init(cache_size, data_type, NULL);
     }
     
-    else if (strcmp(name, "Optimal") == 0){
+    else if (strcmp(algorithm, "Optimal") == 0){
         struct optimal_init_params init_params = {.reader=reader, .next_access=NULL};
         cache = optimal_init(cache_size, data_type, (void*)&init_params);
     }
-    else if (strcmp(name, "LRU") == 0){
+    else if (strcmp(algorithm, "LRU") == 0){
         cache = cache_init(cache_size, data_type);
         cache->core->type = e_LRU;
     }
     else {
-        printf("does not support given cache replacement algorithm: %s\n", name);
+        printf("does not support given cache replacement algorithm: %s\n", algorithm);
         exit(1);
     }
 
@@ -225,10 +248,11 @@ static PyObject* heatmap_computation(PyObject* self, PyObject* args, PyObject* k
 
 static PyObject* differential_heatmap_with_Optimal(PyObject* self, PyObject* args, PyObject* keywds){
     PyObject* po;
+    PyObject* cache_params;
     READER* reader;
     int num_of_threads = 4;
     long cache_size;
-    char *name;
+    char *algorithm;
     char* plot_type_s;
     int plot_type;
     char* mode;
@@ -236,13 +260,14 @@ static PyObject* differential_heatmap_with_Optimal(PyObject* self, PyObject* arg
     struct_cache* cache;
 
     
-    static char *kwlist[] = {"reader", "cache_size", "cache_type", "mode", "time_interval", "plot_type", "num_of_threads", NULL};
+    static char *kwlist[] = {"reader", "mode", "time_interval", "plot_type", "cache_size", "algorithm", "cache_params", "num_of_threads", NULL};
     
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Olssls|$i", kwlist, &po, &cache_size, &name, &mode, &time_interval, &plot_type_s, &num_of_threads)) {
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Oslsls|$Oi", kwlist, &po, &mode, &time_interval, &plot_type_s, &cache_size, &algorithm, &cache_params, &num_of_threads)) {
         printf("parsing argument failed in heatmap_computation\n");
         return NULL;
     }
+    
     
     printf("plot type: %s, cache size: %ld, mode: %s, time_interval: %ld, num_of_threads: %d\n", plot_type_s, cache_size, mode, time_interval, num_of_threads);
     
@@ -253,20 +278,20 @@ static PyObject* differential_heatmap_with_Optimal(PyObject* self, PyObject* arg
     // build cache
     char data_type = reader->type;
     
-    if (strcmp(name, "FIFO") == 0){
+    if (strcmp(algorithm, "FIFO") == 0){
         cache = fifo_init(cache_size, data_type, NULL);
     }
     
-    else if (strcmp(name, "Optimal") == 0){
+    else if (strcmp(algorithm, "Optimal") == 0){
         struct optimal_init_params init_params = {.reader=reader, .next_access=NULL};
         cache = optimal_init(cache_size, data_type, (void*)&init_params);
     }
-    else if (strcmp(name, "LRU") == 0){
+    else if (strcmp(algorithm, "LRU") == 0){
         cache = cache_init(cache_size, data_type);
         cache->core->type = e_LRU;
     }
     else {
-        printf("does not support given cache replacement algorithm: %s\n", name);
+        printf("does not support given cache replacement algorithm: %s\n", algorithm);
         exit(1);
     }
     
@@ -331,17 +356,18 @@ static PyObject* differential_heatmap_py(PyObject* self, PyObject* args, PyObjec
     READER* reader;
     int num_of_threads = 4;
     long cache_size;
-    char *name[2];
+    char *algorithm[2];
     char* plot_type_s;
     int plot_type;
     char* mode;
+    PyObject* cache_params[2];
     long time_interval;
     struct_cache* cache[2];
     
-    static char *kwlist[] = {"reader", "cache_size", "cache_type1", "cache_type2", "mode", "time_interval", "plot_type", "num_of_threads", NULL};
+    static char *kwlist[] = {"reader", "mode", "time_interval", "plot_type", "cache_size", "algorithm1", "algorithm2", "cache_params1", "cache_params2", "num_of_threads", NULL};
     
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Olsssls|$i", kwlist, &po, &cache_size, &name[0], &name[1], &mode, &time_interval, &plot_type_s, &num_of_threads)) {
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Oslslss|$OOi", kwlist, &po, &mode, &time_interval, &plot_type_s, &cache_size, &algorithm[0], &algorithm[1], &(cache_params[0]), &(cache_params[1]), &num_of_threads)) {
         printf("parsing argument failed in heatmap_computation\n");
         return NULL;
     }
@@ -356,20 +382,20 @@ static PyObject* differential_heatmap_py(PyObject* self, PyObject* args, PyObjec
     
     guint64 i, j;
     for (i=0; i<2; i++){
-        if (strcmp(name[i], "FIFO") == 0){
+        if (strcmp(algorithm[i], "FIFO") == 0){
             cache[i] = fifo_init(cache_size, data_type, NULL);
         }
     
-        else if (strcmp(name[i], "Optimal") == 0){
+        else if (strcmp(algorithm[i], "Optimal") == 0){
             struct optimal_init_params init_params = {.reader=reader, .next_access=NULL};
             cache[i] = optimal_init(cache_size, data_type, (void*)&init_params);
         }
-        else if (strcmp(name[i], "LRU") == 0){
+        else if (strcmp(algorithm[i], "LRU") == 0){
             cache[i] = cache_init(cache_size, data_type);
             cache[i]->core->type = e_LRU;
         }
         else {
-            printf("does not support given cache replacement algorithm: %s\n", name[i]);
+            printf("does not support given cache replacement algorithm: %s\n", algorithm[i]);
             exit(1);
         }
     }

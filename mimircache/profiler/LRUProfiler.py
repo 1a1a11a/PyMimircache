@@ -13,7 +13,7 @@ class LRUProfiler:
     def __init__(self, reader, cache_size=-1):
         self.cache_size = cache_size
         self.reader = reader
-        assert isinstance(reader, cacheReaderAbstract), "you provided an invalid cacheReader"
+        assert isinstance(reader, cacheReaderAbstract), "you provided an invalid cacheReader: {}".format(reader)
 
         # if the given file is not basic reader, needs conversion
         need_convert = True

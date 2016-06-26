@@ -97,7 +97,10 @@ inline void __optimal_insert_element_long(struct_cache* optimal, cache_line* cp)
 }
 
 inline gboolean optimal_check_element_long(struct_cache* cache, cache_line* cp){
-    return g_hash_table_contains( ((struct optimal_params*)(cache->cache_params))->hashtable, (gconstpointer)(&(cp->long_content)) );
+    return g_hash_table_contains(
+                                 ((struct optimal_params*)(cache->cache_params))->hashtable,
+                                 (gconstpointer)(&(cp->long_content))
+                                 );
 }
 
 
@@ -105,10 +108,13 @@ inline void __optimal_update_element_long(struct_cache* optimal, cache_line* cp)
     struct optimal_params* optimal_params = (struct optimal_params*)(optimal->cache_params);
 
     void* node = (void*) g_hash_table_lookup(optimal_params->hashtable, (gconstpointer)(&(cp->long_content)));
-    if ((long long)g_array_index(optimal_params->next_access, gint64, optimal_params->ts) == -1)
+    if ((long long) g_array_index(optimal_params->next_access, gint64, optimal_params->ts) == -1)
         pqueue_change_priority(optimal_params->pq, G_MAXINT64, node);
     else
-        pqueue_change_priority(optimal_params->pq, optimal_params->ts + (long long)g_array_index(optimal_params->next_access, guint64, optimal_params->ts), node);
+        pqueue_change_priority(optimal_params->pq,
+                               optimal_params->ts +
+                               (long long)g_array_index(optimal_params->next_access, guint64, optimal_params->ts),
+                               node);
     
     return;
 }
@@ -125,10 +131,6 @@ inline void __optimal_evict_element(struct_cache* optimal){
 
 
 inline gboolean optimal_add_element_long(struct_cache* cache, cache_line* cp){
-//    if (pqueue_size(((Optimal*)cache)->pq) != (size_t)g_hash_table_size( ((Optimal*)cache)->hashtable)){
-//        printf("error \n");
-//        exit(1);
-//    }
     struct optimal_params* optimal_params = (struct optimal_params*)(cache->cache_params);
     
     if (optimal_check_element_long(cache, cp)){
