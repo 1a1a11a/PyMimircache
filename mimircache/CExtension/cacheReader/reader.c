@@ -366,13 +366,14 @@ int close_reader(READER* reader){
     }
     
 
-   
-    if (reader->last_access)
+    if (reader->last_access){
         free(reader->last_access);
+    }
     
-    if (reader->reuse_dist)
+    if (reader->reuse_dist){
         free(reader->reuse_dist);
-
+    }
+    
     if (reader->break_points){
         g_array_free(reader->break_points->array, TRUE);
         free(reader->break_points);

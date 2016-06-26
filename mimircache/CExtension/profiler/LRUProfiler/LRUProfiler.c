@@ -501,7 +501,7 @@ static inline double fake_second_derivative(double* hit_rate, guint64 pos){
 //    }
 //}
 
-static inline gboolean verify_plateau(double* hit_rate, double max_hr, double ave_slope, guint *begin, guint* end, int num_of_points_for_average, int slope_difference, guint max_length){
+static inline gboolean verify_plateau(double* hit_rate, double max_hr, double ave_slope, guint *begin, guint* end, int num_of_points_for_average, double slope_difference, guint max_length){
     
 #define cutoff 3
     
@@ -524,7 +524,7 @@ static inline gboolean verify_plateau(double* hit_rate, double max_hr, double av
     if ( (hit_rate[*begin] - hit_rate[*begin - i] > max_hr/50) && ((hit_rate[*begin] - hit_rate[*begin - i])/i > ave_slope) ){
         // check whether decrease begin will increase slope
         guint64 j=0;
-        *end = *begin - i;
+        *end = *begin - (guint)i;
         
         
         // slope method
@@ -540,7 +540,7 @@ static inline gboolean verify_plateau(double* hit_rate, double max_hr, double av
                 break;
         }
         free(slopes);
-        *begin = *begin - (j-1);
+        *begin = *begin - (guint)(j-1);
         
         
         // second derivative method

@@ -112,7 +112,7 @@ class cachecow:
             hm.heatmap(reader, mode, interval, plot_type, cache_size=size, **kwargs)
         else:
             hm = heatmap()
-            hm.run(mode, interval, plot_type, reader, **kwargs)
+            hm.heatmap(mode, interval, plot_type, reader, **kwargs)
 
     def differential_heatmap(self):
         pass

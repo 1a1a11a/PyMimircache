@@ -194,12 +194,12 @@ draw_dict* heatmap_hit_rate_start_time_end_time(READER* reader, struct_cache* ca
     
     
     // send data to thread pool and begin computation
-    for (i=0; i<break_points->len; i++){
+    for (i=0; i<break_points->len-1; i++){
         if ( g_thread_pool_push (gthread_pool, GINT_TO_POINTER(i+1), NULL) == FALSE)    // +1 otherwise, 0 will be a problem
             g_error("cannot push data into thread in generalprofiler\n");
     }
     
-    while ( progress < break_points->len ){
+    while ( progress < break_points->len-1 ){
         printf("%.2f%%\n", ((double)progress)/break_points->len*100);
         sleep(1);
         printf("\033[A\033[2K\r");
@@ -261,12 +261,12 @@ draw_dict* heatmap_rd_distribution(READER* reader, char mode, long time_interval
     
 
     // send data to thread pool and begin computation
-    for (i=0; i<break_points->len; i++){
+    for (i=0; i<break_points->len-1; i++){
         if ( g_thread_pool_push (gthread_pool, GINT_TO_POINTER(i+1), NULL) == FALSE)    // +1 otherwise, 0 will be a problem
             g_error("cannot push data into thread in generalprofiler\n");
     }
 
-    while ( progress < break_points->len ){
+    while ( progress < break_points->len-1 ){
         printf("%.2lf%%\n", ((double)progress)/break_points->len*100);
         sleep(1);
         printf("\033[A\033[2K\r");
