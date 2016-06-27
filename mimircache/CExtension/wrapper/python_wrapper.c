@@ -16,12 +16,17 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
         
     }
     else if (strcmp(algorithm, "Optimal") == 0){
-        struct optimal_init_params init_params = {.reader=reader, .next_access=NULL, .ts=begin};
-        cache = optimal_init(cache_size, data_type, (void*)&init_params);
+        struct optimal_init_params *init_params = (struct optimal_init_params*) malloc(sizeof(struct optimal_init_params));
+        init_params->ts = begin;
+        init_params->reader = reader;
+        init_params->next_access = NULL;
+        cache = optimal_init(cache_size, data_type, (void*)init_params);
     }
     else if (strcmp(algorithm, "LRU_2") == 0){
-        struct LRU_K_init_params init_params = {.K=2, .maxK=2 };
-        cache = LRU_K_init(cache_size, data_type, (void*)&init_params);
+        struct LRU_K_init_params *init_params = (struct LRU_K_init_params*) malloc(sizeof(struct LRU_K_init_params));
+        init_params->K = 2;
+        init_params->maxK = 2;
+        cache = LRU_K_init(cache_size, data_type, (void*)init_params);
     }
     else if (strcmp(algorithm, "LRU_K") == 0){
 //        printf("check dict\n");
@@ -44,8 +49,11 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
         
         int K = (int)PyLong_AsLong(PyDict_GetItemString(cache_params, "K"));
         printf("K=%d\n", K);
-        struct LRU_K_init_params init_params = {.K=K, .maxK=K };
-        cache = LRU_K_init(cache_size, data_type, (void*)&init_params);
+        struct LRU_K_init_params *init_params = (struct LRU_K_init_params*) malloc(sizeof(struct LRU_K_init_params));
+        init_params->K = K;
+        init_params->maxK = K;
+        cache = LRU_K_init(cache_size, data_type, (void*)init_params);
+        printf("cache->K = %d, maxK = %d\n", ((struct LRU_K_params*)(cache->cache_params))->K, ((struct LRU_K_params*)(cache->cache_params))->maxK);
     }
     else {
         printf("does not support given cache replacement algorithm: %s\n", algorithm);

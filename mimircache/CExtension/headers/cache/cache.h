@@ -68,7 +68,7 @@ typedef struct cache{
 
 struct_cache* cache_init(long long size, char data_type);
 void cache_destroy(struct_cache* cache);
-
+void cache_destroy_unique(struct_cache* cache); 
 
 
 

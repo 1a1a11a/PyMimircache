@@ -375,7 +375,7 @@ class cHeatmap:
 
 
 def server_plot_all(path="../data/cloudphysics/", num_of_threads=48):
-    TIME_INTERVAL = 100000000
+    TIME_INTERVAL = 1000000000
     PLOT_TYPE = "hit_rate_start_time_end_time"
     MODE = 'r'
     mem_sizes = [int(100 * (i ** 2)) for i in range(2, 16)]
@@ -456,7 +456,7 @@ def localtest():
 
     print('c')
     t1 = time.time()
-    hm.differential_heatmap(reader, MODE, TIME_INTERVAL, PLOT_TYPE, "LRU", "LRU_K", cache_params2={'K': 40},
+    hm.differential_heatmap(reader, MODE, TIME_INTERVAL, PLOT_TYPE, "LRU", "LRU_K", cache_params2={'K': 3},
                             cache_size=CACHE_SIZE,
                             num_of_threads=NUM_OF_THREADS, figname="heatmap.png")
     print(time.time() - t1)

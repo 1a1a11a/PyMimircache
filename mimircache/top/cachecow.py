@@ -231,6 +231,10 @@ class cachecow:
     def __next__(self):  # Python 3
         return self.reader.next()
 
+    def __del__(self):
+        if self.reader:
+            self.reader.close()
+
     def twoDPlot(self, mode, time_interval, plot_type):
         if plot_type == 'cold_miss':
             cold_miss_2d(self.reader, mode, time_interval)

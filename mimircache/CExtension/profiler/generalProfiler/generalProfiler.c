@@ -6,7 +6,6 @@
 
 
 static void profiler_thread(gpointer data, gpointer user_data){
-    
     int i;
     struct multithreading_params_generalProfiler* params = (struct multithreading_params_generalProfiler*) data;
     int num_of_threads = params->num_of_threads;
@@ -160,15 +159,18 @@ int main(int argc, char* argv[]){
 //    struct optimal_init_params init_params = {.reader=reader, .next_access=NULL, .ts=0};
 //    struct_cache* cache = optimal_init(CACHESIZE, 'v', (void*)&init_params);
     
-    struct LRU_K_init_params LRU_K_init_params = {.K=2, .maxK=2};
-    struct_cache* cache = LRU_K_init(CACHESIZE, 'v', &LRU_K_init_params);
+    struct LRU_K_init_params *LRU_K_init_params = (struct LRU_K_init_params*) malloc(sizeof(struct LRU_K_init_params));
+    LRU_K_init_params->K = 1;
+    LRU_K_init_params->maxK = 1;
+    
+    struct_cache* cache = LRU_K_init(CACHESIZE, 'v', LRU_K_init_params);
     
     
     printf("after initialization, begin profiling\n");
     
 
-    return_res** res = profiler(reader, cache, CACHESIZE, BIN_SIZE, 0, -1);
-//    return_res** res = profiler(reader, cache, CACHESIZE, BIN_SIZE, 23, 43);
+    return_res** res = profiler(reader, cache, 1, BIN_SIZE, 0, -1);
+//    return_res** res = profiler(reader, cache, 1, BIN_SIZE, 23, 43);
     
     int i;
     for (i=0; i<CACHESIZE/BIN_SIZE; i++){
