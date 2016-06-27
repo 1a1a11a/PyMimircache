@@ -8,7 +8,6 @@ import math
 import os
 import time
 
-# deal with headless situation
 import traceback
 
 import numpy as np

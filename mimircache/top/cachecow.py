@@ -171,9 +171,6 @@ class cachecow:
                                             cache_params=cache_params2,
                                             num_of_threads=num_of_process)
 
-            print(xydict1.shape)
-            print(xydict2.shape)
-
             cHm = cHeatmap()
             text = "      differential heatmap\n      cache size: {},\n      cache type: {}-{},\n" \
                    "      time type: {},\n      time interval: {},\n      plot type: \n{}".format(

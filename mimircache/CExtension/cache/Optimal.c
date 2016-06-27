@@ -68,13 +68,13 @@ set_pos(void *a, size_t pos)
 }
 
 
-static void print_cacheline(struct_cache* optimal){
-    struct optimal_params* optimal_params = (struct optimal_params*)(optimal->cache_params);
-    if (!pqueue_peek(optimal_params->pq))
-        printf("pq size: %zu, hashtable size: %u, peek: EMPTY\n", pqueue_size(optimal_params->pq), g_hash_table_size(optimal_params->hashtable));
-    else
-        printf("pq size: %zu, hashtable size: %u, peek: %lld\n", pqueue_size(optimal_params->pq), g_hash_table_size(optimal_params->hashtable), ((node_t*)pqueue_peek(optimal_params->pq))->long_item);
-}
+//static void print_cacheline(struct_cache* optimal){
+//    struct optimal_params* optimal_params = (struct optimal_params*)(optimal->cache_params);
+//    if (!pqueue_peek(optimal_params->pq))
+//        printf("pq size: %zu, hashtable size: %u, peek: EMPTY\n", pqueue_size(optimal_params->pq), g_hash_table_size(optimal_params->hashtable));
+//    else
+//        printf("pq size: %zu, hashtable size: %u, peek: %lld\n", pqueue_size(optimal_params->pq), g_hash_table_size(optimal_params->hashtable), ((node_t*)pqueue_peek(optimal_params->pq))->long_item);
+//}
 
 
 
@@ -182,7 +182,7 @@ void optimal_destroy_unique(struct_cache* cache){
 
 
 struct_cache* optimal_init(long long size, char data_type, void* params){
-#define pq_size_multiplier 10
+#define pq_size_multiplier 10       // ??? WHY 
     struct_cache* cache = cache_init(size, data_type);
     
     struct optimal_params* optimal_params = (struct optimal_params*) calloc(1, sizeof(struct optimal_params));
@@ -213,6 +213,8 @@ struct_cache* optimal_init(long long size, char data_type, void* params){
     else{
         g_error("does not support given data type: %c\n", data_type);
     }
+    
+    
     optimal_params->pq = pqueue_init(size*pq_size_multiplier, cmp_pri, get_pri, set_pri, get_pos, set_pos);
     
     if (((struct optimal_init_params*)params)->next_access == NULL){
@@ -220,8 +222,6 @@ struct_cache* optimal_init(long long size, char data_type, void* params){
             get_num_of_cache_lines(reader);
         optimal_params->next_access = g_array_sized_new (FALSE, FALSE, sizeof (gint64), (guint)reader->total_num);
         GArray* array = optimal_params->next_access;
-    
-    
         GSList* list = get_last_access_dist_seq(reader, read_one_element_above);
         GSList* list_move = list;
     

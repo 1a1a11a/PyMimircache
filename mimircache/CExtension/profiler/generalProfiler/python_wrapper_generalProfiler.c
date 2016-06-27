@@ -14,7 +14,9 @@
 #include "generalProfiler.h"
 #include "FIFO.h"
 #include "Optimal.h"
+#include "LRU_K.h"
 #include <math.h>
+#include "python_wrapper.h"
 
 
 /* TODO:
@@ -32,15 +34,15 @@ static PyObject* generalProfiler_get_hit_rate(PyObject* self, PyObject* args, Py
     int num_of_threads = 4;
     long cache_size;
     int bin_size = -1;
-    char* name;
+    char* algorithm;
     struct_cache* cache;
     PyObject* cache_params;
     
     long begin=0, end=-1;
-    static char *kwlist[] = {"reader", "cache_name", "cache_size", "bin_size", "cache_params", "num_of_threads", "begin", "end", NULL};
+    static char *kwlist[] = {"reader", "algorithm", "cache_size", "bin_size", "cache_params", "num_of_threads", "begin", "end", NULL};
     
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osli|Oill", kwlist, &po, &name, &cache_size, &bin_size, &cache_params, &num_of_threads, &begin, &end)) {
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osli|Oill", kwlist, &po, &algorithm, &cache_size, &bin_size, &cache_params, &num_of_threads, &begin, &end)) {
         printf("parsing argument failed in generalProfiler_get_hit_rate\n");
         return NULL;
     }
@@ -55,20 +57,7 @@ static PyObject* generalProfiler_get_hit_rate(PyObject* self, PyObject* args, Py
     }
 
     // build cache
-    char data_type = reader->type;
-    
-    if (strcmp(name, "FIFO") == 0){
-        cache = fifo_init(cache_size, data_type, NULL);
-
-    }
-    else if (strcmp(name, "Optimal") == 0){
-        struct optimal_init_params init_params = {.reader=reader, .next_access=NULL, .ts=begin};
-        cache = optimal_init(cache_size, data_type, (void*)&init_params);
-    }
-    else {
-        printf("does not support given cache replacement algorithm: %s\n", name);
-        exit(1);
-    }
+    cache = build_cache(reader, cache_size, algorithm, cache_params, begin);
     
     // get hit rate
     DEBUG(printf("before profiling\n"));
@@ -101,9 +90,6 @@ static PyObject* generalProfiler_get_hit_rate(PyObject* self, PyObject* args, Py
 
 
 
-
-
-
 static PyObject* generalProfiler_get_hit_count(PyObject* self, PyObject* args, PyObject* keywds)
 {
     PyObject* po;
@@ -111,15 +97,15 @@ static PyObject* generalProfiler_get_hit_count(PyObject* self, PyObject* args, P
     int num_of_threads = 4;
     long cache_size;
     int bin_size = -1;
-    char* name;
+    char* algorithm;
     struct_cache* cache;
     PyObject* cache_params;
     
     long begin=0, end=-1;
-    static char *kwlist[] = {"reader", "cache_name", "cache_size", "bin_size", "cache_params", "num_of_threads", "begin", "end", NULL};
+    static char *kwlist[] = {"reader", "algorithm", "cache_size", "bin_size", "cache_params", "num_of_threads", "begin", "end", NULL};
     
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osli|Oill", kwlist, &po, &name, &cache_size, &bin_size, &cache_params, &num_of_threads, &begin, &end)) {
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osli|Oill", kwlist, &po, &algorithm, &cache_size, &bin_size, &cache_params, &num_of_threads, &begin, &end)) {
         printf("parsing argument failed in generalProfiler_get_hit_rate\n");
         return NULL;
     }
@@ -134,20 +120,8 @@ static PyObject* generalProfiler_get_hit_count(PyObject* self, PyObject* args, P
     }
     
     // build cache
-    char data_type = reader->type;
+    cache = build_cache(reader, cache_size, algorithm, cache_params, begin);
     
-    if (strcmp(name, "FIFO") == 0){
-        cache = fifo_init(cache_size, data_type, NULL);
-        
-    }
-    else if (strcmp(name, "Optimal") == 0){
-        struct optimal_init_params init_params = {.reader=reader, .next_access=NULL, .ts=begin};
-        cache = optimal_init(cache_size, data_type, (void*)&init_params);
-    }
-    else {
-        printf("does not support given cache replacement algorithm: %s\n", name);
-        exit(1);
-    }
     
     // get hit rate
     DEBUG(printf("before profiling\n"));
@@ -179,15 +153,15 @@ static PyObject* generalProfiler_get_miss_rate(PyObject* self, PyObject* args, P
     int num_of_threads = 4;
     long cache_size;
     int bin_size = -1;
-    char* name;
+    char* algorithm;
     struct_cache* cache;
     PyObject* cache_params;
     
     long begin=0, end=-1;
-    static char *kwlist[] = {"reader", "cache_name", "cache_size", "bin_size", "cache_params", "num_of_threads", "begin", "end", NULL};
+    static char *kwlist[] = {"reader", "algorithm", "cache_size", "bin_size", "cache_params", "num_of_threads", "begin", "end", NULL};
     
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osli|Oill", kwlist, &po, &name, &cache_size, &bin_size, &cache_params, &num_of_threads, &begin, &end)) {
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osli|Oill", kwlist, &po, &algorithm, &cache_size, &bin_size, &cache_params, &num_of_threads, &begin, &end)) {
         printf("parsing argument failed in generalProfiler_get_hit_rate\n");
         return NULL;
     }
@@ -202,20 +176,8 @@ static PyObject* generalProfiler_get_miss_rate(PyObject* self, PyObject* args, P
     }
     
     // build cache
-    char data_type = reader->type;
-    
-    if (strcmp(name, "FIFO") == 0){
-        cache = fifo_init(cache_size, data_type, NULL);
-        
-    }
-    else if (strcmp(name, "Optimal") == 0){
-        struct optimal_init_params init_params = {.reader=reader, .next_access=NULL, .ts=begin};
-        cache = optimal_init(cache_size, data_type, (void*)&init_params);
-    }
-    else {
-        printf("does not support given cache replacement algorithm: %s\n", name);
-        exit(1);
-    }
+    cache = build_cache(reader, cache_size, algorithm, cache_params, begin);
+
     
     // get hit rate
     DEBUG(printf("before profiling\n"));

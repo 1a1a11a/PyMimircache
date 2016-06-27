@@ -43,13 +43,4 @@ struct multithreading_params_generalProfiler{
 return_res** profiler(READER* reader_in, struct cache* cache_in, int num_of_threads_in, int bin_size_in, gint64 begin_pos, gint64 end_pos);
 
 
-
-//long long* get_hit_count_seq(READER* reader, long size, long long begin, long long end);
-//float* get_hit_rate_seq(READER* reader, long size, long long begin, long long end);
-//float* get_miss_rate_seq(READER* reader, long size, long long begin, long long end);
-//long long* get_reuse_dist_seq(READER* reader, long long begin, long long end);
-//long long* get_rd_distribution(READER* reader, long long begin, long long end);
-//long long* get_reversed_reuse_dist(READER* reader, long long begin, long long end);
-
-
 #endif /* generalProfiler_h */

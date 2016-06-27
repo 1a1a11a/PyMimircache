@@ -164,7 +164,7 @@ extensions.append(Extension(
     glob("mimircache/CExtension/profiler/LRUProfiler/*.c") +
     glob('mimircache/CExtension/cacheReader/*.c') +
     glob('mimircache/CExtension/utils/*.c'),
-    include_dirs=["mimircache/CExtension/headers"] + numpy_headers,
+    include_dirs=["mimircache/CExtension/headers"] + numpy_headers, 
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args,
     language="c"))
@@ -176,7 +176,8 @@ extensions.append(Extension(
     glob("mimircache/CExtension/profiler/LRUProfiler/*.c") +
     glob("mimircache/CExtension/cache/*.c") +
     glob('mimircache/CExtension/cacheReader/*.c') +
-    glob('mimircache/CExtension/utils/*.c'),
+    glob('mimircache/CExtension/utils/*.c') +
+    glob('mimircache/CExtension/wrapper/*.c'),
     include_dirs=["mimircache/CExtension/headers/"] +
                  ["mimircache/CExtension/headers/cache/"] + numpy_headers,
     extra_compile_args=extra_compile_args,
@@ -190,7 +191,8 @@ extensions.append(Extension(
     glob("mimircache/CExtension/profiler/LRUProfiler/*.c") +
     glob("mimircache/CExtension/cache/*.c") +
     glob('mimircache/CExtension/cacheReader/*.c') +
-    glob('mimircache/CExtension/utils/*.c'),
+    glob('mimircache/CExtension/utils/*.c') +
+    glob('mimircache/CExtension/wrapper/*.c'),
     include_dirs=["mimircache/CExtension/headers"] +
                  ["mimircache/CExtension/headers/cache"] + numpy_headers,
     extra_compile_args=extra_compile_args,

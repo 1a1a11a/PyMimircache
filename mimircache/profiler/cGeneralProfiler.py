@@ -155,7 +155,8 @@ if __name__ == "__main__":
     # r = plainCacheReader('../../data/test')
     # r = plainCacheReader('../data/parda.trace')
     r = vscsiCacheReader('../data/trace.vscsi')
-    cg = cGeneralProfiler(r, 'Optimal', 2000, 200)
+    # cg = cGeneralProfiler(r, 'Optimal', 2000, 200)
+    cg = cGeneralProfiler(r, 'LRU_2', 2000, 200)
 
     t1 = time.time()
 

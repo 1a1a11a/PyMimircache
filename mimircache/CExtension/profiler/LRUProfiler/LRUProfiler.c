@@ -722,9 +722,9 @@ static inline sTree* process_one_element(cache_line* cp, sTree* splay_tree, GHas
 }
 
 
-static void print_GQ(gpointer data, gpointer user_data){
-    printf("%u\n", GPOINTER_TO_UINT(data));
-}
+//static void print_GQ(gpointer data, gpointer user_data){
+//    printf("%u\n", GPOINTER_TO_UINT(data));
+//}
 
 
 

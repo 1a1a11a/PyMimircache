@@ -11,3 +11,7 @@
 void simple_key_value_destroyed(gpointer data) {
     free(data);
 }
+
+void gqueue_destroyer(gpointer data) {
+    g_queue_free_full(data, simple_key_value_destroyed);
+}

@@ -18,6 +18,7 @@
 
 
 void simple_key_value_destroyed(gpointer data);
+void gqueue_destroyer(gpointer data); 
 
 
 #endif /* glib_related_h */

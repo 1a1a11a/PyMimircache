@@ -12,6 +12,7 @@
 #include "FIFO.h" 
 #include "Optimal.h"
 #include "const.h"
+#include "python_wrapper.h"
 
 
 #define NPY_NO_DEPRECATED_API 11
@@ -127,26 +128,6 @@ static PyObject* heatmap_get_next_access_dist_seq(PyObject* self, PyObject* args
 
 static PyObject* heatmap_computation(PyObject* self, PyObject* args, PyObject* keywds)
 {
-//    PyObject* po;
-//    READER* reader;
-//    int num_of_threads = 4;
-//    long cache_size;
-//    char* name;
-//    char* plot_type_s;
-//    int plot_type;
-//    char* mode;
-//    long time_interval;
-//    struct_cache* cache;
-//    
-//    static char *kwlist[] = {"reader", "cache_size", "cache_type", "mode", "time_interval", "plot_type", "num_of_threads", NULL};
-//    
-//    // parse arguments
-//    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Olssls|$Oi", kwlist, &po, &cache_size, &name, &mode, &time_interval, &plot_type_s, &num_of_threads)) {
-//        printf("parsing argument failed in heatmap_computation\n");
-//        return NULL;
-//    }
-    
-    
     PyObject* po;
     PyObject* cache_params;
     READER* reader;
@@ -158,8 +139,7 @@ static PyObject* heatmap_computation(PyObject* self, PyObject* args, PyObject* k
     char* mode;
     long time_interval;
     struct_cache* cache;
-    
-    
+
     static char *kwlist[] = {"reader", "mode", "time_interval", "plot_type", "cache_size", "algorithm", "cache_params", "num_of_threads", NULL};
     
     // parse arguments
@@ -176,25 +156,14 @@ static PyObject* heatmap_computation(PyObject* self, PyObject* args, PyObject* k
     }
     
     // build cache
-    char data_type = reader->type;
-    
-    if (strcmp(algorithm, "FIFO") == 0){
-        cache = fifo_init(cache_size, data_type, NULL);
-    }
-    
-    else if (strcmp(algorithm, "Optimal") == 0){
-        struct optimal_init_params init_params = {.reader=reader, .next_access=NULL};
-        cache = optimal_init(cache_size, data_type, (void*)&init_params);
-    }
-    else if (strcmp(algorithm, "LRU") == 0){
-        cache = cache_init(cache_size, data_type);
+    if (strcmp(algorithm, "LRU") == 0){
+        cache = cache_init(cache_size, reader->type);
         cache->core->type = e_LRU;
     }
-    else {
-        printf("does not support given cache replacement algorithm: %s\n", algorithm);
-        exit(1);
-    }
+    else
+        cache = build_cache(reader, cache_size, algorithm, cache_params, 0);
 
+    
     if (strcmp(plot_type_s, "hit_rate_start_time_end_time") == 0)
         plot_type = hit_rate_start_time_end_time;
     else if (strcmp(plot_type_s, "hit_rate_start_time_cache_size") == 0)
@@ -276,24 +245,13 @@ static PyObject* differential_heatmap_with_Optimal(PyObject* self, PyObject* arg
     }
     
     // build cache
-    char data_type = reader->type;
-    
-    if (strcmp(algorithm, "FIFO") == 0){
-        cache = fifo_init(cache_size, data_type, NULL);
-    }
-    
-    else if (strcmp(algorithm, "Optimal") == 0){
-        struct optimal_init_params init_params = {.reader=reader, .next_access=NULL};
-        cache = optimal_init(cache_size, data_type, (void*)&init_params);
-    }
-    else if (strcmp(algorithm, "LRU") == 0){
-        cache = cache_init(cache_size, data_type);
+    if (strcmp(algorithm, "LRU") == 0){
+        cache = cache_init(cache_size, reader->type);
         cache->core->type = e_LRU;
     }
-    else {
-        printf("does not support given cache replacement algorithm: %s\n", algorithm);
-        exit(1);
-    }
+    else
+        cache = build_cache(reader, cache_size, algorithm, cache_params, 0);
+
     
     if (strcmp(plot_type_s, "hit_rate_start_time_end_time") == 0)
         plot_type = hit_rate_start_time_end_time;
@@ -309,7 +267,7 @@ static PyObject* differential_heatmap_with_Optimal(PyObject* self, PyObject* arg
     }
     
     struct optimal_init_params init_params = {.reader=reader, .next_access=NULL, .ts=0};
-    struct_cache* optimal = optimal_init(cache_size, data_type, (void*)&init_params);
+    struct_cache* optimal = optimal_init(cache_size, reader->type, (void*)&init_params);
     
 
     
@@ -378,26 +336,33 @@ static PyObject* differential_heatmap_py(PyObject* self, PyObject* args, PyObjec
     }
     
     // build cache
-    char data_type = reader->type;
+//    char data_type = reader->type;
     
     guint64 i, j;
     for (i=0; i<2; i++){
-        if (strcmp(algorithm[i], "FIFO") == 0){
-            cache[i] = fifo_init(cache_size, data_type, NULL);
-        }
-    
-        else if (strcmp(algorithm[i], "Optimal") == 0){
-            struct optimal_init_params init_params = {.reader=reader, .next_access=NULL};
-            cache[i] = optimal_init(cache_size, data_type, (void*)&init_params);
-        }
-        else if (strcmp(algorithm[i], "LRU") == 0){
-            cache[i] = cache_init(cache_size, data_type);
+        if (strcmp(algorithm[i], "LRU") == 0){
+            cache[i] = cache_init(cache_size, reader->type);
             cache[i]->core->type = e_LRU;
         }
-        else {
-            printf("does not support given cache replacement algorithm: %s\n", algorithm[i]);
-            exit(1);
-        }
+        else
+            cache[i] = build_cache(reader, cache_size, algorithm[i], cache_params[i], 0);
+
+//        if (strcmp(algorithm[i], "FIFO") == 0){
+//            cache[i] = fifo_init(cache_size, data_type, NULL);
+//        }
+//    
+//        else if (strcmp(algorithm[i], "Optimal") == 0){
+//            struct optimal_init_params init_params = {.reader=reader, .next_access=NULL};
+//            cache[i] = optimal_init(cache_size, data_type, (void*)&init_params);
+//        }
+//        else if (strcmp(algorithm[i], "LRU") == 0){
+//            cache[i] = cache_init(cache_size, data_type);
+//            cache[i]->core->type = e_LRU;
+//        }
+//        else {
+//            printf("does not support given cache replacement algorithm: %s\n", algorithm[i]);
+//            exit(1);
+//        }
     }
     
     if (strcmp(plot_type_s, "hit_rate_start_time_end_time") == 0)

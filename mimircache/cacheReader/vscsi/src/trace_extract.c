@@ -112,7 +112,7 @@ int setup(char *argv, void** mem, int* ver, int* delta, int* num_of_rec)
 
 int read_trace2(void** mem, int* ver, int size, long ts[], int len[], long lbn[], int cmd[]){
 	int (*fptr)(void**, int, long*, int*, long*, int*, int) = NULL;
-	int delta;
+	int delta = 0;
 	switch (*ver)
 	{
 		case VSCSI1:

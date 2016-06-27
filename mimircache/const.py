@@ -22,7 +22,7 @@ def init():
 def _init_C_available_modules():
     config = configparser.ConfigParser()
     # print(BASE_DIR + '/conf')
-    config.read(BASE_DIR + '/conf.py')
+    config.read(BASE_DIR + '/conf')
     if 'C_available_cache' in config.sections():
         c_available_cache.extend(config['C_available_cache'])
     else:
@@ -54,3 +54,5 @@ def _init_cache_alg_mapping():
     cache_alg_mapping['s4lru'] = "S4LRU"
     cache_alg_mapping['lfu_rr'] = "LFU_RR"
     cache_alg_mapping['lfu_mru'] = "LFU_MRU"
+    cache_alg_mapping['lru_k'] = "LRU_K"
+    cache_alg_mapping['lru_2'] = "LRU_2"

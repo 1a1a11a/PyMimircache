@@ -22,7 +22,8 @@
 typedef enum{
     e_LRU,
     e_Optimal,
-    e_FIFO
+    e_FIFO,
+    e_LRU_K
 }cache_type;
 
 
