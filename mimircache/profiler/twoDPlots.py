@@ -16,11 +16,7 @@ from mimircache.utils.printing import *
 from mimircache.profiler.cHeatmap import cHeatmap
 
 
-def request_num_2d(reader, mode, time_interval, **kwargs):
-    figname = "request_num.png"
-    if 'figname' in kwargs:
-        figname = kwargs['figname']
-
+def request_num_2d(reader, mode, time_interval, figname="request_num.png"):
     assert mode == 'r' or mode == 'v', "currently only support mode r and v, what mode are you using?"
     break_points = cHeatmap().gen_breakpoints(reader, mode, time_interval)
 
@@ -33,14 +29,11 @@ def request_num_2d(reader, mode, time_interval, **kwargs):
            title='request num count 2D plot')
 
 
-def cold_miss_2d(reader, mode, time_interval, **kwargs):
-    figname = "cold_miss2d.png"
-    if 'figname' in kwargs:
-        figname = kwargs['figname']
+def cold_miss_2d(reader, mode, time_interval, figname="cold_miss2d.png"):
     assert mode == 'r' or mode == 'v', "currently only support mode r and v, what mode are you using?"
     break_points = cHeatmap().gen_breakpoints(reader, mode, time_interval)
 
-    cold_miss_list = [0] * len(break_points - 1)
+    cold_miss_list = [0] * (len(break_points) - 1)
     seen_set = set()
     never_see = 0
     for i in range(len(break_points) - 1):

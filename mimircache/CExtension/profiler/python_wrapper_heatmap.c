@@ -346,23 +346,6 @@ static PyObject* differential_heatmap_py(PyObject* self, PyObject* args, PyObjec
         }
         else
             cache[i] = build_cache(reader, cache_size, algorithm[i], cache_params[i], 0);
-
-//        if (strcmp(algorithm[i], "FIFO") == 0){
-//            cache[i] = fifo_init(cache_size, data_type, NULL);
-//        }
-//    
-//        else if (strcmp(algorithm[i], "Optimal") == 0){
-//            struct optimal_init_params init_params = {.reader=reader, .next_access=NULL};
-//            cache[i] = optimal_init(cache_size, data_type, (void*)&init_params);
-//        }
-//        else if (strcmp(algorithm[i], "LRU") == 0){
-//            cache[i] = cache_init(cache_size, data_type);
-//            cache[i]->core->type = e_LRU;
-//        }
-//        else {
-//            printf("does not support given cache replacement algorithm: %s\n", algorithm[i]);
-//            exit(1);
-//        }
     }
     
     if (strcmp(plot_type_s, "hit_rate_start_time_end_time") == 0)

@@ -84,53 +84,41 @@ class LRUProfiler:
         rd_dist = c_LRUProfiler.get_rd_distribution_seq(self.reader.cReader, **kargs)
         return rd_dist
 
-    def plotMRC(self, autosize=False, autosize_threshold=0.00001, figname="MRC.png", **kwargs):
+    def plotMRC(self, figname="MRC.png", threshhold=0.95, **kwargs):
         MRC = self.get_miss_rate(**kwargs)
         try:
-            # change the x-axis range according to threshhold
-            num_of_blocks = 0
-            if autosize:
-                for i in range(len(MRC) - 3, 2, -1):
-                    if (MRC[i - 1] - MRC[i]) > autosize_threshold:
-                        break
-                num_of_blocks = i
+            for i in range(len(MRC) - 1, 0):
+                if MRC[i] < MRC[-1] * threshhold:
+                    break
 
-            else:
-                num_of_blocks = len(MRC) - 2
-
-            plt.plot(MRC[:num_of_blocks])
+            plt.plot(MRC[:i])
             plt.xlabel("cache Size")
             plt.ylabel("Miss Rate")
             plt.title('Miss Rate Curve', fontsize=18, color='black')
             plt.savefig(figname, dpi=300)
             plt.show()
             plt.clf()
+            return i
         except Exception as e:
             plt.savefig(figname)
             print("the plotting function is not wrong, is this a headless server?")
             print(e)
 
-    def plotHRC(self, autosize=False, autosize_threshold=0.00001, figname="HRC.png"):
+    def plotHRC(self, figname="HRC.png", threshhold=0.95):
         HRC = self.get_hit_rate()
         try:
-            # change the x-axis range according to threshhold
-            num_of_blocks = 0
-            if autosize:
-                for i in range(len(HRC) - 3, 2, -1):
-                    if (HRC[i] - HRC[i - 1]) > autosize_threshold:
-                        break
-                num_of_blocks = i + 20
+            for i in range(len(HRC) - 1, 0):
+                if HRC[i] < HRC[-1] * threshhold:
+                    break
 
-            else:
-                num_of_blocks = len(HRC) - 2
-
-            plt.plot(HRC[:num_of_blocks])
+            plt.plot(HRC[:i])
             plt.xlabel("cache Size")
             plt.ylabel("Hit Rate")
             plt.title('Hit Rate Curve', fontsize=18, color='black')
             plt.savefig(figname, dpi=600)
             plt.show()
             plt.clf()
+            return i
         except Exception as e:
             plt.savefig(figname)
             print("the plotting function is not wrong, is this a headless server?")

@@ -318,7 +318,7 @@ draw_dict* differential_heatmap(READER* reader, struct_cache* cache1, struct_cac
 //                printf("ERROR -1 %ld, %ld: %f\n", i, j, draw_dict1->matrix[i][j]);
 //            if (draw_dict2->matrix[i][j] > 1 || draw_dict2->matrix[i][j] < 0)
 //                printf("ERROR -2 %ld, %ld: %f\n", i, j, draw_dict2->matrix[i][j]);
-            draw_dict2->matrix[i][j] = draw_dict2->matrix[i][j] - draw_dict1->matrix[i][j];
+            draw_dict2->matrix[i][j] = (draw_dict2->matrix[i][j] - draw_dict1->matrix[i][j])/draw_dict1->matrix[i][j];
         }
     free_draw_dict(draw_dict1);
     return draw_dict2;

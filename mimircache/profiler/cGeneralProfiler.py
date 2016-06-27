@@ -30,6 +30,7 @@ from mimircache.cache.Random import Random
 from mimircache.cache.SLRU import SLRU
 from mimircache.cache.S4LRU import S4LRU
 from mimircache.cache.Optimal import optimal
+import matplotlib.ticker as ticker
 
 from mimircache.cacheReader.plainReader import plainCacheReader
 
@@ -87,18 +88,20 @@ class cGeneralProfiler:
 
         :return: a numpy array, with hit count corresponding to size [0, bin_size, bin_size*2 ...]
         """
-
+        if 'num_of_threads' not in kwargs:
+            kwargs['num_of_threads'] = self.num_of_threads
         return c_generalProfiler.get_hit_count(self.reader.cReader, self.cache_name, self.cache_size, \
-                                               self.bin_size, num_of_threads=self.num_of_threads, **kwargs)
+                                               self.bin_size, **kwargs)
 
     def get_hit_rate(self, **kwargs):
         """
 
         :return: a numpy array, with hit rate corresponding to size [0, bin_size, bin_size*2 ...]
         """
-
+        if 'num_of_threads' not in kwargs:
+            kwargs['num_of_threads'] = self.num_of_threads
         return c_generalProfiler.get_hit_rate(self.reader.cReader, self.cache_name, self.cache_size, \
-                                              self.bin_size, num_of_threads=self.num_of_threads, **kwargs)
+                                              self.bin_size, **kwargs)
 
     def get_miss_rate(self, **kwargs):
         """
@@ -106,13 +109,17 @@ class cGeneralProfiler:
         :return: a numpy array, with miss rate corresponding to size [0, bin_size, bin_size*2 ...]
         """
 
+        if 'num_of_threads' not in kwargs:
+            kwargs['num_of_threads'] = self.num_of_threads
         return c_generalProfiler.get_miss_rate(self.reader.cReader, self.cache_name, self.cache_size, \
-                                               self.bin_size, num_of_threads=self.num_of_threads, **kwargs)
+                                               self.bin_size, **kwargs)
 
-    def plotMRC(self, figname="MRC.png", **kwargs):
+    def plotMRC(self, figname="MRC.png", threshhold=0.95, **kwargs):
         MRC = self.get_miss_rate(**kwargs)
         try:
             num_of_blocks = len(MRC)
+            tick = ticker.FuncFormatter(lambda x, pos: '{:2.0f}'.format(x * self.bin_size))
+            plt.gca().xaxis.set_major_formatter(tick)
 
             plt.plot(MRC)
             plt.xlabel("cache Size")
@@ -126,10 +133,11 @@ class cGeneralProfiler:
             print("the plotting function is not wrong, is this a headless server?")
             print(e)
 
-    def plotHRC(self, figname="HRC.png", **kwargs):
+    def plotHRC(self, figname="HRC.png", threshhold=0.95, **kwargs):
         HRC = self.get_hit_rate(**kwargs)
         try:
-            num_of_blocks = len(HRC)
+            tick = ticker.FuncFormatter(lambda x, pos: '{:2.0f}'.format(x * self.bin_size))
+            plt.gca().xaxis.set_major_formatter(tick)
 
             plt.plot(HRC)
             plt.xlabel("cache Size")
@@ -148,8 +156,26 @@ class cGeneralProfiler:
             os.remove('temp.dat')
 
 
+def server_plot_all(path='/run/shm/traces/', threads=48):
+    from mimircache.profiler.LRUProfiler import LRUProfiler
+    for filename in os.listdir(path):
+        print(filename)
+        if filename.endswith('.vscsitrace'):
+            reader = vscsiCacheReader(path + filename)
+            p1 = LRUProfiler(reader)
+            size = p1.plotHRC(figname="0628_HRC/" + filename + '_LRU_HRC.png')
+            p2 = cGeneralProfiler(reader, 'Optimal', cache_size=size)
+            p2.plotHRC(figname="0628_HRC/" + filename + '_Optimal_HRC_' + str(size) + '_.png')
+            p3 = cGeneralProfiler(reader, "LRU_K", cache_size=size, cache_params={"K": 2})
+            p3.plotHRC(figname="0628_HRC/" + filename + '_LRU2_HRC_' + str(size) + '_.png')
+
+
+
+
 if __name__ == "__main__":
     import time
+
+    server_plot_all()
 
     # t1 = time.time()
     # r = plainCacheReader('../../data/test')

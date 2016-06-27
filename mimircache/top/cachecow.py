@@ -188,7 +188,7 @@ class cachecow:
                                     text=(x1, y1, text))
                 cHm.set_plot_params('y', 'virtual_time', xydict=xydict1, label='end time (virtual)')
 
-            cHm.draw_heatmap(xydict2 - xydict1, figname=figname)
+            cHm.draw_heatmap((xydict2 - xydict1) / xydict1, figname=figname)
 
     def profiler(self, algorithm, cache_params=None, cache_size=-1, **kwargs):
         """
