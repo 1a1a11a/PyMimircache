@@ -16,7 +16,7 @@ from os import path
 
 from mimircache.cacheReader.vscsiReader import vscsiCacheReader
 
-from mimircache.cache.ARC import ARC
+from mimircache.cache.adaptiveSLRU import AdaptiveSLRU
 from mimircache.cache.clock import clock
 from mimircache.cache.FIFO import FIFO
 from mimircache.cache.LFU_LRU__NEED_OPTIMIZATION import LFU_LRU

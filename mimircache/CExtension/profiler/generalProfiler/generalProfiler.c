@@ -169,7 +169,7 @@ int main(int argc, char* argv[]){
     printf("after initialization, begin profiling\n");
     
 
-    return_res** res = profiler(reader, cache, 1, BIN_SIZE, 0, -1);
+    return_res** res = profiler(reader, cache, 8, BIN_SIZE, 0, -1);
 //    return_res** res = profiler(reader, cache, 1, BIN_SIZE, 23, 43);
     
     int i;

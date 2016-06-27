@@ -1,6 +1,6 @@
 import math
 
-from mimircache.cache.ARC import ARC
+from mimircache.cache.adaptiveSLRU import AdaptiveSLRU
 from mimircache.cache.LFU_RR import LFU_RR
 from mimircache.cache.LRU import LRU
 from mimircache.cache.Random import Random
@@ -31,7 +31,7 @@ def calc_hit_rate_start_time_end_time_subprocess_general(order, cache, break_poi
     if cache == 'SLRU':
         c = SLRU(cache_size=cache_size)
     if cache == 'ARC':
-        c = ARC(cache_size=cache_size)
+        c = AdaptiveSLRU(cache_size=cache_size)
     if cache == 'LFU_RR':
         c = LFU_RR(cache_size=cache_size)
     if cache == 'LRU':

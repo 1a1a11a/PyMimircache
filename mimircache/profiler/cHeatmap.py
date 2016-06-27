@@ -378,7 +378,7 @@ def server_plot_all(path="../data/cloudphysics/", num_of_threads=48):
     TIME_INTERVAL = 1000000000
     PLOT_TYPE = "hit_rate_start_time_end_time"
     MODE = 'r'
-    mem_sizes = [int(100 * (i ** 2)) for i in range(2, 16)]
+    mem_sizes = [int(1000 * (i ** 2)) for i in range(2, 16)]
     # with open('memSize', 'r') as ifile:
     #     for line in ifile:
     #         mem_sizes.append(int(line.strip()))
@@ -415,17 +415,17 @@ def server_plot_all(path="../data/cloudphysics/", num_of_threads=48):
                                         figname="0627_LRUK_comp/" + '_'.join(
                                             [filename, "_LRU_LRU2_", str(mem_size), MODE]) + "_.png")
                 print("cache size: " + str(mem_size) + ", time: " + str(time.time() - t1))
-                t1 = time.time()
-                hm.differential_heatmap(reader, MODE, TIME_INTERVAL, PLOT_TYPE, "LRU", "LRU_K",
-                                        cache_size=mem_size, cache_params2={"K": 3},
-                                        num_of_threads=num_of_threads,
-                                        figname="0627_LRUK_comp/" + '_'.join(
-                                            [filename, "_LRU_LRU3_", str(mem_size), MODE]) + "_.png")
-                hm.differential_heatmap(reader, MODE, TIME_INTERVAL, PLOT_TYPE, "LRU", "LRU_K",
-                                        cache_size=mem_size, cache_params2={"K": 4},
-                                        num_of_threads=num_of_threads,
-                                        figname="0627_LRUK_comp/" + '_'.join(
-                                            [filename, "_LRU_LRU4_", str(mem_size), MODE]) + "_.png")
+                # t1 = time.time()
+                # hm.differential_heatmap(reader, MODE, TIME_INTERVAL, PLOT_TYPE, "LRU", "LRU_K",
+                #                         cache_size=mem_size, cache_params2={"K": 3},
+                #                         num_of_threads=num_of_threads,
+                #                         figname="0627_LRUK_comp/" + '_'.join(
+                #                             [filename, "_LRU_LRU3_", str(mem_size), MODE]) + "_.png")
+                # hm.differential_heatmap(reader, MODE, TIME_INTERVAL, PLOT_TYPE, "LRU", "LRU_K",
+                #                         cache_size=mem_size, cache_params2={"K": 4},
+                #                         num_of_threads=num_of_threads,
+                #                         figname="0627_LRUK_comp/" + '_'.join(
+                #                             [filename, "_LRU_LRU4_", str(mem_size), MODE]) + "_.png")
 
             reader.close()
 
