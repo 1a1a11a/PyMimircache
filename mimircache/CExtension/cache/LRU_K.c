@@ -263,7 +263,7 @@ struct_cache* LRU_K_init(long long size, char data_type, void* params){
     LRU_K_params->K = K;
     LRU_K_params->maxK = maxK;
     
-    if (data_type == 'v'){
+    if (data_type == 'l'){
         cache->core->add_element = LRU_K_add_element_long;
         cache->core->check_element = LRU_K_check_element_long;
         LRU_K_params->cache_hashtable = g_hash_table_new_full(g_int64_hash, g_int64_equal,

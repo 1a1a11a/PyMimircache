@@ -125,9 +125,7 @@ return_res** profiler(READER* reader_in, struct_cache* cache_in, int num_of_thre
     // clean up
     free(params);
     // needs to free result later
-    
-    sleep(10);
-    
+        
     return result;
 }
 

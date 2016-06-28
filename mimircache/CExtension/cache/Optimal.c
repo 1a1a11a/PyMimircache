@@ -149,6 +149,27 @@ inline gboolean optimal_add_element_long(struct_cache* cache, cache_line* cp){
     }
 }
 
+inline gboolean optimal_add_element_char(struct_cache* cache, cache_line* cp){
+    struct optimal_params* optimal_params = (struct optimal_params*)(cache->cache_params);
+    
+    if (optimal_check_element_long(cache, cp)){
+        __optimal_update_element_long(cache, cp);
+        (optimal_params->ts) ++ ;
+        //        print_cacheline((Optimal*)cache);
+        return TRUE;
+    }
+    else{
+        __optimal_insert_element_long(cache, cp);
+        (optimal_params->ts) ++ ;
+        if ( (long)g_hash_table_size( optimal_params->hashtable) > cache->core->size)
+            __optimal_evict_element(cache);
+        //        print_cacheline((Optimal*)cache);
+        return FALSE;
+    }
+}
+
+
+
 
 void optimal_destroy(struct_cache* cache){
     struct optimal_params* optimal_params = (struct optimal_params*)(cache->cache_params);
@@ -198,7 +219,7 @@ struct_cache* optimal_init(long long size, char data_type, void* params){
     optimal_params->reader = reader;
     
     
-    if (data_type == 'v'){
+    if (data_type == 'l'){
         cache->core->add_element = optimal_add_element_long;
         cache->core->check_element = optimal_check_element_long;
         optimal_params->hashtable = g_hash_table_new_full(g_int64_hash, g_int64_equal, simple_key_value_destroyed, simple_key_value_destroyed);

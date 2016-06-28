@@ -336,12 +336,15 @@ static PyObject* differential_heatmap_py(PyObject* self, PyObject* args, PyObjec
     }
     
     // build cache
-//    char data_type = reader->type;
-    
     guint64 i, j;
     for (i=0; i<2; i++){
         if (strcmp(algorithm[i], "LRU") == 0){
-            cache[i] = cache_init(cache_size, reader->type);
+            char data_type;
+            if (reader->type == 'v')
+                data_type= 'l';
+            else
+                data_type = 'c';
+            cache[i] = cache_init(cache_size, data_type);
             cache[i]->core->type = e_LRU;
         }
         else

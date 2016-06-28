@@ -479,7 +479,7 @@ if __name__ == "__main__":
     import time
 
     t1 = time.time()
-    server_plot_all(path="/run/shm/traces/")
+    # server_plot_all(path="/run/shm/traces/")
     # server_plot_all(path="../../../../disk/traces/", num_of_threads=16)
     localtest()
 

@@ -177,10 +177,10 @@ def server_plot_all(path='/run/shm/traces/', threads=48):
             p2.plotHRC(figname=folder + "/" + filename + '_Optimal_HRC_' + str(size) + '_.png')
             p3 = cGeneralProfiler(reader, "LRU_K", cache_size=size, cache_params={"K": 2}, bin_size=int(size / 500))
             p3.plotHRC(figname=folder + "/" + filename + '_LRU2_HRC_' + str(size) + '_.png', num_of_threads=threads)
-            p4 = cGeneralProfiler(reader, "LRU_K", cache_size=size, cache_params={"K": 3}, bin_size=int(size / 500))
-            p4.plotHRC(figname=folder + "/" + filename + '_LRU3_HRC_' + str(size) + '_.png', num_of_threads=threads)
-            p5 = cGeneralProfiler(reader, "LRU_K", cache_size=size, cache_params={"K": 4}, bin_size=int(size / 500))
-            p5.plotHRC(figname=folder + "/" + filename + '_LRU4_HRC_' + str(size) + '_.png', num_of_threads=threads)
+            # p4 = cGeneralProfiler(reader, "LRU_K", cache_size=size, cache_params={"K": 3}, bin_size=int(size / 500))
+            # p4.plotHRC(figname=folder + "/" + filename + '_LRU3_HRC_' + str(size) + '_.png', num_of_threads=threads)
+            # p5 = cGeneralProfiler(reader, "LRU_K", cache_size=size, cache_params={"K": 4}, bin_size=int(size / 500))
+            # p5.plotHRC(figname=folder + "/" + filename + '_LRU4_HRC_' + str(size) + '_.png', num_of_threads=threads)
             reader.close()
 
 
@@ -190,7 +190,7 @@ def server_plot_all(path='/run/shm/traces/', threads=48):
 if __name__ == "__main__":
     import time
 
-    server_plot_all()  # '../data/', threads=8)
+    server_plot_all('../data/', threads=8)
 
     # t1 = time.time()
     # r = plainCacheReader('../../data/test')

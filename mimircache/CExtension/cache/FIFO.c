@@ -96,15 +96,12 @@ struct_cache* fifo_init(long long size, char data_type, void* params){
     cache->core->destroy_unique = fifo_destroy_unique;
     cache->core->cache_init_params = NULL;
 
-    if (data_type == 'v'){
+    if (data_type == 'l'){
         cache->core->add_element = fifo_add_element_long;
         cache->core->check_element = fifo_check_element_long;
         fifo_params->hashtable = g_hash_table_new_full(g_int64_hash, g_int64_equal, simple_key_value_destroyed, NULL);
     }
     
-    else if (data_type == 'p'){
-        printf("not supported yet\n");
-    }
     else if (data_type == 'c'){
         printf("not supported yet\n");
     }

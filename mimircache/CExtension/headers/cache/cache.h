@@ -30,7 +30,7 @@ typedef enum{
 struct cache_core{
     cache_type type;
     long size;
-    char data_type;     // v, p, c
+    char data_type;     // l, i, c
     long long hit_count;
     long long miss_count;
     void* cache_init_params;

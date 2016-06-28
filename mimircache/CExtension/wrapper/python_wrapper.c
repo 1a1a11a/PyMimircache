@@ -9,7 +9,11 @@
 struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyObject* cache_params, long begin){
     
     struct_cache *cache;
-    char data_type = reader->type;
+    char data_type;
+    if (reader->type == 'v')
+        data_type= 'l';
+    else
+        data_type = 'c';
     
     if (strcmp(algorithm, "FIFO") == 0){
         cache = fifo_init(cache_size, data_type, NULL);
