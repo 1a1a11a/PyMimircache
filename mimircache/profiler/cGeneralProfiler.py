@@ -166,9 +166,9 @@ def server_plot_all(path='/run/shm/traces/', threads=48):
             reader = vscsiCacheReader(path + filename)
             p1 = LRUProfiler(reader)
             size = p1.plotHRC(figname=folder + "/" + filename + '_LRU_HRC.png')
-            p2 = cGeneralProfiler(reader, 'Optimal', cache_size=size, bin_size=int(size / 2000), num_of_threads=threads)
+            p2 = cGeneralProfiler(reader, 'Optimal', cache_size=size, bin_size=int(size / 200), num_of_threads=threads)
             p2.plotHRC(figname=folder + "/" + filename + '_Optimal_HRC_' + str(size) + '_.png')
-            p3 = cGeneralProfiler(reader, "LRU_K", cache_size=size, cache_params={"K": 2}, bin_size=int(size / 2000))
+            p3 = cGeneralProfiler(reader, "LRU_K", cache_size=size, cache_params={"K": 2}, bin_size=int(size / 200))
             p3.plotHRC(figname=folder + "/" + filename + '_LRU2_HRC_' + str(size) + '_.png', num_of_threads=threads)
             reader.close()
 
@@ -179,7 +179,7 @@ def server_plot_all(path='/run/shm/traces/', threads=48):
 if __name__ == "__main__":
     import time
 
-    server_plot_all()  # '../data/', threads=8)
+    server_plot_all('../data/', threads=8)
 
     # t1 = time.time()
     # r = plainCacheReader('../../data/test')
