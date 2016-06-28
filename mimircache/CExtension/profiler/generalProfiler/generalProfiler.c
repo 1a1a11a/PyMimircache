@@ -6,15 +6,18 @@
 
 
 static void profiler_thread(gpointer data, gpointer user_data){
-    int i;
-    struct multithreading_params_generalProfiler* params = (struct multithreading_params_generalProfiler*) data;
-    int num_of_threads = params->num_of_threads;
-    int order = params->order;
+    struct multithreading_params_generalProfiler* params = (struct multithreading_params_generalProfiler*) user_data;
+
+    int order = GPOINTER_TO_UINT(data);
     guint64 begin_pos = params->begin_pos;
     guint64 end_pos = params->end_pos;
     guint64 pos = begin_pos;
+    guint bin_size = params->bin_size;
     
-    struct_cache** caches = params->caches;
+    struct_cache* cache = params->cache->core->cache_init(bin_size * order,
+                                                          params->cache->core->data_type,
+                                                          params->cache->core->cache_init_params);
+
     return_res** result = params->result;
         
     READER* reader_thread = copy_reader(params->reader);
@@ -28,32 +31,35 @@ static void profiler_thread(gpointer data, gpointer user_data){
     cp->size = -1;
     cp->valid = TRUE;
     
+    guint64 hit_count=0, miss_count=0;
+    gboolean (*add_element)(struct cache*, cache_line* cp);
+    add_element = cache->core->add_element;
+
     
     read_one_element(reader_thread, cp);
     while (cp->valid && pos<end_pos){
-        for (i=0; i<params->num_of_cache; i++){
-            if ((caches[i*num_of_threads+order])->core->add_element(caches[i*num_of_threads+order], cp))
-                result[i*num_of_threads+order]->hit_count ++;
-            else
-                result[i*num_of_threads+order]->miss_count ++;
-        }
+        if (add_element(cache, cp))
+            hit_count ++;
+        else
+            miss_count ++;
         pos++;
         read_one_element(reader_thread, cp);
     }
     
-    for (i=0; i<params->num_of_cache; i++){
-        result[i*num_of_threads+order]->total_count = result[i*num_of_threads+order]->hit_count +
-                                                        result[i*num_of_threads+order]->miss_count;
-        result[i*num_of_threads+order]->hit_rate = (float)(result[i*num_of_threads+order]->hit_count) /
-                                                        result[i*num_of_threads+order]->total_count;
-        result[i*num_of_threads+order]->miss_rate = 1 - result[i*num_of_threads+order]->hit_rate;
-    }
+    result[order]->hit_count = hit_count;
+    result[order]->miss_count = miss_count;
+    result[order]->total_count = hit_count + miss_count;
+    result[order]->hit_rate = (double) hit_count / (hit_count + miss_count);
+    result[order]->miss_rate = 1 - result[order]->hit_rate;
+    
     
     // clean up
     free(cp);
     if (reader_thread->type != 'v')
         fclose(reader_thread->file);
     free(reader_thread);
+    cache->core->destroy_unique(cache);
+
 }
 
     
@@ -85,53 +91,42 @@ return_res** profiler(READER* reader_in, struct_cache* cache_in, int num_of_thre
     
     // create the result storage area and caches of varying sizes
     return_res** result = (return_res**) malloc(num_of_bins * sizeof(return_res*));
-    struct_cache** caches = (struct_cache**) malloc(sizeof(struct_cache*)*num_of_bins);
 
     for (i=0; i<num_of_bins; i++){
         result[i] = (return_res*) calloc(1, sizeof(return_res));
         result[i]->cache_size = bin_size * (i+1);
-        caches[i] = cache_in->core->cache_init(bin_size * (i+1), cache_in->core->data_type, cache_in->core->cache_init_params);
     }
 
     
     
+    // build parameters and send to thread pool
+    struct multithreading_params_generalProfiler* params = (struct multithreading_params_generalProfiler*)
+                                                            malloc(sizeof(struct multithreading_params_generalProfiler));
+        params->reader = reader_in;
+        params->cache = cache_in;
+        params->result = result;
+        params->bin_size = (guint) bin_size;
+        params->begin_pos = begin_pos;
+        params->end_pos = end_pos;
+
     // build the thread pool
-    GThreadPool * gthread_pool = g_thread_pool_new ( (GFunc) profiler_thread, NULL, num_of_threads, TRUE, NULL);
+    GThreadPool * gthread_pool = g_thread_pool_new ( (GFunc) profiler_thread, (gpointer)params, num_of_threads, TRUE, NULL);
     if (gthread_pool == NULL)
         g_error("cannot create thread pool in general profiler\n");
     
-    // build parameters and send to thread pool
-    struct multithreading_params_generalProfiler** params = malloc(sizeof(struct multithreading_params_generalProfiler*) * num_of_threads);
-    int residual = num_of_bins % num_of_threads;
-    for (i=0; i<num_of_threads; i++){
-        params[i] = malloc(sizeof(struct multithreading_params_generalProfiler));
-        params[i]->reader = reader_in;
-        params[i]->caches = caches;
-        params[i]->result = result;
-        params[i]->bin_size = bin_size;
-        params[i]->num_of_threads = num_of_threads;
-        params[i]->order = i;
-        params[i]->num_of_cache = num_of_bins/num_of_threads;
-        params[i]->begin_pos = begin_pos;
-        params[i]->end_pos = end_pos;
-        if (i < residual)
-            params[i]->num_of_cache ++ ;
-        if ( g_thread_pool_push (gthread_pool, (gpointer) params[i], NULL) == FALSE)
-            g_error("cannot push data into thread in generalprofiler\n");
-    }
     
+    for (i=1; i<num_of_bins; i++){
+        if ( g_thread_pool_push (gthread_pool, GUINT_TO_POINTER(i), NULL) == FALSE)
+                g_error("cannot push data into thread in generalprofiler\n");
+    }
+
     g_thread_pool_free (gthread_pool, FALSE, TRUE);
 
     // clean up
-    for (i=0; i<num_of_bins; i++)
-        caches[i]->core->destroy_unique(caches[i]);
-    
-    for (i=0; i<num_of_threads; i++)
-        free(params[i]);
-    free(caches);
     free(params);
     // needs to free result later
     
+    sleep(10);
     
     return result;
 }
