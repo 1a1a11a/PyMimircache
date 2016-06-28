@@ -50,14 +50,16 @@ static PyObject* generalProfiler_get_hit_rate(PyObject* self, PyObject* args, Py
     if(begin == -1)
         begin = 0;
         
-    printf("bin size: %d, threads: %d\n", bin_size, num_of_threads);
+    DEBUG(printf("bin size: %d, threads: %d\n", bin_size, num_of_threads));
     
     if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
     }
 
+    printf("before building cache\n");
     // build cache
     cache = build_cache(reader, cache_size, algorithm, cache_params, begin);
+    printf("after building cache\n");
     
     // get hit rate
     DEBUG(printf("before profiling\n"));
@@ -113,7 +115,7 @@ static PyObject* generalProfiler_get_hit_count(PyObject* self, PyObject* args, P
     if(begin == -1)
         begin = 0;
     
-    printf("bin size: %d, threads: %d\n", bin_size, num_of_threads);
+    DEBUG(printf("bin size: %d, threads: %d\n", bin_size, num_of_threads));
     
     if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
@@ -169,7 +171,7 @@ static PyObject* generalProfiler_get_miss_rate(PyObject* self, PyObject* args, P
     if(begin == -1)
         begin = 0;
     
-    printf("bin size: %d, threads: %d\n", bin_size, num_of_threads);
+    DEBUG(printf("bin size: %d, threads: %d\n", bin_size, num_of_threads));
     
     if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;

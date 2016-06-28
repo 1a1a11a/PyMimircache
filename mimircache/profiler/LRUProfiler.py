@@ -84,41 +84,59 @@ class LRUProfiler:
         rd_dist = c_LRUProfiler.get_rd_distribution_seq(self.reader.cReader, **kargs)
         return rd_dist
 
-    def plotMRC(self, figname="MRC.png", threshhold=0.95, **kwargs):
+    def plotMRC(self, figname="MRC.png", threshhold=0.98, **kwargs):
         MRC = self.get_miss_rate(**kwargs)
+        if self.cache_size != -1:
+            threshhold = 1
         try:
-            for i in range(len(MRC) - 1, 0):
-                if MRC[i] < MRC[-1] * threshhold:
+            stop_point = -1
+            for i in range(len(MRC) - 3, 0, -1):  # because the hit rate sequence generate from LRUProfiler
+                if MRC[i] < MRC[-3] * threshhold:  # has out_of_size rate and cold miss rate as last two elements
+                    stop_point = i
                     break
 
-            plt.plot(MRC[:i])
+            if stop_point + 200 < len(MRC) - 2:
+                stop_point += 200
+            else:
+                stop_point = len(MRC) - 3
+
+            plt.plot(MRC[:stop_point])
             plt.xlabel("cache Size")
             plt.ylabel("Miss Rate")
             plt.title('Miss Rate Curve', fontsize=18, color='black')
             plt.savefig(figname, dpi=300)
             plt.show()
             plt.clf()
-            return i
+            return stop_point
         except Exception as e:
             plt.savefig(figname)
             print("the plotting function is not wrong, is this a headless server?")
             print(e)
 
-    def plotHRC(self, figname="HRC.png", threshhold=0.95):
+    def plotHRC(self, figname="HRC.png", threshhold=0.98):
         HRC = self.get_hit_rate()
+        if self.cache_size != -1:
+            threshhold = 1
         try:
-            for i in range(len(HRC) - 1, 0):
-                if HRC[i] < HRC[-1] * threshhold:
+            stop_point = -1
+            for i in range(len(HRC) - 3, 0, -1):
+                if HRC[i] < HRC[-3] * threshhold:
+                    stop_point = i
                     break
+            if stop_point + 200 < len(HRC) - 2:
+                stop_point += 200
+            else:
+                stop_point = len(HRC) - 3
 
-            plt.plot(HRC[:i])
+            plt.xlim(0, stop_point)
+            plt.plot(HRC[:stop_point])
             plt.xlabel("cache Size")
             plt.ylabel("Hit Rate")
             plt.title('Hit Rate Curve', fontsize=18, color='black')
             plt.savefig(figname, dpi=600)
             plt.show()
             plt.clf()
-            return i
+            return stop_point
         except Exception as e:
             plt.savefig(figname)
             print("the plotting function is not wrong, is this a headless server?")

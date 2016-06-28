@@ -292,11 +292,12 @@ class cHeatmap:
                 if mode == 'r':
                     self.set_plot_params('x', 'real_time', xydict=xydict, label='start time (real)',
                                          text=(x1, y1, text))
-                    self.set_plot_params('y', 'real_time', xydict=xydict, label='end time (real)')
+                    self.set_plot_params('y', 'real_time', xydict=xydict, label='end time (real)', fixed_range=(-1, 1))
                 else:
                     self.set_plot_params('x', 'virtual_time', xydict=xydict, label='start time (virtual)',
                                          text=(x1, y1, text))
-                    self.set_plot_params('y', 'virtual_time', xydict=xydict, label='end time (virtual)')
+                    self.set_plot_params('y', 'virtual_time', xydict=xydict, label='end time (virtual)',
+                                         fixed_range=(-1, 1))
 
                 self.draw_heatmap(xydict, figname=figname)
 

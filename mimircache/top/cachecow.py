@@ -273,5 +273,17 @@ if __name__ == "__main__":
 
     # c.differential_heatmap('r', 1000000, "hit_rate_start_time_end_time", "LRU", num_of_process=8, figname='2.png')
 
+    TIME_INTERVAL = 10000000000
+    from mimircache.cacheReader.vscsiReader import vscsiCacheReader
 
-    # p = m.profiler('mru', bin_size=200, data='../data/parda.trace', dataType='plain', num_of_process=4)
+    PATH = '/run/shm/traces/'
+    c = cachecow()
+
+    for f in os.listdir(PATH):
+        if f.endswith('vscsitrace'):
+            # reader = vscsiCacheReader(PATH + f)
+            c.vscsi(PATH + f)
+            c.heatmap('r', TIME_INTERVAL, "rd_distribution",
+                      figname='0627_rd_distribution/' + f + '_rd_distribution_' + str(TIME_INTERVAL) + '.png')
+            # request_num_2d(reader, 'r', TIME_INTERVAL,
+            #                figname='0627_rd_distribution/' + f + '_rd_distribution_' + str(TIME_INTERVAL) + '.png')

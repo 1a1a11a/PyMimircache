@@ -91,7 +91,7 @@ class cGeneralProfiler:
         if 'num_of_threads' not in kwargs:
             kwargs['num_of_threads'] = self.num_of_threads
         return c_generalProfiler.get_hit_count(self.reader.cReader, self.cache_name, self.cache_size, \
-                                               self.bin_size, **kwargs)
+                                               self.bin_size, cache_params=self.cache_params, **kwargs)
 
     def get_hit_rate(self, **kwargs):
         """
@@ -101,7 +101,7 @@ class cGeneralProfiler:
         if 'num_of_threads' not in kwargs:
             kwargs['num_of_threads'] = self.num_of_threads
         return c_generalProfiler.get_hit_rate(self.reader.cReader, self.cache_name, self.cache_size, \
-                                              self.bin_size, **kwargs)
+                                              self.bin_size, cache_params=self.cache_params, **kwargs)
 
     def get_miss_rate(self, **kwargs):
         """
@@ -112,16 +112,16 @@ class cGeneralProfiler:
         if 'num_of_threads' not in kwargs:
             kwargs['num_of_threads'] = self.num_of_threads
         return c_generalProfiler.get_miss_rate(self.reader.cReader, self.cache_name, self.cache_size, \
-                                               self.bin_size, **kwargs)
+                                               self.bin_size, cache_params=self.cache_params, **kwargs)
 
-    def plotMRC(self, figname="MRC.png", threshhold=0.95, **kwargs):
+    def plotMRC(self, figname="MRC.png", **kwargs):
         MRC = self.get_miss_rate(**kwargs)
         try:
-            num_of_blocks = len(MRC)
-            tick = ticker.FuncFormatter(lambda x, pos: '{:2.0f}'.format(x * self.bin_size))
-            plt.gca().xaxis.set_major_formatter(tick)
+            # tick = ticker.FuncFormatter(lambda x, pos: '{:2.0f}'.format(x * self.bin_size))
+            # plt.gca().xaxis.set_major_formatter(tick)
 
-            plt.plot(MRC)
+            plt.xlim(0, self.cache_size)
+            plt.plot(range(0, self.cache_size, self.bin_size), MRC)
             plt.xlabel("cache Size")
             plt.ylabel("Miss Rate")
             plt.title('Miss Rate Curve', fontsize=18, color='black')
@@ -133,13 +133,14 @@ class cGeneralProfiler:
             print("the plotting function is not wrong, is this a headless server?")
             print(e)
 
-    def plotHRC(self, figname="HRC.png", threshhold=0.95, **kwargs):
+    def plotHRC(self, figname="HRC.png", **kwargs):
         HRC = self.get_hit_rate(**kwargs)
         try:
-            tick = ticker.FuncFormatter(lambda x, pos: '{:2.0f}'.format(x * self.bin_size))
-            plt.gca().xaxis.set_major_formatter(tick)
+            # tick = ticker.FuncFormatter(lambda x, pos: '{:2.0f}'.format(x * self.bin_size))
+            # plt.gca().xaxis.set_major_formatter(tick)
 
-            plt.plot(HRC)
+            plt.xlim(0, self.cache_size)
+            plt.plot(range(0, self.cache_size, self.bin_size), HRC)
             plt.xlabel("cache Size")
             plt.ylabel("Hit Rate")
             plt.title('Hit Rate Curve', fontsize=18, color='black')
@@ -158,16 +159,19 @@ class cGeneralProfiler:
 
 def server_plot_all(path='/run/shm/traces/', threads=48):
     from mimircache.profiler.LRUProfiler import LRUProfiler
+    folder = '0628_HRC'
     for filename in os.listdir(path):
         print(filename)
         if filename.endswith('.vscsitrace'):
             reader = vscsiCacheReader(path + filename)
             p1 = LRUProfiler(reader)
-            size = p1.plotHRC(figname="0628_HRC/" + filename + '_LRU_HRC.png')
-            p2 = cGeneralProfiler(reader, 'Optimal', cache_size=size)
-            p2.plotHRC(figname="0628_HRC/" + filename + '_Optimal_HRC_' + str(size) + '_.png')
-            p3 = cGeneralProfiler(reader, "LRU_K", cache_size=size, cache_params={"K": 2})
-            p3.plotHRC(figname="0628_HRC/" + filename + '_LRU2_HRC_' + str(size) + '_.png')
+            size = p1.plotHRC(figname=folder + "/" + filename + '_LRU_HRC.png')
+            p2 = cGeneralProfiler(reader, 'Optimal', cache_size=size, bin_size=int(size / 2000), num_of_threads=threads)
+            p2.plotHRC(figname=folder + "/" + filename + '_Optimal_HRC_' + str(size) + '_.png')
+            p3 = cGeneralProfiler(reader, "LRU_K", cache_size=size, cache_params={"K": 2}, bin_size=int(size / 2000))
+            p3.plotHRC(figname=folder + "/" + filename + '_LRU2_HRC_' + str(size) + '_.png', num_of_threads=threads)
+            reader.close()
+
 
 
 
@@ -175,7 +179,7 @@ def server_plot_all(path='/run/shm/traces/', threads=48):
 if __name__ == "__main__":
     import time
 
-    server_plot_all()
+    server_plot_all()  # '../data/', threads=8)
 
     # t1 = time.time()
     # r = plainCacheReader('../../data/test')

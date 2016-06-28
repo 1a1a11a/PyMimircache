@@ -207,7 +207,6 @@ class generalProfiler(profilerAbstract):
             self.calculate()
         try:
             num_of_blocks = self.num_of_blocks + 1
-
             plt.plot(range(0, self.bin_size * num_of_blocks, self.bin_size), self.MRC[:num_of_blocks])
             plt.xlabel("cache Size")
             plt.ylabel("Miss Rate")
@@ -253,8 +252,7 @@ if __name__ == "__main__":
     arc_dict = {'p': 0.5, 'ghostlist_size': -1}
     # p = generalProfiler(r, ARC, 1000, 100, arc_dict, 8)
 
-    p = generalProfiler(r, Random, 30, 20, num_of_process=8)
-    p.run()
+    p = generalProfiler(r, Random, 3000, 200, num_of_process=8)
     print(p.get_hit_rate())
     print(p.get_hit_count())
     t2 = time.time()

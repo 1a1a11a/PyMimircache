@@ -24,7 +24,7 @@ def request_num_2d(reader, mode, time_interval, figname="request_num.png"):
     for i in range(1, len(break_points)):
         l.append(break_points[i] - break_points[i - 1])
     xticks = ticker.FuncFormatter(lambda x, pos: '{:2.0f}%'.format(x * 100 / len(break_points)))
-    draw2d(l, figname=figname, xticks=xticks, xlabel='time{}'.format(mode),
+    draw2d(l, figname=figname, xticks=xticks, xlabel='time({})'.format(mode),
            ylabel='request num count(interval={})'.format(time_interval),
            title='request num count 2D plot')
 
@@ -46,7 +46,7 @@ def cold_miss_2d(reader, mode, time_interval, figname="cold_miss2d.png"):
         cold_miss_list[i] = never_see
 
     xticks = ticker.FuncFormatter(lambda x, pos: '{:2.0f}%'.format(x * 100 / len(break_points)))
-    draw2d(cold_miss_list, figname=figname, xticks=xticks, xlabel='time{}'.format(mode),
+    draw2d(cold_miss_list, figname=figname, xticks=xticks, xlabel='time({})'.format(mode),
            ylabel='cold miss count(interval={})'.format(time_interval),
            title='cold miss count 2D plot')
     reader.reset()
@@ -78,9 +78,16 @@ def draw2d(l, **kwargs):
 
 
 if __name__ == "__main__":
-    from mimircache.cacheReader.vscsiReader import vscsiCacheReader
-
-    reader = vscsiCacheReader('../data/trace.vscsi')
-
-    request_num_2d(reader, 'r', 10000000)
-    cold_miss_2d(reader, 'r', 10000000)
+    pass
+    # TIME_INTERVAL = 10000000000
+    # from mimircache.cacheReader.vscsiReader import vscsiCacheReader
+    # PATH = '/run/shm/traces/'
+    #
+    # reader = vscsiCacheReader('../data/trace.vscsi')
+    # for f in os.listdir(PATH):
+    #     if f.endswith('vscsitrace'):
+    #         reader = vscsiCacheReader(PATH + f)
+    #         request_num_2d(reader, 'r', TIME_INTERVAL,
+    #                        figname='0627_request_num/'+f+'_request_num_'+str(TIME_INTERVAL)+'.png')
+    # request_num_2d(reader, 'r', 10000000)
+    # cold_miss_2d(reader, 'r', 10000000)

@@ -46,14 +46,13 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
 //        printf("inside = %d\n", PyDict_Contains(cache_params, PyUnicode_FromString("K")));
 //        PyObject* lO = PyDict_GetItemString(cache_params, "K");
 //        printf("lO is long = %d\n", PyLong_Check(lO));
-        
         int K = (int)PyLong_AsLong(PyDict_GetItemString(cache_params, "K"));
-        printf("K=%d\n", K);
+        DEBUG(printf("K=%d\n", K));
         struct LRU_K_init_params *init_params = (struct LRU_K_init_params*) malloc(sizeof(struct LRU_K_init_params));
         init_params->K = K;
         init_params->maxK = K;
         cache = LRU_K_init(cache_size, data_type, (void*)init_params);
-        printf("cache->K = %d, maxK = %d\n", ((struct LRU_K_params*)(cache->cache_params))->K, ((struct LRU_K_params*)(cache->cache_params))->maxK);
+        DEBUG(printf("cache->K = %d, maxK = %d\n", ((struct LRU_K_params*)(cache->cache_params))->K, ((struct LRU_K_params*)(cache->cache_params))->maxK));
     }
     else {
         printf("does not support given cache replacement algorithm: %s\n", algorithm);
