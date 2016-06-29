@@ -198,6 +198,8 @@ class heatmap:
 
         else:
             assert 'cache_size' in kwargs, "you didn't provide cache_size parameter"
+            if isinstance(algorithm, str):
+                algorithm = cache_name_to_class(algorithm)
 
             # prepare break points
             if mode[0] == 'r' or mode[0] == 'v':
@@ -444,27 +446,28 @@ def localtest():
     TIME_INTERVAL = 10000000
     reader = vscsiCacheReader("../data/trace.vscsi")
     hm = heatmap()
+    from mimircache.cache.FIFO import FIFO
 
     # LRU
-    hm.heatmap(reader, 'r', TIME_INTERVAL, "hit_rate_start_time_end_time", num_of_process=1, cache_size=CACHE_SIZE,
-               save=True, text="size = " + str(CACHE_SIZE), fixed_range=True,
-               figname='test_hit_rate_start_time_end_time_r.png')
-
-    hm.heatmap(reader, 'r', TIME_INTERVAL, "hit_rate_start_time_cache_size", num_of_process=8, cache_size=CACHE_SIZE,
-               save=True, bin_size=1000, fixed_range=True,
-               figname='test_hit_rate_start_time_cache_size_r.png')
-
-    hm.heatmap(reader, 'r', TIME_INTERVAL, "avg_rd_start_time_end_time", num_of_process=8,
-               calculated=True, cache_size=CACHE_SIZE,
-               figname="test_avg_rd_start_time_end_time_r.png")
-
-    hm.heatmap(reader, 'r', TIME_INTERVAL, "cold_miss_count_start_time_end_time", num_of_process=8,
-               calculated=True, cache_size=CACHE_SIZE,
-               figname="test_cold_miss_count_start_time_end_time_r.png")
+    # hm.heatmap(reader, 'r', TIME_INTERVAL, "hit_rate_start_time_end_time", num_of_process=1, cache_size=CACHE_SIZE,
+    #            save=True, text="size = " + str(CACHE_SIZE), fixed_range=True,
+    #            figname='test_hit_rate_start_time_end_time_r.png')
+    #
+    # hm.heatmap(reader, 'r', TIME_INTERVAL, "hit_rate_start_time_cache_size", num_of_process=8, cache_size=CACHE_SIZE,
+    #            save=True, bin_size=1000, fixed_range=True,
+    #            figname='test_hit_rate_start_time_cache_size_r.png')
+    #
+    # hm.heatmap(reader, 'r', TIME_INTERVAL, "avg_rd_start_time_end_time", num_of_process=8,
+    #            calculated=True, cache_size=CACHE_SIZE,
+    #            figname="test_avg_rd_start_time_end_time_r.png")
+    #
+    # hm.heatmap(reader, 'r', TIME_INTERVAL, "cold_miss_count_start_time_end_time", num_of_process=8,
+    #            calculated=True, cache_size=CACHE_SIZE,
+    #            figname="test_cold_miss_count_start_time_end_time_r.png")
 
     # Non-LRU
     hm.heatmap(reader, 'r', TIME_INTERVAL, "hit_rate_start_time_end_time", num_of_process=8, cache_size=CACHE_SIZE,
-               save=True, text="size = " + str(CACHE_SIZE), fixed_range=True, algorithm="FIFO",
+               save=True, text="size = " + str(CACHE_SIZE), fixed_range=True, algorithm=FIFO,  # "FIFO",
                figname='test_hit_rate_start_time_end_time_r.png')
 
 

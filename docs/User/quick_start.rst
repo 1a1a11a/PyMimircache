@@ -21,8 +21,13 @@ Now let's open a trace file, your have three choices for opening different types
 
 OK, data is ready, now let's play!
 
+If you want to read your data from cachecow, if you simply use cachecow as an iterator, for example, doing the following:
+
+    >>> for request in c:
+    >>>     print(c)
+
 .. note::
-However, if you have a special data format, you can write your own reader in a few lines, see here about how to write your own cache reader :ref:`create_new_cacheReader`.
+If you have a special data format, you can write your own reader in a few lines, see here about how to write your own cache reader :ref:`create_new_cacheReader`.
 
 
 
@@ -64,23 +69,26 @@ for reuse distance, hit count, hit rate, miss rate, if you don't specify a cache
 
 .. figure:: ../images/example_HRC.png
 :width: 50%
-    :align: center
+        :align: center
         :alt: example HRC
         :figclass: align-center
 
         Hit rate curve(HRC) of the trace
 
 
+
     * Similarly, we can plot miss rate curve(MRC):
         >>> profiler_LRU.plotMRC()
 
+
 .. figure:: ../images/example_MRC.png
 :width: 50%
-    :align: center
+        :align: center
         :alt: example HRC
         :figclass: align-center
 
         Miss rate curve(MRC) of the trace
+
 
 
     Except all the default parameter we used for profiling above, you can also provide other keyword arguments, supported keyword arguments are listed below.
@@ -174,7 +182,7 @@ Cold miss plot
 
 .. figure:: ../images/example_cold_miss2d.png
 :width: 50%
-    :align: center
+        :align: center
         :alt: example cold miss
         :figclass: align-center
 
@@ -189,7 +197,7 @@ Request number plot
 
 .. figure:: ../images/example_request_num.png
 :width: 50%
-    :align: center
+        :align: center
         :alt: example request num
         :figclass: align-center
 
@@ -252,18 +260,20 @@ Ploting Examples
 
 .. figure:: ../images/example_heatmap.png
 :width: 50%
-    :align: center
+        :align: center
         :alt: example hit_rate_start_time_end_time
         :figclass: align-center
 
         Hit rate of varying start time and end time
 
 
+    Another example
+
         >>> c.heatmap('r', 10000000, "rd_distribution")
 
 .. figure:: ../images/example_heatmap_rd_distibution.png
 :width: 50%
-    :align: center
+        :align: center
         :alt: reuse distance distribution graph
         :figclass: align-center
 
@@ -274,6 +284,7 @@ Plotting Differential Heatmaps
 ------------------------------
 Want to know which algorithm is better? Not satisfied with hit rate curve or miss rate curve because they only show you the result over the whole trace?
 You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
 
 Currently we only support differential heatmap of hit_rate_start_time_end_time, and the function to plot is shown below:
 
@@ -303,4 +314,19 @@ Besides these parameters, there are several keywords arguments listed below.
 +-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
 
 
-Congratulations! You have finished the basic tutorial! Check Advanced Usage Part if you need.
+Example:
+    >>> c.differential_heatmap('r', 1000000, "hit_rate_start_time_end_time", algorithm1="LRU", cache_size=2000)
+
+.. figure:: ../images/example_differential_heatmap.png
+:width: 50%
+        :align: center
+            :alt: example differential_heatmap
+            :figclass: align-center
+
+            Differential heatmap, the value of each pixel is (hit_rate_of_algorithm2 - hit_rate_of_algorithm1)/hit_rate_of_algorithm1
+
+
+
+
+
+    Congratulations! You have finished the basic tutorial! Check Advanced Usage Part if you need.

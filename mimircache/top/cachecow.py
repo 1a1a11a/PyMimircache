@@ -214,7 +214,8 @@ class cachecow:
 
             if isinstance(algorithm, str):
                 if algorithm.lower() in c_available_cache:
-                    profiler = cGeneralProfiler(reader, algorithm, cache_size, bin_size, cache_params, num_of_process)
+                    profiler = cGeneralProfiler(reader, cache_alg_mapping[algorithm.lower()], cache_size, bin_size,
+                                                cache_params, num_of_process)
                 else:
                     profiler = generalProfiler(reader, self.cacheclass_mapping[algorithm.lower()], cache_size, bin_size,
                                                cache_params, num_of_process)

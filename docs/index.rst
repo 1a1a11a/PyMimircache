@@ -5,11 +5,11 @@ mimircache: a cache trace analysis platform
 
 Release v\ |version|. 
 
-Welcome to the documentation of mimircache, mimircache is developed by Juncheng Yang and Ymir Group from Emory University. 
+Welcome to the documentation of mimircache, a python3 cache trace analysis platform.
 
 **The power of mimircache**::
     >>> import mimircache as m 
-    >>> c = m.cachecow(size=40000)
+    >>> c = m.cachecow()
     >>> c.open("trace.txt")
     >>> p = c.profiler('LRU')
     >>> p.get_reuse_dist()

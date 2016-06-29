@@ -1,12 +1,11 @@
+.. _introduction:
+
 Introduction
 ============ 
-.. note:: 
-	New Progress: 
-	Currnetly the general profiler is under migrating, so the API for general profiler is confusing, but later we will update it to be consistent with LRU profiler. 
 
 The study of cache has a long history, however, there is no single platform for complete analysis of cache traces. That's why we are building mimircache, a python platform for analyzing cache traces. 
 
-Mimircache is a cache trace analysis platform that supports **comparison of different cache replacement algorithms**, including Least Recent Used(LRU), Least Frequent Used(LFU), Most Recent Used(MRU), First In First Out(FIFO), Clock, Random, Segmented Least Recent Used(SLRU), optimal, Adaptive Replacement Cache(ARC) and we are currently implementing and adding more common cache replacement algorithms. Best of all is that you can easily and quickly **implement your own cache replacement algorithm**. 
+Mimircache is a cache trace analysis platform that supports **comparison of different cache replacement algorithms**, including Least Recent Used(LRU), Least Frequent Used(LFU), Most Recent Used(MRU), First In First Out(FIFO), Clock, Random, Segmented Least Recent Used(SLRU), optimal, Adaptive Replacement Cache(ARC) and we are currently adding more cache replacement algorithms. Best of all is that you can easily and quickly **implement your own cache replacement algorithm**.
 
 For all cache replacement algorithms, including the ones built-in and the ones you implement yourself, mimircache supports all kinds of comparison, **there is nothing you can't do, there is only things that you can't imagine**. 
 

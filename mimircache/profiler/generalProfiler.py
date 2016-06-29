@@ -44,6 +44,8 @@ from mimircache.const import *
 class generalProfiler(profilerAbstract):
     def __init__(self, reader, cache_class, cache_size, bin_size=-1, cache_params=None,
                  num_of_process=DEFAULT_NUM_OF_PROCESS):
+        if isinstance(cache_class, str):
+            cache_class = cache_name_to_class(cache_class)
         super(generalProfiler, self).__init__(cache_class, cache_size, reader)
         self.cache_params = cache_params
         self.num_of_process = num_of_process
@@ -252,7 +254,7 @@ if __name__ == "__main__":
     arc_dict = {'p': 0.5, 'ghostlist_size': -1}
     # p = generalProfiler(r, ARC, 1000, 100, arc_dict, 8)
 
-    p = generalProfiler(r, Random, 3000, 200, num_of_process=8)
+    p = generalProfiler(r, "Random", 3000, 200, num_of_process=8)
     print(p.get_hit_rate())
     print(p.get_hit_count())
     t2 = time.time()

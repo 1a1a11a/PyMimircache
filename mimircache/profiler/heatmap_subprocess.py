@@ -26,20 +26,25 @@ def calc_hit_rate_start_time_end_time_subprocess_general(order, cache, break_poi
     # c_generalProfiler.get_hit_rate()
 
     cache_size = kwargs['cache_size']
-    if cache == 'RR':
-        c = Random(cache_size=cache_size)
-    if cache == 'SLRU':
-        c = SLRU(cache_size=cache_size)
-    if cache == 'ARC':
-        c = AdaptiveSLRU(cache_size=cache_size)
-    if cache == 'LFU_RR':
-        c = LFU_RR(cache_size=cache_size)
-    if cache == 'LRU':
-        c = LRU(cache_size=cache_size)
-    if cache == "optimal":
-        c = optimal(cache_size, reader)
-    if cache == 'FIFO':
-        c = FIFO(cache_size=cache_size)
+    # if cache == 'Random':
+    #     c = Random(cache_size=cache_size)
+    # elif cache == 'SLRU':
+    #     c = SLRU(cache_size=cache_size)
+    # elif cache == 'AdaptiveSLRU':
+    #     c = AdaptiveSLRU(cache_size=cache_size)
+    # elif cache == 'LFU_RR':
+    #     c = LFU_RR(cache_size=cache_size)
+    # elif cache == 'LRU':
+    #     c = LRU(cache_size=cache_size)
+    # elif cache == "optimal":
+    #     c = optimal(cache_size, reader)
+    # elif cache == 'FIFO':
+    #     c = FIFO(cache_size=cache_size)
+    # else:
+    if 'cache_params' in kwargs and kwargs['cache_params']:
+        c = cache(cache_size=cache_size, cache_params=kwargs['cache_params'])
+    else:
+        c = cache(cache_size=cache_size)
 
 
     result_list = []
