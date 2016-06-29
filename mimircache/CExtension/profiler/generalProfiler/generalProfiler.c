@@ -69,7 +69,7 @@ return_res** profiler(READER* reader_in, struct_cache* cache_in, int num_of_thre
      return results do not include size 0 
      **/
     
-    int i;
+    long i;
     
     if (end_pos<=begin_pos && end_pos!=-1){
         printf("end pos <= beigin pos in general profiler, please check\n");
@@ -120,7 +120,7 @@ return_res** profiler(READER* reader_in, struct_cache* cache_in, int num_of_thre
     g_thread_pool_free (gthread_pool, FALSE, TRUE);
 
     // change hit count, now it is accumulated hit_count, change to real hit_count
-    for (i=1; i<num_of_bins; i++)
+    for (i=num_of_bins-1; i>=1; i++)
         result[i]->hit_count -= result[i-1]->hit_count;
     
     // clean up
