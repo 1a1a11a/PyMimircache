@@ -3,7 +3,7 @@ from mimircache.cache.abstractCache import cache
 
 
 class SLRU(cache):
-    def __init__(self, cache_size=1000, ratio=1, *args, **kwargs):
+    def __init__(self, cache_size=1000, ratio=1):
         """
 
         :param cache_size: size of cache

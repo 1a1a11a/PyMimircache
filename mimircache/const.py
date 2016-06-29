@@ -61,7 +61,8 @@ def _init_cache_alg_mapping():
     cache_alg_mapping['random'] = "Random"
     cache_alg_mapping['lru'] = "LRU"
     cache_alg_mapping['fifo'] = "FIFO"
-    cache_alg_mapping['arc'] = "ARC"
+    cache_alg_mapping['adaptiveSLRU'] = "AdaptiveSLRU"
+    # cache_alg_mapping['arc'] = "ARC"
     cache_alg_mapping['clock'] = "clock"
     cache_alg_mapping['mru'] = "MRU"
     cache_alg_mapping['slru'] = "SLRU"
@@ -79,6 +80,8 @@ def cache_name_to_class(name):
             cache_class = Random
         elif cache == 'SLRU':
             cache_class = SLRU
+        elif cache == 'S4LRU':
+            cache_class = S4LRU
         elif cache == 'AdaptiveSLRU':
             cache_class = AdaptiveSLRU
         elif cache == 'LFU_RR':
