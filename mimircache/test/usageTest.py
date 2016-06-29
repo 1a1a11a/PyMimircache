@@ -44,13 +44,21 @@ def t3():
     reader = vscsiCacheReader('../data/trace.vscsi')
     cH = cHeatmap()
 
-    # cH.heatmap(reader, 'r', 1000000, "hit_rate_start_time_end_time", num_of_threads=8, cache_size=2000)
-    # cH.heatmap(reader, 'r', 1000000, "rd_distribution", num_of_threads=8)
-    # cH.heatmap(reader, 'r', 1000000, "future_rd_distribution", num_of_threads=8)
-    # cH.heatmap(reader, 'r', 1000000, "hit_rate_start_time_end_time", algorithm="FIFO", num_of_threads=8, cache_size=2000)
+    cH.heatmap(reader, 'r', 1000000, "hit_rate_start_time_end_time", num_of_threads=8, cache_size=2000)
+    cH.heatmap(reader, 'r', 1000000, "rd_distribution", num_of_threads=8)
+    cH.heatmap(reader, 'r', 1000000, "future_rd_distribution", num_of_threads=8)
+    cH.heatmap(reader, 'r', 1000000, "hit_rate_start_time_end_time", algorithm="FIFO", num_of_threads=8,
+               cache_size=2000)
     cH.differential_heatmap(reader, 'r', 10000000, "hit_rate_start_time_end_time",
                             algorithm1="LRU_K", algorithm2="Optimal", cache_params1={"K": 2},
                             cache_params2=None, num_of_threads=8, cache_size=2000)
 
 
-t3()
+def t4():
+    reader = vscsiCacheReader('../data/trace.vscsi')
+    p = LRUProfiler(reader)
+    hc = p.get_hit_rate(cache_size=200)
+    print(hc)
+
+
+t4()

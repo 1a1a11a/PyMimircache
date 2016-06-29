@@ -27,6 +27,8 @@ READER* setup_reader(char* file_loc, char file_type){
     reader->hit_rate = NULL;
     reader->best_LRU_cache_size = NULL;
     reader->max_reuse_dist = 0;
+    reader->total_num = -1;
+    
     
     if (strlen(file_loc)>FILE_LOC_STR_SIZE-1){
         printf("file name/path is too long(>%d), please make it short\n", FILE_LOC_STR_SIZE);
@@ -42,7 +44,6 @@ READER* setup_reader(char* file_loc, char file_type){
             exit(1);
             break;
         case 'p':
-            reader->total_num = -1;
             reader->type = 'p';
             reader->ts = 0;
             reader->file = fopen(file_loc, "r");

@@ -59,9 +59,9 @@ set_pos(void *a, size_t pos)
 }
 
 
-static void print_GQ(gpointer data, gpointer user_data){
-    printf("%lu\t", *(guint64*)data);
-}
+//static void print_GQ(gpointer data, gpointer user_data){
+//    printf("%lu\t", *(guint64*)data);
+//}
 
 
 

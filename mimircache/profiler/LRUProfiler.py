@@ -26,7 +26,7 @@ class LRUProfiler:
             self.prepare_file()
         self.num_of_lines = self.reader.get_num_of_total_requests()
 
-    all = ["get_hit_count", "get_hit_rate", "get_miss_rate", "get_reuse_distance", "get_rd_distribution", \
+    all = ["get_hit_count", "get_hit_rate", "get_miss_rate", "get_reuse_distance",
            "plotMRC", "plotHRC", "get_best_cache_sizes"]
 
     def prepare_file_remove_one(self):
@@ -95,10 +95,6 @@ class LRUProfiler:
     def get_reuse_distance(self, **kargs):
         rd = c_LRUProfiler.get_reuse_dist_seq(self.reader.cReader, **kargs)
         return rd
-
-    def get_rd_distribution(self, **kargs):
-        rd_dist = c_LRUProfiler.get_rd_distribution_seq(self.reader.cReader, **kargs)
-        return rd_dist
 
     def plotMRC(self, figname="MRC.png", threshhold=0.98, **kwargs):
         MRC = self.get_miss_rate(**kwargs)
