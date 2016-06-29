@@ -119,6 +119,10 @@ return_res** profiler(READER* reader_in, struct_cache* cache_in, int num_of_thre
 
     g_thread_pool_free (gthread_pool, FALSE, TRUE);
 
+    // change hit count, now it is accumulated hit_count, change to real hit_count
+    for (i=1; i<num_of_bins; i++)
+        result[i]->hit_count -= result[i-1]->hit_count;
+    
     // clean up
     g_free(params);
     // needs to free result later
