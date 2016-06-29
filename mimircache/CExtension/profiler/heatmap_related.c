@@ -1,6 +1,6 @@
 #include "heatmap.h"
 
-static inline int process_one_element_last_access(cache_line* cp, GHashTable* hash_table, long long ts);
+static inline guint64 process_one_element_last_access(cache_line* cp, GHashTable* hash_table, guint64 ts);
 
 
 GSList* get_last_access_dist_seq(READER* reader, void (*funcPtr)(READER*, cache_line*)){
@@ -17,29 +17,26 @@ GSList* get_last_access_dist_seq(READER* reader, void (*funcPtr)(READER*, cache_
     if (reader->total_num == -1)
         get_num_of_cache_lines(reader);
 
-    // create cache lize struct and initializa
-    cache_line* cp = (cache_line*)malloc(sizeof(cache_line));
-    cp->op = -1;
-    cp->size = -1;
-    cp->valid = TRUE;
-            
+    // create cache lize struct and initialization
+    cache_line* cp = new_cacheline();
+
     // create hashtable
     GHashTable * hash_table; 
     if (reader->type == 'v'){
         cp->type = 'l'; 
         hash_table = g_hash_table_new_full(g_int64_hash, g_int64_equal, \
-                                            (GDestroyNotify)simple_key_value_destroyed, \
-                                            (GDestroyNotify)simple_key_value_destroyed);
+                                            (GDestroyNotify)simple_g_key_value_destroyer, \
+                                            (GDestroyNotify)simple_g_key_value_destroyer);
     }
     else{
         cp->type = 'c';
         hash_table = g_hash_table_new_full(g_str_hash, g_str_equal, \
-                                            (GDestroyNotify)simple_key_value_destroyed, \
-                                            (GDestroyNotify)simple_key_value_destroyed);
+                                            (GDestroyNotify)simple_g_key_value_destroyer, \
+                                            (GDestroyNotify)simple_g_key_value_destroyer);
     }
     
-    long long ts = 0;
-    int dist; 
+    guint64 ts = 0;
+    guint64 dist; 
 
     if (funcPtr == read_one_element){
         read_one_element(reader, cp);
@@ -62,7 +59,7 @@ GSList* get_last_access_dist_seq(READER* reader, void (*funcPtr)(READER*, cache_
 
 
     // clean up
-    free(cp);
+    g_free(cp);
     g_hash_table_destroy(hash_table);
     reset_reader(reader);
     return list;
@@ -71,49 +68,21 @@ GSList* get_last_access_dist_seq(READER* reader, void (*funcPtr)(READER*, cache_
 
 
 
-static inline int process_one_element_last_access(cache_line* cp, GHashTable* hash_table, long long ts){ 
+static inline guint64 process_one_element_last_access(cache_line* cp, GHashTable* hash_table, guint64 ts){
     gpointer gp;
-    if (cp->type == 'c') 
-        gp = g_hash_table_lookup(hash_table, (gconstpointer)(cp->str_content));
-    else if (cp->type == 'i')
-        gp = g_hash_table_lookup(hash_table, (gconstpointer)(&(cp->int_content)));
-    else if (cp->type == 'l')
-        gp = g_hash_table_lookup(hash_table, (gconstpointer)(&(cp->long_content)));
-    else{
-        gp = NULL; 
-        printf("unknown cache line type: %c\n", cp->type);
-        exit(1);
-    }
-    int ret; 
+    gp = g_hash_table_lookup(hash_table, cp->item);
+    guint64 ret;
     if (gp == NULL){
         // first time access
         ret = -1;
-        long long *value = (long long*)malloc(sizeof(long long));
-        if (value == NULL){
-            printf("not enough memory\n");
-            exit(1);
-        }
+        guint64* value = g_new(guint64, 1);
         *value = ts;
         if (cp->type == 'c') 
-            g_hash_table_insert(hash_table, g_strdup((gchar*)(cp->str_content)), (gpointer)value);
+            g_hash_table_insert(hash_table, g_strdup((gchar*)(cp->item_p)), (gpointer)value);
         
         else if (cp->type == 'l'){
-            gint64* key = g_new(gint64, 1);
-            // long *key = (long* )malloc(sizeof(uint64_t));
-            if (key == NULL){
-                printf("not enough memory\n");
-                exit(1);
-            }            
-            *key = cp->long_content;
-            g_hash_table_insert(hash_table, (gpointer)(key), (gpointer)value);            
-        }
-        else if (cp->type == 'i'){
-            int *key = (int* )malloc(sizeof(int));
-            if (key == NULL){
-                printf("not enough memory\n");
-                exit(1);
-            }  
-            *key = cp->int_content;
+            guint64* key = g_new(guint64, 1);
+            *key = *(guint64*)(cp->item_p);
             g_hash_table_insert(hash_table, (gpointer)(key), (gpointer)value);            
         }
         else{
@@ -123,9 +92,9 @@ static inline int process_one_element_last_access(cache_line* cp, GHashTable* ha
     }
     else{
         // not first time access
-        long long old_ts = *(long long*)gp;
-        ret = (int) (ts - old_ts); 
-        *(long long*)gp = cp->ts;
+        guint64 old_ts = *(guint64*)gp;
+        ret = (guint64) (ts - old_ts);
+        *(guint64*)gp = cp->ts;
     }
     return ret;
 }
@@ -162,7 +131,7 @@ GArray* gen_breakpoints_virtualtime(READER* reader, guint64 time_interval){
         printf("%snumber of pixels in one dimension are less than 20, exact size: %d, each pixel will be very large, if you didn't intend to do it, please try with a smaller time stamp", KRED, break_points->len);
     
     
-    struct break_point* bp = (struct break_point*)malloc(sizeof(struct break_point));
+    struct break_point* bp = g_new(struct break_point, 1);
     bp->mode = 'v';
     bp->time_interval = time_interval;
     bp->array = break_points;
@@ -191,10 +160,7 @@ GArray* gen_breakpoints_realtime(READER* reader, guint64 time_interval){
     GArray* break_points = g_array_new(FALSE, FALSE, sizeof(guint64));
 
     // create cache lize struct and initialization
-    cache_line* cp = (cache_line*)malloc(sizeof(cache_line));
-    cp->op = -1;
-    cp->size = -1;
-    cp->valid = TRUE;
+    cache_line* cp = new_cacheline();
     
     guint64 num = 0;
 
@@ -218,14 +184,14 @@ GArray* gen_breakpoints_realtime(READER* reader, guint64 time_interval){
     else if (break_points->len < 20)
         printf("%snumber of pixels in one dimension are less than 20, exact size: %d, each pixel will be very large, if you didn't intend to do it, please try with a smaller time stamp", KRED, break_points->len);
 
-    struct break_point* bp = (struct break_point*)malloc(sizeof(struct break_point));
+    struct break_point* bp = g_new(struct break_point, 1);
     bp->mode = 'r';
     bp->time_interval = time_interval;
     bp->array = break_points;
     reader->break_points = bp;
     
     // clean up
-    free(cp);
+    g_free(cp);
     reset_reader(reader);
     return break_points;
 }

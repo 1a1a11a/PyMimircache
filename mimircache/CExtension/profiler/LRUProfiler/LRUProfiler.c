@@ -59,9 +59,9 @@ set_pos(void *a, size_t pos)
 
 
 
-static inline sTree* process_one_element(cache_line* cp, sTree* splay_tree, GHashTable* hash_table, long long ts, long long* reuse_dist);
+static inline sTree* process_one_element(cache_line* cp, sTree* splay_tree, GHashTable* hash_table, guint64 ts, gint64* reuse_dist);
 
-long long* get_hit_count_seq(READER* reader, long size, long long begin, long long end){
+guint64* get_hit_count_seq(READER* reader, gint64 size, gint64 begin, gint64 end){
     /* get the hit count, if size==-1, then do all the counting, otherwise,
      * treat the ones with reuse distance larger than size as out of range,
      * and put it in the second to the last bucket of hit_count_array
@@ -77,10 +77,10 @@ long long* get_hit_count_seq(READER* reader, long size, long long begin, long lo
     // printf("size of int :%lu\n", sizeof(int));
     // printf("size of long :%lu\n", sizeof(long));
     // printf("size of long long :%lu\n", sizeof(long long));
-    int i;
     
-    long long ts=0, reuse_dist;
-    long long * hit_count_array;
+    guint64 ts=0;
+    gint64 reuse_dist;
+    guint64 * hit_count_array;
     
     if (reader->total_num == -1)
         get_num_of_cache_lines(reader);
@@ -102,32 +102,25 @@ long long* get_hit_count_seq(READER* reader, long size, long long begin, long lo
      * the last element(size+1) is used for storing count of reuse distance > size
      * if size==reader->total_num, then the last two is not used
      */
-    hit_count_array = malloc(sizeof(long long)* (size+3));
-    
-    
-    for (i=0; i<size+3; i++)
-        hit_count_array[i] = 0;
+    hit_count_array = g_new0(guint64, size+3);
     
     
     // create cache lize struct and initialization
-    cache_line* cp = (cache_line*)malloc(sizeof(cache_line));
-    cp->op = -1;
-    cp->size = -1;
-    cp->valid = TRUE;
+    cache_line* cp = new_cacheline();
     
     // create hashtable
     GHashTable * hash_table;
     if (reader->type == 'v'){
         cp->type = 'l';
         hash_table = g_hash_table_new_full(g_int64_hash, g_int64_equal, \
-                                           (GDestroyNotify)simple_key_value_destroyed, \
-                                           (GDestroyNotify)simple_key_value_destroyed);
+                                           (GDestroyNotify)simple_g_key_value_destroyer, \
+                                           (GDestroyNotify)simple_g_key_value_destroyer);
     }
     else{
         cp->type = 'c';
         hash_table = g_hash_table_new_full(g_str_hash, g_str_equal, \
-                                           (GDestroyNotify)simple_key_value_destroyed, \
-                                           (GDestroyNotify)simple_key_value_destroyed);
+                                           (GDestroyNotify)simple_g_key_value_destroyer, \
+                                           (GDestroyNotify)simple_g_key_value_destroyer);
     }
     
     // create splay tree
@@ -152,7 +145,7 @@ long long* get_hit_count_seq(READER* reader, long size, long long begin, long lo
     }
     
     // clean up
-    free(cp);
+    destroy_cacheline(cp);
     g_hash_table_destroy(hash_table);
     free_sTree(splay_tree);
     reset_reader(reader);
@@ -162,7 +155,7 @@ long long* get_hit_count_seq(READER* reader, long size, long long begin, long lo
 }
 
 
-double* get_hit_rate_seq(READER* reader, long size, long long begin, long long end){
+double* get_hit_rate_seq(READER* reader, gint64 size, gint64 begin, gint64 end){
     int i=0;
     if (reader->total_num == -1)
         reader->total_num = get_num_of_cache_lines(reader);
@@ -180,11 +173,11 @@ double* get_hit_rate_seq(READER* reader, long size, long long begin, long long e
     if (reader->hit_rate && size==reader->total_num && end-begin==reader->total_num)
         return reader->hit_rate;
     
-    long long* hit_count_array = get_hit_count_seq(reader, size, begin, end);
+    guint64* hit_count_array = get_hit_count_seq(reader, size, begin, end);
     double total_num = (double)(end - begin);
     
     
-    double* hit_rate_array = malloc(sizeof(double)*(size+3));
+    double* hit_rate_array = g_new(double, size+3);
     hit_rate_array[0] = hit_count_array[0]/total_num;
     for (i=1; i<size+1; i++){
         hit_rate_array[i] = hit_count_array[i]/total_num + hit_rate_array[i-1];
@@ -194,7 +187,7 @@ double* get_hit_rate_seq(READER* reader, long size, long long begin, long long e
     // cold miss
     hit_rate_array[size+2] = hit_count_array[size+2]/total_num;
     
-    free(hit_count_array);
+    g_free(hit_count_array);
     if (size==reader->total_num && end-begin==reader->total_num)
         reader->hit_rate = hit_rate_array;
     
@@ -202,30 +195,45 @@ double* get_hit_rate_seq(READER* reader, long size, long long begin, long long e
 }
 
 
-double* get_miss_rate_seq(READER* reader, long size, long long begin, long long end){
+double* get_miss_rate_seq(READER* reader, gint64 size, gint64 begin, gint64 end){
     int i=0;
     if (reader->total_num == -1)
         reader->total_num = get_num_of_cache_lines(reader);
-    double* miss_rate_array = get_hit_rate_seq(reader, size, begin, end);
     if (size == -1)
         size = reader->total_num;
+    if (end == -1)
+        end = reader->total_num;
+    if (begin == -1)
+        begin = 0;
     
+    if (end-begin<size)
+        size = end-begin;
+
+    double* hit_rate_array = get_hit_rate_seq(reader, size, begin, end);
+
+    double* miss_rate_array = g_new(double, size+3);
     for (i=0; i<size+1; i++)
-        miss_rate_array[i] = 1 - miss_rate_array[i];
-    
+        miss_rate_array[i] = 1 - hit_rate_array[i];
+    miss_rate_array[size+1] = hit_rate_array[size+1];
+    miss_rate_array[size+2] = hit_rate_array[size+2];
+
+    if (size!=reader->total_num || end-begin!=reader->total_num)
+        g_free(hit_rate_array);
+
     return miss_rate_array;
 }
 
 
-long long* get_reuse_dist_seq(READER* reader, long long begin, long long end){
+gint64* get_reuse_dist_seq(READER* reader, gint64 begin, gint64 end){
     /*
      * TODO: might be better to split return result, in case the hit rate array is too large
      * Is there a better way to do this? this will cause huge amount memory
      * It is the user's responsibility to release the memory of hit count array returned by this function
      */
     
-    long long ts, reuse_dist, max_rd=0;
-    ts = 0;
+    guint64 ts = 0, max_rd = 0;
+    gint64 reuse_dist;
+
     if (reader->total_num == -1)
         get_num_of_cache_lines(reader);
     
@@ -234,37 +242,33 @@ long long* get_reuse_dist_seq(READER* reader, long long begin, long long end){
     if (end <= 0)
         end = reader->total_num;
     
-    long long * reuse_dist_array = malloc(sizeof(long long)*(end-begin));
+    gint64 * reuse_dist_array = g_new(gint64, end-begin);
     
     
     // check whether the reuse dist computation has been finished or not
     if (reader->reuse_dist){
-        long long i;
+        gint64 i;
         for (i=begin; i<end; i++)
             reuse_dist_array[i-begin] = reader->reuse_dist[i];
         return reuse_dist_array;
     }
     
     // create cache lize struct and initializa
-    cache_line* cp = (cache_line*)malloc(sizeof(cache_line));
-    cp->op = -1;
-    cp->size = -1;
-    
-    cp->valid = TRUE;
+    cache_line* cp = new_cacheline();
     
     // create hashtable
     GHashTable * hash_table;
     if (reader->type == 'v'){
         cp->type = 'l';
         hash_table = g_hash_table_new_full(g_int64_hash, g_int64_equal, \
-                                           (GDestroyNotify)simple_key_value_destroyed, \
-                                           (GDestroyNotify)simple_key_value_destroyed);
+                                           (GDestroyNotify)simple_g_key_value_destroyer, \
+                                           (GDestroyNotify)simple_g_key_value_destroyer);
     }
     else{
         cp->type = 'c';
         hash_table = g_hash_table_new_full(g_str_hash, g_str_equal, \
-                                           (GDestroyNotify)simple_key_value_destroyed, \
-                                           (GDestroyNotify)simple_key_value_destroyed);
+                                           (GDestroyNotify)simple_g_key_value_destroyer, \
+                                           (GDestroyNotify)simple_g_key_value_destroyer);
     }
     
     // create splay tree
@@ -285,25 +289,24 @@ long long* get_reuse_dist_seq(READER* reader, long long begin, long long end){
         ts++;
     }
     
-    if (reader->reuse_dist)
-        free(reader->reuse_dist);
+//    if (reader->reuse_dist)
+//        g_free(reader->reuse_dist);
     
     if (end-begin == reader->total_num){
         reader->reuse_dist = reuse_dist_array;
-        reader->max_reuse_dist = (guint64) max_rd;
+        reader->max_reuse_dist = max_rd;
     }
     
     // clean up
-    free(cp);
+    destroy_cacheline(cp);
     g_hash_table_destroy(hash_table);
     free_sTree(splay_tree);
-    
     reset_reader(reader);
     return reuse_dist_array;
 }
 
 
-long long* get_future_reuse_dist(READER* reader, long long begin, long long end){
+gint64* get_future_reuse_dist(READER* reader, gint64 begin, gint64 end){
     /* the reuse distance of the last element is at last
      
      */
@@ -314,8 +317,9 @@ long long* get_future_reuse_dist(READER* reader, long long begin, long long end)
      * It is the user's responsibility to release the memory of hit count array returned by this function
      */
     
-    long long ts, reuse_dist, max_rd=0;
-    ts = 0;
+    guint64 ts = 0, max_rd = 0;
+    gint64 reuse_dist;
+    
     if (reader->total_num == -1)
         get_num_of_cache_lines(reader);
     
@@ -324,27 +328,24 @@ long long* get_future_reuse_dist(READER* reader, long long begin, long long end)
     if (end < 0)
         end = reader->total_num;
     
-    long long * reuse_dist_array = malloc(sizeof(long long)*(end-begin));
+    gint64 * reuse_dist_array = g_new(gint64, end-begin);
     
     // create cache lize struct and initializa
-    cache_line* cp = (cache_line*)malloc(sizeof(cache_line));
-    cp->op = -1;
-    cp->size = -1;
-    cp->valid = TRUE;
+    cache_line* cp = new_cacheline();
     
     // create hashtable
     GHashTable * hash_table;
     if (reader->type == 'v'){
         cp->type = 'l';
         hash_table = g_hash_table_new_full(g_int64_hash, g_int64_equal, \
-                                           (GDestroyNotify)simple_key_value_destroyed, \
-                                           (GDestroyNotify)simple_key_value_destroyed);
+                                           (GDestroyNotify)simple_g_key_value_destroyer, \
+                                           (GDestroyNotify)simple_g_key_value_destroyer);
     }
     else{
         cp->type = 'c';
         hash_table = g_hash_table_new_full(g_str_hash, g_str_equal, \
-                                           (GDestroyNotify)simple_key_value_destroyed, \
-                                           (GDestroyNotify)simple_key_value_destroyed);
+                                           (GDestroyNotify)simple_g_key_value_destroyer, \
+                                           (GDestroyNotify)simple_g_key_value_destroyer);
     }
     
     // create splay tree
@@ -367,13 +368,13 @@ long long* get_future_reuse_dist(READER* reader, long long begin, long long end)
         ts++;
     }
     
-    if (reader->reuse_dist)
-        free(reader->reuse_dist);
-    reader->reuse_dist = reuse_dist_array;
-    reader->max_reuse_dist = (guint64) max_rd;
+//    if (reader->reuse_dist)
+//        free(reader->reuse_dist);
+//    reader->reuse_dist = reuse_dist_array;
+//    reader->max_reuse_dist = (guint64) max_rd;
     
     // clean up
-    free(cp);
+    destroy_cacheline(cp);
     g_hash_table_destroy(hash_table);
     free_sTree(splay_tree);
     reset_reader(reader);
@@ -383,15 +384,12 @@ long long* get_future_reuse_dist(READER* reader, long long begin, long long end)
 
 
 
-long long* get_rd_distribution(READER* reader, long long begin, long long end){
-    /*
-     * TODO: might be better to split return result, in case the hit rate array is too large
-     * Is there a better way to do this? this will cause huge amount memory
-     * It is the user's responsibility to release the memory of hit count array returned by this function
-     */
+guint64* get_rd_distribution(READER* reader, gint64 begin, gint64 end){
+
     
-    long long ts, reuse_dist;
-    ts = 0;
+    guint64 ts = 0;
+    gint64 reuse_dist;
+    
     if (reader->total_num == -1)
         get_num_of_cache_lines(reader);
     
@@ -400,32 +398,26 @@ long long* get_rd_distribution(READER* reader, long long begin, long long end){
     if (end < 0)
         end = reader->total_num;
     
-    long long * reuse_dist_distribution_array = malloc(sizeof(long long)*(end-begin+1));
-    
-    int i;
-    for (i=0; i<end-begin+1; i++)
-        reuse_dist_distribution_array[i] = 0;
-    
+    guint64 * reuse_dist_distribution_array = g_new0(guint64, end-begin+1);
+
     
     // create cache lize struct and initialization
-    cache_line* cp = (cache_line*)malloc(sizeof(cache_line));
-    cp->op = -1;
-    cp->size = -1;
-    cp->valid = TRUE;
+    cache_line* cp = new_cacheline();
+
     
     // create hashtable
     GHashTable * hash_table;
     if (reader->type == 'v'){
         cp->type = 'l';
         hash_table = g_hash_table_new_full(g_int64_hash, g_int64_equal, \
-                                           (GDestroyNotify)simple_key_value_destroyed, \
-                                           (GDestroyNotify)simple_key_value_destroyed);
+                                           (GDestroyNotify)simple_g_key_value_destroyer, \
+                                           (GDestroyNotify)simple_g_key_value_destroyer);
     }
     else{
         cp->type = 'c';
         hash_table = g_hash_table_new_full(g_str_hash, g_str_equal, \
-                                           (GDestroyNotify)simple_key_value_destroyed, \
-                                           (GDestroyNotify)simple_key_value_destroyed);
+                                           (GDestroyNotify)simple_g_key_value_destroyer, \
+                                           (GDestroyNotify)simple_g_key_value_destroyer);
     }
     
     
@@ -451,7 +443,7 @@ long long* get_rd_distribution(READER* reader, long long begin, long long end){
     
     
     // clean up
-    free(cp);
+    destroy_cacheline(cp);
     g_hash_table_destroy(hash_table);
     free_sTree(splay_tree);
     reset_reader(reader);
@@ -490,16 +482,6 @@ static inline double fake_second_derivative(double* hit_rate, guint64 pos){
 }
 
 
-//static inline void find_range(double* hit_rate, double step, long granularity, guint64 *begin, guint64 *end){
-//    guint64 i;
-//    for (i=*end; i>*begin+granularity; i-=granularity){
-//        if (hit_rate[i] - hit_rate[i-granularity] > step){
-//            *end = i;
-//            *begin = i - granularity;
-//            return;
-//        }
-//    }
-//}
 
 static inline gboolean verify_plateau(double* hit_rate, double max_hr, double ave_slope, guint *begin, guint* end, int num_of_points_for_average, double slope_difference, guint max_length){
     
@@ -632,7 +614,7 @@ GQueue * cal_best_LRU_cache_size(READER* reader, unsigned int num, int force_spa
     if (pqueue_peek(pq) == NULL)
     {   // can't find best size
         pqueue_free(pq);
-        g_slist_free_full(slist, simple_key_value_destroyed);
+        g_slist_free_full(slist, simple_key_value_destroyer);
         g_queue_free(gq);
         reader->best_LRU_cache_size = NULL;
         return NULL;
@@ -646,7 +628,7 @@ GQueue * cal_best_LRU_cache_size(READER* reader, unsigned int num, int force_spa
     }
     
     pqueue_free(pq);
-    g_slist_free_full(slist, simple_key_value_destroyed);
+    g_slist_free_full(slist, simple_key_value_destroyer);
     reader->best_LRU_cache_size = gq;
     return gq;
 }
@@ -654,65 +636,41 @@ GQueue * cal_best_LRU_cache_size(READER* reader, unsigned int num, int force_spa
 
 
 
-static inline sTree* process_one_element(cache_line* cp, sTree* splay_tree, GHashTable* hash_table, long long ts, long long* reuse_dist){
+static inline sTree* process_one_element(cache_line* cp, sTree* splay_tree, GHashTable* hash_table, guint64 ts, gint64* reuse_dist){
     gpointer gp;
-    if (cp->type == 'c')
-        gp = g_hash_table_lookup(hash_table, (gconstpointer)(cp->str_content));
-    else if (cp->type == 'i')
-        gp = g_hash_table_lookup(hash_table, (gconstpointer)(&(cp->int_content)));
-    else if (cp->type == 'l')
-        gp = g_hash_table_lookup(hash_table, (gconstpointer)(&(cp->long_content)));
-    else{
-        gp = NULL;
-        printf("unknown cache line type: %c\n", cp->type);
-        exit(1);
-    }
+    
+    gp = g_hash_table_lookup(hash_table, cp->item_p);
     
     sTree* newtree;
     if (gp == NULL){
         // first time access
         newtree = insert(ts, splay_tree);
-        long long *value = (long long*)malloc(sizeof(long long));
+        gint64 *value = g_new(gint64, 1);
         if (value == NULL){
             printf("not enough memory\n");
             exit(1);
         }
         *value = ts;
         if (cp->type == 'c')
-            g_hash_table_insert(hash_table, g_strdup((gchar*)(cp->str_content)), (gpointer)value);
+            g_hash_table_insert(hash_table, g_strdup((gchar*)(cp->item_p)), (gpointer)value);
         
         else if (cp->type == 'l'){
             gint64* key = g_new(gint64, 1);
-            // long *key = (long* )malloc(sizeof(uint64_t));
-            if (key == NULL){
-                printf("not enough memory\n");
-                exit(1);
-            }
-            *key = cp->long_content;
-            g_hash_table_insert(hash_table, (gpointer)(key), (gpointer)value);
-        }
-        else if (cp->type == 'i'){
-            int *key = (int* )malloc(sizeof(int));
-            if (key == NULL){
-                printf("not enough memory\n");
-                exit(1);
-            }
-            *key = cp->int_content;
+            *key = *(guint64*)(cp->item_p);
             g_hash_table_insert(hash_table, (gpointer)(key), (gpointer)value);
         }
         else{
             printf("unknown cache line content type: %c\n", cp->type);
             exit(1);
         }
-        
         *reuse_dist = -1;
     }
     else{
         // not first time access
-        long long old_ts = *(long long*)gp;
+        guint64 old_ts = *(guint64*)gp;
         newtree = splay(old_ts, splay_tree);
         *reuse_dist = node_value(newtree->right);
-        *(long long*)gp = ts;
+        *(guint64*)gp = ts;
         
         newtree = delete(old_ts, newtree);
         newtree = insert(ts, newtree);
@@ -742,28 +700,28 @@ static inline sTree* process_one_element(cache_line* cp, sTree* splay_tree, GHas
 //    
 //    hr = get_hit_rate_seq(reader, -1, 10, 20);
 //    printf("hit rate p: %p\n", hr);
-//    long long *hc = get_hit_count_seq(reader, -1, 10, 20);
+//    guint64 *hc = get_hit_count_seq(reader, -1, 10, 20);
 //    
 //    int i;
 //    for (i=0; i<20-10+3; i++){
 //        printf("%d: %f\n", i, hr[i]);
 //    }
 //    for (i=0; i<20-10+3; i++){
-//        printf("%d: %lld\n", i, hc[i]);
+//        printf("%d: %lu\n", i, hc[i]);
 //    }
 //    
-//    printf("begin get best cache size test\n");
+////    printf("begin get best cache size test\n");
+////    
+////    cal_best_LRU_cache_size(reader, 20, 200, 20);
+////    if (reader->best_LRU_cache_size == NULL){
+////        printf("no best cache size found\n");
+////        exit(-1);
+////    }
+////    
+////    printf("num: %u\n", reader->best_LRU_cache_size->length);
+////    g_queue_foreach(reader->best_LRU_cache_size, print_GQ, NULL);
 //    
-//    cal_best_LRU_cache_size(reader, 20, 200, 20);
-//    if (reader->best_LRU_cache_size == NULL){
-//        printf("no best cache size found\n");
-//        exit(-1);
-//    }
-//    
-//    printf("num: %u\n", reader->best_LRU_cache_size->length);
-//    g_queue_foreach(reader->best_LRU_cache_size, print_GQ, NULL);
-//    
-//    
+//    close_reader(reader);
 //    
 //    printf("test_finished!\n");
 //    return 0;

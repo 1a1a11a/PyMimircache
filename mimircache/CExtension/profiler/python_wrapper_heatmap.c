@@ -201,6 +201,7 @@ static PyObject* heatmap_computation(PyObject* self, PyObject* args, PyObject* k
                 array[j] = matrix[j][i];
         /* change it to opposite will help with cache, but become confusing */
     }
+    printf("done copy\n");
 
     
     // clean up

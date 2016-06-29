@@ -14,27 +14,29 @@
  
  */
 
-inline void __fifo_insert_element_long(struct_cache* fifo, cache_line* cp){
+inline void __fifo_insert_element(struct_cache* fifo, cache_line* cp){
     struct FIFO_params* fifo_params = (struct FIFO_params*)(fifo->cache_params);
     
-    gint64* key = g_new(gint64, 1);
-    if (key == NULL){
-        printf("not enough memory\n");
-        exit(1);
+    gpointer key;
+    if (cp->type == 'l'){
+        key = (gpointer)g_new(gint64, 1);
+        *(guint64*)key = *(guint64*)(cp->item_p);
     }
-    *key = cp->long_content;
+    else{
+        key = (gpointer)g_strdup((gchar*)(cp->item_p));
+    }
     g_hash_table_add(fifo_params->hashtable, (gpointer)key);
     // store in a reversed order 
     g_queue_push_tail(fifo_params->list, (gpointer)key);
 }
 
-inline gboolean fifo_check_element_long(struct_cache* cache, cache_line* cp){
+inline gboolean fifo_check_element(struct_cache* cache, cache_line* cp){
     struct FIFO_params* fifo_params = (struct FIFO_params*)(cache->cache_params);
-    return g_hash_table_contains( fifo_params->hashtable, (gconstpointer)(&(cp->long_content)) );
+    return g_hash_table_contains( fifo_params->hashtable, cp->item_p );
 }
 
 
-inline void __fifo_update_element_long(struct_cache* fifo, cache_line* cp){
+inline void __fifo_update_element(struct_cache* fifo, cache_line* cp){
     return;
 }
 
@@ -48,13 +50,13 @@ inline void __fifo_evict_element(struct_cache* fifo){
 
 
 
-inline gboolean fifo_add_element_long(struct_cache* cache, cache_line* cp){
+inline gboolean fifo_add_element(struct_cache* cache, cache_line* cp){
     struct FIFO_params* fifo_params = (struct FIFO_params*)(cache->cache_params);
-    if (fifo_check_element_long(cache, cp)){
+    if (fifo_check_element(cache, cp)){
         return TRUE;
     }
     else{
-        __fifo_insert_element_long(cache, cp);
+        __fifo_insert_element(cache, cp);
         if ( (long)g_hash_table_size( fifo_params->hashtable) > cache->core->size)
             __fifo_evict_element(cache);
         return FALSE;
@@ -85,25 +87,25 @@ void fifo_destroy_unique(struct_cache* cache){
 }
 
 
-struct_cache* fifo_init(long long size, char data_type, void* params){
+struct_cache* fifo_init(guint64 size, char data_type, void* params){
     struct_cache *cache = cache_init(size, data_type);
-    cache->cache_params = calloc(1, sizeof(struct FIFO_params));
+//    cache->cache_params = calloc(1, sizeof(struct FIFO_params));
+    cache->cache_params = g_new0(struct FIFO_params, 1);
     struct FIFO_params* fifo_params = (struct FIFO_params*)(cache->cache_params);
     
     cache->core->type = e_FIFO;
     cache->core->cache_init = fifo_init;
     cache->core->destroy = fifo_destroy;
     cache->core->destroy_unique = fifo_destroy_unique;
+    cache->core->add_element = fifo_add_element;
+    cache->core->check_element = fifo_check_element;
     cache->core->cache_init_params = NULL;
 
     if (data_type == 'l'){
-        cache->core->add_element = fifo_add_element_long;
-        cache->core->check_element = fifo_check_element_long;
-        fifo_params->hashtable = g_hash_table_new_full(g_int64_hash, g_int64_equal, simple_key_value_destroyed, NULL);
+        fifo_params->hashtable = g_hash_table_new_full(g_int64_hash, g_int64_equal, simple_g_key_value_destroyer, NULL);
     }
-    
     else if (data_type == 'c'){
-        printf("not supported yet\n");
+        fifo_params->hashtable = g_hash_table_new_full(g_str_hash, g_str_equal, simple_g_key_value_destroyer, NULL);
     }
     else{
         g_error("does not support given data type: %c\n", data_type);

@@ -59,12 +59,10 @@ static PyObject* reader_read_one_element(PyObject* self, PyObject* args)
     read_one_element(reader, &c);
     if (c.valid){
         if (c.type == 'c'){
-            return Py_BuildValue("s", c.str_content);
+            return Py_BuildValue("s", (char*)c.item_p);
         }
-        else if (c.type == 'i')
-            return Py_BuildValue("i", c.int_content);
         else if (c.type == 'l')
-            return Py_BuildValue("l", c.long_content);
+            return Py_BuildValue("l", (guint64*)c.item_p);
         else
             Py_RETURN_NONE;
         }

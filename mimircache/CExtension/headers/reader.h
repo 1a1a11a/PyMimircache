@@ -37,18 +37,18 @@ typedef struct{
         struct{
             void* p;        /* pointer to memory location, the begin position, 
                              this should not change after initilization  */
-            long long offset;    /* the position the reader pointer currently at */
-            int record_size;     /* the size of one record, used to locate the memory 
+            guint64 offset;    /* the position the reader pointer currently at */
+            size_t record_size;     /* the size of one record, used to locate the memory
                                     location of next element */
         };
     };
     char type;       /* possible types: c(csv), v(vscsi), p(plain text)  */
     long long total_num;
-    long long ts;           /* current timestamp, record current line, even if some 
+    guint64 ts;           /* current timestamp, record current line, even if some
                              * lines are not processed(skipped) */
     char file_loc[FILE_LOC_STR_SIZE];
     struct break_point* break_points;
-    long long* reuse_dist;
+    gint64* reuse_dist;
     gint* last_access;
     guint64 max_reuse_dist;
     GQueue * best_LRU_cache_size;
@@ -65,19 +65,21 @@ typedef struct{
 
 
 typedef struct{
-    union{
-        char str_content[cache_line_label_size];
-        int int_content;
-        guint64 long_content;
-    };
-    // maybe we can use a memory area then define different names for it? 
+//    union{
+//        char str_content[cache_line_label_size];
+//        int int_content;
+//        guint64 long_content;
+//    };
+    gpointer item_p;
+    char item[cache_line_label_size];
+    // maybe we can use a memory area then define different names for it?
     // then we can access the memory area using the same name 
 
-    char type;      // type of content can be either long(l) or char*(c), int(i)
-    long long ts;   // virtual timestamp 
-    long size;
+    char type;      // type of content can be either guint64(l) or char*(c)
+    guint64 ts;   // virtual timestamp
+    size_t size;
     int op;
-    long long real_time;
+    guint64 real_time;
     gboolean valid;
 }cache_line;
 
@@ -100,10 +102,14 @@ guint64 read_one_request_size(READER* reader);
 
 
 void reader_set_read_pos(READER* reader, float pos);
-long long get_num_of_cache_lines(READER* reader);
+guint64 get_num_of_cache_lines(READER* reader);
 void reset_reader(READER* reader);
 int close_reader(READER* reader);
 READER* copy_reader(READER* reader);
+
+
+cache_line* new_cacheline(void);
+void destroy_cacheline(cache_line* cp);
 
 
 

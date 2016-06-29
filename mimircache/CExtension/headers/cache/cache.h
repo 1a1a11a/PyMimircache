@@ -34,7 +34,7 @@ struct cache_core{
     long long hit_count;
     long long miss_count;
     void* cache_init_params;
-    struct cache* (*cache_init)(long long, char, void*);
+    struct cache* (*cache_init)(guint64, char, void*);
     void (*destroy)(struct cache* );
     void (*destroy_unique)(struct cache* );
     gboolean (*add_element)(struct cache*, cache_line* cp);

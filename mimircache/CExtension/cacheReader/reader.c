@@ -19,9 +19,8 @@ READER* setup_reader(char* file_loc, char file_type){
      Return value: a pointer to READER struct, the returned reader
      needs to be explicitly closed by calling close_reader */
     
-    READER* reader = (READER*) malloc(sizeof(READER));
-//    reader->break_points_v = NULL;
-//    reader->break_points_r = NULL;
+//    READER* reader = (READER*) malloc(sizeof(READER));
+    READER* reader = g_new(READER, 1);
     reader->break_points = NULL;
     reader->last_access = NULL;
     reader->reuse_dist = NULL;
@@ -29,8 +28,8 @@ READER* setup_reader(char* file_loc, char file_type){
     reader->best_LRU_cache_size = NULL;
     reader->max_reuse_dist = 0;
     
-    if (strlen(file_loc)>1023){
-        printf("file name/path is too long(>1023), please make it short\n");
+    if (strlen(file_loc)>FILE_LOC_STR_SIZE-1){
+        printf("file name/path is too long(>%d), please make it short\n", FILE_LOC_STR_SIZE);
         exit(1);
     }
     else{
@@ -76,16 +75,14 @@ void read_one_element(READER* reader, cache_line* c){
             break;
         case 'p':
 
-            if (fscanf(reader->file, "%s", c->str_content) == EOF)
+            if (fscanf(reader->file, "%s", c->item) == EOF)
                 c->valid = FALSE;
                 // c->str_content[0] = 0;
             else {
-                if (strlen(c->str_content)==2 && c->str_content[0] == '\n' && c->str_content[1] == '\0')
+                if (strlen(c->item)==2 && c->item[0] == '\n' && c->item[1] == '\0')
                     return read_one_element(reader, c);
                 c->ts = (reader->ts)++;
             }
-//            printf("%s\n", c->str_content);
-            
             break;
         case 'v':
             vscsi_read(reader, c);
@@ -116,8 +113,9 @@ int go_back_one_line(READER* reader){
             
             return 0;
         case 'v':
-            reader->offset -= (reader->record_size);
-            if (reader->offset<0)
+            if (reader->offset >= reader->record_size)
+                reader->offset -= (reader->record_size);
+            else
                 return -1;
             return 0;
         default:
@@ -155,8 +153,9 @@ int go_back_two_lines(READER* reader){
 
             return 0;
         case 'v':
-            reader->offset -= (reader->record_size)*2;
-            if (reader->offset < 0)
+            if (reader->offset >= (reader->record_size * 2))
+                reader->offset -= (reader->record_size)*2;
+            else
                 return -1;
             return 0;
         default:
@@ -266,7 +265,7 @@ void reader_set_read_pos(READER* reader, float pos){
             break;
             
         case 'v':
-            reader->offset = (long long)reader->record_size * ((long)(reader->total_num));
+            reader->offset = (guint64)reader->record_size * reader->total_num;
             reader->ts = 0;
             break;
         default:
@@ -279,10 +278,10 @@ void reader_set_read_pos(READER* reader, float pos){
 }
 
 
-long long get_num_of_cache_lines(READER* reader){
+guint64 get_num_of_cache_lines(READER* reader){
     
 #define BUFFER_SIZE 1024*1024
-    long long num_of_lines = 0;
+    guint64 num_of_lines = 0;
     char temp[BUFFER_SIZE+1];       // 5MB buffer
     int fd, i=0;
     long size;
@@ -310,8 +309,8 @@ long long get_num_of_cache_lines(READER* reader){
 //                num_of_lines++;
             break;
         case 'v':
-            printf("vscsi reader has total number of records when initialization, "
-                "so you don't need to call this function\n");
+//            printf("vscsi reader has total number of records when initialization, "
+//                "so you don't need to call this function\n");
             return reader->total_num;
         default:
             printf("cannot recognize reader type, it can only be c(csv), p(plain text), \
@@ -327,7 +326,8 @@ long long get_num_of_cache_lines(READER* reader){
 
 READER* copy_reader(READER* reader_in){
     // duplicate reader
-    READER* reader = (READER*) malloc(sizeof(READER));
+//    READER* reader = (READER*) malloc(sizeof(READER));
+    READER* reader = g_new(READER, 1);
     memcpy(reader, reader_in, sizeof(READER));
     
     if (reader->type == 'v')
@@ -434,4 +434,18 @@ void read_one_op(READER* reader, void* op){
 
 guint64 read_one_request_size(READER* reader){
     return 0;
+}
+
+cache_line* new_cacheline(){
+    cache_line* cp = g_new(cache_line, 1);
+    cp->op = -1;
+    cp->size = -1;
+    cp->valid = TRUE;
+    cp->item_p = (gpointer)cp->item;
+    
+    return cp;
+}
+
+void destroy_cacheline(cache_line* cp){
+    g_free(cp);
 }

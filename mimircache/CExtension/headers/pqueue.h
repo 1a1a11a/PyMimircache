@@ -71,6 +71,16 @@ typedef struct pqueue_t
 } pqueue_t;
 
 
+typedef struct node_t
+{
+    pqueue_pri_t pri;
+    char data_type;
+    void* item;
+    size_t pos;
+} pq_node_t;
+
+
+
 
 
 

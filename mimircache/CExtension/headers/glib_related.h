@@ -12,13 +12,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <glib.h> 
+#include "pqueue.h"
 
 
 
 
 
-void simple_key_value_destroyed(gpointer data);
-void gqueue_destroyer(gpointer data); 
+void simple_key_value_destroyer(gpointer data);
+void simple_g_key_value_destroyer(gpointer data);
+void gqueue_destroyer(gpointer data);
+void pqueue_node_destroyer(gpointer data);
 
 
 #endif /* glib_related_h */

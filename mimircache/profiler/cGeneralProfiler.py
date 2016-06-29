@@ -88,20 +88,38 @@ class cGeneralProfiler:
 
         :return: a numpy array, with hit count corresponding to size [0, bin_size, bin_size*2 ...]
         """
+        sanity_kwargs = {}
         if 'num_of_threads' not in kwargs:
-            kwargs['num_of_threads'] = self.num_of_threads
-        return c_generalProfiler.get_hit_count(self.reader.cReader, self.cache_name, self.cache_size, \
-                                               self.bin_size, cache_params=self.cache_params, **kwargs)
+            sanity_kwargs['num_of_threads'] = self.num_of_threads
+        if 'cache_size' in kwargs:
+            cache_size = kwargs['cache_size']
+        else:
+            cache_size = self.cache_size
+        if 'begin' in kwargs:
+            sanity_kwargs['begin'] = kwargs['begin']
+        if 'end' in kwargs:
+            sanity_kwargs['end'] = kwargs['end']
+        return c_generalProfiler.get_hit_count(self.reader.cReader, self.cache_name, cache_size,
+                                               self.bin_size, cache_params=self.cache_params, **sanity_kwargs)
 
     def get_hit_rate(self, **kwargs):
         """
 
         :return: a numpy array, with hit rate corresponding to size [0, bin_size, bin_size*2 ...]
         """
+        sanity_kwargs = {}
         if 'num_of_threads' not in kwargs:
-            kwargs['num_of_threads'] = self.num_of_threads
-        return c_generalProfiler.get_hit_rate(self.reader.cReader, self.cache_name, self.cache_size, \
-                                              self.bin_size, cache_params=self.cache_params, **kwargs)
+            sanity_kwargs['num_of_threads'] = self.num_of_threads
+        if 'cache_size' in kwargs:
+            cache_size = kwargs['cache_size']
+        else:
+            cache_size = self.cache_size
+        if 'begin' in kwargs:
+            sanity_kwargs['begin'] = kwargs['begin']
+        if 'end' in kwargs:
+            sanity_kwargs['end'] = kwargs['end']
+        return c_generalProfiler.get_hit_rate(self.reader.cReader, self.cache_name, cache_size,
+                                              self.bin_size, cache_params=self.cache_params, **sanity_kwargs)
 
     def get_miss_rate(self, **kwargs):
         """
@@ -109,10 +127,19 @@ class cGeneralProfiler:
         :return: a numpy array, with miss rate corresponding to size [0, bin_size, bin_size*2 ...]
         """
 
+        sanity_kwargs = {}
         if 'num_of_threads' not in kwargs:
-            kwargs['num_of_threads'] = self.num_of_threads
-        return c_generalProfiler.get_miss_rate(self.reader.cReader, self.cache_name, self.cache_size, \
-                                               self.bin_size, cache_params=self.cache_params, **kwargs)
+            sanity_kwargs['num_of_threads'] = self.num_of_threads
+        if 'cache_size' in kwargs:
+            cache_size = kwargs['cache_size']
+        else:
+            cache_size = self.cache_size
+        if 'begin' in kwargs:
+            sanity_kwargs['begin'] = kwargs['begin']
+        if 'end' in kwargs:
+            sanity_kwargs['end'] = kwargs['end']
+        return c_generalProfiler.get_miss_rate(self.reader.cReader, self.cache_name, cache_size,
+                                               self.bin_size, cache_params=self.cache_params, **sanity_kwargs)
 
     def plotMRC(self, figname="MRC.png", **kwargs):
         MRC = self.get_miss_rate(**kwargs)
@@ -124,7 +151,7 @@ class cGeneralProfiler:
             plt.xlabel("cache Size")
             plt.ylabel("Miss Rate")
             plt.title('Miss Rate Curve', fontsize=18, color='black')
-            plt.savefig(figname, dpi=300)
+            plt.savefig(figname, dpi=600)
             plt.show()
             plt.clf()
             del MRC

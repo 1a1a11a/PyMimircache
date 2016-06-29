@@ -20,12 +20,12 @@
 
 
 
-long long* get_hit_count_seq(READER* reader, long size, long long begin, long long end);
-double* get_hit_rate_seq(READER* reader, long size, long long begin, long long end);
-double* get_miss_rate_seq(READER* reader, long size, long long begin, long long end);
-long long* get_reuse_dist_seq(READER* reader, long long begin, long long end);
-long long* get_rd_distribution(READER* reader, long long begin, long long end);
-long long* get_future_reuse_dist(READER* reader, long long begin, long long end);
+guint64* get_hit_count_seq   (READER* reader, gint64 size, gint64 begin, gint64 end);
+double* get_hit_rate_seq     (READER* reader, gint64 size, gint64 begin, gint64 end);
+double* get_miss_rate_seq    (READER* reader, gint64 size, gint64 begin, gint64 end);
+gint64* get_reuse_dist_seq   (READER* reader, gint64 begin, gint64 end);
+guint64* get_rd_distribution (READER* reader, gint64 begin, gint64 end);
+gint64* get_future_reuse_dist(READER* reader, gint64 begin, gint64 end);
 
 GQueue * cal_best_LRU_cache_size(READER* reader, unsigned int num, int force_spacing, int cut_off_divider);
 

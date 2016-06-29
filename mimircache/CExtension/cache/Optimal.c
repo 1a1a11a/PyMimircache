@@ -21,17 +21,6 @@
 /** priority queue structs and def 
  */
 
-typedef struct node_t
-{
-    pqueue_pri_t pri;
-    char data_type;
-    union{
-        long long long_item;
-        void* item_mem;
-    };
-    size_t pos;
-} node_t;
-
 
 static inline int
 cmp_pri(pqueue_pri_t next, pqueue_pri_t curr)
@@ -43,28 +32,28 @@ cmp_pri(pqueue_pri_t next, pqueue_pri_t curr)
 static inline pqueue_pri_t
 get_pri(void *a)
 {
-    return ((node_t *) a)->pri;
+    return ((pq_node_t *) a)->pri;
 }
 
 
 static inline void
 set_pri(void *a, pqueue_pri_t pri)
 {
-    ((node_t *) a)->pri = pri;
+    ((pq_node_t *) a)->pri = pri;
 }
 
 
 static inline size_t
 get_pos(void *a)
 {
-    return ((node_t *) a)->pos;
+    return ((pq_node_t *) a)->pos;
 }
 
 
 static inline void
 set_pos(void *a, size_t pos)
 {
-    ((node_t *) a)->pos = pos;
+    ((pq_node_t *) a)->pos = pos;
 }
 
 
@@ -73,74 +62,78 @@ set_pos(void *a, size_t pos)
 //    if (!pqueue_peek(optimal_params->pq))
 //        printf("pq size: %zu, hashtable size: %u, peek: EMPTY\n", pqueue_size(optimal_params->pq), g_hash_table_size(optimal_params->hashtable));
 //    else
-//        printf("pq size: %zu, hashtable size: %u, peek: %lld\n", pqueue_size(optimal_params->pq), g_hash_table_size(optimal_params->hashtable), ((node_t*)pqueue_peek(optimal_params->pq))->long_item);
+//        printf("pq size: %zu, hashtable size: %u, peek: %lld\n", pqueue_size(optimal_params->pq), g_hash_table_size(optimal_params->hashtable), ((pq_node_t*)pqueue_peek(optimal_params->pq))->long_item);
 //}
 
 
 
-inline void __optimal_insert_element_long(struct_cache* optimal, cache_line* cp){
+inline void __optimal_insert_element(struct_cache* optimal, cache_line* cp){
     struct optimal_params* optimal_params = (struct optimal_params*)(optimal->cache_params);
     
-    if ((long long)g_array_index(optimal_params->next_access, gint64, optimal_params->ts) == -1)
+    if ((gint64)g_array_index(optimal_params->next_access, gint64, optimal_params->ts) == -1)
         return;
-    gint64* key = g_new(gint64, 1);
-    if (key == NULL){
-        printf("not enough memory\n");
-        exit(1);
+    pq_node_t *node = g_new(pq_node_t, 1);
+    gpointer key;
+    if (cp->type == 'l'){
+        key = (gpointer)g_new(gint64, 1);
+        *(guint64*)key = *(guint64*)(cp->item_p);
     }
-    *key = cp->long_content;
-    node_t *node = (node_t*)malloc(sizeof(node_t));
-    node->long_item = cp->long_content;
-    node->pri = optimal_params->ts + (long long)g_array_index(optimal_params->next_access, gint64, optimal_params->ts);
+    else{
+        key = (gpointer)g_strdup((gchar*)(cp->item_p));
+    }
+    node->data_type = cp->type; 
+    node->item = (gpointer)key;
+    node->pri = optimal_params->ts + (gint64)g_array_index(optimal_params->next_access, gint64, optimal_params->ts);
     pqueue_insert(optimal_params->pq, (void *)node);
     g_hash_table_insert (optimal_params->hashtable, (gpointer)key, (gpointer)node);
 }
 
-inline gboolean optimal_check_element_long(struct_cache* cache, cache_line* cp){
+
+inline gboolean optimal_check_element(struct_cache* cache, cache_line* cp){
     return g_hash_table_contains(
-                                 ((struct optimal_params*)(cache->cache_params))->hashtable,
-                                 (gconstpointer)(&(cp->long_content))
-                                 );
+                                ((struct optimal_params*)(cache->cache_params))->hashtable,
+                                (gconstpointer)(cp->item_p)
+                                );
 }
 
 
-inline void __optimal_update_element_long(struct_cache* optimal, cache_line* cp){
+inline void __optimal_update_element(struct_cache* optimal, cache_line* cp){
     struct optimal_params* optimal_params = (struct optimal_params*)(optimal->cache_params);
-
-    void* node = (void*) g_hash_table_lookup(optimal_params->hashtable, (gconstpointer)(&(cp->long_content)));
-    if ((long long) g_array_index(optimal_params->next_access, gint64, optimal_params->ts) == -1)
+    void* node;
+    node = (void*) g_hash_table_lookup(optimal_params->hashtable, (gconstpointer)(cp->item_p));
+    
+    if ((gint64) g_array_index(optimal_params->next_access, gint64, optimal_params->ts) == -1)
         pqueue_change_priority(optimal_params->pq, G_MAXINT64, node);
     else
         pqueue_change_priority(optimal_params->pq,
                                optimal_params->ts +
-                               (long long)g_array_index(optimal_params->next_access, guint64, optimal_params->ts),
+                               (gint64)g_array_index(optimal_params->next_access, guint64, optimal_params->ts),
                                node);
-    
-    return;
 }
+
 
 
 inline void __optimal_evict_element(struct_cache* optimal){
     struct optimal_params* optimal_params = (struct optimal_params*)(optimal->cache_params);
 
-    node_t* node = (node_t*) pqueue_pop(optimal_params->pq);
-    g_hash_table_remove(optimal_params->hashtable, (gconstpointer)&(node->long_item));
+    pq_node_t* node = (pq_node_t*) pqueue_pop(optimal_params->pq);
+    g_hash_table_remove(optimal_params->hashtable, (gconstpointer)(node->item));
 }
 
 
 
 
-inline gboolean optimal_add_element_long(struct_cache* cache, cache_line* cp){
+inline gboolean optimal_add_element(struct_cache* cache, cache_line* cp){
     struct optimal_params* optimal_params = (struct optimal_params*)(cache->cache_params);
     
-    if (optimal_check_element_long(cache, cp)){
-        __optimal_update_element_long(cache, cp);
+    if (optimal_check_element(cache, cp)){
+        __optimal_update_element(cache, cp);
         (optimal_params->ts) ++ ;
 //        print_cacheline((Optimal*)cache);
         return TRUE;
     }
     else{
-        __optimal_insert_element_long(cache, cp);
+        __optimal_insert_element(cache, cp);
         (optimal_params->ts) ++ ;
         if ( (long)g_hash_table_size( optimal_params->hashtable) > cache->core->size)
             __optimal_evict_element(cache);
@@ -152,14 +145,14 @@ inline gboolean optimal_add_element_long(struct_cache* cache, cache_line* cp){
 inline gboolean optimal_add_element_char(struct_cache* cache, cache_line* cp){
     struct optimal_params* optimal_params = (struct optimal_params*)(cache->cache_params);
     
-    if (optimal_check_element_long(cache, cp)){
-        __optimal_update_element_long(cache, cp);
+    if (optimal_check_element(cache, cp)){
+        __optimal_update_element(cache, cp);
         (optimal_params->ts) ++ ;
         //        print_cacheline((Optimal*)cache);
         return TRUE;
     }
     else{
-        __optimal_insert_element_long(cache, cp);
+        __optimal_insert_element(cache, cp);
         (optimal_params->ts) ++ ;
         if ( (long)g_hash_table_size( optimal_params->hashtable) > cache->core->size)
             __optimal_evict_element(cache);
@@ -195,41 +188,39 @@ void optimal_destroy_unique(struct_cache* cache){
     struct optimal_params* optimal_params = (struct optimal_params*)(cache->cache_params);
     g_hash_table_destroy(optimal_params->hashtable);
     pqueue_free(optimal_params->pq);
-    free(cache->cache_params);
-    free(cache->core);
-    free(cache);
+    g_free(cache->cache_params);
+    g_free(cache->core);
+    g_free(cache);
 }
 
 
 
-struct_cache* optimal_init(long long size, char data_type, void* params){
+struct_cache* optimal_init(guint64 size, char data_type, void* params){
 #define pq_size_multiplier 10       // ??? WHY 
     struct_cache* cache = cache_init(size, data_type);
     
-    struct optimal_params* optimal_params = (struct optimal_params*) calloc(1, sizeof(struct optimal_params));
+//    struct optimal_params* optimal_params = (struct optimal_params*) calloc(1, sizeof(struct optimal_params));
+    struct optimal_params* optimal_params = g_new0(struct optimal_params, 1);
     cache->cache_params = (void*) optimal_params;
     
     cache->core->type = e_Optimal;
     cache->core->cache_init = optimal_init;
     cache->core->destroy = optimal_destroy;
     cache->core->destroy_unique = optimal_destroy_unique;
+    cache->core->add_element = optimal_add_element;
+    cache->core->check_element = optimal_check_element;
     optimal_params->ts = ((struct optimal_init_params*)params)->ts;
-    
+
     READER* reader = ((struct optimal_init_params*)params)->reader;
     optimal_params->reader = reader;
     
     
     if (data_type == 'l'){
-        cache->core->add_element = optimal_add_element_long;
-        cache->core->check_element = optimal_check_element_long;
-        optimal_params->hashtable = g_hash_table_new_full(g_int64_hash, g_int64_equal, simple_key_value_destroyed, simple_key_value_destroyed);
+        optimal_params->hashtable = g_hash_table_new_full(g_int64_hash, g_int64_equal, simple_g_key_value_destroyer, simple_g_key_value_destroyer);
     }
     
-    else if (data_type == 'p'){
-        printf("not supported yet\n");
-    }
     else if (data_type == 'c'){
-        printf("not supported yet\n");
+        optimal_params->hashtable = g_hash_table_new_full(g_str_hash, g_str_equal, simple_g_key_value_destroyer, simple_g_key_value_destroyer);
     }
     else{
         g_error("does not support given data type: %c\n", data_type);

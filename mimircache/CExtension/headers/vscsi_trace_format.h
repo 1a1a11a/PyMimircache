@@ -95,14 +95,12 @@ static inline bool test_version(vscsi_version_t *test_buf,
 static inline int vscsi_read_ver1(READER* reader, cache_line* c){
     int i;
     for (i=0; i<1; i++){
-       trace_v1_record_t *record = (trace_v1_record_t *)(reader->p + reader->offset);
-       c->real_time = record->ts;
-       c->size = record->len;
-       c->op = record->cmd;
-       // memcpy(&(c->long_content), &(record->lbn), sizeof(uint64_t));
-       c->long_content = record->lbn;
-       // sprintf(c->str_content, "%llu", record->lbn);
-       (reader->offset) += reader->record_size; 
+        trace_v1_record_t *record = (trace_v1_record_t *)(reader->p + reader->offset);
+        c->real_time = record->ts;
+        c->size = record->len;
+        c->op = record->cmd;
+        *((guint64*)(c->item_p)) = record->lbn;
+       (reader->offset) += reader->record_size;
     }
     return i;
 }
@@ -111,13 +109,12 @@ static inline int vscsi_read_ver1(READER* reader, cache_line* c){
 static inline int vscsi_read_ver2(READER* reader, cache_line* c){
     int i;
     for (i=0; i<1; i++){
-       trace_v2_record_t *record = (trace_v2_record_t *)(reader->p + reader->offset);
-       c->real_time = record->ts;
-       c->size = record->len;
-       c->op = record->cmd;
-       // memcpy(&(c->long_content), &(record->lbn), sizeof(long));
-       c->long_content = record->lbn;
-       (reader->offset) += reader->record_size; 
+        trace_v2_record_t *record = (trace_v2_record_t *)(reader->p + reader->offset);
+        c->real_time = record->ts;
+        c->size = record->len;
+        c->op = record->cmd;
+        *((guint64*)(c->item_p)) = record->lbn;
+        (reader->offset) += reader->record_size;
     }
     return i;
 }

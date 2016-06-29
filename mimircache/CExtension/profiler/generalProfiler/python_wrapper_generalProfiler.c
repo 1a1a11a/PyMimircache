@@ -72,9 +72,9 @@ static PyObject* generalProfiler_get_hit_rate(PyObject* self, PyObject* args, Py
     PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
     guint i;
     *(double*)PyArray_GETPTR1((PyArrayObject*)ret_array, 0) = 0;
-    for(i=1; i<num_of_bins; i++){
-        *(double*)PyArray_GETPTR1((PyArrayObject*)ret_array, i) = results[i-1]->hit_rate;
-        free(results[i-1]);
+    for(i=0; i<num_of_bins; i++){
+        *(double*)PyArray_GETPTR1((PyArrayObject*)ret_array, i) = results[i]->hit_rate;
+        g_free(results[i]);
     }
     
 //    PyObject *d = PyDict_New();
@@ -82,7 +82,7 @@ static PyObject* generalProfiler_get_hit_rate(PyObject* self, PyObject* args, Py
 //        PyDict_SetItem(d, Py_BuildValue("l", (i+1)*bin_size), Py_BuildValue("f", results[i]->hit_rate));
 //    }
     
-    free(results);
+    g_free(results);
     cache->core->destroy(cache);
     return ret_array;
 }
@@ -136,13 +136,13 @@ static PyObject* generalProfiler_get_hit_count(PyObject* self, PyObject* args, P
     PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_LONGLONG);
     guint i;
     *(long*)PyArray_GETPTR1((PyArrayObject*)ret_array, 0) = 0;
-    for(i=1; i<num_of_bins; i++){
-        *(long*)PyArray_GETPTR1((PyArrayObject*)ret_array, i) = results[i-1]->hit_count;
-        free(results[i-1]);
+    for(i=0; i<num_of_bins; i++){
+        *(long*)PyArray_GETPTR1((PyArrayObject*)ret_array, i) = results[i]->hit_count;
+        g_free(results[i]);
     }
     
 
-    free(results);
+    g_free(results);
     cache->core->destroy(cache);
     return ret_array;
 }
@@ -192,13 +192,13 @@ static PyObject* generalProfiler_get_miss_rate(PyObject* self, PyObject* args, P
     PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
     guint i;
     *(double*)PyArray_GETPTR1((PyArrayObject*)ret_array, 0) = 0;
-    for(i=1; i<num_of_bins; i++){
-        *(double*)PyArray_GETPTR1((PyArrayObject*)ret_array, i) = results[i-1]->miss_rate;
-        free(results[i-1]);
+    for(i=0; i<num_of_bins; i++){
+        *(double*)PyArray_GETPTR1((PyArrayObject*)ret_array, i) = results[i]->miss_rate;
+        g_free(results[i]);
     }
     
     
-    free(results);
+    g_free(results);
     cache->core->destroy(cache);
     return ret_array;
 }

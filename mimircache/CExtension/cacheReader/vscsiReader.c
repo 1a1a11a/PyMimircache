@@ -49,10 +49,6 @@ int vscsi_setup(char *filename, READER* reader)
 	reader->ts = 0;
 	reader->type = 'v';
 
-	// int i;
-	// for (i=0; i<128; i++)
-	// 	printf("%d\t", *(int*)(memT+(sizeof(int))));
-	// printf("\n");
 
 	vscsi_version_t ver = test_vscsi_version (memT);
 	switch (ver)

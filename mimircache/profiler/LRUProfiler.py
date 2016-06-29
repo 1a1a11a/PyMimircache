@@ -13,6 +13,7 @@ class LRUProfiler:
     def __init__(self, reader, cache_size=-1):
         self.cache_size = cache_size
         self.reader = reader
+
         assert isinstance(reader, cacheReaderAbstract), "you provided an invalid cacheReader: {}".format(reader)
 
         # if the given file is not basic reader, needs conversion
@@ -64,16 +65,31 @@ class LRUProfiler:
         # do not need this function in this profiler
         pass
 
+    def _kwargs_parse(self, **kwargs):
+        if 'begin' in kwargs:
+            begin = kwargs['begin']
+        if 'end' in kwargs:
+            end = kwargs['end']
+        if 'cache_size' in kwargs:
+            cache_size = kwargs['cache_size']
+
+
     def get_hit_count(self, **kargs):
-        hit_count = c_LRUProfiler.get_hit_count_seq(self.reader.cReader, self.cache_size, **kargs)
+        if 'cache_size' not in kargs:
+            kargs['cache_size'] = self.cache_size
+        hit_count = c_LRUProfiler.get_hit_count_seq(self.reader.cReader, **kargs)
         return hit_count
 
     def get_hit_rate(self, **kargs):
-        hit_rate = c_LRUProfiler.get_hit_rate_seq(self.reader.cReader, self.cache_size, **kargs)
+        if 'cache_size' not in kargs:
+            kargs['cache_size'] = self.cache_size
+        hit_rate = c_LRUProfiler.get_hit_rate_seq(self.reader.cReader, **kargs)
         return hit_rate
 
     def get_miss_rate(self, **kargs):
-        miss_rate = c_LRUProfiler.get_miss_rate_seq(self.reader.cReader, self.cache_size, **kargs)
+        if 'cache_size' not in kargs:
+            kargs['cache_size'] = self.cache_size
+        miss_rate = c_LRUProfiler.get_miss_rate_seq(self.reader.cReader, **kargs)
         return miss_rate
 
     def get_reuse_distance(self, **kargs):
@@ -86,19 +102,17 @@ class LRUProfiler:
 
     def plotMRC(self, figname="MRC.png", threshhold=0.98, **kwargs):
         MRC = self.get_miss_rate(**kwargs)
-        if self.cache_size != -1:
-            threshhold = 1
         try:
-            stop_point = -1
-            for i in range(len(MRC) - 3, 0, -1):  # because the hit rate sequence generate from LRUProfiler
-                if MRC[i] < MRC[-3] * threshhold:  # has out_of_size rate and cold miss rate as last two elements
-                    stop_point = i
-                    break
-
-            if stop_point + 200 < len(MRC) - 2:
-                stop_point += 200
-            else:
-                stop_point = len(MRC) - 3
+            stop_point = len(MRC) - 2
+            if self.cache_size == -1 and 'cache_size' not in kwargs:
+                for i in range(len(MRC) - 3, 0, -1):
+                    if MRC[i] >= MRC[-3] / threshhold:
+                        stop_point = i
+                        break
+                if stop_point + 200 < len(MRC) - 2:
+                    stop_point += 200
+                else:
+                    stop_point = len(MRC) - 2
 
             plt.plot(MRC[:stop_point])
             plt.xlabel("cache Size")
@@ -113,21 +127,21 @@ class LRUProfiler:
             print("the plotting function is not wrong, is this a headless server?")
             print(e)
 
-    def plotHRC(self, figname="HRC.png", threshhold=0.98):
-        HRC = self.get_hit_rate()
-        if self.cache_size != -1:
-            threshhold = 1
+    def plotHRC(self, figname="HRC.png", threshhold=0.98, **kwargs):
+        HRC = self.get_hit_rate(**kwargs)
         try:
-            stop_point = -1
-            for i in range(len(HRC) - 3, 0, -1):
-                if HRC[i] < HRC[-3] * threshhold:
-                    stop_point = i
-                    break
-            if stop_point + 200 < len(HRC) - 2:
-                stop_point += 200
-            else:
-                stop_point = len(HRC) - 3
-
+            stop_point = len(HRC) - 2
+            if self.cache_size == -1 and 'cache_size' not in kwargs:
+                for i in range(len(HRC) - 3, 0, -1):
+                    if HRC[i] <= HRC[-3] * threshhold:
+                        stop_point = i
+                        break
+                if stop_point + 200 < len(HRC) - 2:
+                    stop_point += 200
+                else:
+                    stop_point = len(HRC) - 2
+            print(HRC)
+            print("stop: {}, HRC[-3]: {}, ".format(stop_point, HRC[-3]))
             plt.xlim(0, stop_point)
             plt.plot(HRC[:stop_point])
             plt.xlabel("cache Size")

@@ -35,21 +35,21 @@ struct LRU_K_init_params{
 
 
 
-extern inline void __LRU_K_insert_element_long(struct_cache* LRU_K, cache_line* cp);
+extern inline void __LRU_K_insert_element(struct_cache* LRU_K, cache_line* cp);
 
-extern inline gboolean LRU_K_check_element_long(struct_cache* cache, cache_line* cp);
+extern inline gboolean LRU_K_check_element(struct_cache* cache, cache_line* cp);
 
-extern inline void __LRU_K_update_element_long(struct_cache* LRU_K, cache_line* cp);
+extern inline void __LRU_K_update_element(struct_cache* LRU_K, cache_line* cp);
 
 extern inline void __LRU_K_evict_element(struct_cache* LRU_K);
 
-extern inline gboolean LRU_K_add_element_long(struct_cache* cache, cache_line* cp);
+extern inline gboolean LRU_K_add_element(struct_cache* cache, cache_line* cp);
 
 extern inline void LRU_K_destroy(struct_cache* cache);
 extern inline void LRU_K_destroy_unique(struct_cache* cache);
 
 
-struct_cache* LRU_K_init(long long size, char data_type, void* params);
+struct_cache* LRU_K_init(guint64 size, char data_type, void* params);
 
 
 #endif

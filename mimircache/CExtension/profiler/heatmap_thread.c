@@ -21,10 +21,9 @@ void heatmap_nonLRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer 
 
 
     // create cache lize struct and initialization
-    cache_line* cp = (cache_line*)malloc(sizeof(cache_line));
-    cp->op = -1;
-    cp->size = -1;
-    cp->valid = TRUE;
+    cache_line* cp = new_cacheline();
+    cp->type = cache->core->data_type;
+
     
     skip_N_elements(reader_thread, g_array_index(break_points, guint64, order));
     
@@ -48,11 +47,11 @@ void heatmap_nonLRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer 
     g_mutex_lock(&(params->mtx));
     (*progress) ++ ;
     g_mutex_unlock(&(params->mtx));
-    free(cp);
+    g_free(cp);
     if (reader_thread->type != 'v')
         close_reader(reader_thread);
     else
-        free(reader_thread);
+        g_free(reader_thread);
     cache->core->destroy_unique(cache);
 }
 
@@ -67,7 +66,7 @@ void heatmap_LRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer use
     draw_dict* dd = params->dd;
     guint64 cache_size = (guint64)params->cache->core->size;
     gint* last_access = reader_thread->last_access;
-    long long* reuse_dist = reader_thread->reuse_dist;
+    gint64* reuse_dist = reader_thread->reuse_dist;
     
     int order = GPOINTER_TO_INT(data)-1;
     guint64 real_start = g_array_index(break_points, guint64, order);
@@ -98,7 +97,7 @@ void heatmap_LRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer use
     if (reader_thread->type != 'v')
         close_reader(reader_thread);
     else
-        free(reader_thread);
+        g_free(reader_thread);
 }
 
 
@@ -109,7 +108,7 @@ void heatmap_rd_distribution_thread(gpointer data, gpointer user_data){
     GArray* break_points = params->break_points;
     guint64* progress = params->progress;
     draw_dict* dd = params->dd;
-    long long* reuse_dist = params->reader->reuse_dist;
+    gint64* reuse_dist = params->reader->reuse_dist;
     double log_base = params->log_base;
     
     guint64 order = (guint64)GPOINTER_TO_INT(data)-1;
@@ -138,7 +137,7 @@ void heatmap_rd_distribution_CDF_thread(gpointer data, gpointer user_data){
     GArray* break_points = params->break_points;
     guint64* progress = params->progress;
     draw_dict* dd = params->dd;
-    long long* reuse_dist = params->reader->reuse_dist;
+    gint64* reuse_dist = params->reader->reuse_dist;
     double log_base = params->log_base;
     
     guint64 order = (guint64)GPOINTER_TO_INT(data)-1;
