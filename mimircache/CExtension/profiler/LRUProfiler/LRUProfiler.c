@@ -280,8 +280,9 @@ gint64* get_reuse_dist_seq(READER* reader, gint64 begin, gint64 end){
     while (cp->valid){
         splay_tree = process_one_element(cp, splay_tree, hash_table, ts, &reuse_dist);
         reuse_dist_array[ts] = reuse_dist;
-        if (reuse_dist > max_rd)
+        if (reuse_dist > (gint64)max_rd){
             max_rd = reuse_dist;
+        }
         if (reader->ts >= end)
             break;
         read_one_element(reader, cp);

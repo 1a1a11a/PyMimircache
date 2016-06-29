@@ -92,7 +92,7 @@ class heatmap:
             if 'bin_size' in kwargs:
                 kwargs_subprocess["bin_size"] = kwargs['bin_size']
             else:
-                kwargs_subprocess['bin_size'] = max_rd / DEFAULT_BIN_NUM_PROFILER
+                kwargs_subprocess['bin_size'] = int(max_rd / DEFAULT_BIN_NUM_PROFILER)
 
             result = np.empty((len(break_points) - 1, max_rd // kwargs_subprocess['bin_size'] + 1), dtype=np.float32)
             result[:] = np.nan

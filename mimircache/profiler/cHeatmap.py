@@ -198,6 +198,7 @@ class cHeatmap:
 
                 xydict, log_base = c_heatmap.heatmap_rd_distribution(reader.cReader, mode, time_interval,
                                                                      num_of_threads=num_of_threads)
+
                 self.set_plot_params('x', 'real_time', xydict=xydict)
                 self.set_plot_params('y', 'reuse_dist', xydict=xydict, log_base=log_base)
                 self.set_plot_params('cb', 'count')
@@ -451,8 +452,8 @@ def localtest():
     hm = cHeatmap()
 
     print('a')
-    # hm.heatmap(reader, MODE, TIME_INTERVAL, "rd_distribution_CDF", num_of_threads=NUM_OF_THREADS,
-    #            figname="rd_dist_CDF_relative.png")
+    hm.heatmap(reader, MODE, TIME_INTERVAL, "rd_distribution", num_of_threads=NUM_OF_THREADS,
+               figname="rd_dist_CDF_relative.png")
 
     print('b')
     # hm.heatmap(reader, MODE, TIME_INTERVAL, PLOT_TYPE, cache_size=CACHE_SIZE, num_of_threads=int(NUM_OF_THREADS),
@@ -462,9 +463,9 @@ def localtest():
 
     print('c')
     t1 = time.time()
-    hm.differential_heatmap(reader, MODE, TIME_INTERVAL, PLOT_TYPE, "LRU", "LRU_K", cache_params2={'K': 3},
-                            cache_size=CACHE_SIZE,
-                            num_of_threads=NUM_OF_THREADS, figname="heatmap.png")
+    # hm.differential_heatmap(reader, MODE, TIME_INTERVAL, PLOT_TYPE, "LRU", "LRU_K", cache_params2={'K': 3},
+    #                         cache_size=CACHE_SIZE,
+    #                         num_of_threads=NUM_OF_THREADS, figname="heatmap.png")
     print(time.time() - t1)
 
 

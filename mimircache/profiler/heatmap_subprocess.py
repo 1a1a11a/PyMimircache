@@ -100,7 +100,7 @@ def calc_hit_rate_start_time_cache_size_subprocess(order, break_points_share_arr
 
     result_list = []
 
-    rd_distribution = [0] * (max_rd // bin_size + 1)
+    rd_distribution = [0] * int(max_rd // bin_size + 1)
 
     for i in range(break_points_share_array[order], break_points_share_array[-1]):
         rd_distribution[reuse_dist_share_array[i] // bin_size] += 1

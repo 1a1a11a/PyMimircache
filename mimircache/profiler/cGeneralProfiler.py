@@ -91,6 +91,8 @@ class cGeneralProfiler:
         sanity_kwargs = {}
         if 'num_of_threads' not in kwargs:
             sanity_kwargs['num_of_threads'] = self.num_of_threads
+        else:
+            sanity_kwargs['num_of_threads'] = kwargs['num_of_threads']
         if 'cache_size' in kwargs:
             cache_size = kwargs['cache_size']
         else:

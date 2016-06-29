@@ -68,6 +68,8 @@ class cachecow:
 
         if 'num_of_process' in kwargs:
             num_of_process = kwargs['num_of_process']
+        elif 'num_of_threads' in kwargs:
+            num_of_process = kwargs['num_of_threads']
         else:
             num_of_process = DEFAULT_NUM_OF_PROCESS
 
@@ -99,22 +101,23 @@ class cachecow:
         """
 
         reader, num_of_process = self._profiler_pre_check(**kwargs)
-        if algorithm.lower() in c_available_cache:
-            hm = cHeatmap()
-            print("cache size : " + str(cache_size))
-            hm.heatmap(reader, mode, interval, plot_type,
-                       cache_size=cache_size,
-                       algorithm=cache_alg_mapping[algorithm.lower()],
-                       cache_params=cache_params,
-                       num_of_threads=num_of_process,
-                       **kwargs)
-        else:
+
+        l = ["avg_rd_start_time_end_time", "hit_rate_start_time_cache_size"]
+
+        if plot_type in l:
             hm = heatmap()
-            hm.heatmap(reader, mode, interval, plot_type,
-                       cache_size=cache_size,
-                       algorithm=cache_alg_mapping[algorithm.lower()],
-                       cache_params=cache_params,
-                       **kwargs)
+        else:
+            if algorithm.lower() in c_available_cache:
+                hm = cHeatmap()
+
+            else:
+                hm = heatmap()
+
+        hm.heatmap(reader, mode, interval, plot_type,
+                   cache_size=cache_size,
+                   algorithm=cache_alg_mapping[algorithm.lower()],
+                   cache_params=cache_params,
+                   **kwargs)
 
     def differential_heatmap(self, mode, interval, plot_type, algorithm1,
                              algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs):
@@ -144,7 +147,6 @@ class cachecow:
                                     algorithm2=cache_alg_mapping[algorithm2.lower()],
                                     cache_params1=cache_params1,
                                     cache_params2=cache_params2,
-                                    num_of_threads=num_of_process,
                                     **kwargs)
 
         else:
@@ -235,11 +237,13 @@ class cachecow:
         if self.reader:
             self.reader.close()
 
-    def twoDPlot(self, mode, time_interval, plot_type):
+    def twoDPlot(self, mode, time_interval, plot_type, **kwargs):
+        if 'figname' in kwargs:
+            figname = kwargs['figname']
         if plot_type == 'cold_miss':
-            cold_miss_2d(self.reader, mode, time_interval)
+            cold_miss_2d(self.reader, mode, time_interval, figname=figname)
         elif plot_type == 'request_num':
-            request_num_2d(self.reader, mode, time_interval)
+            request_num_2d(self.reader, mode, time_interval, figname=figname)
         else:
             print("currently don't support your specified plot_type: " + str(plot_type))
 

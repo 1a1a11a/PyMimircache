@@ -1,0 +1,6 @@
+[C_available_cache]
+LRU = True
+FIFO = True
+Optimal = True
+LRU_K = True
+LRU_2 = True
