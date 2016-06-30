@@ -1,26 +1,66 @@
 <!DOCTYPE html>
-<html lang="en-us">
+<html>
   <head>
-    <meta charset="UTF-8">
-    <title>Mimircache by 1a1a11a</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
-    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
     <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
-  </head>
-  <body>
-    <section class="page-header">
-      <h1 class="project-name">Mimircache</h1>
-      <h2 class="project-tagline">cache analysis platform developed at Emory University</h2>
-      <a href="https://github.com/1a1a11a/mimircache" class="btn">View on GitHub</a>
-      <a href="https://github.com/1a1a11a/mimircache/zipball/master" class="btn">Download .zip</a>
-      <a href="https://github.com/1a1a11a/mimircache/tarball/master" class="btn">Download .tar.gz</a>
-    </section>
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
 
-    <section class="main-content">
-      <h3>
-<a id="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Welcome to GitHub Pages.</h3>
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>mimircache by 1a1a11a</title>
+  </head>
+
+  <body>
+    <header>
+      <div class="inner">
+        <h1>mimircache</h1>
+        <h2>cache analysis platform developed at Emory University</h2>
+        <a href="https://github.com/1a1a11a/mimircache" class="button"><small>View project on</small> GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+          <h3>
+<a id="welcome-to-mimircache" class="anchor" href="#welcome-to-mimircache" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Welcome to mimircache,</h3>
+
+<p>The study of cache has a long history, however, there is no single platform for complete analysis of cache traces. That's why we are building mimircache, a python platform for analyzing cache traces. It allows you to visualize your cache traces from different perspectives, and it incorporates time factor when comparing cache replacement algorithms.</p>
+
+<p>Mimircache is a cache trace analysis platform that supports <strong>comparison of different cache replacement algorithms</strong>, including Least Recent Used(LRU), Least Frequent Used(LFU), Most Recent Used(MRU), First In First Out(FIFO), Clock, Random, Segmented Least Recent Used(SLRU), Optimal, Adaptive Replacement Cache(ARC) and a lot of others. Best of all is that you can easily and quickly <strong>implement your own cache replacement algorithm</strong>.</p>
+
+<p>For all cache replacement algorithms, including the ones built-in and the ones you implement yourself, mimircache supports all kinds of comparison, <strong>there is nothing you can't do, there is only things that you can't imagine</strong>. </p>
+
+<p>To help you better evaluate different cache replacement algorithms, we also include a variety of visulization tool inside mimircache, for example you can plot hit rate curve(HRC), miss rate curve(MRC), different variants of heatmaps and differential heatmaps. For LRU, it also supports reuse distance calculation, reuse distance distribution plotting and etc. </p>
+
+<h2>
+<a id="supported-features" class="anchor" href="#supported-features" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Supported Features</h2>
+
+<ul>
+<li>Cache replacement algorithms simulation</li>
+<li>A variety of cache replacement algorithms support, including LRU, LFU, MRU, FIFO, Clock, Random, ARC, SLRU, optimal and etc. </li>
+<li>Hit/miss rate curve(HRC/MRC) plotting </li>
+<li>Reuse distance calculation for LRU </li>
+<li>Heatmap plotting for visulizing hit/miss rate change over time, average reuse distance over time, etc.</li>
+<li>Reuse distance distribution plotting. </li>
+</ul>
+
+<h2>
+<a id="customization-" class="anchor" href="#customization-" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Customization </h2>
+
+<p>Now you can customize mimircache for your own usage, you can </p>
+
+<ul>
+<li>provide your own cache reader for reading your special cache trace files. </li>
+<li>write your own profiling method for different cache replacement algorithms. </li>
+<li>write a middleware for sampling your cache traces for analysis. </li>
+</ul>
 
 <p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here <a href="https://guides.github.com/features/mastering-markdown/">using GitHub Flavored Markdown</a>, select a template crafted by a designer, and publish. After your page is generated, you can check out the new <code>gh-pages</code> branch locally. If you’re using GitHub Desktop, simply sync your repository and you’ll see the new branch.</p>
 
@@ -43,14 +83,24 @@
 <a id="support-or-contact" class="anchor" href="#support-or-contact" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Support or Contact</h3>
 
 <p>Having trouble with Pages? Check out our <a href="https://help.github.com/pages">documentation</a> or <a href="https://github.com/contact">contact support</a> and we’ll help you sort it out.</p>
+        </section>
 
-      <footer class="site-footer">
-        <span class="site-footer-owner"><a href="https://github.com/1a1a11a/mimircache">Mimircache</a> is maintained by <a href="https://github.com/1a1a11a">1a1a11a</a>.</span>
+        <aside id="sidebar">
+          <a href="https://github.com/1a1a11a/mimircache/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/1a1a11a/mimircache/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
 
-        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
-      </footer>
+          <p class="repo-owner"><a href="https://github.com/1a1a11a/mimircache"></a> is maintained by <a href="https://github.com/1a1a11a">1a1a11a</a>.</p>
 
-    </section>
+          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
 
   
   </body>
