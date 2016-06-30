@@ -239,12 +239,10 @@ class cachecow:
             self.reader.close()
 
     def twoDPlot(self, mode, time_interval, plot_type, **kwargs):
-        if 'figname' in kwargs:
-            figname = kwargs['figname']
         if plot_type == 'cold_miss':
-            cold_miss_2d(self.reader, mode, time_interval, figname=figname)
+            cold_miss_2d(self.reader, mode, time_interval)
         elif plot_type == 'request_num':
-            request_num_2d(self.reader, mode, time_interval, figname=figname)
+            request_num_2d(self.reader, mode, time_interval)
         else:
             print("currently don't support your specified plot_type: " + str(plot_type))
 

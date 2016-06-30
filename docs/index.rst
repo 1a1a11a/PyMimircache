@@ -1,4 +1,3 @@
-.. mimircache documentation master file, created by sphinx-quickstart on Sun May 29 09:40:45 2016. You can adapt this file completely to your liking, but it should at least contain the root `toctree` directive.
 
 mimircache: a cache trace analysis platform
 ===========================================
@@ -30,16 +29,12 @@ The User Guide
 .. toctree::
 :maxdepth: 2
 
-       User/intro
-       User/installation
-       User/quick_start
-           User/algorithms
-           User/advanced_usages
-
-
-
-
-        See quick start for a more complete tutorial
+                User/intro
+                User/installation
+                User/quick_start
+                User/algorithms
+                User/advanced_usage
+                User/API
 
 
 
@@ -63,28 +58,10 @@ Now you can customize mimircache for your own usage, you can
 * write a middleware for sampling your cache traces for analysis. 
 
 
-API
----
-If you want to know more mimircache and even advanced usage, please check this section.
-
-
-.. automodule:: mimircache
-
-.. automodule::
-mimircache.cache
-
-.. automodule::
-mimircache.cacheReader
-
-.. automodule::
-mimircache.profiler
 
 
 
 
-
-
-Contents:
 
 
 

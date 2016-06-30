@@ -248,48 +248,6 @@ static PyObject* LRUProfiler_get_future_reuse_dist(PyObject* self, PyObject* arg
 }
 
 
-//static PyObject* LRUProfiler_get_rd_distribution_seq(PyObject* self, PyObject* args, PyObject* keywds)
-//{   
-//    PyObject* po;
-//    READER* reader; 
-//    gint64 begin=-1, end=-1;
-//    static char *kwlist[] = {"reader", "begin", "end", NULL};
-//
-//    // parse arguments
-//    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O|ll", kwlist, 
-//                                &po, &begin, &end)) {
-//        return NULL;
-//    }
-//
-//    if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
-//        return NULL;
-//    }
-//    
-//    // get reuse dist 
-//    guint64* reuse_dist_distribution = get_rd_distribution(reader, begin, end);
-//
-//    // create numpy array 
-//    if (begin < 0)
-//        begin = 0;
-//    if (reader->total_num == -1)
-//        get_num_of_cache_lines(reader);
-//    if (end < 0)
-//        end = reader->total_num; 
-//
-//    npy_intp dims[1] = { end-begin+1 };
-//    PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_LONGLONG); 
-//    
-////    memcpy(PyArray_DATA((PyArrayObject*)ret_array), reuse_dist_distribution, sizeof(long long)*(end-begin+1));
-//    guint64 i;
-//    for (i=0; i<end-begin+1; i++)
-//        *((long long*)PyArray_GETPTR1((PyArrayObject*)ret_array, i)) = (long long)reuse_dist_distribution[i];
-//
-//    g_free(reuse_dist_distribution);
-//
-//    return ret_array;
-//}
-
-
 static PyObject* LRUProfiler_get_best_cache_sizes(PyObject* self, PyObject* args, PyObject* keywds)
 {
     PyObject* po;
@@ -344,8 +302,6 @@ static PyMethodDef c_LRUProfiler_funcs[] = {
     {"get_best_cache_sizes", (PyCFunction)LRUProfiler_get_best_cache_sizes,
         METH_VARARGS | METH_KEYWORDS, "get best cache sizes"},
 
-//    {"get_rd_distribution_seq", (PyCFunction)LRUProfiler_get_rd_distribution_seq,
-//        METH_VARARGS | METH_KEYWORDS, "get reuse distance distribution in the form of numpy array"},        
     {NULL, NULL, 0, NULL}
 };
 

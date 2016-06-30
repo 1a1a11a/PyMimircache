@@ -400,7 +400,7 @@ class heatmap:
         self.draw_heatmap(xydict, **kwargs_plot)
         reader.reset()
 
-        self.__del_manual__()
+        # self.__del_manual__()
 
 
 def server_plot_all():

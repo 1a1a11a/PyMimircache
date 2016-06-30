@@ -201,7 +201,6 @@ static PyObject* heatmap_computation(PyObject* self, PyObject* args, PyObject* k
                 array[j] = matrix[j][i];
         /* change it to opposite will help with cache, but become confusing */
     }
-    printf("done copy\n");
 
     
     // clean up
@@ -460,7 +459,6 @@ static PyObject* heatmap_rd_distribution_py(PyObject* self, PyObject* args, PyOb
 
     }
         
-    printf("done copy\n");
     
     // clean up
     free_draw_dict(dd);
@@ -508,7 +506,6 @@ static PyObject* heatmap_future_rd_distribution_py(PyObject* self, PyObject* arg
         for (j=0; j<dd->xlength; j++)
             array[j] = (long long)matrix[j][i];
     }
-    printf("done copy\n");
     
     // clean up
     free_draw_dict(dd);
@@ -556,7 +553,6 @@ static PyObject* heatmap_get_break_points(PyObject* self, PyObject* args, PyObje
     for (i=0; i<breakpoints->len; i++)
         *(long long*) PyArray_GETPTR1((PyArrayObject *)ret_array, i) = (long long)g_array_index(breakpoints, guint64, i);
 
-    printf("done copy\n");
     
     // clean up
 //    g_array_free(breakpoints, TRUE);      DON'T FREE it, if you are going to free it, also remember to free break point struct

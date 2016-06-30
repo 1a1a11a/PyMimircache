@@ -27,7 +27,7 @@ If you want to read your data from cachecow, if you simply use cachecow as an it
     >>>     print(c)
 
 .. note::
-If you have a special data format, you can write your own reader in a few lines, see here about how to write your own cache reader :ref:`create_new_cacheReader`.
+If you have a special data format, you can write your own reader in a few lines, see :ref:`here <advanced_usages>` about how to write your own cache reader .
 
 
 
@@ -128,8 +128,10 @@ Profiling with non-LRU
 ^^^^^^^^^^^^^^^^^^^^^^
 
 Apart from LRU, we have also provided a varieties of other cache replacement algorithms for you to play with, including Optimal, FIFO, LRU-2, LRU-K, MRU, LFU_RR, LFU_MRU, LFU_LRU, Random, SLRU, S4LRU, clock, adaptive SLRU.
+
 .. note::
-Check here for detailed information about each cache replacement algorithms. :ref:`cache_replacement_algorithms`.
+Check here :ref:`here <algorithms>` for detailed information about each cache replacement algorithms.
+
 To play with these cache replacement algorithms, you just substitue 'LRU' in the examples above with cache replacement algorithm you want, then give a cache_size and bin_size. This e reason why we need cache_size and bin_size is that for a general cache replacement algorithm, the profiling is done by sampling at certain points among all cache size, in other words, the nth element in numpy arrays returned represents the result at cache size of n*bin_size.
 Some examples are shown below:
 
@@ -159,8 +161,8 @@ several other parameters and their default values are listed below,
 Reuse distance related operation is only allowed on LRU, so don't call get_reuse_distance on non-LRU cache replacement algorithms.
 
 .. note::
-If you want to test your own cache replacement algorithms, check here :ref:`create_new_cache_replacement_algorithms`
-
+If you want to test your own cache replacement algorithms, check here :ref:`here <advanced_usages>`
+    test  :ref:`create_new_cache_replacement_algorithms`
 
 Two Dimension Plotting
 ----------------------
@@ -297,7 +299,7 @@ Besides these parameters, there are several keywords arguments listed below.
 
 +-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
 | Keyword Arguments | Default Value            | Possible Values                            | Necessary                                                  |
-+-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
++===================+==========================+============================================+============================================================+
 | algorithm1        | "LRU"                    | All available cache replacement algorithms | Yes                                                        |
 +-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
 | cache_params1     | None                     | Depends on cache replacement algorithms    | Depends on cache replacement algorithms, for example LRU_K |
