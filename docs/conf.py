@@ -18,16 +18,40 @@ import os
 
 from unittest.mock import MagicMock
 
-
-class Mock(MagicMock):
-    @classmethod
-    def __getattr__(cls, name):
-        return Mock()
+# class Mock(MagicMock):
+#     @classmethod
+#     def __getattr__(cls, name):
+#         return Mock()
 
 
 MOCK_MODULES = ['mimircache.c_generalProfiler', 'mimircache.c_heatmap', 'mimircache.c_LRUProfiler',
                 'mimircache.c_cacheReader', 'c_generalProfiler', 'c_heatmap', 'c_LRUProfiler', 'c_cacheReader']
-sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+
+
+# sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+
+
+class Mock(object):
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def __call__(self, *args, **kwargs):
+        return Mock()
+
+    @classmethod
+    def __getattr__(cls, name):
+        if name in ('__file__', '__path__'):
+            return '/dev/null'
+        elif name[0] == name[0].upper():
+            mockType = type(name, (), {})
+            mockType.__module__ = __name__
+            return mockType
+        else:
+            return Mock()
+
+
+for mod_name in MOCK_MODULES:
+    sys.modules[mod_name] = Mock()
 
 
 
@@ -36,7 +60,6 @@ sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath('_themes'))
 
-import mimircache
 
 from _version import __version__
 
