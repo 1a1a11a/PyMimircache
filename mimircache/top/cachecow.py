@@ -253,7 +253,7 @@ if __name__ == "__main__":
     CACHE_SIZE = 2000
     c = cachecow()
     # c.open('../data/trace.txt')
-    c.open('../data/test.dat')
+    c.open('test.dat')
 
     # c.vscsi('../data/trace.vscsi')
     # m.heatmap('r', 100000000)
@@ -261,9 +261,9 @@ if __name__ == "__main__":
     # m.test()
     # m.open('../data/parda.trace')
     p = c.profiler("LRU")
-    # print(p.get_reuse_distance())
+    print(p.get_reuse_distance())
     # p.plotHRC()
-    c.heatmap('v', 100, "hit_rate_start_time_end_time", cache_size=10000)
+    # c.heatmap('v', 100, "hit_rate_start_time_end_time", cache_size=10000)
 
 
     # p = c.profiler('optimal', cache_size=CACHE_SIZE)

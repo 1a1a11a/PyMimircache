@@ -78,7 +78,6 @@ void read_one_element(READER* reader, cache_line* c){
 
             if (fscanf(reader->file, "%s", c->item) == EOF)
                 c->valid = FALSE;
-                // c->str_content[0] = 0;
             else {
                 if (strlen(c->item)==2 && c->item[0] == '\n' && c->item[1] == '\0')
                     return read_one_element(reader, c);

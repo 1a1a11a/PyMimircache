@@ -67,9 +67,6 @@ typedef struct{
 typedef struct{
     gpointer item_p;
     char item[cache_line_label_size];
-    // maybe we can use a memory area then define different names for it?
-    // then we can access the memory area using the same name 
-
     char type;      // type of content can be either guint64(l) or char*(c)
     guint64 ts;   // virtual timestamp
     size_t size;

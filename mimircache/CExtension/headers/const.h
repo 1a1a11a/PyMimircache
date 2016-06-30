@@ -1,6 +1,6 @@
 
 
-#define cache_line_label_size 128
+#define cache_line_label_size 512
 #define FILE_LOC_STR_SIZE 1024 
 
 #define KNRM  "\x1B[0m"
