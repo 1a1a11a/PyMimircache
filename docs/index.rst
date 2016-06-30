@@ -54,6 +54,7 @@ Supported Features
 Customization 
 ------------- 
 Now you can customize mimircache to fit your own need, you can
+
 * provide your own cache reader for reading your special cache trace files. 
 * write your own profiling method for different cache replacement algorithms. 
 * write a middleware for sampling your cache traces for analysis. 

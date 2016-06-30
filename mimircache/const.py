@@ -4,7 +4,7 @@ from mimircache.cacheReader.csvReader import csvCacheReader
 from mimircache.cacheReader.plainReader import plainCacheReader
 from mimircache.cacheReader.vscsiReader import vscsiCacheReader
 
-from mimircache.cache.adaptiveSLRU import AdaptiveSLRU
+from mimircache.cache.ARC import ARC
 from mimircache.cache.clock import clock
 from mimircache.cache.FIFO import FIFO
 from mimircache.cache.LFU_LRU__NEED_OPTIMIZATION import LFU_LRU
@@ -16,6 +16,7 @@ from mimircache.cache.Random import Random
 from mimircache.cache.SLRU import SLRU
 from mimircache.cache.S4LRU import S4LRU
 from mimircache.cache.Optimal import optimal
+from mimircache.cache.ARC import ARC
 
 # global c_available_cache
 c_available_cache = []
@@ -61,8 +62,8 @@ def _init_cache_alg_mapping():
     cache_alg_mapping['random'] = "Random"
     cache_alg_mapping['lru'] = "LRU"
     cache_alg_mapping['fifo'] = "FIFO"
-    cache_alg_mapping['adaptiveSLRU'] = "AdaptiveSLRU"
-    # cache_alg_mapping['arc'] = "ARC"
+    # cache_alg_mapping['adaptiveSLRU'] = "AdaptiveSLRU"
+    cache_alg_mapping['arc'] = "ARC"
     cache_alg_mapping['clock'] = "clock"
     cache_alg_mapping['mru'] = "MRU"
     cache_alg_mapping['slru'] = "SLRU"
@@ -82,8 +83,8 @@ def cache_name_to_class(name):
             cache_class = SLRU
         elif cache == 'S4LRU':
             cache_class = S4LRU
-        elif cache == 'AdaptiveSLRU':
-            cache_class = AdaptiveSLRU
+        elif cache == 'ARC':
+            cache_class = ARC
         elif cache == 'LFU_RR':
             cache_class = LFU_RR
         elif cache == 'LRU':

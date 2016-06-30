@@ -37,8 +37,9 @@ __all__ = ("run", "draw")
 
 class heatmap:
     def __init__(self):
-        if not os.path.exists('temp/'):
-            os.mkdir('temp')
+        # if not os.path.exists('temp/'):
+        #     os.mkdir('temp')
+        pass
 
     def _prepare_reuse_distance_and_break_points(self, mode, reader, time_interval, calculate=True, save=False,
                                                  **kwargs):

@@ -1,4 +1,4 @@
-from mimircache.cache.adaptiveSLRU import AdaptiveSLRU
+from mimircache.cache.ARC import ARC
 from mimircache.cache.FIFO import FIFO
 from mimircache.cache.LFU_MRU import LFU_MRU
 from mimircache.cache.LFU_RR import LFU_RR
@@ -28,7 +28,7 @@ class cachecow:
 
     def prepare_cacheclass_mapping(self):
         self.cacheclass_mapping['lru'] = LRU
-        self.cacheclass_mapping['arc'] = AdaptiveSLRU
+        self.cacheclass_mapping['arc'] = ARC
         self.cacheclass_mapping['clock'] = clock
         self.cacheclass_mapping['fifo'] = FIFO
         self.cacheclass_mapping['lfu_mru'] = LFU_MRU

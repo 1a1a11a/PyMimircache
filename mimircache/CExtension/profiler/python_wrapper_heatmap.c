@@ -181,9 +181,9 @@ static PyObject* heatmap_computation(PyObject* self, PyObject* args, PyObject* k
         exit(1);
     }
     
-    printf("before computation\n");
+    DEBUG(printf("before computation\n"));
     draw_dict* dd = heatmap(reader, cache, *mode, time_interval, plot_type, num_of_threads);
-    printf("after computation\n");
+    DEBUG(printf("after computation\n"));
     
     // create numpy array
     npy_intp dims[2] = { dd->ylength, dd->xlength };
@@ -271,10 +271,10 @@ static PyObject* differential_heatmap_with_Optimal(PyObject* self, PyObject* arg
     
 
     
-    printf("before computation\n");
+    DEBUG(printf("before computation\n"));
     draw_dict* dd = differential_heatmap(reader, cache, optimal, *mode, time_interval, plot_type, num_of_threads);
     //    draw_dict* dd = heatmap(reader, cache, *mode, time_interval, plot_type, num_of_threads);
-    printf("after computation\n");
+    DEBUG(printf("after computation\n"));
     
     // create numpy array
     npy_intp dims[2] = { dd->ylength, dd->xlength };

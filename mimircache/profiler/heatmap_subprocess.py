@@ -1,6 +1,6 @@
 import math
 
-from mimircache.cache.adaptiveSLRU import AdaptiveSLRU
+from mimircache.cache.ARC import ARC
 from mimircache.cache.LFU_RR import LFU_RR
 from mimircache.cache.LRU import LRU
 from mimircache.cache.Random import Random

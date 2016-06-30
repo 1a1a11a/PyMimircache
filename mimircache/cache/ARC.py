@@ -4,7 +4,7 @@ from mimircache.cache.abstractCache import cache
 from mimircache.utils.LinkedList import LinkedList
 
 
-class AdaptiveSLRU(cache):
+class ARC(cache):
     def __init__(self, cache_size=1000, p=0.5, ghostlist_size=-1):
         """
 

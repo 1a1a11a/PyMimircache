@@ -77,6 +77,10 @@ def draw2d(l, **kwargs):
     plt.clf()
 
 
+
+
+
+
 if __name__ == "__main__":
     pass
     # TIME_INTERVAL = 10000000000
