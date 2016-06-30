@@ -26,7 +26,7 @@ class Mock(MagicMock):
 
 
 MOCK_MODULES = ['mimircache.c_generalProfiler', 'mimircache.c_heatmap', 'mimircache.c_LRUProfiler',
-                'mimircache.c_cacheReader']
+                'mimircache.c_cacheReader', 'c_generalProfiler', 'c_heatmap', 'c_LRUProfiler', 'c_cacheReader']
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 
