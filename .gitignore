@@ -5,7 +5,8 @@ Makefile
 *.sh
 bin
 log
-*.png
+profiler/*.png
+top/*.png
 *.o
 
 
@@ -66,7 +67,7 @@ coverage.xml
 *.log
 
 # Sphinx documentation
-docs/_build/
+#docs/_build/
 
 # PyBuilder
 target/
@@ -82,8 +83,4 @@ oldModule/
 
 # pycharm 
 .idea/
-docs/_static/
-docs/_templates/
-docs/advanced/
-docs/images/
 mimircache/data/

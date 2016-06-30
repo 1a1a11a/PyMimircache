@@ -44,21 +44,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
 ]
-# extensions = [
-#     # 'easydev.copybutton',
-#     'sphinx.ext.autodoc',
-#     'sphinx.ext.autosummary',
-#     'sphinx.ext.coverage',
-#     'sphinx.ext.graphviz',
-#     'sphinx.ext.doctest',
-#     'sphinx.ext.intersphinx',
-#     'sphinx.ext.todo',
-#     'sphinx.ext.coverage',
-#     'sphinx.ext.pngmath',
-#     'sphinx.ext.ifconfig',
-#     'matplotlib.sphinxext.only_directives',
-#     'matplotlib.sphinxext.plot_directive',
-# ]
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 

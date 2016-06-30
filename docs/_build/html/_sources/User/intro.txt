@@ -3,9 +3,6 @@
 Introduction
 ============ 
 
-About mimircache
-----------------
-
 The study of cache has a long history, however, there is no single platform for complete analysis of cache traces. That's why we are building mimircache, a python platform for analyzing cache traces. 
 
 Mimircache is a cache trace analysis platform that supports **comparison of different cache replacement algorithms**, including Least Recent Used(LRU), Least Frequent Used(LFU), Most Recent Used(MRU), First In First Out(FIFO), Clock, Random, Segmented Least Recent Used(SLRU), optimal, Adaptive Replacement Cache(ARC) and we are currently adding more cache replacement algorithms. Best of all is that you can easily and quickly **implement your own cache replacement algorithm**.

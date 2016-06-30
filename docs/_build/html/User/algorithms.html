@@ -1,0 +1,214 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+    <title>Algorithms &mdash; mimircache 0.0.2.50 documentation</title>
+
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css"/>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css"/>
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT: '../',
+            VERSION: '0.0.2.50',
+            COLLAPSE_INDEX: false,
+            FILE_SUFFIX: '.html',
+            HAS_SOURCE: true
+        };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="mimircache 0.0.2.50 documentation" href="../index.html"/>
+</head>
+<body role="document">
+<div class="related" role="navigation" aria-label="related navigation">
+    <h3>Navigation</h3>
+    <ul>
+        <li class="right" style="margin-right: 10px">
+            <a href="../genindex.html" title="General Index"
+               accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mimircache 0.0.2.50 documentation</a> &raquo;</li>
+    </ul>
+</div>
+
+<div class="document">
+    <div class="documentwrapper">
+        <div class="bodywrapper">
+            <div class="body" role="main">
+
+                <div class="section" id="algorithms">
+                    <span id="id1"></span>
+                    <h1>Algorithms<a class="headerlink" href="#algorithms" title="Permalink to this headline">¶</a></h1>
+                    <table border="1" class="docutils" id="cache-replacement-algorithms">
+                        <colgroup>
+                            <col width="6%"/>
+                            <col width="75%"/>
+                            <col width="7%"/>
+                            <col width="9%"/>
+                            <col width="3%"/>
+                        </colgroup>
+                        <thead valign="bottom">
+                        <tr class="row-odd">
+                            <th class="head">algorithm</th>
+                            <th class="head">description</th>
+                            <th class="head">cache_params</th>
+                            <th class="head">implemented version</th>
+                            <th class="head">Other</th>
+                        </tr>
+                        </thead>
+                        <tbody valign="top">
+                        <tr class="row-even">
+                            <td>LRU</td>
+                            <td>Least recent used</td>
+                            <td>None</td>
+                            <td>C and Python</td>
+                            <td>&nbsp;</td>
+                        </tr>
+                        <tr class="row-odd">
+                            <td>Optimal</td>
+                            <td>Optimal</td>
+                            <td>None</td>
+                            <td>C and Python</td>
+                            <td>&nbsp;</td>
+                        </tr>
+                        <tr class="row-even">
+                            <td>FIFO</td>
+                            <td>First in first out</td>
+                            <td>None</td>
+                            <td>C and Python</td>
+                            <td>&nbsp;</td>
+                        </tr>
+                        <tr class="row-odd">
+                            <td>LRU_2</td>
+                            <td>LRU on the second to the most recent timestamp</td>
+                            <td>None</td>
+                            <td>C</td>
+                            <td>&nbsp;</td>
+                        </tr>
+                        <tr class="row-even">
+                            <td>LRU_K</td>
+                            <td>LRU on the Kth to the most recent timestamp</td>
+                            <td>{&#8220;K&#8221;: K}</td>
+                            <td>C</td>
+                            <td>&nbsp;</td>
+                        </tr>
+                        <tr class="row-odd">
+                            <td>MRU</td>
+                            <td>Most recent used</td>
+                            <td>None</td>
+                            <td>Python</td>
+                            <td>&nbsp;</td>
+                        </tr>
+                        <tr class="row-even">
+                            <td>Random</td>
+                            <td>Random evict element</td>
+                            <td>None</td>
+                            <td>Python</td>
+                            <td>&nbsp;</td>
+                        </tr>
+                        <tr class="row-odd">
+                            <td>clock</td>
+                            <td>Second chance algorithm, when evicting, if the element that current clock hand points to
+                                has value 1, set to 0, giving it a second chance, otherwise, evict it.
+                            </td>
+                            <td>None</td>
+                            <td>Python</td>
+                            <td>&nbsp;</td>
+                        </tr>
+                        <tr class="row-even">
+                            <td>AdaptiveSLRU</td>
+                            <td>Similar to ARC, but use two LRU segments instead of one LRU and one LFU</td>
+                            <td>None</td>
+                            <td>Python</td>
+                            <td>&nbsp;</td>
+                        </tr>
+                        <tr class="row-odd">
+                            <td>SLRU</td>
+                            <td>Segmented LRU with two segments</td>
+                            <td>{&#8220;ratio&#8221;:ratio}</td>
+                            <td>Python</td>
+                            <td>&nbsp;</td>
+                        </tr>
+                        <tr class="row-even">
+                            <td>S4LRU</td>
+                            <td>Segmented LRU with four segments</td>
+                            <td>None</td>
+                            <td>Python</td>
+                            <td>&nbsp;</td>
+                        </tr>
+                        <tr class="row-odd">
+                            <td>LFU_RR</td>
+                            <td>Least frequent used, when there are more than one with same least frequency, random
+                                select one
+                            </td>
+                            <td>None</td>
+                            <td>Python</td>
+                            <td>&nbsp;</td>
+                        </tr>
+                        <tr class="row-even">
+                            <td>LFU_MRU</td>
+                            <td>Least frequent used, when there are more than one with same least frequency, select most
+                                recent one
+                            </td>
+                            <td>None</td>
+                            <td>Python</td>
+                            <td>&nbsp;</td>
+                        </tr>
+                        <tr class="row-odd">
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <p>Please notice that when passing cache_params, all parameters are stored in a dictionary.</p>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+    <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <div role="note" aria-label="source link">
+                <h3>This Page</h3>
+                <ul class="this-page-menu">
+                    <li><a href="../_sources/User/algorithms.txt"
+                           rel="nofollow">Show Source</a></li>
+                </ul>
+            </div>
+            <div id="searchbox" style="display: none" role="search">
+                <h3>Quick search</h3>
+                <form class="search" action="../search.html" method="get">
+                    <div><input type="text" name="q"/></div>
+                    <div><input type="submit" value="Go"/></div>
+                    <input type="hidden" name="check_keywords" value="yes"/>
+                    <input type="hidden" name="area" value="default"/>
+                </form>
+            </div>
+            <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+    </div>
+    <div class="clearer"></div>
+</div>
+<div class="related" role="navigation" aria-label="related navigation">
+    <h3>Navigation</h3>
+    <ul>
+        <li class="right" style="margin-right: 10px">
+            <a href="../genindex.html" title="General Index"
+            >index</a></li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mimircache 0.0.2.50 documentation</a> &raquo;</li>
+    </ul>
+</div>
+<div class="footer" role="contentinfo">
+    &copy; Copyright 2016, Juncheng Yang.
+</div>
+</body>
+</html>

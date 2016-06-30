@@ -58,7 +58,7 @@ Special Instructions for Installing on Ubuntu
 First Step: Install Python3, pip and all dependencies
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. note::
-If you are using Ubuntu 14 and above, you can `jump to here <Ubuntu 14 start here_>`_
+    If you are using Ubuntu 14 and above, you can `jump to here <Ubuntu 14 start here_>`_
 
 However, if you are using Ubuntu 12, you need to do the first step.
 Since Ubuntu 12 does not come with Python3 or above and some related components like pip. You can either compile python3 from source or add the repository from Ubuntu 14 into your source list. Below is the instructions for using Ubuntu 14 repository to install python3 and pip.

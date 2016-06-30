@@ -27,7 +27,7 @@ If you want to read your data from cachecow, if you simply use cachecow as an it
     >>>     print(c)
 
 .. note::
-If you have a special data format, you can write your own reader in a few lines, see :ref:`here<advanced_usages>` about how to write your own cache reader.
+    If you have a special data format, you can write your own reader in a few lines, see :ref:`here<advanced_usages>` about how to write your own cache reader.
 
 
 
@@ -61,14 +61,14 @@ First, let's try LRU(least recently used), we need to get a profiler:
     array([ 1,  0.97642089,  0.97060735, ...,  0.43007939,   0,  0.43007939])
 
 .. note::
-for reuse distance, hit count, hit rate, miss rate, if you don't specify a cache_size parameter or specify cache_size=-1, it will use the largest possible size.
+    for reuse distance, hit count, hit rate, miss rate, if you don't specify a cache_size parameter or specify cache_size=-1, it will use the largest possible size.
 
 
 * With the data calculated from profiler, you can do plotting yourself, or any other calculation. But for your convenience, we have also provided several plotting functions for you to use. For plotting hit rate curve(HRC):
     >>> profiler_LRU.plotHRC()
 
 .. figure:: ../images/example_HRC.png
-:width: 50%
+        :width: 50%
         :align: center
         :alt: example HRC
         :figclass: align-center
@@ -77,12 +77,12 @@ for reuse distance, hit count, hit rate, miss rate, if you don't specify a cache
 
 
 
-    * Similarly, we can plot miss rate curve(MRC):
-        >>> profiler_LRU.plotMRC()
+* Similarly, we can plot miss rate curve(MRC):
+    >>> profiler_LRU.plotMRC()
 
 
 .. figure:: ../images/example_MRC.png
-:width: 50%
+        :width: 50%
         :align: center
         :alt: example HRC
         :figclass: align-center
@@ -91,7 +91,7 @@ for reuse distance, hit count, hit rate, miss rate, if you don't specify a cache
 
 
 
-    Except all the default parameter we used for profiling above, you can also provide other keyword arguments, supported keyword arguments are listed below.
+Except all the default parameter we used for profiling above, you can also provide other keyword arguments, supported keyword arguments are listed below.
 
 
 
@@ -117,11 +117,11 @@ for reuse distance, hit count, hit rate, miss rate, if you don't specify a cache
 
 
 
-    * An example for how to use these keyword arguments:
-        >>> profiler_LRU.get_hit_rate(cache_size=2000, begin=1, end=10)
+* An example for how to use these keyword arguments:
+    >>> profiler_LRU.get_hit_rate(cache_size=2000, begin=1, end=10)
 
 .. warning::
-Upon testing, using keyword arguments will cause error in some of 32-bit platform, if you get an error, please try not using keyword arguments.
+    Upon testing, using keyword arguments will cause error in some of 32-bit platform, if you get an error, please try not using keyword arguments.
 
 
 Profiling with non-LRU
@@ -130,7 +130,7 @@ Profiling with non-LRU
 Apart from LRU, we have also provided a varieties of other cache replacement algorithms for you to play with, including Optimal, FIFO, LRU-2, LRU-K, MRU, LFU_RR, LFU_MRU, LFU_LRU, Random, SLRU, S4LRU, clock, adaptive SLRU.
 
 .. note::
-Check :ref:`here <algorithms>` for detailed information about each cache replacement algorithms.
+    Check :ref:`here <algorithms>` for detailed information about each cache replacement algorithms.
 
 To play with these cache replacement algorithms, you just substitue 'LRU' in the examples above with cache replacement algorithm you want, then give a cache_size and bin_size. This e reason why we need cache_size and bin_size is that for a general cache replacement algorithm, the profiling is done by sampling at certain points among all cache size, in other words, the nth element in numpy arrays returned represents the result at cache size of n*bin_size.
 Some examples are shown below:
@@ -158,10 +158,10 @@ several other parameters and their default values are listed below,
     >>> profiler_FIFO.get_miss_rate()
 
 .. note::
-Reuse distance related operation is only allowed on LRU, so don't call get_reuse_distance on non-LRU cache replacement algorithms.
+    Reuse distance related operation is only allowed on LRU, so don't call get_reuse_distance on non-LRU cache replacement algorithms.
 
 .. note::
-If you want to test your own cache replacement algorithms, check :ref:`here<create_new_cache_replacement_algorithms>`.
+    If you want to test your own cache replacement algorithms, check :ref:`here<create_new_cache_replacement_algorithms>`.
 
 
 Two Dimension Plotting
@@ -183,7 +183,7 @@ Cold miss plot
     >>> c.twoDPlot('v', 1000, 'cold_miss')
 
 .. figure:: ../images/example_cold_miss2d.png
-:width: 50%
+        :width: 50%
         :align: center
         :alt: example cold miss
         :figclass: align-center
@@ -198,7 +198,7 @@ Request number plot
     >>> c.twoDPlot('r', 10000, 'request_num')
 
 .. figure:: ../images/example_request_num.png
-:width: 50%
+        :width: 50%
         :align: center
         :alt: example request num
         :figclass: align-center
@@ -261,7 +261,7 @@ Ploting Examples
     >>> c.heatmap('r', 10000000, "hit_rate_start_time_end_time", cache_size=2000, figname="heatmap1.png", num_of_threads=8)
 
 .. figure:: ../images/example_heatmap.png
-:width: 50%
+        :width: 50%
         :align: center
         :alt: example hit_rate_start_time_end_time
         :figclass: align-center
@@ -269,12 +269,12 @@ Ploting Examples
         Hit rate of varying start time and end time
 
 
-    Another example
+Another example
 
-        >>> c.heatmap('r', 10000000, "rd_distribution")
+    >>> c.heatmap('r', 10000000, "rd_distribution")
 
 .. figure:: ../images/example_heatmap_rd_distibution.png
-:width: 50%
+        :width: 50%
         :align: center
         :alt: reuse distance distribution graph
         :figclass: align-center
@@ -320,15 +320,15 @@ Example:
     >>> c.differential_heatmap('r', 1000000, "hit_rate_start_time_end_time", algorithm1="LRU", cache_size=2000)
 
 .. figure:: ../images/example_differential_heatmap.png
-:width: 50%
+        :width: 50%
         :align: center
-            :alt: example differential_heatmap
-            :figclass: align-center
+        :alt: example differential_heatmap
+        :figclass: align-center
 
-            Differential heatmap, the value of each pixel is (hit_rate_of_algorithm2 - hit_rate_of_algorithm1)/hit_rate_of_algorithm1
-
-
+        Differential heatmap, the value of each pixel is (hit_rate_of_algorithm2 - hit_rate_of_algorithm1)/hit_rate_of_algorithm1
 
 
 
-    Congratulations! You have finished the basic tutorial! Check Advanced Usage Part if you need.
+
+
+Congratulations! You have finished the basic tutorial! Check Advanced Usage Part if you need.
