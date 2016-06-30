@@ -8,6 +8,7 @@
 
 #include <Python.h>
 #include "reader.h"
+#include "const.h"
 
 
 /* TODO: 
@@ -37,7 +38,7 @@ static PyObject* reader_read_one_element(PyObject* self, PyObject* args)
 {
     READER* reader;
     PyObject* po; 
-    cache_line c;
+    cache_line* c = new_cacheline();
     
     // parse arguments
     if (!PyArg_ParseTuple(args, "O", &po)) {
@@ -48,21 +49,26 @@ static PyObject* reader_read_one_element(PyObject* self, PyObject* args)
     } 
 
     if (reader->type == 'p' || reader->type == 'c')
-        c.type = 'c'; 
+        c->type = 'c';
     else if (reader->type == 'v')
-        c.type = 'l';
+        c->type = 'l';
     else{
         printf("reader type not recognized: %c\n", reader->type);
         exit(1);
     }
 
-    read_one_element(reader, &c);
-    if (c.valid){
-        if (c.type == 'c'){
-            return Py_BuildValue("s", (char*)c.item_p);
+    read_one_element(reader, c);
+    if (c->valid){
+        if (c->type == 'c'){
+            PyObject* ret = Py_BuildValue("s", (char*)(c->item_p));
+            destroy_cacheline(c);
+            return ret;
         }
-        else if (c.type == 'l')
-            return Py_BuildValue("l", (guint64*)c.item_p);
+        else if (c->type == 'l'){
+            guint64 item = *((guint64*)c->item_p);
+            destroy_cacheline(c);
+            return Py_BuildValue("l", item);
+        }
         else
             Py_RETURN_NONE;
         }

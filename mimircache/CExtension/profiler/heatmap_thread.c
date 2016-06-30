@@ -49,9 +49,8 @@ void heatmap_nonLRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer 
     g_mutex_unlock(&(params->mtx));
     g_free(cp);
     if (reader_thread->type != 'v')
-        close_reader(reader_thread);
-    else
-        g_free(reader_thread);
+        fclose(reader_thread->file);
+    g_free(reader_thread);
     cache->core->destroy_unique(cache);
 }
 
@@ -96,9 +95,7 @@ void heatmap_LRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer use
     g_mutex_unlock(&(params->mtx));
     if (reader_thread->type != 'v')
         fclose(reader_thread->file);
-//        close_reader(reader_thread);
-    else
-        g_free(reader_thread);
+    g_free(reader_thread);
 }
 
 

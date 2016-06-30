@@ -20,7 +20,7 @@
 
 typedef struct{
     long long total_count;
-    long long hit_count;
+    long long hit_count;        // this can be negative!! 
     long long miss_count;
     float miss_rate;
     float hit_rate;

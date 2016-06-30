@@ -28,11 +28,11 @@ from mimircache.cache.Random import Random
 from mimircache.cache.SLRU import SLRU
 from mimircache.cache.S4LRU import S4LRU
 from mimircache.cache.Optimal import optimal
+from mimircache.utils.printing import *
 
 
 from mimircache.cacheReader.plainReader import plainCacheReader
 
-import mimircache.c_generalProfiler as c_generalProfiler
 
 import matplotlib.pyplot as plt
 
@@ -43,22 +43,22 @@ from mimircache.const import *
 
 class generalProfiler(profilerAbstract):
     def __init__(self, reader, cache_class, cache_size, bin_size=-1, cache_params=None,
-                 num_of_process=DEFAULT_NUM_OF_PROCESS):
+                 num_of_threads=DEFAULT_NUM_OF_THREADS):
         if isinstance(cache_class, str):
             cache_class = cache_name_to_class(cache_class)
         super(generalProfiler, self).__init__(cache_class, cache_size, reader)
         self.cache_params = cache_params
-        self.num_of_process = num_of_process
+        self.num_of_threads = num_of_threads
 
         if bin_size == -1:
             self.bin_size = int(self.cache_size / DEFAULT_BIN_NUM_PROFILER)
         else:
             self.bin_size = bin_size
-        self.num_of_process = num_of_process
+        self.num_of_threads = num_of_threads
 
         if self.cache_size != -1:
 
-            self.num_of_cache = self.num_of_blocks = math.ceil(self.cache_size / bin_size)
+            self.num_of_blocks = math.ceil(self.cache_size / self.bin_size)
 
             self.HRC = np.zeros((self.num_of_blocks + 1,), dtype=np.double)
             self.MRC = np.zeros((self.num_of_blocks + 1,), dtype=np.double)
@@ -69,7 +69,7 @@ class generalProfiler(profilerAbstract):
         self.cache_list = None
 
         self.process_list = []
-        self.cache_distribution = [[] for _ in range(self.num_of_process)]
+        self.cache_distribution = [[] for _ in range(self.num_of_threads)]
 
         # shared memory for storing MRC count
         self.MRC_shared_array = Array('i', range(self.num_of_blocks))
@@ -78,15 +78,15 @@ class generalProfiler(profilerAbstract):
 
         # dispatch different cache size to different processes, does not include size = 0
         for i in range(self.num_of_blocks):
-            self.cache_distribution[i % self.num_of_process].append((i + 1) * bin_size)
+            self.cache_distribution[i % self.num_of_threads].append((i + 1) * self.bin_size)
 
             # build pipes for communication between main process and children process
             # the pipe mainly sends element from main process to children
         self.pipe_list = []
-        for i in range(self.num_of_process):
+        for i in range(self.num_of_threads):
             self.pipe_list.append(Pipe())
             p = Process(target=self._addOneTraceElementSingleProcess,
-                        args=(self.num_of_process, i, self.cache_class, self.cache_distribution[i],
+                        args=(self.num_of_threads, i, self.cache_class, self.cache_distribution[i],
                               self.cache_params, self.pipe_list[i][1], self.MRC_shared_array))
             self.process_list.append(p)
             p.start()
@@ -106,11 +106,11 @@ class generalProfiler(profilerAbstract):
         return
 
     # noinspection PyMethodMayBeStatic
-    def _addOneTraceElementSingleProcess(self, num_of_process, process_num, cache_class, cache_size_list,
+    def _addOneTraceElementSingleProcess(self, num_of_threads, process_num, cache_class, cache_size_list,
                                          cache_args, pipe, MRC_shared_array):
         """
 
-        :param num_of_process:
+        :param num_of_threads:
         :param process_num:
         :param cache_class:
         :param cache_size_list: a list of different cache size dispached to this process
@@ -131,15 +131,10 @@ class generalProfiler(profilerAbstract):
         # TODO this part should be changed
         while elements[-1] != 'END_1a1a11a_ENDMARKER':
             for i in range(len(cache_list)):
-                # print("i = %d"%i)
-                # cache_list[i].printCacheLine()
-                # print('')
                 for element in elements:
                     if not cache_list[i].addElement(element):
-                        MRC_shared_array[i * num_of_process + process_num] += 1
+                        MRC_shared_array[i * num_of_threads + process_num] += 1
             elements = pipe.recv()
-            # print(element)
-            # print(cache_list)
 
 
     def run(self, buffer_size=10000):
@@ -184,6 +179,7 @@ class generalProfiler(profilerAbstract):
         for i in range(1, len(self.HRC), 1):
             self.HRC[i] = 1 - self.MRC[i]
 
+
     def get_hit_count(self):
         if not self.calculated:
             self.run()
@@ -191,6 +187,8 @@ class generalProfiler(profilerAbstract):
         HC = np.zeros((self.num_of_blocks + 1,), dtype=np.longlong)
         for i in range(1, len(HC), 1):
             HC[i] = self.num_of_trace_elements - self.MRC_shared_array[i - 1]
+        for i in range(len(HC)-1, 0, -1):
+            HC[i] = HC[i] - HC[i - 1]
 
         return HC
 
@@ -214,6 +212,7 @@ class generalProfiler(profilerAbstract):
             plt.ylabel("Miss Rate")
             plt.title('Miss Rate Curve', fontsize=18, color='black')
             plt.savefig(figname)
+            colorfulPrint("red", "plot is saved at the same directory")
             plt.show()
             plt.clf()
         except Exception as e:
@@ -233,6 +232,7 @@ class generalProfiler(profilerAbstract):
             plt.ylabel("Hit Rate")
             plt.title('Hit Rate Curve', fontsize=18, color='black')
             plt.savefig(figname)
+            colorfulPrint("red", "plot is saved at the same directory")
             plt.show()
             plt.clf()
         except Exception as e:
@@ -254,8 +254,8 @@ if __name__ == "__main__":
     arc_dict = {'p': 0.5, 'ghostlist_size': -1}
     # p = generalProfiler(r, ARC, 1000, 100, arc_dict, 8)
 
-    # p = generalProfiler(r, "Random", 3000, 200, num_of_process=8)
-    p = generalProfiler(r, "SLRU", 3000, 200, cache_params={"ratio": 1}, num_of_process=8)
+    # p = generalProfiler(r, "Random", 3000, 200, num_of_threads=8)
+    p = generalProfiler(r, "SLRU", 3000, 200, cache_params={"ratio": 1}, num_of_threads=8)
     print(p.get_hit_rate())
     print(p.get_hit_count())
     t2 = time.time()

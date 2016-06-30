@@ -25,7 +25,7 @@ cache_alg_mapping = {}
 BASE_DIR = os.path.dirname(__file__)
 
 DEFAULT_BIN_NUM_PROFILER = 100
-DEFAULT_NUM_OF_PROCESS = 4
+DEFAULT_NUM_OF_THREADS = 4
 
 
 def init():
@@ -89,7 +89,7 @@ def cache_name_to_class(name):
             cache_class = LFU_RR
         elif cache == 'LRU':
             cache_class = LRU
-        elif cache == "optimal":
+        elif cache == "Optimal":
             cache_class = optimal
         elif cache == 'FIFO':
             cache_class = FIFO

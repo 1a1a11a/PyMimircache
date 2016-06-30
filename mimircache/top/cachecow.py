@@ -71,7 +71,7 @@ class cachecow:
         elif 'num_of_threads' in kwargs:
             num_of_process = kwargs['num_of_threads']
         else:
-            num_of_process = DEFAULT_NUM_OF_PROCESS
+            num_of_process = DEFAULT_NUM_OF_THREADS
 
         if 'data' in kwargs and 'dataType' in kwargs:
             if kwargs['dataType'] == 'plain':

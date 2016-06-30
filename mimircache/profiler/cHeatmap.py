@@ -283,9 +283,9 @@ class cHeatmap:
                 #                                         time_interval,
                 #                                         plot_type, num_of_threads=num_of_threads)
 
-                text = "      differential heatmap\n      cache size: {},\n      cache type: {}-{},\n" \
+                text = "      differential heatmap\n      cache size: {},\n      cache type: ({}-{})/{},\n" \
                        "      time type: {},\n      time interval: {},\n      plot type: \n{}".format(
-                    cache_size, algorithm2, algorithm1, mode, time_interval, plot_type)
+                    cache_size, algorithm2, algorithm1, algorithm1, mode, time_interval, plot_type)
 
                 x1, y1 = xydict.shape
                 x1 = int(x1 / 2.8)

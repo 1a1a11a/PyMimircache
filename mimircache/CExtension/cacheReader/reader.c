@@ -19,8 +19,7 @@ READER* setup_reader(char* file_loc, char file_type){
      Return value: a pointer to READER struct, the returned reader
      needs to be explicitly closed by calling close_reader */
     
-//    READER* reader = (READER*) malloc(sizeof(READER));
-    READER* reader = g_new(READER, 1);
+    READER* reader = g_new0(READER, 1);
     reader->break_points = NULL;
     reader->last_access = NULL;
     reader->reuse_dist = NULL;

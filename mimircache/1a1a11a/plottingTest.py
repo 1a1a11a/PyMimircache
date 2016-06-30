@@ -18,6 +18,7 @@ from mimircache.utils.printing import *
 from mimircache.profiler.cHeatmap import cHeatmap
 from mimircache.top.cachecow import cachecow
 from mimircache.profiler.twoDPlots import *
+from mimircache.cacheReader.plainReader import plainCacheReader
 
 
 def ave_freq_2d(reader, mode, time_interval, figname="ave_freq.png"):
@@ -83,12 +84,17 @@ def ave_sec_2d(reader, mode, time_interval, figname="ave_freq.png"):
 
 if __name__ == "__main__":
     TIME_INTERVAL = 600000000
-    reader = vscsiCacheReader('../data/trace.vscsi')
+    # reader = vscsiCacheReader('../data/trace.vscsi')
     # reader = vscsiCacheReader('../data/traces/w38_vscsi1.vscsitrace')
     # ave_freq_2d(reader, 'r', TIME_INTERVAL)
 
     # cold_miss_2d(reader, 'r', TIME_INTERVAL)
 
-    c = cachecow()
-    c.vscsi('../data/trace.vscsi')
-    c.differential_heatmap('r', 10000000, "hit_rate_start_time_end_time", algorithm1="ARC", algorithm2="LRU", cache_size=2000, num_of_process=8)
+    # c = cachecow()
+    # c.vscsi('../data/trace.vscsi')
+    # c.differential_heatmap('r', 10000000, "hit_rate_start_time_end_time", algorithm1="ARC", algorithm2="LRU", cache_size=2000, num_of_process=8)
+    reader = plainCacheReader('../data/trace.txt')
+    cH = cHeatmap()
+    cH.heatmap(reader, 'v', 1000, "hit_rate_start_time_end_time", algorithm="Optimal", num_of_threads=8,
+           cache_size=2000)
+

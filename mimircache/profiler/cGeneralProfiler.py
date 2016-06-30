@@ -45,7 +45,7 @@ from mimircache.const import *
 
 class cGeneralProfiler:
     def __init__(self, reader, cache_name, cache_size, bin_size=-1, cache_params=None,
-                 num_of_threads=DEFAULT_NUM_OF_PROCESS):
+                 num_of_threads=DEFAULT_NUM_OF_THREADS):
         assert cache_name.lower() in cache_alg_mapping, "please check your cache replacement algorithm: " + cache_name
         assert cache_name.lower() in c_available_cache, \
             "cGeneralProfiler currently only available on the following caches: {}\n, " \

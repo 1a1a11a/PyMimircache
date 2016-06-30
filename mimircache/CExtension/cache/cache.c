@@ -24,16 +24,12 @@ void cache_destroy_unique(struct_cache* cache){
 }
 
 
-struct_cache* cache_init(long long size, char reader_type){
+struct_cache* cache_init(long long size, char data_type){
     struct_cache *cache = g_new0(struct_cache, 1);
     cache->core = g_new0(struct cache_core, 1);
     cache->core->size = size;
     cache->core->cache_init_params = NULL;
-    
-    if (reader_type == 'v')
-        cache->core->data_type = 'l';
-    else
-        cache->core->data_type = 'c';
+    cache->core->data_type = data_type;
     
     
     return cache;

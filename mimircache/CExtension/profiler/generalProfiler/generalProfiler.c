@@ -33,16 +33,17 @@ static void profiler_thread(gpointer data, gpointer user_data){
     gboolean (*add_element)(struct cache*, cache_line* cp);
     add_element = cache->core->add_element;
 
-    
     read_one_element(reader_thread, cp);
     while (cp->valid && pos<end_pos){
-        if (add_element(cache, cp))
+        if (add_element(cache, cp)){
             hit_count ++;
+        }
         else
             miss_count ++;
         pos++;
         read_one_element(reader_thread, cp);
     }
+    
     
     result[order]->hit_count = hit_count;
     result[order]->miss_count = miss_count;
@@ -92,7 +93,7 @@ return_res** profiler(READER* reader_in, struct_cache* cache_in, int num_of_thre
 
     for (i=0; i<num_of_bins; i++){
         result[i] = g_new0(return_res, 1);
-        result[i]->cache_size = bin_size * (i+1);
+        result[i]->cache_size = bin_size * (i);
     }
     result[0]->miss_rate = 1;
     
@@ -134,53 +135,53 @@ return_res** profiler(READER* reader_in, struct_cache* cache_in, int num_of_thre
 
 
 
-//#include "reader.h"
-//#include "FIFO.h"
-//#include "Optimal.h"
-//#include "LRU_K.h"
-//
-//int main(int argc, char* argv[]){
-//# define CACHESIZE 2000
-//# define BIN_SIZE 200
-//    
-//    
-//    printf("test_begin!\n");
-//    
-//    READER* reader = setup_reader(argv[1], 'v');
-//    
-////    struct_cache* cache = fifo_init(CACHESIZE, 'v', NULL);
-//    
-//    struct optimal_init_params* init_params = g_new0(struct optimal_init_params, 1);
-//    init_params->reader = reader;
-////    init_params->ts = 0;
+#include "reader.h"
+#include "FIFO.h"
+#include "Optimal.h"
+#include "LRU_K.h"
+
+int main(int argc, char* argv[]){
+# define CACHESIZE 9
+# define BIN_SIZE 9
+    
+    
+    printf("test_begin!\n");
+    
+    READER* reader = setup_reader(argv[1], 'v');
+    
+    struct_cache* cache = fifo_init(CACHESIZE, 'l', NULL);
+    
+    struct optimal_init_params* init_params = g_new0(struct optimal_init_params, 1);
+    init_params->reader = reader;
+//    init_params->ts = 0;
 //    struct_cache* cache = optimal_init(CACHESIZE, 'l', (void*)init_params);
-//    
-////    struct LRU_K_init_params *LRU_K_init_params = (struct LRU_K_init_params*) malloc(sizeof(struct LRU_K_init_params));
-////    LRU_K_init_params->K = 1;
-////    LRU_K_init_params->maxK = 1;
-////    struct_cache* cache = LRU_K_init(CACHESIZE, 'v', LRU_K_init_params);
-//    
-//    
-//    printf("after initialization, begin profiling\n");
-//    
-//
-//    return_res** res = profiler(reader, cache, 8, BIN_SIZE, 0, -1);
-////    return_res** res = profiler(reader, cache, 1, BIN_SIZE, 23, 43);
-//    
-//    int i;
-//    for (i=0; i<CACHESIZE/BIN_SIZE+1; i++){
-//        printf("%lld: %f\n", res[i]->cache_size, res[i]->hit_rate);
-//        g_free(res[i]);
-//    }
-//    
-//    cache->core->destroy(cache);
-//    g_free(res);
-//    printf("after profiling\n");
-//
-//
-//    close_reader(reader);
-//    
-//    
-//    printf("test_finished!\n");
-//    return 0;
-//}
+    
+//    struct LRU_K_init_params *LRU_K_init_params = (struct LRU_K_init_params*) malloc(sizeof(struct LRU_K_init_params));
+//    LRU_K_init_params->K = 1;
+//    LRU_K_init_params->maxK = 1;
+//    struct_cache* cache = LRU_K_init(CACHESIZE, 'v', LRU_K_init_params);
+    
+    
+    printf("after initialization, begin profiling\n");
+    
+
+    return_res** res = profiler(reader, cache, 8, BIN_SIZE, 0, -1);
+//    return_res** res = profiler(reader, cache, 1, BIN_SIZE, 23, 43);
+    
+    int i;
+    for (i=0; i<CACHESIZE/BIN_SIZE+1; i++){
+        printf("%lld: %f\n", res[i]->cache_size, res[i]->hit_rate);
+        g_free(res[i]);
+    }
+    
+    cache->core->destroy(cache);
+    g_free(res);
+    printf("after profiling\n");
+
+
+    close_reader(reader);
+    
+    
+    printf("test_finished!\n");
+    return 0;
+}
