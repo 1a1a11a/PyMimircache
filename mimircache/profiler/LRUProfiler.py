@@ -7,7 +7,7 @@ from mimircache.cacheReader.plainReader import plainCacheReader
 from mimircache.cacheReader.vscsiReader import vscsiCacheReader
 from mimircache.cacheReader.abstractReader import cacheReaderAbstract
 import matplotlib.pyplot as plt
-
+from mimircache.utils.printing import *
 
 class LRUProfiler:
     def __init__(self, reader, cache_size=-1):
@@ -115,6 +115,7 @@ class LRUProfiler:
             plt.ylabel("Miss Rate")
             plt.title('Miss Rate Curve', fontsize=18, color='black')
             plt.savefig(figname, dpi=300)
+            colorfulPrint("red", "plot is saved at the same directory")
             plt.show()
             plt.clf()
             return stop_point
@@ -136,14 +137,16 @@ class LRUProfiler:
                     stop_point += 200
                 else:
                     stop_point = len(HRC) - 2
-            print(HRC)
-            print("stop: {}, HRC[-3]: {}, ".format(stop_point, HRC[-3]))
+            # print(HRC)
+            # print("stop: {}, HRC[-3]: {}, ".format(stop_point, HRC[-3]))
             plt.xlim(0, stop_point)
             plt.plot(HRC[:stop_point])
             plt.xlabel("cache Size")
             plt.ylabel("Hit Rate")
             plt.title('Hit Rate Curve', fontsize=18, color='black')
             plt.savefig(figname, dpi=600)
+            colorfulPrint("red", "plot is saved at the same directory")
+
             plt.show()
             plt.clf()
             return stop_point

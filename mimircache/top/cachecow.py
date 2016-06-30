@@ -235,8 +235,9 @@ class cachecow:
         return self.reader.next()
 
     def __del__(self):
-        if self.reader:
-            self.reader.close()
+        pass
+        # if self.reader:
+        #     self.reader.close()
 
     def twoDPlot(self, mode, time_interval, plot_type, **kwargs):
         if plot_type == 'cold_miss':
@@ -251,42 +252,47 @@ class cachecow:
 if __name__ == "__main__":
     CACHE_SIZE = 2000
     c = cachecow()
-    c.vscsi('../data/trace.vscsi')
+    # c.open('../data/trace.txt')
+    c.open('../data/test.dat')
+
+    # c.vscsi('../data/trace.vscsi')
     # m.heatmap('r', 100000000)
 
     # m.test()
     # m.open('../data/parda.trace')
     p = c.profiler("LRU")
-    print(p.get_reuse_distance())
-    p.plotHRC()
+    # print(p.get_reuse_distance())
+    # p.plotHRC()
+    c.heatmap('v', 100, "hit_rate_start_time_end_time", cache_size=10000)
 
-    p = c.profiler('optimal', cache_size=CACHE_SIZE)
-    print(p.get_hit_count())
 
-    c.twoDPlot('v', 1000, "cold_miss")
-
-    c.heatmap('r', 1000000, "hit_rate_start_time_end_time", "LRU", cache_size=CACHE_SIZE, num_of_process=8,
-              figname="abc.png")
-
-    c.differential_heatmap('r', 1000000, "hit_rate_start_time_end_time", "LRU", cache_size=CACHE_SIZE, num_of_process=8,
-                           figname='2.png')
-
-    c.differential_heatmap('r', 10000000, "hit_rate_start_time_end_time", "LRU", "ARC", cache_size=CACHE_SIZE,
-                           num_of_process=8, figname='3.png')
-
-    # c.differential_heatmap('r', 1000000, "hit_rate_start_time_end_time", "LRU", num_of_process=8, figname='2.png')
-
-    TIME_INTERVAL = 10000000000
-    from mimircache.cacheReader.vscsiReader import vscsiCacheReader
-
-    PATH = '/run/shm/traces/'
-    c = cachecow()
-
-    for f in os.listdir(PATH):
-        if f.endswith('vscsitrace'):
-            # reader = vscsiCacheReader(PATH + f)
-            c.vscsi(PATH + f)
-            c.heatmap('r', TIME_INTERVAL, "rd_distribution",
-                      figname='0627_rd_distribution/' + f + '_rd_distribution_' + str(TIME_INTERVAL) + '.png')
-            # request_num_2d(reader, 'r', TIME_INTERVAL,
-            #                figname='0627_rd_distribution/' + f + '_rd_distribution_' + str(TIME_INTERVAL) + '.png')
+    # p = c.profiler('optimal', cache_size=CACHE_SIZE)
+    # print(p.get_hit_count())
+    #
+    # c.twoDPlot('v', 1000, "cold_miss")
+    #
+    # c.heatmap('r', 1000000, "hit_rate_start_time_end_time", "LRU", cache_size=CACHE_SIZE, num_of_process=8,
+    #           figname="abc.png")
+    #
+    # c.differential_heatmap('r', 1000000, "hit_rate_start_time_end_time", "LRU", cache_size=CACHE_SIZE, num_of_process=8,
+    #                        figname='2.png')
+    #
+    # c.differential_heatmap('r', 10000000, "hit_rate_start_time_end_time", "LRU", "ARC", cache_size=CACHE_SIZE,
+    #                        num_of_process=8, figname='3.png')
+    #
+    # # c.differential_heatmap('r', 1000000, "hit_rate_start_time_end_time", "LRU", num_of_process=8, figname='2.png')
+    #
+    # TIME_INTERVAL = 10000000000
+    # from mimircache.cacheReader.vscsiReader import vscsiCacheReader
+    #
+    # PATH = '/run/shm/traces/'
+    # c = cachecow()
+    #
+    # for f in os.listdir(PATH):
+    #     if f.endswith('vscsitrace'):
+    #         # reader = vscsiCacheReader(PATH + f)
+    #         c.vscsi(PATH + f)
+    #         c.heatmap('r', TIME_INTERVAL, "rd_distribution",
+    #                   figname='0627_rd_distribution/' + f + '_rd_distribution_' + str(TIME_INTERVAL) + '.png')
+    #         # request_num_2d(reader, 'r', TIME_INTERVAL,
+    #         #                figname='0627_rd_distribution/' + f + '_rd_distribution_' + str(TIME_INTERVAL) + '.png')

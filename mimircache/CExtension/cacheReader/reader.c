@@ -327,7 +327,6 @@ guint64 get_num_of_cache_lines(READER* reader){
 
 READER* copy_reader(READER* reader_in){
     // duplicate reader
-//    READER* reader = (READER*) malloc(sizeof(READER));
     READER* reader = g_new(READER, 1);
     memcpy(reader, reader_in, sizeof(READER));
     
@@ -349,7 +348,7 @@ int close_reader(READER* reader){
      Otherwise, EOF is returned and the global variable errno is set to 
      indicate the error.  In either case no further
      access to the stream is possible.*/
-    
+
     switch (reader->type) {
         case 'c':
             printf("currently c reader is not supported yet\n");

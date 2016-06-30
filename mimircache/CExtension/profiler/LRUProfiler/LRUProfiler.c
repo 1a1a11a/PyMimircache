@@ -289,8 +289,6 @@ gint64* get_reuse_dist_seq(READER* reader, gint64 begin, gint64 end){
         ts++;
     }
     
-//    if (reader->reuse_dist)
-//        g_free(reader->reuse_dist);
     
     if (end-begin == reader->total_num){
         reader->reuse_dist = reuse_dist_array;
@@ -367,11 +365,6 @@ gint64* get_future_reuse_dist(READER* reader, gint64 begin, gint64 end){
         read_one_element_above(reader, cp);
         ts++;
     }
-    
-//    if (reader->reuse_dist)
-//        free(reader->reuse_dist);
-//    reader->reuse_dist = reuse_dist_array;
-//    reader->max_reuse_dist = (guint64) max_rd;
     
     // clean up
     destroy_cacheline(cp);
@@ -625,10 +618,13 @@ static inline sTree* process_one_element(cache_line* cp, sTree* splay_tree, GHas
 //    
 //    printf("test_begin!\n");
 //    
-//    READER* reader = setup_reader(argv[1], 'v');
+////    READER* reader = setup_reader(argv[1], 'v');
 //    
+//    READER* reader = setup_reader(argv[1], 'p');
 //    
 //    printf("after initialization, begin profiling\n");
+//    gint64* rd = get_reuse_dist_seq(reader, 0, -1);
+//    
 //    double* hr = get_hit_rate_seq(reader, -1, 0, -1);
 //    printf("hit rate p: %p\n", hr);
 //    

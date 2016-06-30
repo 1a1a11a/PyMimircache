@@ -65,11 +65,6 @@ typedef struct{
 
 
 typedef struct{
-//    union{
-//        char str_content[cache_line_label_size];
-//        int int_content;
-//        guint64 long_content;
-//    };
     gpointer item_p;
     char item[cache_line_label_size];
     // maybe we can use a memory area then define different names for it?

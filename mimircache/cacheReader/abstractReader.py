@@ -60,6 +60,7 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
             # pass
             self.trace_file.close()
             if self.cReader:
+                # pass
                 c_cacheReader.close_reader(self.cReader)
         except:
             pass

@@ -95,7 +95,8 @@ void heatmap_LRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer use
     (*progress) ++ ;
     g_mutex_unlock(&(params->mtx));
     if (reader_thread->type != 'v')
-        close_reader(reader_thread);
+        fclose(reader_thread->file);
+//        close_reader(reader_thread);
     else
         g_free(reader_thread);
 }
