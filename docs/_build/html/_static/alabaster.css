@@ -11,6 +11,7 @@ body {
     padding: 0;
 }
 
+
 div.document {
     width: 940px;
     margin: 30px auto 0 auto;
@@ -62,9 +63,11 @@ p.caption {
     font-size: inherit;
 }
 
+
 div.relations {
     display: none;
 }
+
 
 div.sphinxsidebar a {
     color: #444;
@@ -445,6 +448,7 @@ a.footnote-reference:hover {
 a:hover tt, a:hover code {
     background: #EEE;
 }
+
 
 @media screen and (max-width: 870px) {
 

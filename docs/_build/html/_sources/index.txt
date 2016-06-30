@@ -27,14 +27,14 @@ An example of MRC plot and hit rate heatmap.
 The User Guide 
 -------------- 
 .. toctree::
-    :maxdepth: 2
+        :maxdepth: 2
 
-    User/intro
-    User/installation
-    User/quick_start
-    User/algorithms
-    User/advanced_usage
-    User/API
+        User/intro
+        User/installation
+        User/quick_start
+        User/algorithms
+        User/advanced_usage
+        User/API
 
 
 
@@ -48,11 +48,12 @@ Supported Features
 * Reuse distance calculation for LRU 
 * Heatmap plotting for visulizing hit/miss rate change over time, average reuse distance over time, etc.
 * Reuse distance distribution plotting. 
+* Cache replacement algorithm comparison.
 
 
 Customization 
 ------------- 
-Now you can customize mimircache for your own usage, you can 
+Now you can customize mimircache to fit your own need, you can
 * provide your own cache reader for reading your special cache trace files. 
 * write your own profiling method for different cache replacement algorithms. 
 * write a middleware for sampling your cache traces for analysis. 
@@ -73,5 +74,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
-.. |exampleMRC| image:: images/example_MRC.png
