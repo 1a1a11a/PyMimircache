@@ -17,9 +17,9 @@ Welcome to the documentation of mimircache, a python3 cache trace analysis platf
     >>> c.heatmap('r', 10000000, "hit_rate_start_time_end_time", data='../data/trace.vscsi', dataType='vscsi')
 
 .. image::  images/example_MRC.png
-:width: 45%
+    :width: 45%
 .. image::  images/example_heatmap.png
-:width: 48%
+    :width: 48%
     
 An example of MRC plot and hit rate heatmap.
 
@@ -27,7 +27,7 @@ An example of MRC plot and hit rate heatmap.
 The User Guide 
 -------------- 
 .. toctree::
-:maxdepth: 2
+        :maxdepth: 2
 
         User/intro
         User/installation
