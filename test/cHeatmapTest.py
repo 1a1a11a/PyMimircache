@@ -12,7 +12,7 @@ from mimircache.profiler.cGeneralProfiler import cGeneralProfiler
 from mimircache.profiler.cHeatmap import cHeatmap
 
 
-class cGeneralProfilerTest(unittest.TestCase):
+class cHeatmapTest(unittest.TestCase):
     def test1(self):
         reader = vscsiCacheReader('../mimircache/data/trace.vscsi')
         cH = cHeatmap()
@@ -21,11 +21,11 @@ class cGeneralProfilerTest(unittest.TestCase):
         bpv = cH.gen_breakpoints(reader, 'v', 1000)
         self.assertEqual(bpv[10], 10000)
 
-        cH.heatmap(reader, 'r', 1000000, "hit_rate_start_time_end_time", num_of_threads=8, cache_size=2000)
-        cH.heatmap(reader, 'r', 1000000, "rd_distribution", num_of_threads=8)
-        cH.heatmap(reader, 'r', 1000000, "future_rd_distribution", num_of_threads=8)
-        cH.heatmap(reader, 'r', 1000000, "hit_rate_start_time_end_time", algorithm="FIFO", num_of_threads=8, cache_size=2000)
-        cH.differential_heatmap(reader, 'r', 1000000, "hit_rate_start_time_end_time", cache_size=2000,
+        cH.heatmap(reader, 'r', 10000000, "hit_rate_start_time_end_time", num_of_threads=8, cache_size=2000)
+        cH.heatmap(reader, 'r', 10000000, "rd_distribution", num_of_threads=8)
+        cH.heatmap(reader, 'r', 10000000, "future_rd_distribution", num_of_threads=8)
+        cH.heatmap(reader, 'r', 10000000, "hit_rate_start_time_end_time", algorithm="FIFO", num_of_threads=8, cache_size=2000)
+        cH.differential_heatmap(reader, 'r', 10000000, "hit_rate_start_time_end_time", cache_size=2000,
                                 algorithm1="LRU_K", algorithm2="Optimal", cache_params1={"K": 2},
                                 cache_params2=None, num_of_threads=8)
 

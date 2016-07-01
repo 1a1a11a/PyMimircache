@@ -184,13 +184,25 @@ class cachecow:
             if mode == 'r':
                 cHm.set_plot_params('x', 'real_time', xydict=xydict1, label='start time (real)',
                                     text=(x1, y1, text))
-                cHm.set_plot_params('y', 'real_time', xydict=xydict1, label='end time (real)')
+                cHm.set_plot_params('y', 'real_time', xydict=xydict1, label='end time (real)', fixed_range=(-1, 1))
             else:
                 cHm.set_plot_params('x', 'virtual_time', xydict=xydict1, label='start time (virtual)',
                                     text=(x1, y1, text))
-                cHm.set_plot_params('y', 'virtual_time', xydict=xydict1, label='end time (virtual)')
+                cHm.set_plot_params('y', 'virtual_time', xydict=xydict1, label='end time (virtual)', fixed_range=(-1, 1))
 
-            cHm.draw_heatmap((xydict2 - xydict1) / xydict1, figname=figname)
+            # print(xydict2.shape)
+            # print(xydict1.shape)
+            np.seterr(divide='ignore', invalid='ignore')
+            # print(xydict2 - xydict1)
+            # print(xydict1)
+            # print((xydict2 - xydict1) / xydict1)
+
+            plot_dict = (xydict2 - xydict1) / xydict1
+
+            # masked_array = np.ma.array((xydict2 - xydict1) / xydict1, mask=np.isnan((xydict2 - xydict1) / xydict1))
+            # print(masked_array)
+            # print(plot_dict)
+            cHm.draw_heatmap(plot_dict, figname=figname)
 
     def profiler(self, algorithm, cache_params=None, cache_size=-1, **kwargs):
         """

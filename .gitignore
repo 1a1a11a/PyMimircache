@@ -5,6 +5,7 @@ Makefile
 *.sh
 bin
 log
+1a1a11a/*
 profiler/*.png
 top/*.png
 *.o

@@ -89,7 +89,6 @@ void fifo_destroy_unique(struct_cache* cache){
 
 struct_cache* fifo_init(guint64 size, char data_type, void* params){
     struct_cache *cache = cache_init(size, data_type);
-//    cache->cache_params = calloc(1, sizeof(struct FIFO_params));
     cache->cache_params = g_new0(struct FIFO_params, 1);
     struct FIFO_params* fifo_params = (struct FIFO_params*)(cache->cache_params);
     

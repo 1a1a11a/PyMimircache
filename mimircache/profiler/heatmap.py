@@ -95,7 +95,7 @@ class heatmap:
             else:
                 kwargs_subprocess['bin_size'] = int(max_rd / DEFAULT_BIN_NUM_PROFILER)
 
-            result = np.empty((len(break_points) - 1, max_rd // kwargs_subprocess['bin_size'] + 1), dtype=np.float32)
+            result = np.zeros((len(break_points) - 1, max_rd // kwargs_subprocess['bin_size'] + 1), dtype=np.float32)
             result[:] = np.nan
             func_pointer = calc_hit_rate_start_time_cache_size_subprocess
             kwargs_plot['yticks'] = ticker.FuncFormatter(
@@ -116,8 +116,8 @@ class heatmap:
             reader = kwargs['reader']
             kwargs_subprocess['cache_size'] = kwargs['cache_size']
             array_len = len(break_points) - 1
-            result = np.empty((array_len, array_len), dtype=np.float32)
-            result[:] = np.nan
+            result = np.zeros((array_len, array_len), dtype=np.float32)
+            # result[:] = np.nan
             func_pointer = calc_hit_rate_start_time_end_time_subprocess
 
             kwargs_plot['xlabel'] = 'time({})'.format(mode)
@@ -140,7 +140,7 @@ class heatmap:
             kwargs_plot['title'] = "avg_rd_start_time_end_time"
 
             array_len = len(break_points) - 1
-            result = np.empty((array_len, array_len), dtype=np.float32)
+            result = np.zeros((array_len, array_len), dtype=np.float32)
             result[:] = np.nan
             func_pointer = calc_avg_rd_start_time_end_time_subprocess
 
@@ -150,7 +150,7 @@ class heatmap:
             kwargs_plot['ylabel'] = 'cold miss count'
             kwargs_plot['title'] = "cold_miss_count_start_time_end_time"
             array_len = len(break_points) - 1
-            result = np.empty((array_len, array_len), dtype=np.float32)
+            result = np.zeros((array_len, array_len), dtype=np.float32)
             result[:] = np.nan
             func_pointer = calc_cold_miss_count_start_time_end_time_subprocess
 

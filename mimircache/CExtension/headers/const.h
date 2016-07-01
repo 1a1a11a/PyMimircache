@@ -1,6 +1,6 @@
 
 
-#define cache_line_label_size 512
+#define cache_line_label_size 1024
 #define FILE_LOC_STR_SIZE 1024 
 
 #define KNRM  "\x1B[0m"
@@ -11,6 +11,9 @@
 #define KMAG  "\x1B[35m"
 #define KCYN  "\x1B[36m"
 #define KWHT  "\x1B[37m"
+
+#define CACHE_DEBUG 1
+
 
 
 #define hit_rate_start_time_end_time                    1

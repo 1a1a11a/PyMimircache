@@ -9,7 +9,10 @@
 void cache_destroy(struct_cache* cache){
     if (cache->cache_params)
         g_free(cache->cache_params);
-    // cache->core->cache_init_params is on the stack default, if it is on the heap, needs to be freed manually 
+    
+    /* cache->core->cache_init_params is on the stack default, 
+     if it is on the heap, needs to be freed manually
+     */
     if (cache->core->cache_init_params)
         g_free(cache->core->cache_init_params);
     g_free(cache->core);
@@ -30,6 +33,9 @@ struct_cache* cache_init(long long size, char data_type){
     cache->core->size = size;
     cache->core->cache_init_params = NULL;
     cache->core->data_type = data_type;
+    
+    if (CACHE_DEBUG)
+        cache->core->cache_debug_flag = TRUE;
     
     
     return cache;

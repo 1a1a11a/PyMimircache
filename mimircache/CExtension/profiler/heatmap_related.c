@@ -185,8 +185,8 @@ GArray* gen_breakpoints_realtime(READER* reader, guint64 time_interval){
         read_one_element(reader, cp);
         num++;
     }
-    if (num != reader->total_num)
-        g_array_prepend_val(break_points, reader->total_num);
+    if (g_array_index(break_points, guint64, break_points->len-1) != reader->total_num)
+        g_array_append_val(break_points, reader->total_num);
 
     if (break_points->len > 10000)
         printf("%snumber of pixels in one dimension are more than 10000, exact size: %d, it may take a very long time, if you didn't intend to do it, please try with a larger time stamp", KRED, break_points->len);

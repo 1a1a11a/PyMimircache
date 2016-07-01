@@ -15,6 +15,7 @@
 #include <stdlib.h> 
 #include <string.h> 
 #include "glib_related.h"
+#include "const.h"
 
 
 
@@ -30,7 +31,7 @@ typedef enum{
 struct cache_core{
     cache_type type;
     long size;
-    char data_type;     // l, i, c
+    char data_type;     // l, c
     long long hit_count;
     long long miss_count;
     void* cache_init_params;
@@ -39,6 +40,8 @@ struct cache_core{
     void (*destroy_unique)(struct cache* );
     gboolean (*add_element)(struct cache*, cache_line* cp);
     gboolean (*check_element)(struct cache*, cache_line* cp);
+    gboolean cache_debug_flag;
+    GQueue* evicted_list;
 };
 
 
@@ -62,9 +65,7 @@ typedef struct cache{
 //#define check_element core->check_element;
 
 
-//    union{
-//        char cache_param[1024];
-//    };
+
 
 struct_cache* cache_init(long long size, char data_type);
 void cache_destroy(struct_cache* cache);
