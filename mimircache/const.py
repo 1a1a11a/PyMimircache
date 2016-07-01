@@ -15,7 +15,7 @@ from mimircache.cache.MRU import MRU
 from mimircache.cache.Random import Random
 from mimircache.cache.SLRU import SLRU
 from mimircache.cache.S4LRU import S4LRU
-from mimircache.cache.Optimal import optimal
+from mimircache.cache.Optimal import Optimal
 from mimircache.cache.ARC import ARC
 
 # global c_available_cache
@@ -90,7 +90,7 @@ def cache_name_to_class(name):
         elif cache == 'LRU':
             cache_class = LRU
         elif cache == "Optimal":
-            cache_class = optimal
+            cache_class = Optimal
         elif cache == 'FIFO':
             cache_class = FIFO
         elif cache == "MRU":

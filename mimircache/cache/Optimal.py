@@ -6,8 +6,10 @@ import mimircache.c_LRUProfiler as c_LRUProfiler
 import mimircache.c_heatmap as c_heatmap
 
 import time
+from heapdict import heapdict
 
-class optimal(cache):
+
+class Optimal(cache):
     def __init__(self, cache_size, reader):
         super().__init__(cache_size)
         reader.reset()
@@ -15,12 +17,9 @@ class optimal(cache):
         self.reader.lock.acquire()
         self.next_access = c_heatmap.get_next_access_dist(self.reader.cReader)
         self.reader.lock.release()
-        # print(self.next_access)
-        self.pq = PriorityQueue()
-        self.seenset = set()
+        self.pq = heapdict()
+        # self.seenset = set()
 
-        # used to store the real timestamp because it is hard to del the element from priority queue
-        # self.real_ts = {}
         self.ts = 0
 
     def get_reversed_reuse_dist(self):
@@ -31,7 +30,7 @@ class optimal(cache):
         :param element:
         :return: whether the given element is in the cache
         """
-        if element in self.seenset:
+        if element in self.pq:
             return True
         else:
             return False
@@ -42,30 +41,11 @@ class optimal(cache):
         :return: None
         """
 
-        # TERRIBLE ALGORITHM HERE, NEEDS to BE CHANGED
+        if self.next_access[self.ts] != -1:
+            self.pq[element] = -(self.ts + self.next_access[self.ts])
+        else:
+            del self.pq[element]
 
-        pq_new = PriorityQueue()
-        while self.pq.qsize():
-            element_t = self.pq.get()
-            if element_t[1] == element:
-                if self.next_access[self.ts] != -1:
-                    pq_new.put((-(self.ts + self.next_access[self.ts]), element))
-                else:
-                    self.seenset.remove(element)
-            else:
-                pq_new.put(element_t)
-        self.pq = pq_new
-
-
-
-        # # update priorityQueue is hard and time-consuming (O(N)), so update the real value hash table
-        # if self.next_access[element[0]] != -1:
-        #     # pass
-        #     self.real_ts[element[1]] = -(self.next_access[element[0]] + element[0])
-        #     self.pq.put( (-(self.next_access[element[0]] + element[0]), element[1]) )
-        # else:
-        #     pass
-        #     # self.real_ts[element[1]] = -sys.maxsize
 
     def _insertElement(self, element):
         """
@@ -73,20 +53,15 @@ class optimal(cache):
         :param element:
         :return: True on success, False on failure
         """
-        # self.seenset.add(element[1])
-        # self.pq.put(-(self.reversed_rd[element[0]]+element[0], element[1]))
-
         if self.next_access[self.ts] == -1:
-            # self.pq.put((-sys.maxsize, element))
             pass
         else:
-            self.pq.put((-self.next_access[self.ts] - self.ts, element))
-            # print("Add: {}:{}".format(-self.next_access[element[0]]-element[0], element[1]))
-            self.seenset.add(element)
+            self.pq[element] = -self.next_access[self.ts] - self.ts
+            # self.seenset.add(element)
 
     def _printCacheLine(self):
-        print("size %d" % len(self.seenset))
-        for i in self.seenset:
+        print("size %d" % len(self.pq))
+        for i in self.pq:
             print(i, end='\t')
         print('')
 
@@ -95,29 +70,12 @@ class optimal(cache):
         evict one element from the cache line
         :return: True on success, False on failure
         """
-        # needs to change this for performance
-        element = self.pq.get()
-        self.seenset.remove(element[1])
+
+        element = self.pq.popitem()[0]
+        # self.seenset.remove(element)
         # print("evicting "+str(element))
         return element
 
-
-
-
-        # element = self.pq.get()
-        # print('evict: {}?: '.format(element[1]), end='\t')
-        # self.seenset.remove(element[1])
-        # if not element[1] in self.real_ts:
-        #     print(element[1])
-        # while element[1] in self.real_ts:
-        #     if self.real_ts[element[1]] != element[0]:
-        #         print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-        #         element = self.pq.get()
-        #     else:
-        #         print('BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB')
-        #         # del self.real_ts[element[1]]
-        #         print(element[1])
-        #         break
 
     def addElement(self, element):
         """
@@ -126,17 +84,17 @@ class optimal(cache):
                         (timestamp, real_request)
         :return: True if element in the cache
         """
-        if self.pq.qsize() != len(self.seenset):
-            print("ERROR: %d: %d" % (self.pq.qsize(), len(self.seenset)))
-            print(self.seenset)
-            sys.exit(1)
+        # if self.pq.qsize() != len(self.seenset):
+        #     print("ERROR: %d: %d" % (self.pq.qsize(), len(self.seenset)))
+        #     print(self.seenset)
+        #     sys.exit(1)
         if self.checkElement(element):
             self._updateElement(element)
             self.ts += 1
             return True
         else:
             self._insertElement(element)
-            if self.pq.qsize() > self.cache_size:
+            if len(self.pq) > self.cache_size:
                 self._evictOneElement()
             self.ts += 1
             return False
@@ -164,7 +122,7 @@ if __name__ == "__main__":
     #     pass
 
     num = 0
-    c = optimal(100, reader)
+    c = Optimal(100, reader)
     hit = 0
     miss = 0
 

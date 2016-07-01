@@ -6,7 +6,7 @@ from mimircache.cache.LRU import LRU
 from mimircache.cache.Random import Random
 from mimircache.cache.SLRU import SLRU
 from mimircache.cache.FIFO import FIFO
-from mimircache.cache.Optimal import optimal
+from mimircache.cache.Optimal import Optimal
 
 import mimircache.c_generalProfiler as c_generalProfiler
 
@@ -66,7 +66,7 @@ def calc_hit_rate_start_time_end_time_subprocess_general(order, cache, break_poi
             line_num += 1
             continue
         # fix this hack
-        if cache == 'optimal':
+        if cache == Optimal:
             c.ts = line_num
 
         line_num += 1

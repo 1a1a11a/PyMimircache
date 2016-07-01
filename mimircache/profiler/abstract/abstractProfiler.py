@@ -33,22 +33,6 @@ class profilerAbstract(metaclass=abc.ABCMeta):
         self.num_of_trace_elements += 1
         return
 
-        # @abc.abstractclassmethod
-        # def printResult(self):
-        #     return
-        #
-        # @abc.abstractclassmethod
-        # def returnResult(self):
-        #     return
-        #
-        # # @abc.abstractclassmethod
-        # # def showGraph(self):
-        # #     raise NotImplementedError("showGraph is not implemented")
-        #
-        # @abc.abstractclassmethod
-        # def outputResult(self, file_loc=""):
-        #     return
-
 
 if __name__ == "__main__":
     pA = profilerAbstract("aaa", 10, "../data/LRU.MRC")

@@ -29,7 +29,7 @@ from mimircache.cache.MRU import MRU
 from mimircache.cache.Random import Random
 from mimircache.cache.SLRU import SLRU
 from mimircache.cache.S4LRU import S4LRU
-from mimircache.cache.Optimal import optimal
+from mimircache.cache.Optimal import Optimal
 import matplotlib.ticker as ticker
 
 from mimircache.cacheReader.plainReader import plainReader

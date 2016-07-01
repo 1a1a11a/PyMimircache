@@ -27,7 +27,7 @@ from mimircache.cache.MRU import MRU
 from mimircache.cache.Random import Random
 from mimircache.cache.SLRU import SLRU
 from mimircache.cache.S4LRU import S4LRU
-from mimircache.cache.Optimal import optimal
+from mimircache.cache.Optimal import Optimal
 from mimircache.utils.printing import *
 
 
@@ -204,14 +204,14 @@ class generalProfiler(profilerAbstract):
 
     def plotMRC(self, figname="MRC.png", **kwargs):
         if not self.calculated:
-            self.calculate()
+            self.run()
         try:
             num_of_blocks = self.num_of_blocks + 1
             plt.plot(range(0, self.bin_size * num_of_blocks, self.bin_size), self.MRC[:num_of_blocks])
             plt.xlabel("cache Size")
             plt.ylabel("Miss Rate")
             plt.title('Miss Rate Curve', fontsize=18, color='black')
-            plt.savefig(figname)
+            plt.savefig(figname, dpi=600)
             colorfulPrint("red", "plot is saved at the same directory")
             plt.show()
             plt.clf()
@@ -223,7 +223,7 @@ class generalProfiler(profilerAbstract):
 
     def plotHRC(self, figname="HRC.png", **kwargs):
         if not self.calculated:
-            self.calculate()
+            self.run()
         try:
             num_of_blocks = self.num_of_blocks + 1
 
@@ -231,7 +231,7 @@ class generalProfiler(profilerAbstract):
             plt.xlabel("cache Size")
             plt.ylabel("Hit Rate")
             plt.title('Hit Rate Curve', fontsize=18, color='black')
-            plt.savefig(figname)
+            plt.savefig(figname, dpi=600)
             colorfulPrint("red", "plot is saved at the same directory")
             plt.show()
             plt.clf()
