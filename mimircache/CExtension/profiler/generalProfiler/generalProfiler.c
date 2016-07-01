@@ -53,6 +53,10 @@ static void profiler_thread(gpointer data, gpointer user_data){
     
     
     // clean up
+    g_mutex_lock(&(params->mtx));
+    (*(params->progress)) ++ ;
+    g_mutex_unlock(&(params->mtx));
+
     g_free(cp);
     if (reader_thread->type != 'v')
         fclose(reader_thread->file);
@@ -71,6 +75,7 @@ return_res** profiler(READER* reader_in, struct_cache* cache_in, int num_of_thre
      **/
     
     long i;
+    guint64 progress = 0;
     
     if (end_pos<=begin_pos && end_pos!=-1){
         printf("end pos <= beigin pos in general profiler, please check\n");
@@ -100,12 +105,13 @@ return_res** profiler(READER* reader_in, struct_cache* cache_in, int num_of_thre
     
     // build parameters and send to thread pool
     struct multithreading_params_generalProfiler* params = g_new(struct multithreading_params_generalProfiler, 1);
-        params->reader = reader_in;
-        params->cache = cache_in;
-        params->result = result;
-        params->bin_size = (guint) bin_size;
-        params->begin_pos = begin_pos;
-        params->end_pos = end_pos;
+    params->reader = reader_in;
+    params->cache = cache_in;
+    params->result = result;
+    params->bin_size = (guint) bin_size;
+    params->begin_pos = begin_pos;
+    params->end_pos = end_pos;
+    params->progress = &progress;
 
     // build the thread pool
     GThreadPool * gthread_pool = g_thread_pool_new ( (GFunc) profiler_thread, (gpointer)params, num_of_threads, TRUE, NULL);
@@ -117,7 +123,13 @@ return_res** profiler(READER* reader_in, struct_cache* cache_in, int num_of_thre
         if ( g_thread_pool_push (gthread_pool, GUINT_TO_POINTER(i), NULL) == FALSE)
             g_error("cannot push data into thread in generalprofiler\n");
     }
-
+    
+    while (progress < num_of_bins-1){
+        printf("%.2f%%\n", ((double)progress) / (num_of_bins-1) * 100);
+        sleep(1);
+        printf("\033[A\033[2K\r");
+    }
+    
     g_thread_pool_free (gthread_pool, FALSE, TRUE);
 
     // change hit count, now it is accumulated hit_count, change to real hit_count
@@ -139,20 +151,22 @@ return_res** profiler(READER* reader_in, struct_cache* cache_in, int num_of_thre
 #include "FIFO.h"
 #include "Optimal.h"
 #include "LRU_K.h"
+#include "LRU.h"
 
 int main(int argc, char* argv[]){
-# define CACHESIZE 9
-# define BIN_SIZE 9
+# define CACHESIZE 2000
+# define BIN_SIZE 200
     
     
     printf("test_begin!\n");
     
     READER* reader = setup_reader(argv[1], 'v');
     
-    struct_cache* cache = fifo_init(CACHESIZE, 'l', NULL);
+//    struct_cache* cache = fifo_init(CACHESIZE, 'l', NULL);
+    struct_cache* cache = LRU_init(CACHESIZE, 'l', NULL);
     
-    struct optimal_init_params* init_params = g_new0(struct optimal_init_params, 1);
-    init_params->reader = reader;
+//    struct optimal_init_params* init_params = g_new0(struct optimal_init_params, 1);
+//    init_params->reader = reader;
 //    init_params->ts = 0;
 //    struct_cache* cache = optimal_init(CACHESIZE, 'l', (void*)init_params);
     

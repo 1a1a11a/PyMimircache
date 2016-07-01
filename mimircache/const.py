@@ -1,8 +1,8 @@
 import os
 import configparser
-from mimircache.cacheReader.csvReader import csvCacheReader
-from mimircache.cacheReader.plainReader import plainCacheReader
-from mimircache.cacheReader.vscsiReader import vscsiCacheReader
+from mimircache.cacheReader.csvReader import csvReader
+from mimircache.cacheReader.plainReader import plainReader
+from mimircache.cacheReader.vscsiReader import vscsiReader
 
 from mimircache.cache.ARC import ARC
 from mimircache.cache.clock import clock
@@ -20,7 +20,7 @@ from mimircache.cache.ARC import ARC
 
 # global c_available_cache
 c_available_cache = []
-c_available_cacheReader = [plainCacheReader, vscsiCacheReader, csvCacheReader]
+c_available_cacheReader = [plainReader, vscsiReader, csvReader]
 cache_alg_mapping = {}
 BASE_DIR = os.path.dirname(__file__)
 

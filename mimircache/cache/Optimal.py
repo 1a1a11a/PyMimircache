@@ -147,11 +147,11 @@ class optimal(cache):
 
 
 if __name__ == "__main__":
-    from mimircache.cacheReader.plainReader import plainCacheReader
-    from mimircache.cacheReader.vscsiReader import vscsiCacheReader
+    from mimircache.cacheReader.plainReader import plainReader
+    from mimircache.cacheReader.vscsiReader import vscsiReader
     import mimircache.c_cacheReader as c_cacheReader
 
-    reader = plainCacheReader('../data/test4.dat')
+    reader = plainReader('../data/test4.dat')
     # reader = vscsiCacheReader('../data/trace.vscsi')
     # for i in reader:
     #     print(i)

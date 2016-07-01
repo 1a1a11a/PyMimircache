@@ -14,7 +14,7 @@ import numpy as np
 from multiprocessing import Process, Pipe, Array
 from os import path
 
-from mimircache.cacheReader.vscsiReader import vscsiCacheReader
+from mimircache.cacheReader.vscsiReader import vscsiReader
 
 from mimircache.cache.ARC import ARC
 from mimircache.cache.clock import clock
@@ -31,7 +31,7 @@ from mimircache.cache.Optimal import optimal
 from mimircache.utils.printing import *
 
 
-from mimircache.cacheReader.plainReader import plainCacheReader
+from mimircache.cacheReader.plainReader import plainReader
 
 
 import matplotlib.pyplot as plt
@@ -249,7 +249,7 @@ if __name__ == "__main__":
     t1 = time.time()
     # r = plainCacheReader('../data/test.dat')
     # r = plainCacheReader('../data/parda.trace')
-    r = vscsiCacheReader('../data/trace.vscsi')
+    r = vscsiReader('../data/trace.vscsi')
 
     arc_dict = {'p': 0.5, 'ghostlist_size': -1}
     # p = generalProfiler(r, ARC, 1000, 100, arc_dict, 8)

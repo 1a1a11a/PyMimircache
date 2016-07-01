@@ -17,8 +17,8 @@ import pickle
 from collections import deque
 from multiprocessing import Array, Process, Queue
 
-from mimircache.cacheReader.csvReader import csvCacheReader
-from mimircache.cacheReader.vscsiReader import vscsiCacheReader
+from mimircache.cacheReader.csvReader import csvReader
+from mimircache.cacheReader.vscsiReader import vscsiReader
 from mimircache.profiler.LRUProfiler import LRUProfiler
 from mimircache.profiler.cHeatmap import cHeatmap
 import mimircache.c_heatmap as c_heatmap
@@ -415,7 +415,7 @@ def server_plot_all():
         if filename.endswith('.vscsitrace'):
             hm = heatmap()
             mem_size = mem_sizes[int(filename.split('_')[0][1:]) - 1] * 16
-            reader = vscsiCacheReader("../data/cloudphysics/" + filename)
+            reader = vscsiReader("../data/cloudphysics/" + filename)
             if os.path.exists("0601/" + filename + "LRU_Optimal_" + str(mem_size) + "_r.png"):
                 continue
 
@@ -445,7 +445,7 @@ def server_plot_all():
 def localtest():
     CACHE_SIZE = 2000
     TIME_INTERVAL = 10000000
-    reader = vscsiCacheReader("../data/trace.vscsi")
+    reader = vscsiReader("../data/trace.vscsi")
     hm = heatmap()
     from mimircache.cache.FIFO import FIFO
 

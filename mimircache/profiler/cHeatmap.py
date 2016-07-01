@@ -8,7 +8,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from mimircache import const
-from mimircache.cacheReader.vscsiReader import vscsiCacheReader
+from mimircache.cacheReader.vscsiReader import vscsiReader
 from mimircache.utils.printing import *
 
 
@@ -391,7 +391,7 @@ def server_plot_all(path="../data/cloudphysics/", num_of_threads=48):
         if filename.endswith('.vscsitrace'):
             hm = cHeatmap()
             # mem_size = mem_sizes[int(filename.split('_')[0][1:]) - 1] * 16
-            reader = vscsiCacheReader(path + filename)
+            reader = vscsiReader(path + filename)
             # TIME_INTERVAL = int(reader.get_num_of_total_requests() / 200)
             # mem_sizes = LRUProfiler(reader).get_best_cache_sizes(12, 200, 20)
 
@@ -447,7 +447,7 @@ def localtest():
     NUM_OF_THREADS = 8
     CACHE_SIZE = 2000
 
-    reader = vscsiCacheReader('../data/trace.vscsi')
+    reader = vscsiReader('../data/trace.vscsi')
 
     hm = cHeatmap()
 
@@ -495,7 +495,7 @@ if __name__ == "__main__":
     from mimircache.profiler.heatmap import heatmap
 
     hm = cHeatmap()
-    reader = vscsiCacheReader('../data/trace.vscsi')
+    reader = vscsiReader('../data/trace.vscsi')
     print(hm.gen_breakpoints(reader, 'r', 1000000))
 
     # print(heatmap()._get_breakpoints_realtime(reader, 1000000))

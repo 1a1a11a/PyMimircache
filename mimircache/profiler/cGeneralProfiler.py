@@ -16,7 +16,7 @@ import matplotlib
 from multiprocessing import Process, Pipe, Array
 from os import path
 
-from mimircache.cacheReader.vscsiReader import vscsiCacheReader
+from mimircache.cacheReader.vscsiReader import vscsiReader
 
 from mimircache.cache.ARC import ARC
 from mimircache.cache.clock import clock
@@ -32,7 +32,7 @@ from mimircache.cache.S4LRU import S4LRU
 from mimircache.cache.Optimal import optimal
 import matplotlib.ticker as ticker
 
-from mimircache.cacheReader.plainReader import plainCacheReader
+from mimircache.cacheReader.plainReader import plainReader
 
 import mimircache.c_generalProfiler as c_generalProfiler
 
@@ -80,7 +80,7 @@ class cGeneralProfiler:
                 self.num_of_lines += 1
                 ofile.write(str(i) + '\n')
                 i = self.reader.read_one_element()
-        self.reader = plainCacheReader('temp.dat')
+        self.reader = plainReader('temp.dat')
 
 
     def get_hit_count(self, **kwargs):
@@ -194,7 +194,7 @@ def server_plot_all(path='/run/shm/traces/', threads=48):
     for filename in os.listdir(path):
         print(filename)
         if filename.endswith('.vscsitrace'):
-            reader = vscsiCacheReader(path + filename)
+            reader = vscsiReader(path + filename)
             p1 = LRUProfiler(reader)
             size = p1.plotHRC(figname=folder + "/" + filename + '_LRU_HRC.png')
 
@@ -224,7 +224,7 @@ if __name__ == "__main__":
     # t1 = time.time()
     # r = plainCacheReader('../../data/test')
     # r = plainCacheReader('../data/parda.trace')
-    r = vscsiCacheReader('../data/trace.vscsi')
+    r = vscsiReader('../data/trace.vscsi')
     # cg = cGeneralProfiler(r, 'Optimal', 2000, 200)
     cg = cGeneralProfiler(r, 'LRU_2', 2000, 200)
 

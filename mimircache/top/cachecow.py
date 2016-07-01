@@ -8,9 +8,9 @@ from mimircache.cache.Random import Random
 from mimircache.cache.S4LRU import S4LRU
 from mimircache.cache.SLRU import SLRU
 from mimircache.cache.clock import clock
-from mimircache.cacheReader.csvReader import csvCacheReader
-from mimircache.cacheReader.plainReader import plainCacheReader
-from mimircache.cacheReader.vscsiReader import vscsiCacheReader
+from mimircache.cacheReader.csvReader import csvReader
+from mimircache.cacheReader.plainReader import plainReader
+from mimircache.cacheReader.vscsiReader import vscsiReader
 from mimircache.profiler.LRUProfiler import LRUProfiler
 from mimircache.profiler.generalProfiler import generalProfiler
 from mimircache.profiler.heatmap import heatmap
@@ -40,15 +40,15 @@ class cachecow:
 
     def open(self, file_path):
         # assert os.path.exists(file_path), "data file does not exist"
-        self.reader = plainCacheReader(file_path)
+        self.reader = plainReader(file_path)
         return self.reader
 
     def csv(self, file_path, column):
-        self.reader = csvCacheReader(file_path, column=column)
+        self.reader = csvReader(file_path, column=column)
         return self.reader
 
     def vscsi(self, file_path):
-        self.reader = vscsiCacheReader(file_path)
+        self.reader = vscsiReader(file_path)
         return self.reader
 
     def set_size(self, size):
@@ -75,12 +75,12 @@ class cachecow:
 
         if 'data' in kwargs and 'dataType' in kwargs:
             if kwargs['dataType'] == 'plain':
-                reader = plainCacheReader(kwargs['data'])
+                reader = plainReader(kwargs['data'])
             if kwargs['dataType'] == 'csv':
                 assert 'column' in kwargs, "you didn't provide column number for csv reader"
-                reader = csvCacheReader(kwargs['data'], kwargs['column'])
+                reader = csvReader(kwargs['data'], kwargs['column'])
             if kwargs['dataType'] == 'vscsi':
-                reader = vscsiCacheReader(kwargs['data'])
+                reader = vscsiReader(kwargs['data'])
         elif 'reader' in kwargs:
             reader = kwargs['reader']
         else:

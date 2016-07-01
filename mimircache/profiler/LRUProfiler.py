@@ -3,8 +3,8 @@ import logging
 import mimircache.c_LRUProfiler as c_LRUProfiler
 
 from mimircache.const import *
-from mimircache.cacheReader.plainReader import plainCacheReader
-from mimircache.cacheReader.vscsiReader import vscsiCacheReader
+from mimircache.cacheReader.plainReader import plainReader
+from mimircache.cacheReader.vscsiReader import vscsiReader
 from mimircache.cacheReader.abstractReader import cacheReaderAbstract
 import matplotlib.pyplot as plt
 from mimircache.utils.printing import *
@@ -48,7 +48,7 @@ class LRUProfiler:
                 if seen_dict[j] > 1:
                     ofile.write(str(j) + '\n')
                 j = self.reader.read_one_element()
-        self.reader = plainCacheReader('temp.dat')
+        self.reader = plainReader('temp.dat')
         print(self.num_of_lines)
 
     def prepare_file(self):
@@ -59,7 +59,7 @@ class LRUProfiler:
                 self.num_of_lines += 1
                 ofile.write(str(i) + '\n')
                 i = self.reader.read_one_element()
-        self.reader = plainCacheReader('temp.dat')
+        self.reader = plainReader('temp.dat')
 
     def addOneTraceElement(self, element):
         # do not need this function in this profiler
@@ -166,7 +166,7 @@ class LRUProfiler:
 
 
 def _plot_HRC(filepath):
-    reader = vscsiCacheReader(filepath)
+    reader = vscsiReader(filepath)
     print("begin plotting " + filepath)
     cache_size = max(LRUProfiler(reader, cache_size=-1).get_best_cache_sizes(20, 200, 10))
     # LRUProfiler(reader, cache_size=cache_size).get_hit_count()
@@ -223,7 +223,7 @@ if __name__ == "__main__":
     t1 = time.time()
     # for i in range(6):
     # reader = vscsiCacheReader("/run/shm/traces/w106_vscsi1.vscsitrace") # ""../data/trace.vscsi")
-    reader = vscsiCacheReader("../data/trace.vscsi")
+    reader = vscsiReader("../data/trace.vscsi")
     p = LRUProfiler(reader)
     rd_a = p.get_reuse_distance()
     print(rd_a)

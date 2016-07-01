@@ -17,7 +17,10 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
     
     if (strcmp(algorithm, "FIFO") == 0){
         cache = fifo_init(cache_size, data_type, NULL);
-        
+    }
+    if (strcmp(algorithm, "LRU") == 0){
+        printf("we suggest using LRUProfiler for profiling, it's faster\n");
+        cache = LRU_init(cache_size, data_type, NULL);
     }
     else if (strcmp(algorithm, "Optimal") == 0){
         struct optimal_init_params *init_params = g_new(struct optimal_init_params, 1);

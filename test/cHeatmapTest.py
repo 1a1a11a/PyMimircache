@@ -4,9 +4,9 @@
 import unittest
 import mimircache.c_cacheReader as c_cacheReader
 import mimircache.c_LRUProfiler as c_LRUProfiler
-from mimircache.cacheReader.csvReader import csvCacheReader
-from mimircache.cacheReader.plainReader import plainCacheReader
-from mimircache.cacheReader.vscsiReader import vscsiCacheReader
+from mimircache.cacheReader.csvReader import csvReader
+from mimircache.cacheReader.plainReader import plainReader
+from mimircache.cacheReader.vscsiReader import vscsiReader
 from mimircache.profiler.LRUProfiler import LRUProfiler
 from mimircache.profiler.cGeneralProfiler import cGeneralProfiler
 from mimircache.profiler.cHeatmap import cHeatmap
@@ -14,7 +14,7 @@ from mimircache.profiler.cHeatmap import cHeatmap
 
 class cHeatmapTest(unittest.TestCase):
     def test1(self):
-        reader = vscsiCacheReader('../mimircache/data/trace.vscsi')
+        reader = vscsiReader('../mimircache/data/trace.vscsi')
         cH = cHeatmap()
         bpr = cH.gen_breakpoints(reader, 'r', 1000000)
         self.assertEqual(bpr[10], 53)
@@ -31,7 +31,7 @@ class cHeatmapTest(unittest.TestCase):
 
 
     def test2(self):
-        reader = plainCacheReader('../mimircache/data/trace.txt')
+        reader = plainReader('../mimircache/data/trace.txt')
         cH = cHeatmap()
         bpv = cH.gen_breakpoints(reader, 'v', 1000)
         self.assertEqual(bpv[10], 10000)

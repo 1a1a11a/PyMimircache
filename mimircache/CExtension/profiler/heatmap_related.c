@@ -130,9 +130,9 @@ GArray* gen_breakpoints_virtualtime(READER* reader, guint64 time_interval){
     
     
     if (break_points->len > 10000)
-        printf("%snumber of pixels in one dimension are more than 10000, exact size: %d, it may take a very long time, if you didn't intend to do it, please try with a larger time stamp", KRED, break_points->len);
+        printf("%snumber of pixels in one dimension are more than 10000, exact size: %d, it may take a very long time, if you didn't intend to do it, please try with a larger time stamp\n", KRED, break_points->len);
     else if (break_points->len < 20)
-        printf("%snumber of pixels in one dimension are less than 20, exact size: %d, each pixel will be very large, if you didn't intend to do it, please try with a smaller time stamp", KRED, break_points->len);
+        printf("%snumber of pixels in one dimension are less than 20, exact size: %d, each pixel will be very large, if you didn't intend to do it, please try with a smaller time stamp\n", KRED, break_points->len);
     
     
     struct break_point* bp = g_new(struct break_point, 1);
@@ -189,9 +189,9 @@ GArray* gen_breakpoints_realtime(READER* reader, guint64 time_interval){
         g_array_append_val(break_points, reader->total_num);
 
     if (break_points->len > 10000)
-        printf("%snumber of pixels in one dimension are more than 10000, exact size: %d, it may take a very long time, if you didn't intend to do it, please try with a larger time stamp", KRED, break_points->len);
+        printf("%snumber of pixels in one dimension are more than 10000, exact size: %d, it may take a very long time, if you didn't intend to do it, please try with a larger time stamp\n", KRED, break_points->len);
     else if (break_points->len < 20)
-        printf("%snumber of pixels in one dimension are less than 20, exact size: %d, each pixel will be very large, if you didn't intend to do it, please try with a smaller time stamp", KRED, break_points->len);
+        printf("%snumber of pixels in one dimension are less than 20, exact size: %d, each pixel will be very large, if you didn't intend to do it, please try with a smaller time stamp\n", KRED, break_points->len);
 
     struct break_point* bp = g_new(struct break_point, 1);
     bp->mode = 'r';

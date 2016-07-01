@@ -34,10 +34,9 @@ struct multithreading_params_generalProfiler{
     guint64 end_pos;
     struct cache* cache;
     return_res** result;
-//    long num_of_cache;
     guint bin_size;
-//    int order;
-//    int num_of_threads;
+    GMutex mtx;             // prevent simultaneous write to progress 
+    guint64* progress;
 };
 
 return_res** profiler(READER* reader_in, struct cache* cache_in, int num_of_threads_in, int bin_size_in, gint64 begin_pos, gint64 end_pos);

@@ -2,9 +2,9 @@ import string
 from mimircache.cacheReader.abstractReader import cacheReaderAbstract
 
 
-class csvCacheReader(cacheReaderAbstract):
+class csvReader(cacheReaderAbstract):
     def __init__(self, file_loc, column, header=False, delimiter=','):
-        super(csvCacheReader, self).__init__(file_loc)
+        super(csvReader, self).__init__(file_loc)
         self.trace_file = open(file_loc, 'r')
 
         self.column = column
@@ -59,7 +59,7 @@ class csvCacheReader(cacheReaderAbstract):
 
 
 if __name__ == "__main__":
-    reader = csvCacheReader('../data/trace_CloudPhysics_txt2', 4, header=True, delimiter=',')
+    reader = csvReader('../data/trace_CloudPhysics_txt2', 4, header=True, delimiter=',')
 
     # usage one: for reading all elements
     # for i in reader:

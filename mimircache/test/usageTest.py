@@ -3,16 +3,16 @@ from mimircache.top.cachecow import cachecow
 
 import mimircache.c_cacheReader as c_cacheReader
 import mimircache.c_LRUProfiler as c_LRUProfiler
-from mimircache.cacheReader.csvReader import csvCacheReader
-from mimircache.cacheReader.plainReader import plainCacheReader
-from mimircache.cacheReader.vscsiReader import vscsiCacheReader
+from mimircache.cacheReader.csvReader import csvReader
+from mimircache.cacheReader.plainReader import plainReader
+from mimircache.cacheReader.vscsiReader import vscsiReader
 from mimircache.profiler.LRUProfiler import LRUProfiler
 from mimircache.profiler.cGeneralProfiler import cGeneralProfiler
 from mimircache.profiler.cHeatmap import cHeatmap
 
 
 def t1():
-    reader = vscsiCacheReader('../data/trace.vscsi')
+    reader = vscsiReader('../data/trace.vscsi')
     p = LRUProfiler(reader)
     print(p.get_hit_rate())
     #
@@ -29,7 +29,7 @@ def t1():
 
 
 def t2():
-    reader = vscsiCacheReader('../data/trace.vscsi')
+    reader = vscsiReader('../data/trace.vscsi')
     p = cGeneralProfiler(reader, "FIFO", cache_size=2000, num_of_threads=8)
 
     hr = p.get_hit_rate()
@@ -41,7 +41,7 @@ def t2():
 
 
 def t3():
-    reader = vscsiCacheReader('../data/trace.vscsi')
+    reader = vscsiReader('../data/trace.vscsi')
     cH = cHeatmap()
 
     cH.heatmap(reader, 'r', 1000000, "hit_rate_start_time_end_time", num_of_threads=8, cache_size=2000)
@@ -55,7 +55,7 @@ def t3():
 
 
 def t4():
-    reader = vscsiCacheReader('../data/trace.vscsi')
+    reader = vscsiReader('../data/trace.vscsi')
     p = LRUProfiler(reader)
     hc = p.get_hit_rate(cache_size=200)
     print(hc)

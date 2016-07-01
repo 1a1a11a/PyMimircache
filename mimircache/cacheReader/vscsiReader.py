@@ -6,7 +6,7 @@ from mimircache.cacheReader.abstractReader import cacheReaderAbstract
 import mimircache.c_cacheReader as c_cacheReader
 
 
-class vscsiCacheReader(cacheReaderAbstract):
+class vscsiReader(cacheReaderAbstract):
     def __init__(self, file_loc):
         super().__init__(file_loc)
         self.cReader = c_cacheReader.setup_reader(file_loc, 'v')
@@ -134,7 +134,7 @@ class vscsiCacheReader(cacheReaderAbstract):
 
 
 if __name__ == "__main__":
-    reader = vscsiCacheReader('../data/trace_CloudPhysics_bin')
+    reader = vscsiReader('../data/trace_CloudPhysics_bin')
 
     # # usage one: for reading all elements
     num = 0

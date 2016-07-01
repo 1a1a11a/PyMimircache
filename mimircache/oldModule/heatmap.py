@@ -10,14 +10,14 @@ from multiprocessing import Process, Queue, Pool
 import numpy as np
 from matplotlib import pyplot as plt
 
-from mimircache.cacheReader.csvReader import csvCacheReader
-from mimircache.cacheReader.plainReader import plainCacheReader
-from mimircache.cacheReader.vscsiReader import vscsiCacheReader
+from mimircache.cacheReader.csvReader import csvReader
+from mimircache.cacheReader.plainReader import plainReader
+from mimircache.cacheReader.vscsiReader import vscsiReader
 from mimircache.oldModule.pardaProfiler import pardaProfiler
 
 
 def prepare_heatmap_dat(bin_size=1000):
-    reader = csvCacheReader("../data/trace_CloudPhysics_txt", 4, delimiter=' ')
+    reader = csvReader("../data/trace_CloudPhysics_txt", 4, delimiter=' ')
     p = pardaProfiler(30000, reader)
     c_reuse_dist_long_array = p.get_reuse_distance()
 
@@ -48,7 +48,7 @@ def prepare_heatmap_dat(bin_size=1000):
 
 
 def prepare_heatmap_dat_multiprocess(bin_size=1000, cache_size=2000, num_of_process=8):
-    reader = plainCacheReader("../data/parda.trace")
+    reader = plainReader("../data/parda.trace")
     total_line = reader.get_num_of_total_requests()
     p = pardaProfiler(30000, reader)
     c_reuse_dist_long_array = p.get_reuse_distance()
@@ -98,7 +98,7 @@ def prepare_heatmap_dat_multiprocess(bin_size=1000, cache_size=2000, num_of_proc
 
 def prepare_heatmap_dat_multiprocess_ts(datapath="../data/trace_CloudPhysics_bin",
                                         time_interval=10000000, cache_size=2000, num_of_process=8, calculate=True):
-    reader = vscsiCacheReader(datapath)
+    reader = vscsiReader(datapath)
     reuse_dist_python_list = []
     break_points = None
 

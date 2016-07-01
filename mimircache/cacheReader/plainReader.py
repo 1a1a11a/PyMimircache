@@ -2,9 +2,9 @@ from mimircache.cacheReader.abstractReader import cacheReaderAbstract
 import mimircache.c_cacheReader as c_cacheReader
 
 
-class plainCacheReader(cacheReaderAbstract):
+class plainReader(cacheReaderAbstract):
     def __init__(self, file_loc):
-        super(plainCacheReader, self).__init__(file_loc)
+        super(plainReader, self).__init__(file_loc)
         self.trace_file = open(file_loc, 'r')
         self.cReader = c_cacheReader.setup_reader(file_loc, 'p')
 
@@ -29,7 +29,7 @@ class plainCacheReader(cacheReaderAbstract):
 
 
 if __name__ == "__main__":
-    reader = plainCacheReader('../data/trace_CloudPhysics')
+    reader = plainReader('../data/trace_CloudPhysics')
 
     # usage one: for reading all elements
     for i in reader:

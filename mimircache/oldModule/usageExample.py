@@ -1,7 +1,7 @@
 from mimircache.cache.LRU import LRU
-from mimircache.cacheReader.csvReader import csvCacheReader
-from mimircache.cacheReader.plainReader import plainCacheReader
-from mimircache.cacheReader.vscsiReader import vscsiCacheReader
+from mimircache.cacheReader.csvReader import csvReader
+from mimircache.cacheReader.plainReader import plainReader
+from mimircache.cacheReader.vscsiReader import vscsiReader
 from mimircache.oldModule.basicLRUProfiler import basicLRUProfiler
 from mimircache.oldModule.pardaProfiler import pardaProfiler
 from mimircache.oldModule.pardaProfiler import parda_mode
@@ -9,13 +9,13 @@ from mimircache.oldModule.pardaProfiler import parda_mode
 # first step: construct a reader for reading any kind of trace
 
 # this one is the most basic one, each line is a label/tag
-reader1 = plainCacheReader("../data/parda.trace")
+reader1 = plainReader("../data/parda.trace")
 
 # this one reads csv file and choose one column as label/tag
-reader2 = csvCacheReader("../data/trace_CloudPhysics_txt", column=4)
+reader2 = csvReader("../data/trace_CloudPhysics_txt", column=4)
 
 # this one reads binary cloudphysics trace file
-reader3 = vscsiCacheReader("../data/trace_CloudPhysics_bin")
+reader3 = vscsiReader("../data/trace_CloudPhysics_bin")
 
 # reader is also a generator, for readers you can do the following thing:
 # read one trace element at one time:

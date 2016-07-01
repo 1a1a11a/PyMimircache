@@ -23,7 +23,7 @@ from mimircache.cache.Random import Random
 from mimircache.cache.SLRU import SLRU
 from mimircache.cache.S4LRU import S4LRU
 
-from mimircache.cacheReader.plainReader import plainCacheReader
+from mimircache.cacheReader.plainReader import plainReader
 
 import matplotlib.pyplot as plt
 
@@ -258,7 +258,7 @@ if __name__ == "__main__":
 
     t1 = time.time()
     # r = plainCacheReader('../../data/test')
-    r = plainCacheReader('../../data/parda.trace')
+    r = plainReader('../../data/parda.trace')
 
     # p = generalProfiler(LRU, 6000, 20, r, 48)
     # p = generalProfiler(ARC, (10, 0.5), 10, r, 1)

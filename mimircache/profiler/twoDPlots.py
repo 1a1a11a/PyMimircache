@@ -9,8 +9,8 @@ import mimircache.c_heatmap as c_heatmap
 import numpy as np
 from matplotlib import pyplot as plt
 
-from mimircache.cacheReader.csvReader import csvCacheReader
-from mimircache.cacheReader.vscsiReader import vscsiCacheReader
+from mimircache.cacheReader.csvReader import csvReader
+from mimircache.cacheReader.vscsiReader import vscsiReader
 from mimircache.profiler.LRUProfiler import LRUProfiler
 from mimircache.utils.printing import *
 from mimircache.profiler.cHeatmap import cHeatmap

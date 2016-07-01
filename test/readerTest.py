@@ -3,9 +3,9 @@
 
 import unittest
 import mimircache.c_cacheReader as c_cacheReader
-from mimircache.cacheReader.csvReader import csvCacheReader
-from mimircache.cacheReader.plainReader import plainCacheReader
-from mimircache.cacheReader.vscsiReader import vscsiCacheReader
+from mimircache.cacheReader.csvReader import csvReader
+from mimircache.cacheReader.plainReader import plainReader
+from mimircache.cacheReader.vscsiReader import vscsiReader
 
 
 class cReaderTest(unittest.TestCase):
