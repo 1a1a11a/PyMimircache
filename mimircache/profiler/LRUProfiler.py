@@ -96,11 +96,11 @@ class LRUProfiler:
         rd = c_LRUProfiler.get_reuse_dist_seq(self.reader.cReader, **kargs)
         return rd
 
-    def plotMRC(self, figname="MRC.png", threshhold=0.98, **kwargs):
+    def plotMRC(self, figname="MRC.png", auto_resize=False, threshhold=0.98, **kwargs):
         MRC = self.get_miss_rate(**kwargs)
         try:
             stop_point = len(MRC) - 2
-            if self.cache_size == -1 and 'cache_size' not in kwargs:
+            if self.cache_size == -1 and 'cache_size' not in kwargs and auto_resize:
                 for i in range(len(MRC) - 3, 0, -1):
                     if MRC[i] >= MRC[-3] / threshhold:
                         stop_point = i
@@ -124,11 +124,11 @@ class LRUProfiler:
             print("the plotting function is not wrong, is this a headless server?")
             print(e)
 
-    def plotHRC(self, figname="HRC.png", threshhold=0.98, **kwargs):
+    def plotHRC(self, figname="HRC.png", auto_resize=False, threshhold=0.98, **kwargs):
         HRC = self.get_hit_rate(**kwargs)
         try:
             stop_point = len(HRC) - 2
-            if self.cache_size == -1 and 'cache_size' not in kwargs:
+            if self.cache_size == -1 and 'cache_size' not in kwargs and auto_resize:
                 for i in range(len(HRC) - 3, 0, -1):
                     if HRC[i] <= HRC[-3] * threshhold:
                         stop_point = i
