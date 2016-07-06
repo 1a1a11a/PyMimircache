@@ -62,7 +62,6 @@ def _init_cache_alg_mapping():
     cache_alg_mapping['random'] = "Random"
     cache_alg_mapping['lru'] = "LRU"
     cache_alg_mapping['fifo'] = "FIFO"
-    # cache_alg_mapping['adaptiveSLRU'] = "AdaptiveSLRU"
     cache_alg_mapping['arc'] = "ARC"
     cache_alg_mapping['clock'] = "clock"
     cache_alg_mapping['mru'] = "MRU"

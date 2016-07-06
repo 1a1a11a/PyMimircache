@@ -47,6 +47,13 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
     def next(self):
         return self.__next__()
 
+    def __len__(self):
+        if self.num_of_line == -1:
+            self.get_num_of_total_requests()
+
+        return self.num_of_line
+
+
     @abc.abstractclassmethod
     def read_one_element(self):
         pass
