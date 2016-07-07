@@ -99,7 +99,7 @@ static PyObject* generalProfiler_get_hit_count(PyObject* self, PyObject* args, P
     int bin_size = -1;
     char* algorithm;
     struct_cache* cache;
-    PyObject* cache_params;
+    PyObject* cache_params=NULL;
     
     long begin=0, end=-1;
     static char *kwlist[] = {"reader", "algorithm", "cache_size", "bin_size", "cache_params", "num_of_threads", "begin", "end", NULL};
@@ -155,7 +155,7 @@ static PyObject* generalProfiler_get_miss_rate(PyObject* self, PyObject* args, P
     int bin_size = -1;
     char* algorithm;
     struct_cache* cache;
-    PyObject* cache_params;
+    PyObject* cache_params=NULL;
     
     long begin=0, end=-1;
     static char *kwlist[] = {"reader", "algorithm", "cache_size", "bin_size", "cache_params", "num_of_threads", "begin", "end", NULL};
@@ -202,6 +202,55 @@ static PyObject* generalProfiler_get_miss_rate(PyObject* self, PyObject* args, P
 }
 
 
+static PyObject* generalProfiler_get_evict_err_rate(PyObject* self, PyObject* args, PyObject* keywds)
+{
+    PyObject* po;
+    READER* reader;
+    char* mode;
+    long cache_size;
+    guint64 time_interval;
+    char* algorithm = "LRU";
+    struct_cache* cache;
+    PyObject* cache_params;
+    
+    static char *kwlist[] = {"reader", "mode", "time_interval", "cache_size", "algorithm", "cache_params", NULL};
+    
+    // parse arguments
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Oslls|O", kwlist, &po, &mode, &time_interval, &cache_size, &algorithm, &cache_params)) {
+        printf("parsing argument failed in generalProfiler_get_hit_rate\n");
+        return NULL;
+    }
+    
+    if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
+        return NULL;
+    }
+    
+    // build cache
+    cache = build_cache(reader, cache_size, algorithm, cache_params, 0);
+    
+    
+    // get hit rate
+    DEBUG(printf("before profiling\n"));
+    gdouble* result = LRU_evict_err_statistics(reader, cache, time_interval);
+    DEBUG(printf("after profiling\n"));
+    
+    // create numpy array
+    guint num_of_bins = reader->break_points->array->len - 1;
+    npy_intp dims[1] = { num_of_bins };
+    PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    guint i;
+    *(double*)PyArray_GETPTR1((PyArrayObject*)ret_array, 0) = 0;
+    for(i=0; i<num_of_bins; i++){
+        *(double*)PyArray_GETPTR1((PyArrayObject*)ret_array, i) = (double)result[i];
+    }
+    
+    cache->core->destroy(cache);
+    return ret_array;
+}
+
+
+
+
 
 
 static PyMethodDef c_generalProfiler_funcs[] = {
@@ -211,6 +260,9 @@ static PyMethodDef c_generalProfiler_funcs[] = {
         METH_VARARGS | METH_KEYWORDS, "get hit count numpy array"},
     {"get_miss_rate", (PyCFunction)generalProfiler_get_miss_rate,
         METH_VARARGS | METH_KEYWORDS, "get miss rate numpy array"},
+    {"get_err", (PyCFunction)generalProfiler_get_evict_err_rate,
+        METH_VARARGS | METH_KEYWORDS, "get err rate numpy array"},
+    
     {NULL, NULL, 0, NULL}
 };
 

@@ -28,6 +28,7 @@ LIBS   += -lm
 # SOURCES = $(filter-out *python*, $(SOURCES))
 
 SOURCES = $(shell find . ! -name "*python*" -name "*.c")
+# SOURCES += wrapper/python_wrapper.c
 # $(info SOURCES="$(SOURCES)")
 
 

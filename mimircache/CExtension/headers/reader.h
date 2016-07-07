@@ -43,6 +43,7 @@ typedef struct{
         };
     };
     char type;       /* possible types: c(csv), v(vscsi), p(plain text)  */
+    char data_type;  /* possible types: l(guint64), c(char*) */
     long long total_num;
     guint64 ts;           /* current timestamp, record current line, even if some
                              * lines are not processed(skipped) */
@@ -68,7 +69,7 @@ typedef struct{
     gpointer item_p;
     char item[cache_line_label_size];
     char type;      // type of content can be either guint64(l) or char*(c)
-    guint64 ts;   // virtual timestamp
+    guint64 ts;     // virtual timestamp
     size_t size;
     int op;
     guint64 real_time;

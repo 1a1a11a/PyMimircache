@@ -81,8 +81,8 @@ class vscsiReader(cacheReaderAbstract):
         else:
             return None
 
-    def get_num_of_total_requests(self):
-        return self.c_num_of_rec.value
+    # def get_num_of_total_requests(self):
+    #     return self.c_num_of_rec.value
 
 
     def lines(self):

@@ -48,7 +48,7 @@ extern inline gboolean optimal_check_element(struct_cache* cache, cache_line* cp
 
 extern inline void __optimal_update_element(struct_cache* optimal, cache_line* cp);
 
-extern inline void __optimal_evict_element(struct_cache* optimal);
+extern inline void __optimal_evict_element(struct_cache* optimal, cache_line* cp);
 
 extern inline gboolean optimal_add_element(struct_cache* cache, cache_line* cp);
 

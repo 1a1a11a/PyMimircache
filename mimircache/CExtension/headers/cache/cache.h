@@ -40,8 +40,16 @@ struct cache_core{
     void (*destroy_unique)(struct cache* );
     gboolean (*add_element)(struct cache*, cache_line* cp);
     gboolean (*check_element)(struct cache*, cache_line* cp);
-    gboolean cache_debug_flag;
-    GQueue* evicted_list;
+    
+    
+    int cache_debug_level;  // 0 not debug, 1: prepare oracle, 2: compare to oracle
+    void* oracle; 
+    void* eviction_array;           // Optimal Eviction Array, either guint64* or char**
+    guint64 eviction_array_len;
+    guint64 evict_err;      // used for counting
+    struct break_point* bp; // break points, same as the one in reader, just one more pointer
+    guint64 bp_pos;         // the current location in bp->array
+    gdouble* evict_err_array;       // in each time interval, the eviction error array 
 };
 
 

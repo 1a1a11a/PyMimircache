@@ -1,6 +1,6 @@
 #include "heatmap.h"
 
-static inline guint64 process_one_element_last_access(cache_line* cp, GHashTable* hash_table, guint64 ts);
+static inline gint process_one_element_last_access(cache_line* cp, GHashTable* hash_table, guint64 ts);
 
 
 GSList* get_last_access_dist_seq(READER* reader, void (*funcPtr)(READER*, cache_line*)){
@@ -36,7 +36,7 @@ GSList* get_last_access_dist_seq(READER* reader, void (*funcPtr)(READER*, cache_
     }
     
     guint64 ts = 0;
-    guint64 dist; 
+    gint dist;
 
     if (funcPtr == read_one_element){
         read_one_element(reader, cp);
@@ -68,10 +68,10 @@ GSList* get_last_access_dist_seq(READER* reader, void (*funcPtr)(READER*, cache_
 
 
 
-static inline guint64 process_one_element_last_access(cache_line* cp, GHashTable* hash_table, guint64 ts){
+static inline gint process_one_element_last_access(cache_line* cp, GHashTable* hash_table, guint64 ts){
     gpointer gp;
     gp = g_hash_table_lookup(hash_table, cp->item);
-    guint64 ret;
+    gint ret;
     if (gp == NULL){
         // first time access
         ret = -1;
@@ -93,7 +93,7 @@ static inline guint64 process_one_element_last_access(cache_line* cp, GHashTable
     else{
         // not first time access
         guint64 old_ts = *(guint64*)gp;
-        ret = (guint64) (ts - old_ts);
+        ret = (gint) (ts - old_ts);
         *(guint64*)gp = cp->ts;
     }
     return ret;

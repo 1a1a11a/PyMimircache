@@ -48,6 +48,7 @@ int vscsi_setup(char *filename, READER* reader)
 	reader->offset = 0;
 	reader->ts = 0;
 	reader->type = 'v';
+    reader->data_type = 'l';
 
 
 	vscsi_version_t ver = test_vscsi_version (memT);

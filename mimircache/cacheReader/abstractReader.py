@@ -49,7 +49,7 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
 
     def __len__(self):
         if self.num_of_line == -1:
-            self.get_num_of_total_requests()
+            print(self.get_num_of_total_requests())
 
         return self.num_of_line
 

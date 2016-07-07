@@ -7,7 +7,7 @@
 
 
 struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyObject* cache_params, long begin){
-    
+
     struct_cache *cache;
     char data_type;
     if (reader->type == 'v')
@@ -18,7 +18,7 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
     if (strcmp(algorithm, "FIFO") == 0){
         cache = fifo_init(cache_size, data_type, NULL);
     }
-    if (strcmp(algorithm, "LRU") == 0){
+    else if (strcmp(algorithm, "LRU") == 0){
         printf("we suggest using LRUProfiler for profiling, it's faster\n");
         cache = LRU_init(cache_size, data_type, NULL);
     }

@@ -129,7 +129,7 @@ static PyObject* heatmap_get_next_access_dist_seq(PyObject* self, PyObject* args
 static PyObject* heatmap_computation(PyObject* self, PyObject* args, PyObject* keywds)
 {
     PyObject* po;
-    PyObject* cache_params;
+    PyObject* cache_params=NULL;
     READER* reader;
     int num_of_threads = 4;
     long cache_size;
@@ -335,7 +335,7 @@ static PyObject* differential_heatmap_py(PyObject* self, PyObject* args, PyObjec
         return NULL;
     }
     
-    // build cache
+    // build cache (isolate LRU, because we don't need a real LRU for profiling, just need to pass size and data_type)
     guint64 i, j;
     for (i=0; i<2; i++){
         if (strcmp(algorithm[i], "LRU") == 0){

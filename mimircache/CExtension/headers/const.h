@@ -12,7 +12,6 @@
 #define KCYN  "\x1B[36m"
 #define KWHT  "\x1B[37m"
 
-#define CACHE_DEBUG 1
 
 
 
@@ -27,5 +26,5 @@
 //#define DEBUG 
 
 #ifndef DEBUG
-#define DEBUG(stat) ;
+#define DEBUG(stat) stat
 #endif 

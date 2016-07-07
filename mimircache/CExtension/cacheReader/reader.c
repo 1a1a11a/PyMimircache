@@ -44,6 +44,7 @@ READER* setup_reader(char* file_loc, char file_type){
             break;
         case 'p':
             reader->type = 'p';
+            reader->data_type = 'c';
             reader->ts = 0;
             reader->file = fopen(file_loc, "r");
             if (reader->file == 0){
