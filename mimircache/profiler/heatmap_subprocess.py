@@ -57,7 +57,7 @@ def calc_hit_rate_start_time_end_time_subprocess_general(order, cache, break_poi
     # else:
     #     reader_new = type(reader)(reader.file_loc)
 
-    reader_new = type(reader)(reader.file_loc)
+    reader_new = type(reader)(reader.file_loc, open_c_reader=False)
 
     # TODO: figure out line size here and add seek method in reader base class
     # TODO: use mmap here to improve performance
@@ -83,7 +83,6 @@ def calc_hit_rate_start_time_end_time_subprocess_general(order, cache, break_poi
             # print("{}: {}".format(total_hc, total_mc))
     q.put(result_list)
     reader_new.close()
-    # return result_list
 
 
 # LRU

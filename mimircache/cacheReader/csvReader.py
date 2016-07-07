@@ -3,7 +3,7 @@ from mimircache.cacheReader.abstractReader import cacheReaderAbstract
 
 
 class csvReader(cacheReaderAbstract):
-    def __init__(self, file_loc, column, header=False, delimiter=','):
+    def __init__(self, file_loc, column, header=False, delimiter=',', open_c_reader=True):
         super(csvReader, self).__init__(file_loc)
         self.trace_file = open(file_loc, 'r')
 

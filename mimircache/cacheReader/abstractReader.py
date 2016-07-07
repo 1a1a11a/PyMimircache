@@ -25,7 +25,8 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
         """
         self.counter = 0
         self.trace_file.seek(0, 0)
-        c_cacheReader.reset_reader(self.cReader)
+        if self.cReader:
+            c_cacheReader.reset_reader(self.cReader)
 
     def get_num_of_total_requests(self):
         if self.num_of_line != -1:

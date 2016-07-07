@@ -380,6 +380,7 @@ def server_plot_all(path="../data/cloudphysics/", num_of_threads=48):
     TIME_INTERVAL = 1000000000
     PLOT_TYPE = "hit_rate_start_time_end_time"
     MODE = 'r'
+    folder_name = "0702_Optimal_LRU_"
     mem_sizes = [int(200 * (i ** 2)) for i in range(1, 20)]
     # with open('memSize', 'r') as ifile:
     #     for line in ifile:
@@ -395,8 +396,9 @@ def server_plot_all(path="../data/cloudphysics/", num_of_threads=48):
             # TIME_INTERVAL = int(reader.get_num_of_total_requests() / 200)
             # mem_sizes = LRUProfiler(reader).get_best_cache_sizes(12, 200, 20)
 
-            # if os.path.exists("0624/" + '_'.join([filename, "_LRU_Optimal_", str(mem_sizes[-1]), MODE]) + "_.png"):
-            #     continue
+            if os.path.exists(folder_name + "/" + '_'.join(
+                                            [filename, "_LRU_Optimal_", str(mem_sizes[-1]), MODE]) + "_.png"):
+                continue
 
             # t1 = time.time()
             # hm.heatmap(reader, MODE, TIME_INTERVAL, "rd_distribution_CDF", num_of_threads=num_of_threads, figname=
@@ -411,28 +413,28 @@ def server_plot_all(path="../data/cloudphysics/", num_of_threads=48):
 
             for mem_size in mem_sizes:
                 t1 = time.time()
-                hm.differential_heatmap(reader, MODE, TIME_INTERVAL, PLOT_TYPE, "LRU", "LRU_K",
-                                        cache_size=mem_size, cache_params2={"K": 2},
+                hm.differential_heatmap(reader, MODE, TIME_INTERVAL, PLOT_TYPE, "LRU", "Optimal",
+                                        cache_size=mem_size, # cache_params2={"K": 2},
                                         num_of_threads=num_of_threads,
-                                        figname="0627_LRUK_comp/" + '_'.join(
-                                            [filename, "_LRU_LRU2_", str(mem_size), MODE]) + "_.png")
+                                        figname=folder_name + "/" + '_'.join(
+                                            [filename, "_LRU_Optimal_", str(mem_size), MODE]) + "_.png")
                 print("cache size: " + str(mem_size) + ", time: " + str(time.time() - t1))
 
                 t1 = time.time()
-                hm.differential_heatmap(reader, MODE, TIME_INTERVAL, PLOT_TYPE, "LRU", "LRU_K",
-                                        cache_size=mem_size, cache_params2={"K": 3},
-                                        num_of_threads=num_of_threads,
-                                        figname="0627_LRUK_comp/" + '_'.join(
-                                            [filename, "_LRU_LRU3_", str(mem_size), MODE]) + "_.png")
-                print("cache size: " + str(mem_size) + ", time: " + str(time.time() - t1))
-
-                t1 = time.time()
-                hm.differential_heatmap(reader, MODE, TIME_INTERVAL, PLOT_TYPE, "LRU", "LRU_K",
-                                        cache_size=mem_size, cache_params2={"K": 4},
-                                        num_of_threads=num_of_threads,
-                                        figname="0627_LRUK_comp/" + '_'.join(
-                                            [filename, "_LRU_LRU4_", str(mem_size), MODE]) + "_.png")
-                print("cache size: " + str(mem_size) + ", time: " + str(time.time() - t1))
+                # hm.differential_heatmap(reader, MODE, TIME_INTERVAL, PLOT_TYPE, "LRU", "LRU_K",
+                #                         cache_size=mem_size, cache_params2={"K": 3},
+                #                         num_of_threads=num_of_threads,
+                #                         figname=folder_name + "/"  + '_'.join(
+                #                             [filename, "_LRU_LRU3_", str(mem_size), MODE]) + "_.png")
+                # print("cache size: " + str(mem_size) + ", time: " + str(time.time() - t1))
+                #
+                # t1 = time.time()
+                # hm.differential_heatmap(reader, MODE, TIME_INTERVAL, PLOT_TYPE, "LRU", "LRU_K",
+                #                         cache_size=mem_size, cache_params2={"K": 4},
+                #                         num_of_threads=num_of_threads,
+                #                         figname=folder_name + "/"  + '_'.join(
+                #                             [filename, "_LRU_LRU4_", str(mem_size), MODE]) + "_.png")
+                # print("cache size: " + str(mem_size) + ", time: " + str(time.time() - t1))
 
             reader.close()
 
@@ -480,7 +482,7 @@ if __name__ == "__main__":
     import time
 
     t1 = time.time()
-    # server_plot_all(path="/run/shm/traces/")
+    server_plot_all(path="/run/shm/traces/")
     # server_plot_all(path="../../../../disk/traces/", num_of_threads=16)
     localtest()
 

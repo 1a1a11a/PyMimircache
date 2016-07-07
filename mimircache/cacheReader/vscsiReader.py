@@ -7,9 +7,10 @@ import mimircache.c_cacheReader as c_cacheReader
 
 
 class vscsiReader(cacheReaderAbstract):
-    def __init__(self, file_loc):
+    def __init__(self, file_loc, open_c_reader=True):
         super().__init__(file_loc)
-        self.cReader = c_cacheReader.setup_reader(file_loc, 'v')
+        if open_c_reader:
+            self.cReader = c_cacheReader.setup_reader(file_loc, 'v')
 
         self.buffer_size = 0  # number of trace lines in the buffer
         self.buffer_pointer = 0  # point to the element in the buffer
@@ -67,7 +68,8 @@ class vscsiReader(cacheReaderAbstract):
         self.counter = 0
         self.c_read_size.value = 0
         self.c_mem = c_void_p(self.mem_original.value)
-        c_cacheReader.reset_reader(self.cReader)
+        if self.cReader:
+            c_cacheReader.reset_reader(self.cReader)
 
     def read_one_element(self):
         if self.buffer_pointer < self.c_read_size.value:
