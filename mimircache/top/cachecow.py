@@ -66,12 +66,12 @@ class cachecow:
         """
         reader = None
 
-        if 'num_of_process' in kwargs:
-            num_of_process = kwargs['num_of_process']
+        if 'num_of_threads' in kwargs:
+            num_of_threads = kwargs['num_of_threads']
         elif 'num_of_threads' in kwargs:
-            num_of_process = kwargs['num_of_threads']
+            num_of_threads = kwargs['num_of_threads']
         else:
-            num_of_process = DEFAULT_NUM_OF_THREADS
+            num_of_threads = DEFAULT_NUM_OF_THREADS
 
         if 'data' in kwargs and 'dataType' in kwargs:
             if kwargs['dataType'] == 'plain':
@@ -89,7 +89,7 @@ class cachecow:
         assert reader, "you didn't provide a reader nor data (data file and data type)"
         self.reader = reader
 
-        return reader, num_of_process
+        return reader, num_of_threads
 
     def heatmap(self, mode, interval, plot_type, algorithm="LRU", cache_params=None, cache_size=-1, **kwargs):
         """
@@ -100,7 +100,7 @@ class cachecow:
         :return:
         """
 
-        reader, num_of_process = self._profiler_pre_check(**kwargs)
+        reader, num_of_threads = self._profiler_pre_check(**kwargs)
 
         l = ["avg_rd_start_time_end_time", "hit_rate_start_time_cache_size"]
 
@@ -137,7 +137,7 @@ class cachecow:
 
         assert cache_size != -1, "you didn't provide size for cache"
 
-        reader, num_of_process = self._profiler_pre_check(**kwargs)
+        reader, num_of_threads = self._profiler_pre_check(**kwargs)
 
         if algorithm1.lower() in c_available_cache and algorithm2.lower() in c_available_cache:
             hm = cHeatmap()
@@ -160,7 +160,7 @@ class cachecow:
                 xydict1 = c_heatmap.heatmap(reader.cReader, mode, interval, plot_type,
                                             cache_size=cache_size, algorithm=algorithm1,
                                             cache_params=cache_params1,
-                                            num_of_threads=num_of_process)
+                                            num_of_threads=num_of_threads)
 
             if algorithm2.lower() not in c_available_cache:
                 xydict2 = hm.calculate_heatmap_dat(reader, mode, interval, plot_type,
@@ -171,7 +171,7 @@ class cachecow:
                 xydict2 = c_heatmap.heatmap(reader.cReader, mode, interval, plot_type,
                                             cache_size=cache_size, algorithm=algorithm2,
                                             cache_params=cache_params2,
-                                            num_of_threads=num_of_process)
+                                            num_of_threads=num_of_threads)
 
             cHm = cHeatmap()
             text = "      differential heatmap\n      cache size: {},\n      cache type: ({}-{})/{},\n" \
@@ -211,10 +211,9 @@ class cachecow:
         :param kwargs:
         :return:
         """
-        reader, num_of_process = self._profiler_pre_check(**kwargs)
+        reader, num_of_threads = self._profiler_pre_check(**kwargs)
 
         profiler = None
-        cache_params = None
         bin_size = -1
 
         if algorithm.lower() == "lru":
@@ -227,12 +226,12 @@ class cachecow:
             if isinstance(algorithm, str):
                 if algorithm.lower() in c_available_cache:
                     profiler = cGeneralProfiler(reader, cache_alg_mapping[algorithm.lower()], cache_size, bin_size,
-                                                cache_params, num_of_process)
+                                                cache_params, num_of_threads)
                 else:
                     profiler = generalProfiler(reader, self.cacheclass_mapping[algorithm.lower()], cache_size, bin_size,
-                                               cache_params, num_of_process)
+                                               cache_params, num_of_threads)
             else:
-                profiler = generalProfiler(reader, algorithm, cache_size, bin_size, cache_params, num_of_process)
+                profiler = generalProfiler(reader, algorithm, cache_size, bin_size, cache_params, num_of_threads)
 
         return profiler
 
@@ -262,37 +261,45 @@ class cachecow:
 
 
 if __name__ == "__main__":
-    CACHE_SIZE = 2000
+    CACHE_SIZE = 38000
     c = cachecow()
     # c.open('../data/trace.txt')
-    c.open('test.dat')
+    # c.open("../data/test.dat")
 
-    # c.vscsi('../data/trace.vscsi')
-    # m.heatmap('r', 100000000)
+    r = vscsiReader('../data/trace.vscsi')
+    cg = cGeneralProfiler(r, 'LRU_LFU', 2000, 200, cache_params={"LRU_percentage": 0.1}, num_of_threads=8)
+    print(cg)
+    print(cg.__dict__)
+    print(cg.get_hit_rate())
 
-    # m.test()
-    # m.open('../data/parda.trace')
-    p = c.profiler("LRU")
-    print(p.get_reuse_distance())
-    # p.plotHRC()
-    # c.heatmap('v', 100, "hit_rate_start_time_end_time", cache_size=10000)
 
+    c.vscsi('../data/trace.vscsi')
+    d = {"LRU_percentage": 0.1}
+    # p = c.profiler("LRU_LFU", cache_size=CACHE_SIZE, cache_params=d)
+    p = c.profiler("LRU_K", cache_size=CACHE_SIZE, cache_params={"K": 2}, num_of_threads=8)
+    print(p)
+    print(p.__dict__)
+    # print(p.get_reuse_distance())
+    print((p.get_hit_rate()))
+    p.plotHRC(num_of_threads=8, figname="LRU_LFU_0.1_HRC.png")
+    # c.differential_heatmap('v', 100, "hit_rate_start_time_end_time", algorithm1="LRU", algorithm2="LFU", cache_size=2000, figname="differential_heatmap_LFU_LRU_v.png")
+    print(d)
 
     # p = c.profiler('optimal', cache_size=CACHE_SIZE)
     # print(p.get_hit_count())
     #
     # c.twoDPlot('v', 1000, "cold_miss")
     #
-    # c.heatmap('r', 1000000, "hit_rate_start_time_end_time", "LRU", cache_size=CACHE_SIZE, num_of_process=8,
+    # c.heatmap('r', 1000000, "hit_rate_start_time_end_time", "LRU", cache_size=CACHE_SIZE, num_of_threads=8,
     #           figname="abc.png")
     #
-    # c.differential_heatmap('r', 1000000, "hit_rate_start_time_end_time", "LRU", cache_size=CACHE_SIZE, num_of_process=8,
+    # c.differential_heatmap('r', 1000000, "hit_rate_start_time_end_time", "LRU", cache_size=CACHE_SIZE, num_of_threads=8,
     #                        figname='2.png')
     #
     # c.differential_heatmap('r', 10000000, "hit_rate_start_time_end_time", "LRU", "ARC", cache_size=CACHE_SIZE,
-    #                        num_of_process=8, figname='3.png')
+    #                        num_of_threads=8, figname='3.png')
     #
-    # # c.differential_heatmap('r', 1000000, "hit_rate_start_time_end_time", "LRU", num_of_process=8, figname='2.png')
+    # # c.differential_heatmap('r', 1000000, "hit_rate_start_time_end_time", "LRU", num_of_threads=8, figname='2.png')
     #
     # TIME_INTERVAL = 10000000000
     # from mimircache.cacheReader.vscsiReader import vscsiCacheReader
