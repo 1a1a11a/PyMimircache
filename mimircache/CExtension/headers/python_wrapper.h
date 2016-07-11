@@ -20,6 +20,8 @@
 #include "Optimal.h"
 #include "LRU_K.h"
 #include "LRU.h"
+#include "LFU.h" 
+#include "LRU_LFU.h" 
 
 #include <stdio.h>
 #include <stdlib.h>

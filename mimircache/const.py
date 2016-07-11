@@ -71,6 +71,8 @@ def _init_cache_alg_mapping():
     cache_alg_mapping['lfu_mru'] = "LFU_MRU"
     cache_alg_mapping['lru_k'] = "LRU_K"
     cache_alg_mapping['lru_2'] = "LRU_2"
+    cache_alg_mapping['lru_lfu'] = "LRU_LFU"
+    cache_alg_mapping['lfu'] = "LFU"
 
 
 def cache_name_to_class(name):

@@ -152,11 +152,23 @@ inline gboolean optimal_add_element(struct_cache* cache, cache_line* cp){
     
     if (optimal_check_element(cache, cp)){
         __optimal_update_element(cache, cp);
+
+        
+        if (cache->core->cache_debug_level == 1)
+            if ((gint)g_array_index(optimal_params->next_access, gint, optimal_params->ts) == -1)
+                __optimal_evict_element(cache, cp);
+
+        
         (optimal_params->ts) ++ ;
         return TRUE;
     }
     else{
         __optimal_insert_element(cache, cp);
+        
+        if (cache->core->cache_debug_level == 1)
+            if ((gint)g_array_index(optimal_params->next_access, gint, optimal_params->ts) == -1)
+                __optimal_evict_element(cache, cp);
+        
         (optimal_params->ts) ++ ;
         if ( (long)g_hash_table_size( optimal_params->hashtable) > cache->core->size)
             __optimal_evict_element(cache, cp);
@@ -165,8 +177,7 @@ inline gboolean optimal_add_element(struct_cache* cache, cache_line* cp){
 }
 
 
-
-void optimal_destroy(struct_cache* cache){
+inline void optimal_destroy(struct_cache* cache){
     struct optimal_params* optimal_params = (struct optimal_params*)(cache->cache_params);
 
     g_hash_table_destroy(optimal_params->hashtable);
@@ -178,7 +189,7 @@ void optimal_destroy(struct_cache* cache){
 }
 
 
-void optimal_destroy_unique(struct_cache* cache){
+inline void optimal_destroy_unique(struct_cache* cache){
     /* the difference between destroy_unique and destroy 
      is that the former one only free the resources that are 
      unique to the cache, freeing these resources won't affect 

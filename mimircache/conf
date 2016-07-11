@@ -4,3 +4,6 @@ FIFO = True
 Optimal = True
 LRU_K = True
 LRU_2 = True
+LFU = True
+LRU_LFU = True
+

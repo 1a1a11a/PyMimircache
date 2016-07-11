@@ -57,7 +57,7 @@ static PyObject* LRUProfiler_get_hit_count_seq(PyObject* self, PyObject* args, P
     npy_intp dims[1] = { cache_size+3 };
     PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_LONGLONG);
     guint64 i;
-    for (i=0; i<cache_size+3; i++)
+    for (i=0; i<(guint64)cache_size+3; i++)
         *((long long*)PyArray_GETPTR1((PyArrayObject*)ret_array, i)) = (long long)hit_count[i];
 
 
@@ -196,7 +196,7 @@ static PyObject* LRUProfiler_get_reuse_dist_seq(PyObject* self, PyObject* args, 
     npy_intp dims[1] = { end-begin };
     PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_LONGLONG); 
     guint64 i;
-    for (i=0; i<end-begin; i++)
+    for (i=0; i<(guint64)(end-begin); i++)
         *((long long*)PyArray_GETPTR1((PyArrayObject*)ret_array, i)) = (long long)reuse_dist[i];
     
     if (begin!=0 || end!=reader->total_num){
@@ -239,7 +239,7 @@ static PyObject* LRUProfiler_get_future_reuse_dist(PyObject* self, PyObject* arg
     PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_LONGLONG);
 //    memcpy(PyArray_DATA((PyArrayObject*)ret_array), reuse_dist, sizeof(long long)*(end-begin));
     guint64 i;
-    for (i=0; i<end-begin; i++)
+    for (i=0; i<(guint64)(end-begin); i++)
         *((long long*)PyArray_GETPTR1((PyArrayObject*)ret_array, i)) = (long long)reuse_dist[i];
     
     g_free(reuse_dist);

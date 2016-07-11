@@ -15,10 +15,6 @@
 #include "heatmap.h"
 
 
-/* need add support for p and c type of data
- 
- */
-
 
 
 

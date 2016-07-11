@@ -23,8 +23,8 @@ struct LRU_K_params{
     GHashTable *cache_hashtable;        // label -> pq_node_pointer
     GHashTable *ghost_hashtable;        // label -> gqueue of size K
     pqueue_t *pq;                       
-    int K;
-    int maxK;
+    guint K;
+    guint maxK;
     guint64 ts;
 };
 

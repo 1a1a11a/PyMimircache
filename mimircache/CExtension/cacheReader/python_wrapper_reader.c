@@ -28,7 +28,7 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args)
         return NULL;
     }
 
-    READER* reader = setup_reader(file_loc, *file_type); 
+    READER* reader = setup_reader(file_loc, *file_type);
 
     return PyCapsule_New((void *)reader, NULL, NULL);
 }

@@ -22,6 +22,16 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
         printf("we suggest using LRUProfiler for profiling, it's faster\n");
         cache = LRU_init(cache_size, data_type, NULL);
     }
+    else if (strcmp(algorithm, "LFU") == 0){
+        cache = LFU_init(cache_size, data_type, NULL);
+    }
+    else if (strcmp(algorithm, "LRU_LFU") == 0){
+        double LRU_percentage = PyFloat_AS_DOUBLE(PyDict_GetItemString(cache_params, "LRU_percentage"));
+        DEBUG(printf("LRU_percentage=%lf\n", LRU_percentage));
+        struct LRU_LFU_init_params *init_params = g_new(struct LRU_LFU_init_params, 1);
+        init_params->LRU_percentage = LRU_percentage;
+        cache = LRU_LFU_init(cache_size, data_type, (void*)init_params);
+    }
     else if (strcmp(algorithm, "Optimal") == 0){
         struct optimal_init_params *init_params = g_new(struct optimal_init_params, 1);
         init_params->ts = begin;

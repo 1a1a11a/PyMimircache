@@ -185,7 +185,7 @@ GArray* gen_breakpoints_realtime(READER* reader, guint64 time_interval){
         read_one_element(reader, cp);
         num++;
     }
-    if (g_array_index(break_points, guint64, break_points->len-1) != reader->total_num)
+    if ((long long)g_array_index(break_points, guint64, break_points->len-1) != reader->total_num)
         g_array_append_val(break_points, reader->total_num);
 
     if (break_points->len > 10000)

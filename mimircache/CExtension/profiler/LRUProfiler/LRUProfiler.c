@@ -138,7 +138,7 @@ guint64* get_hit_count_seq(READER* reader, gint64 size, gint64 begin, gint64 end
             hit_count_array[size+1] += 1;
         else
             hit_count_array[reuse_dist+1] += 1;
-        if (reader->ts >= end)
+        if (reader->ts >= (guint64)end)
             break;
         read_one_element(reader, cp);
         ts++;
@@ -283,7 +283,7 @@ gint64* get_reuse_dist_seq(READER* reader, gint64 begin, gint64 end){
         if (reuse_dist > (gint64)max_rd){
             max_rd = reuse_dist;
         }
-        if (reader->ts >= end)
+        if (reader->ts >= (guint64)end)
             break;
         read_one_element(reader, cp);
         ts++;
@@ -358,9 +358,9 @@ gint64* get_future_reuse_dist(READER* reader, gint64 begin, gint64 end){
     while (cp->valid){
         splay_tree = process_one_element(cp, splay_tree, hash_table, ts, &reuse_dist);
         reuse_dist_array[end-begin-1-ts] = reuse_dist;
-        if (reuse_dist > max_rd)
+        if (reuse_dist > (gint64) max_rd)
             max_rd = reuse_dist;
-        if (reader->ts >= end)
+        if (reader->ts >= (guint64) end)
             break;
         read_one_element_above(reader, cp);
         ts++;

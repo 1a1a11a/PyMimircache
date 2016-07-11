@@ -32,7 +32,7 @@ void cache_destroy(struct_cache* cache){
         if (cache->core->data_type == 'l')
             g_free((guint64*)cache->core->eviction_array);
         else{
-            int i;
+            guint64 i;
             for (i=0; i<cache->core->eviction_array_len; i++)
                 if ( ((gchar**)cache->core->eviction_array)[i] != 0 )
                     g_free(((gchar**)cache->core->eviction_array)[i]);
