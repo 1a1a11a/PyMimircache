@@ -266,23 +266,17 @@ if __name__ == "__main__":
     # c.open('../data/trace.txt')
     # c.open("../data/test.dat")
 
-    r = vscsiReader('../data/trace.vscsi')
-    cg = cGeneralProfiler(r, 'LRU_LFU', 2000, 200, cache_params={"LRU_percentage": 0.1}, num_of_threads=8)
-    print(cg)
-    print(cg.__dict__)
-    print(cg.get_hit_rate())
-
-
-    c.vscsi('../data/trace.vscsi')
-    d = {"LRU_percentage": 0.1}
-    # p = c.profiler("LRU_LFU", cache_size=CACHE_SIZE, cache_params=d)
-    p = c.profiler("LRU_K", cache_size=CACHE_SIZE, cache_params={"K": 2}, num_of_threads=8)
-    print(p)
+    # c.vscsi('../data/trace.vscsi')
+    c.vscsi('../data/traces/w06_vscsi1.vscsitrace')
+    d = {"LRU_percentage": 0.8}
+    p = c.profiler("LRU_LFU", cache_size=CACHE_SIZE, cache_params=d, num_of_threads=8)
+    # p = c.profiler("LRU")
     print(p.__dict__)
+    # p = c.profiler("LRU_K", cache_size=CACHE_SIZE, cache_params={"K": 2}, num_of_threads=8)
     # print(p.get_reuse_distance())
-    print((p.get_hit_rate()))
-    p.plotHRC(num_of_threads=8, figname="LRU_LFU_0.1_HRC.png")
-    # c.differential_heatmap('v', 100, "hit_rate_start_time_end_time", algorithm1="LRU", algorithm2="LFU", cache_size=2000, figname="differential_heatmap_LFU_LRU_v.png")
+    # print((p.get_hit_rate()))
+    p.plotHRC(figname="HRC.png", cache_size=38000)
+    # c.differential_heatmap('v', 100, "hit_rate_start_time_end_time", algorithm1="LRU", algorithm2="LRU_LFU", cache_params2={"LRU_percentage":0.1}, cache_size=2000, figname="differential_heatmap_LFU_LRU_v.png")
     print(d)
 
     # p = c.profiler('optimal', cache_size=CACHE_SIZE)

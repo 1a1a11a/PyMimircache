@@ -482,23 +482,24 @@ if __name__ == "__main__":
     import time
 
     t1 = time.time()
-    server_plot_all(path="/run/shm/traces/")
+    # server_plot_all(path="/run/shm/traces/")
     # server_plot_all(path="../../../../disk/traces/", num_of_threads=16)
-    localtest()
+    # localtest()
 
-    CACHESIZE = 327680
+    CACHE_SIZE = 15000
     BINSIZE = 1
-    TIME_INTERVAL = 10000000
-    CACHE_TYPE = "Optimal"
-    TIME_TYPE = 'r'
+    TIME_INTERVAL = 100
+    CACHE_TYPE = "LRU_LFU"
+    TIME_TYPE = 'v'
     PLOT_TYPE = "hit_rate_start_time_end_time"
     NUM_OF_THREADS = 8
 
-    from mimircache.profiler.heatmap import heatmap
-
     hm = cHeatmap()
     reader = vscsiReader('../data/trace.vscsi')
-    print(hm.gen_breakpoints(reader, 'r', 1000000))
+    hm.differential_heatmap(reader, TIME_TYPE, TIME_INTERVAL, PLOT_TYPE, "LRU", "LRU_LFU", cache_params2={'LRU_percentage': 0.1},
+                            cache_size=CACHE_SIZE, num_of_threads=NUM_OF_THREADS, figname="heatmap.png")
+
+    # print(hm.gen_breakpoints(reader, 'r', 1000000))
 
     # print(heatmap()._get_breakpoints_realtime(reader, 1000000))
     # reader = vscsiCacheReader('/home/cloudphysics/traces/w84_vscsi1.vscsitrace')

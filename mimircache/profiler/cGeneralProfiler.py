@@ -11,25 +11,11 @@ import os
 import traceback
 
 import matplotlib
-# matplotlib.use('Agg')
 
 from multiprocessing import Process, Pipe, Array
 from os import path
 
 from mimircache.cacheReader.vscsiReader import vscsiReader
-
-from mimircache.cache.ARC import ARC
-from mimircache.cache.clock import clock
-from mimircache.cache.FIFO import FIFO
-from mimircache.cache.LFU_LRU__NEED_OPTIMIZATION import LFU_LRU
-from mimircache.cache.LFU_MRU import LFU_MRU
-from mimircache.cache.LFU_RR import LFU_RR
-from mimircache.cache.LRU import LRU
-from mimircache.cache.MRU import MRU
-from mimircache.cache.Random import Random
-from mimircache.cache.SLRU import SLRU
-from mimircache.cache.S4LRU import S4LRU
-from mimircache.cache.Optimal import Optimal
 import matplotlib.ticker as ticker
 
 from mimircache.cacheReader.plainReader import plainReader
@@ -56,6 +42,8 @@ class cGeneralProfiler:
         self.cache_name = cache_alg_mapping[cache_name.lower()]
         if bin_size == -1:
             self.bin_size = int(self.cache_size / DEFAULT_BIN_NUM_PROFILER)
+            if self.bin_size == 0:
+                self.bin_size =1
         else:
             self.bin_size = bin_size
         self.cache_params = cache_params
@@ -112,6 +100,8 @@ class cGeneralProfiler:
         sanity_kwargs = {}
         if 'num_of_threads' not in kwargs:
             sanity_kwargs['num_of_threads'] = self.num_of_threads
+        else:
+            sanity_kwargs['num_of_threads'] = kwargs['num_of_threads']
         if 'cache_size' in kwargs:
             cache_size = kwargs['cache_size']
         else:
@@ -219,23 +209,25 @@ def server_plot_all(path='/run/shm/traces/', threads=48):
 if __name__ == "__main__":
     import time
 
-    server_plot_all('../data/', threads=8)
+    # server_plot_all('../data/', threads=8)
 
     # t1 = time.time()
     # r = plainCacheReader('../../data/test')
     # r = plainCacheReader('../data/parda.trace')
     r = vscsiReader('../data/trace.vscsi')
     # cg = cGeneralProfiler(r, 'Optimal', 2000, 200)
-    cg = cGeneralProfiler(r, 'LRU_2', 2000, 200)
+    # cg = cGeneralProfiler(r, 'LRU_2', 38000, 200, num_of_threads=8)
+    # cg = cGeneralProfiler(r, 'LRU_K', 2000, 200, cache_params={"K":2})
+    cg = cGeneralProfiler(r, 'LRU_LFU', 38000, 200, cache_params={"LRU_percentage": 0.1}, num_of_threads=8)
 
     t1 = time.time()
 
     # print(cg.get_hit_rate())
     # print(cg.get_hit_count())
     # print(cg.get_miss_rate())
+    print(cg.plotHRC(figname="HRC_LRULFU0.1.png"))
 
     t2 = time.time()
     print("TIME: %f" % (t2 - t1))
 
-    # print(cg.plotMRC())
     # print(cg.get_hit_rate(begin=1, end=20))

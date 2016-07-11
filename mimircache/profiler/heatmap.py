@@ -136,7 +136,7 @@ class heatmap:
         elif plot_type == "avg_rd_start_time_end_time":
             # (x,y) means from time x to time y
             kwargs_plot['xlabel'] = 'time({})'.format(mode)
-            kwargs_plot['ylabel'] = 'average reuse distance'
+            kwargs_plot['ylabel'] = 'time({})'.format(mode)
             kwargs_plot['title'] = "avg_rd_start_time_end_time"
 
             array_len = len(break_points) - 1
@@ -234,7 +234,7 @@ class heatmap:
         while result_count < len(map_list):
             if process_count < num_of_threads and map_list_pos < len(map_list):
                 # LRU related heatmaps
-                if algorithm == "LRU":
+                if algorithm == LRU:
                     p = Process(target=func_pointer,
                                 args=(map_list[map_list_pos], break_points_share_array, reuse_dist_share_array, q),
                                 kwargs=kwargs_subprocess)

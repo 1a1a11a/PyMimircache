@@ -15,19 +15,6 @@ from multiprocessing import Process, Pipe, Array
 from os import path
 
 from mimircache.cacheReader.vscsiReader import vscsiReader
-
-from mimircache.cache.ARC import ARC
-from mimircache.cache.clock import clock
-from mimircache.cache.FIFO import FIFO
-from mimircache.cache.LFU_LRU__NEED_OPTIMIZATION import LFU_LRU
-from mimircache.cache.LFU_MRU import LFU_MRU
-from mimircache.cache.LFU_RR import LFU_RR
-from mimircache.cache.LRU import LRU
-from mimircache.cache.MRU import MRU
-from mimircache.cache.Random import Random
-from mimircache.cache.SLRU import SLRU
-from mimircache.cache.S4LRU import S4LRU
-from mimircache.cache.Optimal import Optimal
 from mimircache.utils.printing import *
 
 
