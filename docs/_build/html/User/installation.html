@@ -1,250 +1,205 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
 <html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-
-  <title>Installation &mdash; mimircache 0.0.2.50 documentation</title>
-
-  <link rel="stylesheet" href="../_static/alabaster.css" type="text/css"/>
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css"/>
-
-  <script type="text/javascript">
-    var DOCUMENTATION_OPTIONS = {
-      URL_ROOT: '../',
-      VERSION: '0.0.2.50',
-      COLLAPSE_INDEX: false,
-      FILE_SUFFIX: '.html',
-      HAS_SOURCE: true
-    };
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Installation &mdash; mimircache 0.0.2.56 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.0.2.56',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
     </script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-  <link rel="top" title="mimircache 0.0.2.50 documentation" href="../index.html"/>
+    <link rel="top" title="mimircache 0.0.2.56 documentation" href="../index.html" />
+    <link rel="next" title="Quick Start" href="quick_start.html" />
+    <link rel="prev" title="Introduction" href="intro.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  <link rel="stylesheet" href="../_static/custom.css" type="text/css"/>
+  </head>
+  <body role="document">
+  
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9"/>
-
-</head>
-<body role="document">
-
-
-<div class="document">
-  <div class="documentwrapper">
+    <div class="document">
+      <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
-
-            <div class="section" id="installation">
-              <span id="id1"></span>
-              <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
-              <div class="admonition warning">
-                <p class="first admonition-title">Warning</p>
-                <p class="last">mimircache has been tested on python3.4 and python3.5. Theoretically, all python3 are
-                  supported, but if you are using python 3.1~3.2, you might have a hard time install pip, here we
-                  suggest using the latest version of python3.</p>
-              </div>
-              <p>This part of the documentation covers the installation of mimircache. Mimircache currently has the
-                following dependencies:
-                <strong>pkg-config, glib, scipy, numpy, matplotlib</strong></p>
-              <div class="section" id="general-installation-pip">
-                <h2>General Installation(Pip)<a class="headerlink" href="#general-installation-pip"
-                                                title="Permalink to this headline">¶</a></h2>
-                <div class="section" id="first-step-install-c-library">
-                  <h3>First Step: Install C Library<a class="headerlink" href="#first-step-install-c-library"
-                                                      title="Permalink to this headline">¶</a></h3>
-                  <p>The first step is to use any package management software to install pkg-config and glib.</p>
-                  <div class="admonition note">
-                    <p class="first admonition-title">Note</p>
-                    <p class="last"><strong>Mac Users</strong>: if you don&#8217;t know how to install these packages,
-                      try macports or homebrew, google will help you.</p>
-                  </div>
-                </div>
-                <div class="section" id="second-step-install-python-dependencies">
-                  <h3>Second Step: Install Python Dependencies<a class="headerlink"
-                                                                 href="#second-step-install-python-dependencies"
-                                                                 title="Permalink to this headline">¶</a></h3>
-                  <p>Using pip3 to install python dependencies:</p>
-                  <div class="highlight-default">
-                    <div class="highlight"><pre><span></span>$ sudo pip3 install matplotlib
-</pre>
-                    </div>
-                  </div>
-                </div>
-                <div class="section" id="third-step-pip-install-mimircache">
-                  <h3>Third Step: Pip Install mimircache<a class="headerlink" href="#third-step-pip-install-mimircache"
-                                                           title="Permalink to this headline">¶</a></h3>
-                  <p>To install mimircache, simply run this command in your terminal of choice:</p>
-                  <div class="highlight-default">
-                    <div class="highlight"><pre><span></span>$ sudo pip3 install mimircache
-</pre>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="section" id="install-from-source">
-                <h2>Install From Source<a class="headerlink" href="#install-from-source"
-                                          title="Permalink to this headline">¶</a></h2>
-                <p>This is an alternative method, only use this one when you can&#8217;t install using the methods
-                  above, or you want to try the newest feature of mimircache, notice that, it might have bugs in newest
-                  version, we highly recommend you to use the stable version from pip3.</p>
-                <div class="section" id="install-all-dependencies">
-                  <h3>Install All Dependencies<a class="headerlink" href="#install-all-dependencies"
-                                                 title="Permalink to this headline">¶</a></h3>
-                  <p>Installing all dependencies is the same as the one described above.</p>
-                </div>
-                <div class="section" id="get-the-source-code">
-                  <h3>Get the Source Code<a class="headerlink" href="#get-the-source-code"
-                                            title="Permalink to this headline">¶</a></h3>
-                  <p>mimircache is actively developed on GitHub, where the code is
-                    always available <a class="reference external"
-                                        href="https://github.com/1a1a11a/mimircache/tree/master">here</a>.</p>
-                  <p>You can clone the public repository:</p>
-                  <div class="highlight-default">
-                    <div class="highlight"><pre><span></span>$ git clone -b master git://github.com/1a1a11a/mimircache.git
-</pre>
-                    </div>
-                  </div>
-                  <p>Once you have a copy of the source, you can install it into your site-packages easily:</p>
-                  <div class="highlight-default">
-                    <div class="highlight"><pre><span></span>$ sudo python3 setup.py install
-</pre>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="section" id="special-instructions-for-installing-on-ubuntu">
-                <h2>Special Instructions for Installing on Ubuntu<a class="headerlink"
-                                                                    href="#special-instructions-for-installing-on-ubuntu"
-                                                                    title="Permalink to this headline">¶</a></h2>
-                <div class="section" id="first-step-install-python3-pip-and-all-dependencies">
-                  <h3>First Step: Install Python3, pip and all dependencies<a class="headerlink"
-                                                                              href="#first-step-install-python3-pip-and-all-dependencies"
-                                                                              title="Permalink to this headline">¶</a>
-                  </h3>
-                  <p>If you are using Ubuntu 14 and above, you can <a class="reference internal"
-                                                                      href="#ubuntu-14-start-here">jump to here</a></p>
-                  <p>However, if you are using Ubuntu 12, you need to do the first step.
-                    Since Ubuntu 12 does not come with Python3 or above and some related components like pip. You can
-                    either compile python3 from source or add the repository from Ubuntu 14 into your source list. Below
-                    is the instructions for using Ubuntu 14 repository to install python3 and pip.</p>
-                  <p>Add the following two lines to the top of /etc/apt/source.list
-                    ::
-                    deb <a class="reference external" href="http://us.archive.ubuntu.com/ubuntu/">http://us.archive.ubuntu.com/ubuntu/</a>
-                    trusty main restricted universe multiverse
-                    deb-src <a class="reference external" href="http://us.archive.ubuntu.com/ubuntu/">http://us.archive.ubuntu.com/ubuntu/</a>
-                    trusty main restricted universe multiverse</p>
-                  <p>Then update your repository by:</p>
-                  <div class="highlight-default">
-                    <div class="highlight"><pre><span></span>$ sudo apt-get update
-</pre>
-                    </div>
-                  </div>
-                  <p><strong>If you are using Ubuntu 14 and above, start here, Ubuntu 12 continues here</strong>:</p>
-                  <p id="ubuntu-14-start-here">Now install python3, python3-pip and all dependencies:</p>
-                  <div class="highlight-default">
-                    <div class="highlight"><pre><span></span>$ sudo apt-get install python3 python3-pip python3-matplotlib pkg-config libglib2.0-dev
-</pre>
-                    </div>
-                  </div>
-                </div>
-                <div class="section" id="second-step-install-mimircache">
-                  <h3>Second Step: Install mimircache<a class="headerlink" href="#second-step-install-mimircache"
-                                                        title="Permalink to this headline">¶</a></h3>
-                  <div class="highlight-default">
-                    <div class="highlight"><pre><span></span>$ sudo pip3 install mimircache
-</pre>
-                    </div>
-                  </div>
-                  <p><strong>Congratulations! You have finished installation, welcome to the world of
-                    mimircache</strong></p>
-                </div>
-              </div>
-            </div>
+            
+  <div class="section" id="installation">
+<span id="id1"></span><h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">mimircache has been tested on python3.4 and python3.5. Theoretically, all python3 are supported, but if you are using python 3.1~3.2, you might have a hard time install pip, here we suggest using the latest version of python3.</p>
+</div>
+<p>This part of the documentation covers the installation of mimircache. Mimircache currently has the following dependencies:
+<strong>pkg-config, glib, scipy, numpy, matplotlib</strong></p>
+<div class="section" id="general-installation-pip">
+<h2>General Installation(Pip)<a class="headerlink" href="#general-installation-pip" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="first-step-install-c-library">
+<h3>First Step: Install C Library<a class="headerlink" href="#first-step-install-c-library" title="Permalink to this headline">¶</a></h3>
+<p>The first step is to use any package management software to install pkg-config and glib.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last"><strong>Mac Users</strong>: if you don&#8217;t know how to install these packages, try macports or homebrew, google will help you.</p>
+</div>
+</div>
+<div class="section" id="second-step-install-python-dependencies">
+<h3>Second Step: Install Python Dependencies<a class="headerlink" href="#second-step-install-python-dependencies" title="Permalink to this headline">¶</a></h3>
+<p>Using pip3 to install python dependencies:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ sudo pip3 install matplotlib
+</pre></div>
+</div>
+</div>
+<div class="section" id="third-step-pip-install-mimircache">
+<h3>Third Step: Pip Install mimircache<a class="headerlink" href="#third-step-pip-install-mimircache" title="Permalink to this headline">¶</a></h3>
+<p>To install mimircache, simply run this command in your terminal of choice:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ sudo pip3 install mimircache
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="install-from-source">
+<h2>Install From Source<a class="headerlink" href="#install-from-source" title="Permalink to this headline">¶</a></h2>
+<p>This is an alternative method, only use this one when you can&#8217;t install using the methods above, or you want to try the newest feature of mimircache, notice that, it might have bugs in newest version, we highly recommend you to use the stable version from pip3.</p>
+<div class="section" id="install-all-dependencies">
+<h3>Install All Dependencies<a class="headerlink" href="#install-all-dependencies" title="Permalink to this headline">¶</a></h3>
+<p>Installing all dependencies is the same as the one described above.</p>
+</div>
+<div class="section" id="get-the-source-code">
+<h3>Get the Source Code<a class="headerlink" href="#get-the-source-code" title="Permalink to this headline">¶</a></h3>
+<p>mimircache is actively developed on GitHub, where the code is
+always available <a class="reference external" href="https://github.com/1a1a11a/mimircache/tree/master">here</a>.</p>
+<p>You can clone the public repository:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ git clone -b master git://github.com/1a1a11a/mimircache.git
+</pre></div>
+</div>
+<p>Once you have a copy of the source, you can install it into your site-packages easily:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ sudo python3 setup.py install
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="special-instructions-for-installing-on-ubuntu">
+<h2>Special Instructions for Installing on Ubuntu<a class="headerlink" href="#special-instructions-for-installing-on-ubuntu" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="first-step-install-python3-pip-and-all-dependencies">
+<h3>First Step: Install Python3, pip and all dependencies<a class="headerlink" href="#first-step-install-python3-pip-and-all-dependencies" title="Permalink to this headline">¶</a></h3>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you are using Ubuntu 14 and above, you can <a class="reference internal" href="#ubuntu-14-start-here">jump to here</a></p>
+</div>
+<p>However, if you are using Ubuntu 12, you need to do the first step.
+Since Ubuntu 12 does not come with Python3 or above and some related components like pip. You can either compile python3 from source or add the repository from Ubuntu 14 into your source list. Below is the instructions for using Ubuntu 14 repository to install python3 and pip.</p>
+<p>Add the following two lines to the top of /etc/apt/source.list
+::
+deb <a class="reference external" href="http://us.archive.ubuntu.com/ubuntu/">http://us.archive.ubuntu.com/ubuntu/</a> trusty main restricted universe multiverse
+deb-src <a class="reference external" href="http://us.archive.ubuntu.com/ubuntu/">http://us.archive.ubuntu.com/ubuntu/</a> trusty main restricted universe multiverse</p>
+<p>Then update your repository by:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ sudo apt-get update
+</pre></div>
+</div>
+<p><strong>If you are using Ubuntu 14 and above, start here, Ubuntu 12 continues here</strong>:</p>
+<p id="ubuntu-14-start-here">Now install python3, python3-pip and all dependencies:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ sudo apt-get install python3 python3-pip python3-matplotlib pkg-config libglib2.0-dev
+</pre></div>
+</div>
+</div>
+<div class="section" id="second-step-install-mimircache">
+<h3>Second Step: Install mimircache<a class="headerlink" href="#second-step-install-mimircache" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ sudo pip3 install mimircache
+</pre></div>
+</div>
+<p><strong>Congratulations! You have finished installation, welcome to the world of mimircache</strong></p>
+</div>
+</div>
+</div>
 
 
           </div>
         </div>
-  </div>
-  <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-          <h3><a href="../index.html">Table Of Contents</a></h3>
-          <ul>
-            <li><a class="reference internal" href="#">Installation</a>
-              <ul>
-                <li><a class="reference internal" href="#general-installation-pip">General Installation(Pip)</a>
-                  <ul>
-                    <li><a class="reference internal" href="#first-step-install-c-library">First Step: Install C
-                      Library</a></li>
-                    <li><a class="reference internal" href="#second-step-install-python-dependencies">Second Step:
-                      Install Python Dependencies</a></li>
-                    <li><a class="reference internal" href="#third-step-pip-install-mimircache">Third Step: Pip Install
-                      mimircache</a></li>
-                  </ul>
-                </li>
-                <li><a class="reference internal" href="#install-from-source">Install From Source</a>
-                  <ul>
-                    <li><a class="reference internal" href="#install-all-dependencies">Install All Dependencies</a></li>
-                    <li><a class="reference internal" href="#get-the-source-code">Get the Source Code</a></li>
-                  </ul>
-                </li>
-                <li><a class="reference internal" href="#special-instructions-for-installing-on-ubuntu">Special
-                  Instructions for Installing on Ubuntu</a>
-                  <ul>
-                    <li><a class="reference internal" href="#first-step-install-python3-pip-and-all-dependencies">First
-                      Step: Install Python3, pip and all dependencies</a></li>
-                    <li><a class="reference internal" href="#second-step-install-mimircache">Second Step: Install
-                      mimircache</a></li>
-                  </ul>
-                </li>
-              </ul>
-            </li>
-          </ul>
-          <div class="relations">
-            <h3>Related Topics</h3>
-            <ul>
-              <li><a href="../index.html">Documentation overview</a>
-                <ul>
-                </ul>
-              </li>
-            </ul>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Installation</a><ul>
+<li><a class="reference internal" href="#general-installation-pip">General Installation(Pip)</a><ul>
+<li><a class="reference internal" href="#first-step-install-c-library">First Step: Install C Library</a></li>
+<li><a class="reference internal" href="#second-step-install-python-dependencies">Second Step: Install Python Dependencies</a></li>
+<li><a class="reference internal" href="#third-step-pip-install-mimircache">Third Step: Pip Install mimircache</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#install-from-source">Install From Source</a><ul>
+<li><a class="reference internal" href="#install-all-dependencies">Install All Dependencies</a></li>
+<li><a class="reference internal" href="#get-the-source-code">Get the Source Code</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#special-instructions-for-installing-on-ubuntu">Special Instructions for Installing on Ubuntu</a><ul>
+<li><a class="reference internal" href="#first-step-install-python3-pip-and-all-dependencies">First Step: Install Python3, pip and all dependencies</a></li>
+<li><a class="reference internal" href="#second-step-install-mimircache">Second Step: Install mimircache</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="intro.html" title="previous chapter">Introduction</a></li>
+      <li>Next: <a href="quick_start.html" title="next chapter">Quick Start</a></li>
+  </ul></li>
+</ul>
 </div>
-          <div role="note" aria-label="source link">
-            <h3>This Page</h3>
-            <ul class="this-page-menu">
-              <li><a href="../_sources/User/installation.txt"
-                     rel="nofollow">Show Source</a></li>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/User/installation.txt"
+            rel="nofollow">Show Source</a></li>
     </ul>
-          </div>
-          <div id="searchbox" style="display: none" role="search">
-            <h3>Quick search</h3>
-            <form class="search" action="../search.html" method="get">
-              <div><input type="text" name="q"/></div>
-              <div><input type="submit" value="Go"/></div>
-              <input type="hidden" name="check_keywords" value="yes"/>
-              <input type="hidden" name="area" value="default"/>
-            </form>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
 </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
-  </div>
-  <div class="clearer"></div>
-</div>
-<div class="footer">
-  &copy;2016, Juncheng Yang.
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Juncheng Yang.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+      |
+      <a href="../_sources/User/installation.txt"
+          rel="nofollow">Page source</a>
+    </div>
 
-  |
-  Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.2</a>
-  &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+    
 
-  |
-  <a href="../_sources/User/installation.txt"
-     rel="nofollow">Page source</a>
-</div>
-
-
-</body>
+    
+  </body>
 </html>

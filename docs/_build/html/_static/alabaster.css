@@ -1,3 +1,20 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 @import url("basic.css");
 
 /* -- page layout ----------------------------------------------------------- */
@@ -59,7 +76,7 @@ div.footer a {
 }
 
 p.caption {
-    font-family:;
+    font-family: ;
     font-size: inherit;
 }
 
@@ -190,31 +207,12 @@ div.body h6 {
     padding: 0;
 }
 
-div.body h1 {
-    margin-top: 0;
-    padding-top: 0;
-    font-size: 240%;
-}
-
-div.body h2 {
-    font-size: 180%;
-}
-
-div.body h3 {
-    font-size: 150%;
-}
-
-div.body h4 {
-    font-size: 130%;
-}
-
-div.body h5 {
-    font-size: 100%;
-}
-
-div.body h6 {
-    font-size: 100%;
-}
+div.body h1 { margin-top: 0; padding-top: 0; font-size: 240%; }
+div.body h2 { font-size: 180%; }
+div.body h3 { font-size: 150%; }
+div.body h4 { font-size: 130%; }
+div.body h5 { font-size: 100%; }
+div.body h6 { font-size: 100%; }
 
 a.headerlink {
     color: #DDD;
@@ -453,58 +451,62 @@ a:hover tt, a:hover code {
 @media screen and (max-width: 870px) {
 
     div.sphinxsidebar {
-        display: none;
+    	display: none;
     }
 
     div.document {
-        width: 100%;
+       width: 100%;
 
     }
 
     div.documentwrapper {
-        margin-left: 0;
-        margin-top: 0;
-        margin-right: 0;
-        margin-bottom: 0;
+    	margin-left: 0;
+    	margin-top: 0;
+    	margin-right: 0;
+    	margin-bottom: 0;
     }
 
     div.bodywrapper {
-        margin-top: 0;
-        margin-right: 0;
-        margin-bottom: 0;
-        margin-left: 0;
+    	margin-top: 0;
+    	margin-right: 0;
+    	margin-bottom: 0;
+    	margin-left: 0;
     }
 
     ul {
-        margin-left: 0;
+    	margin-left: 0;
     }
 
-    li > ul {
+	li > ul {
         /* Matches the 30px from the "ul, ol" selector above */
-        margin-left: 30px;
-    }
+		margin-left: 30px;
+	}
 
     .document {
-        width: auto;
+    	width: auto;
     }
 
     .footer {
-        width: auto;
+    	width: auto;
     }
 
     .bodywrapper {
-        margin: 0;
+    	margin: 0;
     }
 
     .footer {
-        width: auto;
+    	width: auto;
     }
 
     .github {
         display: none;
     }
 
+
+
 }
+
+
 
 @media screen and (max-width: 875px) {
 
@@ -580,10 +582,11 @@ a:hover tt, a:hover code {
     }
 }
 
+
 /* misc. */
 
 .revsys-inline {
-    display: none !important;
+    display: none!important;
 }
 
 /* Make nested-list/multi-paragraph items look better in Releases changelog
@@ -596,9 +599,9 @@ div#changelog > div.section > ul > li > p:only-child {
 
 /* Hide fugly table cell borders in ..bibliography:: directive output */
 table.docutils.citation, table.docutils.citation td, table.docutils.citation th {
-    border: none;
-    /* Below needed in some edge cases; if not applied, bottom shadows appear */
-    -moz-box-shadow: none;
-    -webkit-box-shadow: none;
-    box-shadow: none;
+  border: none;
+  /* Below needed in some edge cases; if not applied, bottom shadows appear */
+  -moz-box-shadow: none;
+  -webkit-box-shadow: none;
+  box-shadow: none;
 }

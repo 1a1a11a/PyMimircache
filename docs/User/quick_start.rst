@@ -16,8 +16,12 @@ Open Trace File
 Now let's open a trace file, your have three choices for opening different types of trace files, choose the one suits your need.
 
     >>> c.open("trace/file/location")
-    >>> c.csv("trace/file/location", column=x)  # specify which column contains the request key
+    >>> c.csv("trace/file/location", init_params={'label_column':x})  # specify which column contains the request key(label),
     >>> c.vscsi("trace/file/location")          # for vscsi format data
+
+.. note::
+    for csv data, the column number begins with 0, so the first column is 0, the second is 1, etc. In the init_params, other possible parameters include: header: True/False; real_time_column:x; op_column:x; size_column:x. Header indicates whether the csv file has a header; real_time_column indicates the time of the request, it must be in the form of number, either in microseconds, milliseconds, seconds or some other unit; op_column means the type of operation, it is not supported currently, size_column indicates the column of request size, it is not used in current version
+
 
 OK, data is ready, now let's play!
 
