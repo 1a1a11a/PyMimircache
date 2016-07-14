@@ -267,7 +267,7 @@ setup(
     description="mimircache platform for analyzing cache traces, developed by Ymir group @ Emory University",
     license="GPLv3",
     keywords="mimircache cache Ymir",
-    url="http://www.google.com",
+    url="http://mimircache.info",
 
     # libraries = [libparda, libvscsi],
     # cmdclass = {'build_clib' : build_clib},
@@ -285,7 +285,7 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
     ],
-    # install_requires=['numpy', 'matplotlib', 'scipy'],
+    install_requires=['heapdict'],      # 'numpy', 'matplotlib', 'scipy', 
     # long_description=long_description
 )
 

@@ -168,12 +168,14 @@ double* get_hit_rate_seq(READER* reader, gint64 size, gint64 begin, gint64 end){
         begin = 0;
     if (end-begin<size)
         size = end-begin;
-    
+
     if (reader->hit_rate && size==reader->total_num && end-begin==reader->total_num)
         return reader->hit_rate;
 
+    
     guint64* hit_count_array = get_hit_count_seq(reader, size, begin, end);
     double total_num = (double)(end - begin);
+
     
     
     double* hit_rate_array = g_new(double, size+3);
@@ -606,53 +608,3 @@ static inline sTree* process_one_element(cache_line* cp, sTree* splay_tree, GHas
     return newtree;
 }
 
-
-
-
-//#include "reader.h"
-//
-//int main(int argc, char* argv[]){
-//# define CACHESIZE 1
-//# define BIN_SIZE 1
-//    
-//    
-//    printf("test_begin!\n");
-//    
-////    READER* reader = setup_reader(argv[1], 'v');
-//    
-//    READER* reader = setup_reader(argv[1], 'p');
-//    
-//    printf("after initialization, begin profiling\n");
-//    gint64* rd = get_reuse_dist_seq(reader, 0, -1);
-//    
-//    double* hr = get_hit_rate_seq(reader, -1, 0, -1);
-//    printf("hit rate p: %p\n", hr);
-//    
-//    hr = get_hit_rate_seq(reader, -1, 10, 20);
-//    printf("hit rate p: %p\n", hr);
-//    guint64 *hc = get_hit_count_seq(reader, -1, 10, 20);
-//    
-//    int i;
-//    for (i=0; i<20-10+3; i++){
-//        printf("%d: %f\n", i, hr[i]);
-//    }
-//    for (i=0; i<20-10+3; i++){
-//        printf("%d: %lu\n", i, hc[i]);
-//    }
-//    
-////    printf("begin get best cache size test\n");
-////    
-////    cal_best_LRU_cache_size(reader, 20, 200, 20);
-////    if (reader->best_LRU_cache_size == NULL){
-////        printf("no best cache size found\n");
-////        exit(-1);
-////    }
-////    
-////    printf("num: %u\n", reader->best_LRU_cache_size->length);
-////    g_queue_foreach(reader->best_LRU_cache_size, print_GQ, NULL);
-//    
-//    close_reader(reader);
-//    
-//    printf("test_finished!\n");
-//    return 0;
-//}

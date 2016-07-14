@@ -19,6 +19,8 @@ class cReaderTest(unittest.TestCase):
         c_cacheReader.reset_reader(reader)
         first_request = c_cacheReader.read_one_element(reader)
         self.assertEqual(int(first_request), 42932745)
+        c_cacheReader.close_reader(reader)
+
 
     def test_reader_p(self):
         reader = c_cacheReader.setup_reader('../mimircache/data/trace.txt', 'p')
@@ -30,6 +32,21 @@ class cReaderTest(unittest.TestCase):
         c_cacheReader.reset_reader(reader)
         first_request = c_cacheReader.read_one_element(reader)
         self.assertEqual(int(first_request), 42932745)
+        c_cacheReader.close_reader(reader)
+
+
+    def test_reader_c(self):
+        reader = c_cacheReader.setup_reader('../mimircache/data/trace.csv', 'c',
+                                            {"header":True, "delimiter":",", "label_column":4, "size_column":3})
+        lines = c_cacheReader.get_num_of_lines(reader)
+        self.assertEqual(lines, 113872)
+        first_request = c_cacheReader.read_one_element(reader)
+        self.assertEqual(int(first_request), 42932745)
+        first_request = None
+        c_cacheReader.reset_reader(reader)
+        first_request = c_cacheReader.read_one_element(reader)
+        self.assertEqual(int(first_request), 42932745)
+        c_cacheReader.close_reader(reader)
 
 
 class readerTest(unittest.TestCase):

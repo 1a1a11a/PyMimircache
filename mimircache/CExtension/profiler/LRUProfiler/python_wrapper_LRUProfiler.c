@@ -57,8 +57,9 @@ static PyObject* LRUProfiler_get_hit_count_seq(PyObject* self, PyObject* args, P
     npy_intp dims[1] = { cache_size+3 };
     PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_LONGLONG);
     guint64 i;
-    for (i=0; i<(guint64)cache_size+3; i++)
+    for (i=0; i<(guint64)cache_size+3; i++){
         *((long long*)PyArray_GETPTR1((PyArrayObject*)ret_array, i)) = (long long)hit_count[i];
+    }
 
 
     g_free(hit_count);

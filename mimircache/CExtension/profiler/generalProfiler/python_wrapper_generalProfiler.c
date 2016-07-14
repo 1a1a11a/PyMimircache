@@ -132,10 +132,11 @@ static PyObject* generalProfiler_get_hit_count(PyObject* self, PyObject* args, P
     guint num_of_bins = ceil(cache_size/bin_size)+1;
     npy_intp dims[1] = { num_of_bins };
     PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_LONGLONG);
-    guint i;
-    *(long*)PyArray_GETPTR1((PyArrayObject*)ret_array, 0) = 0;
+    guint64 i;
+    *(long long *)PyArray_GETPTR1((PyArrayObject*)ret_array, 0) = 0;
     for(i=0; i<num_of_bins; i++){
-        *(long*)PyArray_GETPTR1((PyArrayObject*)ret_array, i) = results[i]->hit_count;
+        *(long long *)PyArray_GETPTR1((PyArrayObject*)ret_array, i) = results[i]->hit_count;
+//        printf("hit count %lu: %lld\n", i, results[i]->hit_count);
         g_free(results[i]);
     }
     

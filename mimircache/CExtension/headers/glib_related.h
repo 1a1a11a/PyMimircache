@@ -20,6 +20,7 @@
 
 void simple_key_value_destroyer(gpointer data);
 void simple_g_key_value_destroyer(gpointer data);
+void g_slist_destroyer(gpointer data);
 void gqueue_destroyer(gpointer data);
 void pqueue_node_destroyer(gpointer data);
 

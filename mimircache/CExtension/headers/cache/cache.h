@@ -27,6 +27,7 @@ typedef enum{
     e_FIFO,
     e_LRU_K,
     e_LRU_LFU,
+    e_LRU_dataAware,
 }cache_type;
 
 

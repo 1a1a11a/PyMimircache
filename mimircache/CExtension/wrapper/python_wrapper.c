@@ -32,6 +32,9 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
         init_params->LRU_percentage = LRU_percentage;
         cache = LRU_LFU_init(cache_size, data_type, (void*)init_params);
     }
+    else if (strcmp(algorithm, "LRU_dataAware") == 0){
+        cache = LRU_dataAware_init(cache_size, data_type, NULL);
+    }
     else if (strcmp(algorithm, "Optimal") == 0){
         struct optimal_init_params *init_params = g_new(struct optimal_init_params, 1);
         init_params->ts = begin;

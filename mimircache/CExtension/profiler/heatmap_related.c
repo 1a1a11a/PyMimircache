@@ -45,6 +45,8 @@ GSList* get_last_access_dist_seq(READER* reader, void (*funcPtr)(READER*, cache_
         reader_set_read_pos(reader, 1.0);
         go_back_one_line(reader);
         read_one_element(reader, cp);
+        if (reader->type == 'c')
+            reader->reader_end = FALSE;
     }
     else{
         fprintf(stderr, "unknown function pointer received in heatmap: get_last_access_dist_seq\n");
@@ -55,6 +57,9 @@ GSList* get_last_access_dist_seq(READER* reader, void (*funcPtr)(READER*, cache_
         list = g_slist_prepend(list, GINT_TO_POINTER(dist));
         funcPtr(reader, cp);
         ts++;
+    }
+    if (reader->type == 'c' && reader->has_header){
+        list = g_slist_remove(list, list->data);
     }
 
 
@@ -151,10 +156,16 @@ GArray* gen_breakpoints_realtime(READER* reader, guint64 time_interval){
      currently this only works for vscsi reader !!!
      return a GArray of break points, including the last break points
      */
-    if (reader->type != 'v'){
-        printf("gen_breakpoints_realtime currently only support vscsi reader, program exit\n");
+    if (reader->type != 'v' && reader->type != 'c'){
+        printf("gen_breakpoints_realtime currently only support vscsi reader and some csv reader, you provide %c reader, program exit\n", reader->type);
         exit(1);
     }
+    if (reader->type == 'c')
+        if (reader->real_time_column == -1){
+            printf("gen_breakpoints_realtime needs you to provide real_time_column parameter, program exit\n");
+            exit(1);
+        }
+            
     if (reader->break_points){
         if (reader->break_points->mode == 'r' && reader->break_points->time_interval == time_interval){
             return reader->break_points->array;
@@ -164,6 +175,9 @@ GArray* gen_breakpoints_realtime(READER* reader, guint64 time_interval){
             free(reader->break_points);
         }
     }
+    
+    if (reader->total_num == -1)
+        get_num_of_cache_lines(reader);
 
     guint64 previous_time = 0;
     GArray* break_points = g_array_new(FALSE, FALSE, sizeof(guint64));

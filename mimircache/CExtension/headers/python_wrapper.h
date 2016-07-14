@@ -22,6 +22,7 @@
 #include "LRU.h"
 #include "LFU.h" 
 #include "LRU_LFU.h" 
+#include "LRU_dataAware.h" 
 
 #include <stdio.h>
 #include <stdlib.h>

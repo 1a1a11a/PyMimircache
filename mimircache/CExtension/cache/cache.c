@@ -70,3 +70,7 @@ struct_cache* cache_init(long long size, char data_type){
     
     return cache;
 }
+
+guint64 get_current_size(struct_cache* cache){
+    return 0;
+}

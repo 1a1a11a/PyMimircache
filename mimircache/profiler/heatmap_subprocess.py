@@ -1,14 +1,8 @@
 import math
 
-from mimircache.cache.ARC import ARC
-from mimircache.cache.LFU_RR import LFU_RR
-from mimircache.cache.LRU import LRU
-from mimircache.cache.Random import Random
-from mimircache.cache.SLRU import SLRU
-from mimircache.cache.FIFO import FIFO
+from mimircache import *
 from mimircache.cache.Optimal import Optimal
 
-import mimircache.c_generalProfiler as c_generalProfiler
 
 def calc_hit_rate_start_time_end_time_subprocess_general(order, cache, break_points_share_array, reader, q, **kwargs):
     """
@@ -57,10 +51,14 @@ def calc_hit_rate_start_time_end_time_subprocess_general(order, cache, break_poi
     # else:
     #     reader_new = type(reader)(reader.file_loc)
 
-    reader_new = type(reader)(reader.file_loc, open_c_reader=False)
+    if isinstance(reader, csvReader):
+        reader_new = type(reader)(reader.file_loc, init_params=reader.init_params, open_c_reader=False)
+    else:
+        reader_new = type(reader)(reader.file_loc, open_c_reader=False)
 
     # TODO: figure out line size here and add seek method in reader base class
     # TODO: use mmap here to improve performance
+
     for line in reader_new:
         if line_num < break_points_share_array[order]:
             line_num += 1

@@ -218,12 +218,12 @@ if __name__ == "__main__":
     # cg = cGeneralProfiler(r, 'Optimal', 2000, 200)
     # cg = cGeneralProfiler(r, 'LRU_2', 38000, 200, num_of_threads=8)
     # cg = cGeneralProfiler(r, 'LRU_K', 2000, 200, cache_params={"K":2})
-    cg = cGeneralProfiler(r, 'LRU_LFU', 38000, 200, cache_params={"LRU_percentage": 0.1}, num_of_threads=8)
+    cg = cGeneralProfiler(r, 'LRU_dataAware', 40000, 200, num_of_threads=8)
 
     t1 = time.time()
 
     # print(cg.get_hit_rate())
-    # print(cg.get_hit_count())
+    # print(cg.get_hit_count())ß
     # print(cg.get_miss_rate())
     print(cg.plotHRC(figname="HRC_LRULFU0.1.png"))
 

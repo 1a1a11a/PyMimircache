@@ -8,6 +8,7 @@
 
 #include <Python.h>
 #include "reader.h"
+#include "csvReader.h"
 #include "const.h"
 
 
@@ -18,18 +19,88 @@ not urgent, not necessary: change this reader module into a pyhton object
 
 
 
-static PyObject* reader_setup_reader(PyObject* self, PyObject* args)
+static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* keywds)
 {   
     char* file_loc;
     char* file_type;
+    PyObject *py_init_params;
+    void *init_params = NULL;
 
+    static char *kwlist[] = {"file_loc", "file_type", "init_params", NULL};
+    
     // parse arguments
-    if (!PyArg_ParseTuple(args, "ss", &file_loc, &file_type)) {
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "ss|O", kwlist, &file_loc, &file_type, &py_init_params)) {
+        printf("parsing argument failed in setup reader\n");
         return NULL;
     }
 
-    READER* reader = setup_reader(file_loc, *file_type);
+    if (file_type[0] == 'c'){
+        init_params = (void*) new_csvReader_init_params(-1, -1, -1, -1, FALSE, 0);
+        /* if it is csv file, we need extra init parameters */
+        PyObject *py_label, *py_size, *py_op, *py_real_time, *py_header, *py_delimiter;
+        py_label = PyUnicode_FromString("label_column");
+        py_size = PyUnicode_FromString("size_column");
+        py_op = PyUnicode_FromString("op_column");
+        py_real_time = PyUnicode_FromString("real_time_column");
+        py_header = PyUnicode_FromString("header");
+        py_delimiter = PyUnicode_FromString("delimiter");
+        
+        if (PyDict_Contains(py_init_params, py_label)){
+            ((csvReader_init_params*)init_params)->label_column =
+                                    (gint)PyLong_AsLong(PyDict_GetItemString(py_init_params, "label_column"));
+            // release the PyObject?? 
+        }
+        
+        
+        if (PyDict_Contains(py_init_params, py_size)){
+            ((csvReader_init_params*)init_params)->size_column =
+                                    (gint)PyLong_AsLong(PyDict_GetItemString(py_init_params, "size_column"));
+        }
+        
+        
+        if (PyDict_Contains(py_init_params, py_op)){
+            ((csvReader_init_params*)init_params)->op_column =
+                                    (gint)PyLong_AsLong(PyDict_GetItemString(py_init_params, "op_column"));
+        }
+        
+            
+        if (PyDict_Contains(py_init_params, py_real_time)){
+            ((csvReader_init_params*)init_params)->real_time_column =
+                                    (gint)PyLong_AsLong(PyDict_GetItemString(py_init_params, "real_time_column"));
+        }
+        
+        if (PyDict_Contains(py_init_params, py_header)){
+            ((csvReader_init_params*)init_params)->has_header =
+            PyObject_IsTrue(PyDict_GetItemString(py_init_params, "header"));
+        }
+        
+        if (PyDict_Contains(py_init_params, py_delimiter)){
+            ((csvReader_init_params*)init_params)->delimiter =
+            *((unsigned char*)PyUnicode_AsUTF8(PyDict_GetItemString(py_init_params, "delimiter")));
+        }
 
+        
+        Py_DECREF(py_label);
+        Py_DECREF(py_size);
+        Py_DECREF(py_op);
+        Py_DECREF(py_real_time);
+        Py_DECREF(py_header);
+        Py_DECREF(py_delimiter);
+        
+        if (((csvReader_init_params*)init_params)->has_header)
+            DEBUG(printf("has header\n"));
+        
+        if (((csvReader_init_params*)init_params)->delimiter)
+            DEBUG(printf("delimiter %c\n", ((csvReader_init_params*)init_params)->delimiter));
+        
+        
+    }
+    
+    READER* reader = setup_reader(file_loc, *file_type, init_params);
+
+    if (init_params != NULL){
+        g_free(init_params);
+    }
     return PyCapsule_New((void *)reader, NULL, NULL);
 }
 
@@ -173,7 +244,7 @@ static PyObject* reader_close_reader(PyObject* self, PyObject* args)
 
 static PyMethodDef c_cacheReader_funcs[] = {
     {"setup_reader", (PyCFunction)reader_setup_reader,
-        METH_VARARGS, "setup the c_reader in C extension for profiling"},
+        METH_VARARGS | METH_KEYWORDS, "setup the c_reader in C extension for profiling"},
     {"get_num_of_lines", (PyCFunction)reader_get_num_of_cache_lines,
         METH_VARARGS, "return the number of requests in the cache file"},
     {"close_reader", (PyCFunction)reader_close_reader,

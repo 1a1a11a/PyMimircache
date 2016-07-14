@@ -1,21 +1,6 @@
-from mimircache.cache.ARC import ARC
-from mimircache.cache.FIFO import FIFO
-from mimircache.cache.LFU_MRU import LFU_MRU
-from mimircache.cache.LFU_RR import LFU_RR
-from mimircache.cache.LRU import LRU
-from mimircache.cache.MRU import MRU
-from mimircache.cache.Random import Random
-from mimircache.cache.S4LRU import S4LRU
-from mimircache.cache.SLRU import SLRU
-from mimircache.cache.clock import clock
-from mimircache.cacheReader.csvReader import csvReader
-from mimircache.cacheReader.plainReader import plainReader
-from mimircache.cacheReader.vscsiReader import vscsiReader
-from mimircache.profiler.LRUProfiler import LRUProfiler
 from mimircache.profiler.generalProfiler import generalProfiler
 from mimircache.profiler.heatmap import heatmap
 from mimircache.profiler.cGeneralProfiler import cGeneralProfiler
-from mimircache.profiler.cHeatmap import cHeatmap
 from mimircache.const import *
 from mimircache.profiler.twoDPlots import *
 
@@ -24,27 +9,14 @@ class cachecow:
     def __init__(self, **kwargs):
         self.reader = None
         self.cacheclass_mapping = {}
-        self.prepare_cacheclass_mapping()
-
-    def prepare_cacheclass_mapping(self):
-        self.cacheclass_mapping['lru'] = LRU
-        self.cacheclass_mapping['arc'] = ARC
-        self.cacheclass_mapping['clock'] = clock
-        self.cacheclass_mapping['fifo'] = FIFO
-        self.cacheclass_mapping['lfu_mru'] = LFU_MRU
-        self.cacheclass_mapping['lfu_rr'] = LFU_RR
-        self.cacheclass_mapping['mru'] = MRU
-        self.cacheclass_mapping['random'] = Random
-        self.cacheclass_mapping['slru'] = SLRU
-        self.cacheclass_mapping['s4lru'] = S4LRU
 
     def open(self, file_path):
         # assert os.path.exists(file_path), "data file does not exist"
         self.reader = plainReader(file_path)
         return self.reader
 
-    def csv(self, file_path, column):
-        self.reader = csvReader(file_path, column=column)
+    def csv(self, file_path, init_params):
+        self.reader = csvReader(file_path, init_params=init_params)
         return self.reader
 
     def vscsi(self, file_path):
@@ -86,7 +58,7 @@ class cachecow:
         else:
             reader = self.reader
 
-        assert reader, "you didn't provide a reader nor data (data file and data type)"
+        assert reader!=None, "you didn't provide a reader nor data (data file and data type)"
         self.reader = reader
 
         return reader, num_of_threads
@@ -211,10 +183,12 @@ class cachecow:
         :param kwargs:
         :return:
         """
+
         reader, num_of_threads = self._profiler_pre_check(**kwargs)
 
         profiler = None
         bin_size = -1
+
 
         if algorithm.lower() == "lru":
             profiler = LRUProfiler(reader, cache_size)
@@ -267,16 +241,19 @@ if __name__ == "__main__":
     # c.open("../data/test.dat")
 
     # c.vscsi('../data/trace.vscsi')
-    c.vscsi('../data/traces/w06_vscsi1.vscsitrace')
-    d = {"LRU_percentage": 0.8}
-    p = c.profiler("LRU_LFU", cache_size=CACHE_SIZE, cache_params=d, num_of_threads=8)
+    c.vscsi('../data/traces/w38_vscsi1.vscsitrace')
+    d = {"LRU_percentage": 0.3}
+    # p = c.profiler("LRU_dataAware", cache_size=2000, cache_params=d, num_of_threads=8)
     # p = c.profiler("LRU")
-    print(p.__dict__)
+    # print(p.__dict__)
     # p = c.profiler("LRU_K", cache_size=CACHE_SIZE, cache_params={"K": 2}, num_of_threads=8)
     # print(p.get_reuse_distance())
     # print((p.get_hit_rate()))
-    p.plotHRC(figname="HRC.png", cache_size=38000)
-    # c.differential_heatmap('v', 100, "hit_rate_start_time_end_time", algorithm1="LRU", algorithm2="LRU_LFU", cache_params2={"LRU_percentage":0.1}, cache_size=2000, figname="differential_heatmap_LFU_LRU_v.png")
+    # p.plotHRC(figname="w27_LRULFU_0.3_HRC.png", cache_size=2800000)
+    c.differential_heatmap('v', 1000000, "hit_rate_start_time_end_time", algorithm1="LRU", algorithm2="MRU",
+                           # cache_params2={"LRU_percentage":0.3},
+                           cache_size=800, figname="w38_differential_heatmap_LRU_MRU_800_v.png",
+                           num_of_threads=8)
     print(d)
 
     # p = c.profiler('optimal', cache_size=CACHE_SIZE)

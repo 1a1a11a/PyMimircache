@@ -248,6 +248,10 @@ struct_cache* optimal_init(guint64 size, char data_type, void* params){
         optimal_params->next_access = g_array_sized_new (FALSE, FALSE, sizeof (gint), (guint)reader->total_num);
         GArray* array = optimal_params->next_access;
         GSList* list = get_last_access_dist_seq(reader, read_one_element_above);
+        if (list == NULL){
+            printf("error getting last access distance in optimal_init\n");
+            exit(1);
+        }
         GSList* list_move = list;
     
     

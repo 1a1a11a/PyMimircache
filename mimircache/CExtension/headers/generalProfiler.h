@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <glib.h>
+#include <string.h> 
 #include "reader.h"
 #include "glib_related.h"
 #include "cache.h" 
@@ -20,7 +21,7 @@
 
 typedef struct{
     long long total_count;
-    long long hit_count;        // this can be negative!! 
+    long long hit_count;        // this can be negative!!
     long long miss_count;
     float miss_rate;
     float hit_rate;
@@ -35,7 +36,8 @@ struct multithreading_params_generalProfiler{
     struct cache* cache;
     return_res** result;
     guint bin_size;
-    GMutex mtx;             // prevent simultaneous write to progress 
+    GHashTable *prefetch_hashtable;
+    GMutex mtx;             // prevent simultaneous write to progress
     guint64* progress;
 };
 

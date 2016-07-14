@@ -1,6 +1,6 @@
 //
 //  reader.c
-//  LRUAnalyzer
+//  mimircache
 //
 //  Created by Juncheng on 5/25/16.
 //  Copyright © 2016 Juncheng. All rights reserved.
@@ -8,12 +8,13 @@
 
 #include "reader.h"
 #include "vscsi_trace_format.h"
+#include "csvReader.h"
 
 // add support for lock in reader to prevent simultaneous access reader
 
 
 
-READER* setup_reader(char* file_loc, char file_type){
+READER* setup_reader(char* file_loc, char file_type, void* setup_params){
     /* setup the reader struct for reading trace
      file_type: c: csv, v: vscsi, p: plain text
      Return value: a pointer to READER struct, the returned reader
@@ -39,8 +40,7 @@ READER* setup_reader(char* file_loc, char file_type){
 
     switch (file_type) {
         case 'c':
-            printf("currently c reader is not supported yet\n");
-            exit(1);
+            csv_setup_Reader(file_loc, reader, (csvReader_init_params*) setup_params);
             break;
         case 'p':
             reader->type = 'p';
@@ -71,15 +71,14 @@ void read_one_element(READER* reader, cache_line* c){
      */
     switch (reader->type) {
         case 'c':
-            printf("currently c reader is not supported yet\n");
-            exit(1);
+            csv_read_one_element(reader, c);
             break;
         case 'p':
 
             if (fscanf(reader->file, "%s", c->item) == EOF)
                 c->valid = FALSE;
             else {
-                if (strlen(c->item)==2 && c->item[0] == '\n' && c->item[1] == '\0')
+                if (strlen(c->item)==2 && c->item[0] == LINE_ENDING && c->item[1] == '\0')
                     return read_one_element(reader, c);
                 c->ts = (reader->ts)++;
             }
@@ -97,19 +96,31 @@ void read_one_element(READER* reader, cache_line* c){
 }
 
 int go_back_one_line(READER* reader){
-    /* go back two cache lines
+    /* go back one cache line
      return 0 on successful, non-zero otherwise
      */
+    FILE *file = NULL;
     switch (reader->type) {
         case 'c':
+            file = reader->csv_file;
         case 'p':
             ;
+            if (reader->type == 'p')
+                file = reader->file;
             int r;
-            
-            fseek(reader->file, -2L, SEEK_CUR);
-            while( getc(reader->file) != '\n' )
-                if (( r= fseek(reader->file, -2L, SEEK_CUR)) != 0)
-                    return r;
+            gboolean after_empty_lines=FALSE;         // flag for jump over multiple empty lines at the end of file
+            if (fseek(file, -2L, SEEK_CUR)!=0)
+                return 1;
+            char c = getc(file);
+            if (c != LINE_ENDING && c!=' ' && c!='\t' && c!=',' && c!='.')
+                after_empty_lines = TRUE;
+            while( c != LINE_ENDING || !after_empty_lines){
+                if (( r= fseek(file, -2L, SEEK_CUR)) != 0)
+                    return 0;
+                c = getc(file);
+                if (!after_empty_lines && c != LINE_ENDING && c!=' ' && c!='\t' && c!=',' && c!='.')
+                    after_empty_lines = TRUE;
+            }
             
             return 0;
         case 'v':
@@ -133,25 +144,32 @@ int go_back_two_lines(READER* reader){
      */
     switch (reader->type) {
         case 'c':
-        case 'p':
-            ;
-            int r;
-            if ( (r=fseek(reader->file, -2L, SEEK_CUR)) != 0){
-                return r;
+            if (go_back_one_line(reader)==0){
+                return go_back_one_line(reader);
             }
-            
-            while( getc(reader->file) != '\n' )
-                if ( (r= fseek(reader->file, -2L, SEEK_CUR)) != 0){
-                    return r;
-                }
-            fseek(reader->file, -2L, SEEK_CUR);
-            while( getc(reader->file) != '\n' )
-                if ( (r=fseek(reader->file, -2L, SEEK_CUR)) != 0){
-                    fseek(reader->file, -1L, SEEK_CUR);
-                    break;
-                }
-
-            return 0;
+            else
+                return 1;
+        case 'p':
+//            ;
+//            int r;
+//            if ( (r=fseek(reader->file, -2L, SEEK_CUR)) != 0){
+//                return r;
+//            }
+//            
+//            while( getc(reader->file) != LINE_ENDING )
+//                if ( (r= fseek(reader->file, -2L, SEEK_CUR)) != 0){
+//                    return r;
+//                }
+//            fseek(reader->file, -2L, SEEK_CUR);
+//            while( getc(reader->file) != LINE_ENDING )
+//                if ( (r=fseek(reader->file, -2L, SEEK_CUR)) != 0){
+//                    fseek(reader->file, -1L, SEEK_CUR);
+//                    break;
+//                }
+            if (go_back_one_line(reader)==0)
+                return go_back_one_line(reader);
+            else
+                return 1;
         case 'v':
             if (reader->offset >= (reader->record_size * 2))
                 reader->offset -= (reader->record_size)*2;
@@ -195,8 +213,19 @@ long skip_N_elements(READER* reader, long long N){
     char temp[cache_line_label_size];
     switch (reader->type) {
         case 'c':
-            printf("currently c reader is not supported yet\n");
-            exit(1);
+            csv_free(reader->csv_parser);
+            csv_init(reader->csv_parser, CSV_APPEND_NULL);
+            char *line=NULL;
+            size_t len;
+            for (i=0; i<N; i++){
+                if (getline(&line, &len, reader->csv_file) > 0)
+                    count++;
+                else
+                    break;
+                free(line);
+                line = NULL;
+            }
+            reader->ts += i;
             break;
         case 'p':
             for (i=0; i<N; i++)
@@ -225,8 +254,19 @@ void reset_reader(READER* reader){
      */
     switch (reader->type) {
         case 'c':
-            printf("currently c reader is not supported yet\n");
-            exit(1);
+            fseek(reader->csv_file, 0L, SEEK_SET);
+            reader->ts = 0;
+            csv_free(reader->csv_parser);
+            csv_init(reader->csv_parser, CSV_APPEND_NULL);
+
+            if (reader->has_header){
+                char *line=NULL;
+                size_t len;
+                len = getline(&line, &len, reader->csv_file);
+                free(line);
+                line = NULL;
+            }
+            reader->reader_end = FALSE; 
             break;
         case 'p':
             fseek(reader->file, 0L, SEEK_SET);
@@ -255,11 +295,11 @@ void reader_set_read_pos(READER* reader, float pos){
             ;
             struct stat statbuf;
             if (fstat(fileno(reader->file), &statbuf) < 0)
-                printf("fstat error");
-            long long fsize= (long long)statbuf.st_size;
+                fprintf(stderr, "fstat error");
+            long long fsize = (long long)statbuf.st_size;
             fseek(reader->file, (long)(fsize*pos), SEEK_SET);
             char c = getc(reader->file);
-            while (c!='\n' && c!=EOF)
+            while (c!=LINE_ENDING && c!=EOF)
                 c = getc(reader->file);
             reader->ts = 0;
             break;
@@ -283,34 +323,34 @@ guint64 get_num_of_cache_lines(READER* reader){
 #define BUFFER_SIZE 1024*1024
     guint64 num_of_lines = 0;
     char temp[BUFFER_SIZE+1];       // 5MB buffer
-    int fd, i=0;
+    int fd = 0, i=0;
+    char last_char = 0;
     long size;
     reset_reader(reader);
     
     switch (reader->type) {
         case 'c':
-            // same as plain text
+            fd = fileno(reader->csv_file);
+            /* same as plain text, except when has_header, it needs to reduce by 1  */
         case 'p':
-            fd = fileno(reader->file);
+            if (reader->type == 'p')
+                fd = fileno(reader->file);
             lseek(fd, 0L, SEEK_SET);
-            char last_char = 0; 
             while ((size=read(fd, (void*)temp, BUFFER_SIZE))!=0){
-                if (temp[0] == '\n' && last_char != '\n')
+                if (temp[0] == LINE_ENDING && last_char != LINE_ENDING)
                     num_of_lines++;
                 for (i=1;i<size;i++)
-                    if (temp[i] == '\n' && temp[i-1] != '\n')
+                    if (temp[i] == LINE_ENDING && temp[i-1] != LINE_ENDING)
                         num_of_lines++;
                 last_char = temp[size-1];
             }
-            if (last_char!='\n'){
+            if (last_char!=LINE_ENDING){
                 num_of_lines++;
             }
 //            while (fscanf(reader->file, "%s", temp)!=EOF)
 //                num_of_lines++;
             break;
         case 'v':
-//            printf("vscsi reader has total number of records when initialization, "
-//                "so you don't need to call this function\n");
             return reader->total_num;
         default:
             printf("cannot recognize reader type, it can only be c(csv), p(plain text), \
@@ -318,6 +358,8 @@ guint64 get_num_of_cache_lines(READER* reader){
             exit(1);
             break;
     }
+    if (reader->type == 'c' && reader->has_header)
+        num_of_lines --; 
     reader->total_num = num_of_lines;
     reset_reader(reader);
     return num_of_lines;
@@ -330,7 +372,22 @@ READER* copy_reader(READER* reader_in){
     memcpy(reader, reader_in, sizeof(READER));
     
     if (reader->type == 'v')
-        reader->offset = 0;
+//        reader->offset = 0;
+        reader->offset = reader_in->offset;
+    else if (reader->type == 'c'){
+        reader->csv_file = fopen(reader->file_loc, "rb");
+        fseek(reader->csv_file, ftell(reader_in->csv_file), SEEK_SET);
+        reader->csv_parser = g_new0(struct csv_parser, 1);
+        csv_init(reader->csv_parser, CSV_APPEND_NULL);
+//        if (reader->has_header){
+//            char *line=NULL;
+//            size_t len;
+//            len = getline(&line, &len, reader->csv_file);
+//            free(line);
+//        line = NULL;
+//        }
+  
+    }
     else{
         reader->file = fopen(reader->file_loc, "r");
     }
@@ -350,7 +407,9 @@ int close_reader(READER* reader){
 
     switch (reader->type) {
         case 'c':
-            printf("currently c reader is not supported yet\n");
+            fclose(reader->csv_file);
+            csv_free(reader->csv_parser);
+            g_free(reader->csv_parser);
             break;
         case 'p':
             fclose(reader->file);
@@ -403,7 +462,7 @@ int read_one_request_all_info(READER* reader, void* storage){
             if (fscanf(reader->file, "%s", (char*)storage) == EOF)
                 return 1;
             else {
-                if (strlen((char*)storage)==2 && ((char*)storage)[0] == '\n' && ((char*)storage)[1] == '\0')
+                if (strlen((char*)storage)==2 && ((char*)storage)[0] == LINE_ENDING && ((char*)storage)[1] == '\0')
                     return read_one_request_all_info(reader, storage);
                 return 0;
             }

@@ -337,69 +337,6 @@ void free_draw_dict(draw_dict* dd){
 }
 
 
-//#include "reader.h"
-//#include "FIFO.h"
-//#include "Optimal.h"
-//
-//int main(int argc, char* argv[]){
-//# define CACHESIZE 2000
-//# define BIN_SIZE 200
-//# define TIME_INTERVAL 1000000
-//# define MODE 'r'
-//
-//
-//    printf("test_begin!\n");
-//
-//    READER* reader = setup_reader(argv[1], 'v');
-//
-////    struct_cache* cache = fifo_init(CACHESIZE, 'v', NULL);
-//
-//    struct optimal_init_params* init_params = g_new0(struct optimal_init_params, 1);
-//    init_params->reader = reader;
-//    struct_cache* optimal = optimal_init(CACHESIZE, 'l', (void*)init_params);
-//    
-//    
-//    struct_cache* cache = cache_init(CACHESIZE, reader->type);
-//    cache->core->type = e_LRU;
-//
-//
-//    draw_dict* dd ;
-//    
-//    printf("after initialization, begin profiling\n");
-//    printf("hit_rate_start_time_end_time\n");
-//    dd = heatmap(reader, cache, MODE, TIME_INTERVAL, hit_rate_start_time_end_time, 8);
-//    free_draw_dict(dd);
-//
-//    
-//    dd = differential_heatmap(reader, cache, optimal, MODE, TIME_INTERVAL, hit_rate_start_time_end_time, 8);
-//    free_draw_dict(dd);
-//
-//    printf("rd_distribution CDF\n");
-//    dd = heatmap_rd_distribution(reader, MODE, TIME_INTERVAL, 8, 1);
-//    free_draw_dict(dd);
-//    
-//    printf("rd_distribution\n");
-//    dd = heatmap(reader, NULL, MODE, TIME_INTERVAL, rd_distribution, 8);
-//    free_draw_dict(dd);
-//
-//    printf("future rd_distribution\n");
-//    dd = heatmap(reader, NULL, MODE, TIME_INTERVAL, future_rd_distribution, 8);
-//    free_draw_dict(dd);
-//
-//    printf("hit_rate_start_time_end_time\n");
-//    dd = differential_heatmap(reader, cache, optimal, MODE, TIME_INTERVAL, hit_rate_start_time_end_time, 8);
-//    free_draw_dict(dd);
-//    
-//    printf("computation finished\n");
-//
-//    cache_destroy(cache);
-//    optimal->core->destroy(optimal);
-//    close_reader(reader);
-//    
-//    printf("test_finished!\n");
-//
-//    return 0;
-//}
 
 
 

@@ -21,6 +21,11 @@
 #include <sys/stat.h> 
 
 #include "const.h"
+#include "libcsv.h"
+
+
+#define LINE_ENDING '\n'
+
 
 
 struct break_point{
@@ -35,18 +40,34 @@ typedef struct{
     union {
         FILE* file;
         struct{
-            void* p;        /* pointer to memory location, the begin position, 
-                             this should not change after initilization  */
-            guint64 offset;    /* the position the reader pointer currently at */
-            size_t record_size;     /* the size of one record, used to locate the memory
-                                    location of next element */
+            void* p;                        /* pointer to memory location, the begin position,
+                                             *   this should not change after initilization */
+            guint64 offset;                 /* the position the reader pointer currently at */
+            size_t record_size;             /*   the size of one record, used to locate the memory
+                                             *   location of next element */
+        };
+        struct{
+            FILE *csv_file;
+            gboolean has_header; 
+            struct csv_parser *csv_parser;
+            
+            gint real_time_column;          /* column number begins from 0 */
+            gint label_column;
+            gint op_column;
+            gint size_column;
+            gint current_column_counter;
+            
+            void* cache_line_pointer;
+            gboolean already_got_cache_line;
+            gboolean reader_end; 
+            
         };
     };
-    char type;       /* possible types: c(csv), v(vscsi), p(plain text)  */
-    char data_type;  /* possible types: l(guint64), c(char*) */
+    char type;                              /* possible types: c(csv), v(vscsi), p(plain text)  */
+    char data_type;                         /* possible types: l(guint64), c(char*) */
     long long total_num;
-    guint64 ts;           /* current timestamp, record current line, even if some
-                             * lines are not processed(skipped) */
+    guint64 ts;                             /* current timestamp, record current line, even if some
+                                             * lines are not processed(skipped) */
     char file_loc[FILE_LOC_STR_SIZE];
     struct break_point* break_points;
     gint64* reuse_dist;
@@ -57,19 +78,22 @@ typedef struct{
     double* hit_rate;
     union{
         struct{
-            int vscsi_ver;        // version
+            int vscsi_ver;                  /* version */
         };
     };
     int ver;
     
+    
 } READER;
+
+
 
 
 typedef struct{
     gpointer item_p;
     char item[cache_line_label_size];
-    char type;      // type of content can be either guint64(l) or char*(c)
-    guint64 ts;     // virtual timestamp
+    char type;                              /* type of content can be either guint64(l) or char*(c) */
+    guint64 ts;                             /* virtual timestamp */
     size_t size;
     int op;
     guint64 real_time;
@@ -78,10 +102,10 @@ typedef struct{
 
 
 
-#include <vscsi_trace_format.h> 
 
 
-READER* setup_reader(char* file_loc, char file_type);
+
+READER* setup_reader(char* file_loc, char file_type, void* setup_params);
 void read_one_element(READER* reader, cache_line* c);
 long skip_N_elements(READER* reader, long long N);
 int go_back_one_line(READER* reader);
