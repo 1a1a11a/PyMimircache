@@ -254,7 +254,7 @@ gint64* get_reuse_dist_seq(READER* reader, gint64 begin, gint64 end){
         return reuse_dist_array;
     }
     
-    // create cache lize struct and initializa
+    // create cache lize struct and initialization
     cache_line* cp = new_cacheline();
     
     // create hashtable

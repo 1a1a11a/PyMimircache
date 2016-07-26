@@ -264,7 +264,7 @@ draw_dict* heatmap_rd_distribution(READER* reader, char mode, long time_interval
 
     // send data to thread pool and begin computation
     for (i=0; i<break_points->len-1; i++){
-        if ( g_thread_pool_push (gthread_pool, GINT_TO_POINTER(i+1), NULL) == FALSE)    // +1 otherwise, 0 will be a problem
+        if ( g_thread_pool_push (gthread_pool, GINT_TO_POINTER(i+1), NULL) == FALSE)    // +1, otherwise, 0 will be a problem
             g_error("cannot push data into thread in generalprofiler\n");
     }
 
@@ -316,10 +316,6 @@ draw_dict* differential_heatmap(READER* reader, struct_cache* cache1, struct_cac
     guint64 i, j;
     for (i=0; i<draw_dict1->xlength; i++)
         for (j=0; j<draw_dict1->ylength; j++){
-//            if (draw_dict1->matrix[i][j] > 1 || draw_dict1->matrix[i][j] < 0)
-//                printf("ERROR -1 %ld, %ld: %f\n", i, j, draw_dict1->matrix[i][j]);
-//            if (draw_dict2->matrix[i][j] > 1 || draw_dict2->matrix[i][j] < 0)
-//                printf("ERROR -2 %ld, %ld: %f\n", i, j, draw_dict2->matrix[i][j]);
             draw_dict2->matrix[i][j] = (draw_dict2->matrix[i][j] - draw_dict1->matrix[i][j])/draw_dict1->matrix[i][j];
         }
     free_draw_dict(draw_dict1);

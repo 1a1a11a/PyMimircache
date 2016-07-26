@@ -223,7 +223,6 @@ void LRU_K_destroy_unique(struct_cache* cache){
 
 struct_cache* LRU_K_init(guint64 size, char data_type, void* params){
     struct_cache *cache = cache_init(size, data_type);
-//    cache->cache_params = calloc(1, sizeof(struct LRU_K_params));
     cache->cache_params = g_new0(struct LRU_K_params, 1);
     struct LRU_K_params* LRU_K_params = (struct LRU_K_params*)(cache->cache_params);
     
@@ -267,7 +266,6 @@ struct_cache* LRU_K_init(guint64 size, char data_type, void* params){
         g_error("does not support given data type: %c\n", data_type);
     }
     
-//    printf("new initialized cache, cache->K = %d, maxK = %d\n", ((struct LRU_K_params*)(cache->cache_params))->K, ((struct LRU_K_params*)(cache->cache_params))->maxK);
     return cache;
 }
 

@@ -7,6 +7,7 @@
 //
 
 #include "glib_related.h"
+//#include "ML.h"
 
 void simple_key_value_destroyer(gpointer data) {
     free(data);
@@ -27,4 +28,9 @@ void gqueue_destroyer(gpointer data) {
 void pqueue_node_destroyer(gpointer data) {
     g_free(((pq_node_t*)data)->item);
     g_free((pq_node_t*)data);
+}
+
+void ML_value_destroyer(gpointer data){
+    ;
+    
 }
