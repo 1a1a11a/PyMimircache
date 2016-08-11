@@ -1,6 +1,6 @@
 from collections import OrderedDict
 
-from mimircache.cache.abstractLFU import abstractLFU
+from mimircache.cache.deprecated.abstractLFU import abstractLFU
 
 
 class LFU_MRU(abstractLFU):

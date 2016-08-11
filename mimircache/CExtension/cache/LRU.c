@@ -12,12 +12,12 @@
 
 
 
-inline void __LRU_insert_element(struct_cache* LRU, cache_line* cp){
+ void __LRU_insert_element(struct_cache* LRU, cache_line* cp){
     struct LRU_params* LRU_params = (struct LRU_params*)(LRU->cache_params);
     
     gpointer key;
     if (cp->type == 'l'){
-        key = (gpointer)g_new(gint64, 1);
+        key = (gpointer)g_new(guint64, 1);
         *(guint64*)key = *(guint64*)(cp->item_p);
     }
     else{
@@ -33,13 +33,13 @@ inline void __LRU_insert_element(struct_cache* LRU, cache_line* cp){
     
 }
 
-inline gboolean LRU_check_element(struct_cache* cache, cache_line* cp){
+ gboolean LRU_check_element(struct_cache* cache, cache_line* cp){
     struct LRU_params* LRU_params = (struct LRU_params*)(cache->cache_params);
     return g_hash_table_contains( LRU_params->hashtable, cp->item_p );
 }
 
 
-inline void __LRU_update_element(struct_cache* cache, cache_line* cp){
+ void __LRU_update_element(struct_cache* cache, cache_line* cp){
     struct LRU_params* LRU_params = (struct LRU_params*)(cache->cache_params);
     GList* node = (GList* ) g_hash_table_lookup(LRU_params->hashtable, cp->item_p);
     g_queue_unlink(LRU_params->list, node);
@@ -47,7 +47,7 @@ inline void __LRU_update_element(struct_cache* cache, cache_line* cp){
 }
 
 
-inline void __LRU_evict_element(struct_cache* LRU, cache_line* cp){
+ void __LRU_evict_element(struct_cache* LRU, cache_line* cp){
     struct LRU_params* LRU_params = (struct LRU_params*)(LRU->cache_params);
 
     if (LRU->core->cache_debug_level == 2){     // compare to Oracle
@@ -123,7 +123,7 @@ inline void __LRU_evict_element(struct_cache* LRU, cache_line* cp){
 
 
 
-inline gboolean LRU_add_element(struct_cache* cache, cache_line* cp){
+ gboolean LRU_add_element(struct_cache* cache, cache_line* cp){
     struct LRU_params* LRU_params = (struct LRU_params*)(cache->cache_params);
     if (LRU_check_element(cache, cp)){
         __LRU_update_element(cache, cp);
@@ -192,7 +192,7 @@ struct_cache* LRU_init(guint64 size, char data_type, void* params){
 
 
 
-inline void __LRU_remove_element(struct_cache* cache, void* data_to_remove){
+ void __LRU_remove_element(struct_cache* cache, void* data_to_remove){
     struct LRU_params* LRU_params = (struct LRU_params*)(cache->cache_params);
     
 //    if (cp->type == 'l'){

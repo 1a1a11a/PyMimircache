@@ -110,8 +110,12 @@ class cGeneralProfiler:
             sanity_kwargs['begin'] = kwargs['begin']
         if 'end' in kwargs:
             sanity_kwargs['end'] = kwargs['end']
-        return c_generalProfiler.get_hit_rate(self.reader.cReader, self.cache_name, cache_size,
+        if "prefetch" in kwargs and kwargs['prefetch']:
+            return c_generalProfiler.get_hit_rate_with_prefetch(self.reader.cReader, self.cache_name, cache_size,
                                               self.bin_size, cache_params=self.cache_params, **sanity_kwargs)
+        else:
+            return c_generalProfiler.get_hit_rate(self.reader.cReader, self.cache_name, cache_size,
+                                                            self.bin_size, cache_params=self.cache_params, **sanity_kwargs)
 
     def get_miss_rate(self, **kwargs):
         """
@@ -214,18 +218,24 @@ if __name__ == "__main__":
     # t1 = time.time()
     # r = plainCacheReader('../../data/test')
     # r = plainCacheReader('../data/parda.trace')
-    r = vscsiReader('../data/trace.vscsi')
+    # r = vscsiReader('../data/trace.vscsi')
+    r = vscsiReader("../data/traces/w106_vscsi1.vscsitrace")
     # cg = cGeneralProfiler(r, 'Optimal', 2000, 200)
     # cg = cGeneralProfiler(r, 'LRU_2', 38000, 200, num_of_threads=8)
     # cg = cGeneralProfiler(r, 'LRU_K', 2000, 200, cache_params={"K":2})
-    cg = cGeneralProfiler(r, 'LRU_dataAware', 40000, 200, num_of_threads=8)
+    cg = cGeneralProfiler(r, 'LRU', 100000, 2000, num_of_threads=8)
 
     t1 = time.time()
 
     # print(cg.get_hit_rate())
-    # print(cg.get_hit_count())ß
+    # print(cg.get_hit_count())
     # print(cg.get_miss_rate())
-    print(cg.plotHRC(figname="HRC_LRULFU0.1.png"))
+    prefetch = False
+    figname = "HRC_LRUNoPrefetch.png"
+    if prefetch:
+        figname = "HRC_LRUPrefetch.png"
+
+    cg.plotHRC(figname=figname, prefetch=prefetch)
 
     t2 = time.time()
     print("TIME: %f" % (t2 - t1))

@@ -24,35 +24,35 @@
 
 
 /* changed to make node with small priority on the top */
-static inline int
+static  int
 cmp_pri(pqueue_pri_t next, pqueue_pri_t curr)
 {
     return (next > curr);
 }
 
 
-static inline pqueue_pri_t
+static  pqueue_pri_t
 get_pri(void *a)
 {
     return ((pq_node_t *) a)->pri;
 }
 
 
-static inline void
+static  void
 set_pri(void *a, pqueue_pri_t pri)
 {
     ((pq_node_t *) a)->pri = pri;
 }
 
 
-static inline size_t
+static  size_t
 get_pos(void *a)
 {
     return ((pq_node_t *) a)->pos;
 }
 
 
-static inline void
+static  void
 set_pos(void *a, size_t pos)
 {
     ((pq_node_t *) a)->pos = pos;
@@ -69,7 +69,7 @@ set_pos(void *a, size_t pos)
 
 /* Jason: try to reuse the key from ghost_hashtable for better memory efficiency */
 
-inline void __LRU_K_insert_element(struct_cache* LRU_K, cache_line* cp){
+ void __LRU_K_insert_element(struct_cache* LRU_K, cache_line* cp){
     /** update request is done at checking element, 
      * now insert request into cache_hashtable and pq 
      *
@@ -100,7 +100,7 @@ inline void __LRU_K_insert_element(struct_cache* LRU_K, cache_line* cp){
 }
 
 
-inline gboolean LRU_K_check_element(struct_cache* cache, cache_line* cp){
+ gboolean LRU_K_check_element(struct_cache* cache, cache_line* cp){
     /** check whether request is in the cache_hashtable, 
      * then update ghost_hashtable and pq accordingly, 
      * if in ghost_hashtable, then update it,
@@ -117,7 +117,7 @@ inline gboolean LRU_K_check_element(struct_cache* cache, cache_line* cp){
         /* need to insert the new element into ghost */
         gpointer key;
         if (cp->type == 'l'){
-            key = (gpointer)g_new(gint64, 1);
+            key = (gpointer)g_new(guint64, 1);
             *(guint64*)key = *(guint64*)(cp->item_p);
         }
         else{
@@ -142,7 +142,7 @@ inline gboolean LRU_K_check_element(struct_cache* cache, cache_line* cp){
 }
 
 
-inline void __LRU_K_update_element(struct_cache* cache, cache_line* cp){
+ void __LRU_K_update_element(struct_cache* cache, cache_line* cp){
     /* needs to update pq */
     struct LRU_K_params* LRU_K_params = (struct LRU_K_params*)(cache->cache_params);
 
@@ -163,7 +163,7 @@ inline void __LRU_K_update_element(struct_cache* cache, cache_line* cp){
 }
 
 
-inline void __LRU_K_evict_element(struct_cache* LRU_K){
+ void __LRU_K_evict_element(struct_cache* LRU_K){
     /** pop one node from pq, remove it from cache_hashtable 
      **/
     
@@ -176,7 +176,7 @@ inline void __LRU_K_evict_element(struct_cache* LRU_K){
 
 
 
-inline gboolean LRU_K_add_element(struct_cache* cache, cache_line* cp){
+ gboolean LRU_K_add_element(struct_cache* cache, cache_line* cp){
     struct LRU_K_params* LRU_K_params = (struct LRU_K_params*)(cache->cache_params);
     LRU_K_params->ts++;
     if (LRU_K_check_element(cache, cp)){

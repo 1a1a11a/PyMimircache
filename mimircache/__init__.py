@@ -15,7 +15,6 @@ matplotlib.use('Agg')
 from mimircache.cache.LRU import LRU as LRU
 from mimircache.cacheReader.csvReader import csvReader as csvReader
 from mimircache.cacheReader.plainReader import plainReader as plainReader
-from mimircache.cacheReader.vscsiReader import vscsiReader as vscsiReader
 from mimircache.profiler.LRUProfiler import LRUProfiler as LRUProfiler
 from mimircache.profiler.cGeneralProfiler import cGeneralProfiler
 from mimircache.profiler.generalProfiler import generalProfiler as generalProfiler
@@ -24,6 +23,11 @@ from mimircache.profiler.heatmap import heatmap as heatmap
 from mimircache.profiler.twoDPlots import *
 from mimircache.top.cachecow import cachecow as cachecow
 from mimircache.const import *
+
+
+
+from mimircache.cacheReader.vscsiReader_new import vscsiReader as vscsiReader
+
 
 
 init()

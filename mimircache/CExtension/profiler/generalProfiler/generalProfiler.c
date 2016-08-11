@@ -291,14 +291,14 @@ static void profiler_with_prefetch_thread(gpointer data, gpointer user_data){
         pos++;
         
         // begin prefetch elements
-        GSList *list = g_hash_table_lookup(prefetch_hashtable, cp->item_p);
-        while (list != NULL){
+        GSList *slist = g_hash_table_lookup(prefetch_hashtable, cp->item_p);
+        while (slist != NULL){
             if (cp->type == 'l')
-                *((guint64*) cp->item_p) = *((guint64*)list->data);
+                *((guint64*) cp->item_p) = *((guint64*)slist->data);
             else
-                strcpy((char*)(cp->item_p), (char*)(list->data));
+                strcpy((char*)(cp->item_p), (char*)(slist->data));
             add_element(cache, cp);
-            list = list->next;
+            slist = slist->next;
         }
         
         read_one_element(reader_thread, cp);
@@ -367,22 +367,42 @@ return_res** profiler_with_prefetch(READER* reader_in, struct_cache* cache_in, i
     if (cache_in->core->data_type == 'l'){
         prefetch_hashtable = g_hash_table_new_full(g_int64_hash, g_int64_equal, simple_g_key_value_destroyer, g_slist_destroyer);
         FILE* file = fopen(prefetch_file_loc, "r");
-        char buf[1024*10];
+        char buf[1024*1024];
         char *token;
         GSList* list = NULL;
-        guint64 k;
-        while (fscanf(file, "%s", buf) != 0){
-            printf("%s\n", buf);
-            token = strtok(buf, ",");
-            sscanf(token, "%lu", &k);
-            
+        gint64 req;
+        gint64 *key = NULL;
+        while (fgets(buf, 1024*1024, file) != 0){
+            list = NULL;
+            key = NULL;
+            printf("line: %s\n", buf);
+            token = strtok(buf, "\t");
+            while (token!=NULL){
+                req = (gint64)(atol(token));
+                printf("parsed: %ld\t", req);
+//            sscanf(token, "%lu", &k);
+                if (key == NULL){
+                    key = (gpointer)g_new(gint64, 1);
+                    *key = req;
+                }
+                else{
+                    gint64* value = (gpointer)g_new(gint64, 1);
+                    *value = req;
+
+                    list = g_slist_prepend(list, (gpointer)value);
+                }
+                token = strtok(NULL, "\t");
+            }
+            printf("\n");
+            g_hash_table_insert(prefetch_hashtable, key, list);
         }
         
     }
-    else
+    else{
         prefetch_hashtable = g_hash_table_new_full(g_str_hash, g_str_equal, simple_g_key_value_destroyer, g_slist_destroyer);
-    
-    
+        printf("current not supported\n");
+        exit(1);
+    }
     
 
     
@@ -400,7 +420,7 @@ return_res** profiler_with_prefetch(READER* reader_in, struct_cache* cache_in, i
     g_mutex_init(&(params->mtx));
     
     // build the thread pool
-    GThreadPool * gthread_pool = g_thread_pool_new ( (GFunc) profiler_thread, (gpointer)params, num_of_threads, TRUE, NULL);
+    GThreadPool * gthread_pool = g_thread_pool_new ( (GFunc) profiler_with_prefetch_thread, (gpointer)params, num_of_threads, TRUE, NULL);
     if (gthread_pool == NULL)
         g_error("cannot create thread pool in general profiler\n");
     

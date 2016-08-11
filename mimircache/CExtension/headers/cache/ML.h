@@ -46,20 +46,20 @@ typedef struct{
 
 
 
-extern inline void __ML_insert_element(struct_cache* cache, cache_line* cp);
+extern  void __ML_insert_element(struct_cache* cache, cache_line* cp);
 
-extern inline gboolean ML_check_element(struct_cache* cache, cache_line* cp);
+extern  gboolean ML_check_element(struct_cache* cache, cache_line* cp);
 
-extern inline void __ML_update_element(struct_cache* cache, cache_line* cp);
+extern  void __ML_update_element(struct_cache* cache, cache_line* cp);
 
-extern inline void __ML_evict_element(struct_cache* cache);
+extern  void __ML_evict_element(struct_cache* cache);
 
-extern inline gboolean ML_add_element(struct_cache* cache, cache_line* cp);
+extern  gboolean ML_add_element(struct_cache* cache, cache_line* cp);
 
-extern inline void ML_destroy(struct_cache* cache);
-extern inline void ML_destroy_unique(struct_cache* cache);
+extern  void ML_destroy(struct_cache* cache);
+extern  void ML_destroy_unique(struct_cache* cache);
 
-extern inline ML_hashtable_value_struct* report_feature_add_element(struct_cache* cache, cache_line* cp);
+extern  ML_hashtable_value_struct* report_feature_add_element(struct_cache* cache, cache_line* cp);
 
 
 struct_cache* ML_init(guint64 size, char data_type, void* params);

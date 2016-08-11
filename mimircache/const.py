@@ -1,22 +1,18 @@
-import os
 import configparser
+import os
+
+from mimircache.cache.ARC import ARC
+from mimircache.cache.FIFO import FIFO
+from mimircache.cache.LRU import LRU
+from mimircache.cache.MRU import MRU
+from mimircache.cache.Optimal import Optimal
+from mimircache.cache.Random import Random
+from mimircache.cache.S4LRU import S4LRU
+from mimircache.cache.SLRU import SLRU
+from mimircache.cache.clock import clock
 from mimircache.cacheReader.csvReader import csvReader
 from mimircache.cacheReader.plainReader import plainReader
 from mimircache.cacheReader.vscsiReader import vscsiReader
-
-from mimircache.cache.ARC import ARC
-from mimircache.cache.clock import clock
-from mimircache.cache.FIFO import FIFO
-from mimircache.cache.LFU_LRU__NEED_OPTIMIZATION import LFU_LRU
-from mimircache.cache.LFU_MRU import LFU_MRU
-from mimircache.cache.LFU_RR import LFU_RR
-from mimircache.cache.LRU import LRU
-from mimircache.cache.MRU import MRU
-from mimircache.cache.Random import Random
-from mimircache.cache.SLRU import SLRU
-from mimircache.cache.S4LRU import S4LRU
-from mimircache.cache.Optimal import Optimal
-from mimircache.cache.ARC import ARC
 
 # global c_available_cache
 c_available_cache = []

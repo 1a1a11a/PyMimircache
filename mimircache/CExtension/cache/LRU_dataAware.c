@@ -7,23 +7,30 @@
 //
 
 
+/** 
+ *  dynamically switch between LRU and LFU when encounter a scan 
+ *
+ **/ 
+
+
+
 #include "cache.h" 
 #include "LRU_dataAware.h"
 
 
 
-inline void __LRU_dataAware_insert_element_LFU(struct_cache* LRU_dataAware, cache_line* cp){
+ void __LRU_dataAware_insert_element_LFU(struct_cache* LRU_dataAware, cache_line* cp){
     struct LRU_dataAware_params* LRU_dataAware_params = (struct LRU_dataAware_params*)(LRU_dataAware->cache_params);
     __LFU_insert_element(LRU_dataAware_params->LFU, cp);
 }
 
-inline void __LRU_dataAware_insert_element_LRU(struct_cache* LRU_dataAware, cache_line* cp){
+ void __LRU_dataAware_insert_element_LRU(struct_cache* LRU_dataAware, cache_line* cp){
     struct LRU_dataAware_params* LRU_dataAware_params = (struct LRU_dataAware_params*)(LRU_dataAware->cache_params);
     __LRU_insert_element(LRU_dataAware_params->LRU, cp);
 }
 
 
-inline gboolean LRU_dataAware_check_element(struct_cache* cache, cache_line* cp){
+ gboolean LRU_dataAware_check_element(struct_cache* cache, cache_line* cp){
     struct LRU_dataAware_params* LRU_dataAware_params = (struct LRU_dataAware_params*)(cache->cache_params);
     if (LRU_dataAware_params->in_scan)
         return LFU_check_element(LRU_dataAware_params->LFU, cp);
@@ -31,41 +38,41 @@ inline gboolean LRU_dataAware_check_element(struct_cache* cache, cache_line* cp)
         return LRU_check_element(LRU_dataAware_params->LRU, cp);
 }
 
-inline gboolean LRU_dataAware_check_element_LFU(struct_cache* cache, cache_line* cp){
+ gboolean LRU_dataAware_check_element_LFU(struct_cache* cache, cache_line* cp){
     struct LRU_dataAware_params* LRU_dataAware_params = (struct LRU_dataAware_params*)(cache->cache_params);
     return LFU_check_element(LRU_dataAware_params->LFU, cp);
 }
 
-inline gboolean LRU_dataAware_check_element_LRU(struct_cache* cache, cache_line* cp){
+ gboolean LRU_dataAware_check_element_LRU(struct_cache* cache, cache_line* cp){
     struct LRU_dataAware_params* LRU_dataAware_params = (struct LRU_dataAware_params*)(cache->cache_params);
     return LRU_check_element(LRU_dataAware_params->LRU, cp);
 }
 
 
-inline void __LRU_dataAware_update_element_LFU(struct_cache* cache, cache_line* cp){
+ void __LRU_dataAware_update_element_LFU(struct_cache* cache, cache_line* cp){
     struct LRU_dataAware_params* LRU_dataAware_params = (struct LRU_dataAware_params*)(cache->cache_params);
     __LFU_update_element(LRU_dataAware_params->LFU, cp);
 }
 
-inline void __LRU_dataAware_update_element_LRU(struct_cache* cache, cache_line* cp){
+ void __LRU_dataAware_update_element_LRU(struct_cache* cache, cache_line* cp){
     struct LRU_dataAware_params* LRU_dataAware_params = (struct LRU_dataAware_params*)(cache->cache_params);
     __LRU_update_element(LRU_dataAware_params->LRU, cp);
 }
 
 
-inline void __LRU_dataAware_evict_element_LFU(struct_cache* LRU_dataAware, cache_line* cp){
+ void __LRU_dataAware_evict_element_LFU(struct_cache* LRU_dataAware, cache_line* cp){
     struct LRU_dataAware_params* LRU_dataAware_params = (struct LRU_dataAware_params*)(LRU_dataAware->cache_params);
     __LFU_evict_element(LRU_dataAware_params->LFU, cp);
 }
 
-inline void __LRU_dataAware_evict_element_LRU(struct_cache* LRU_dataAware, cache_line* cp){
+ void __LRU_dataAware_evict_element_LRU(struct_cache* LRU_dataAware, cache_line* cp){
     struct LRU_dataAware_params* LRU_dataAware_params = (struct LRU_dataAware_params*)(LRU_dataAware->cache_params);
     __LRU_evict_element(LRU_dataAware_params->LRU, cp);
 }
 
 
 
-inline gboolean LRU_dataAware_add_element(struct_cache* cache, cache_line* cp){
+ gboolean LRU_dataAware_add_element(struct_cache* cache, cache_line* cp){
     struct LRU_dataAware_params* LRU_dataAware_params = (struct LRU_dataAware_params*)(cache->cache_params);
     
     LRU_dataAware_params->total_request_num ++;

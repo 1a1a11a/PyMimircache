@@ -6,13 +6,19 @@
 //  Copyright © 2016 Juncheng. All rights reserved.
 //
 
+/** a mix of LRU and LFU with certain ratio 
+ *  not good, because some repeated reference in a short time are promoted to LFU segments,
+ *  and won't be easily to get evicted 
+ **/
+
+
 
 #include "cache.h" 
 #include "LRU_LFU.h"
 
 
 
-inline void __LRU_LFU_insert_element(struct_cache* LRU_LFU, cache_line* cp){
+ void __LRU_LFU_insert_element(struct_cache* LRU_LFU, cache_line* cp){
     // insert into LRU segment
     
     struct LRU_LFU_params* LRU_LFU_params = (struct LRU_LFU_params*)(LRU_LFU->cache_params);
@@ -20,13 +26,13 @@ inline void __LRU_LFU_insert_element(struct_cache* LRU_LFU, cache_line* cp){
 }
 
 
-inline gboolean LRU_LFU_check_element(struct_cache* cache, cache_line* cp){
+ gboolean LRU_LFU_check_element(struct_cache* cache, cache_line* cp){
     struct LRU_LFU_params* LRU_LFU_params = (struct LRU_LFU_params*)(cache->cache_params);
     return (LRU_check_element(LRU_LFU_params->LRU, cp) || LFU_check_element(LRU_LFU_params->LFU, cp));
 }
 
 
-inline void __LRU_LFU_update_element(struct_cache* cache, cache_line* cp){
+ void __LRU_LFU_update_element(struct_cache* cache, cache_line* cp){
     struct LRU_LFU_params* LRU_LFU_params = (struct LRU_LFU_params*)(cache->cache_params);
     struct LRU_params* LRU_params = (struct LRU_params*)(LRU_LFU_params->LRU->cache_params);
 //    struct LFU_params* LFU_params = (struct LFU_params*)(LRU_LFU_params->LFU->cache_params);
@@ -46,14 +52,14 @@ inline void __LRU_LFU_update_element(struct_cache* cache, cache_line* cp){
 }
 
 
-inline void __LRU_LFU_evict_element(struct_cache* LRU_LFU, cache_line* cp){
+ void __LRU_LFU_evict_element(struct_cache* LRU_LFU, cache_line* cp){
     ;
 }
 
 
 
 
-inline gboolean LRU_LFU_add_element(struct_cache* cache, cache_line* cp){
+ gboolean LRU_LFU_add_element(struct_cache* cache, cache_line* cp){
     static long printOrNot = 1;
     struct LRU_LFU_params* LRU_LFU_params = (struct LRU_LFU_params*)(cache->cache_params);
     struct LRU_params* LRU_params = (struct LRU_params*)(LRU_LFU_params->LRU->cache_params);

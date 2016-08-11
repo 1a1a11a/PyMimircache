@@ -36,26 +36,26 @@ struct LRU_dataAware_params{
 
 
 
-extern inline void __LRU_dataAware_insert_element(struct_cache* LRU_dataAware, cache_line* cp);
+extern  void __LRU_dataAware_insert_element(struct_cache* LRU_dataAware, cache_line* cp);
 
-extern inline gboolean LRU_dataAware_check_element(struct_cache* cache, cache_line* cp);
+extern  gboolean LRU_dataAware_check_element(struct_cache* cache, cache_line* cp);
 
-extern inline void __LRU_dataAware_update_element(struct_cache* LRU_dataAware, cache_line* cp);
+extern  void __LRU_dataAware_update_element(struct_cache* LRU_dataAware, cache_line* cp);
 
-extern inline void __LRU_dataAware_evict_element(struct_cache* LRU_dataAware, cache_line* cp);
+extern  void __LRU_dataAware_evict_element(struct_cache* LRU_dataAware, cache_line* cp);
 
-extern inline gboolean LRU_dataAware_add_element(struct_cache* cache, cache_line* cp);
+extern  gboolean LRU_dataAware_add_element(struct_cache* cache, cache_line* cp);
 
 
-extern inline void LRU_dataAware_destroy(struct_cache* cache);
-extern inline void LRU_dataAware_destroy_unique(struct_cache* cache);
+extern  void LRU_dataAware_destroy(struct_cache* cache);
+extern  void LRU_dataAware_destroy_unique(struct_cache* cache);
 
 
 struct_cache* LRU_dataAware_init(guint64 size, char data_type, void* params);
 
 
 
-extern inline void __LRU_dataAware_remove_element(struct_cache* cache, void* data_to_remove);
+extern  void __LRU_dataAware_remove_element(struct_cache* cache, void* data_to_remove);
 
 
 

@@ -24,18 +24,18 @@ struct LFU_params{
 
 
 
-extern inline void __LFU_insert_element(struct_cache* LFU, cache_line* cp);
+extern  void __LFU_insert_element(struct_cache* LFU, cache_line* cp);
 
-extern inline gboolean LFU_check_element(struct_cache* cache, cache_line* cp);
+extern  gboolean LFU_check_element(struct_cache* cache, cache_line* cp);
 
-extern inline void __LFU_update_element(struct_cache* LFU, cache_line* cp);
+extern  void __LFU_update_element(struct_cache* LFU, cache_line* cp);
 
-extern inline void __LFU_evict_element(struct_cache* LFU, cache_line* cp);
+extern  void __LFU_evict_element(struct_cache* LFU, cache_line* cp);
 
-extern inline gboolean LFU_add_element(struct_cache* cache, cache_line* cp);
+extern  gboolean LFU_add_element(struct_cache* cache, cache_line* cp);
 
-extern inline void LFU_destroy(struct_cache* cache);
-extern inline void LFU_destroy_unique(struct_cache* cache);
+extern  void LFU_destroy(struct_cache* cache);
+extern  void LFU_destroy_unique(struct_cache* cache);
 
 struct_cache* LFU_init(guint64 size, char data_type, void* params);
 

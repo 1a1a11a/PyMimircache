@@ -147,6 +147,55 @@ static PyObject* reader_read_one_element(PyObject* self, PyObject* args)
         Py_RETURN_NONE;
 }
 
+
+static PyObject* reader_read_time_request(PyObject* self, PyObject* args)
+{
+    READER* reader;
+    PyObject* po;
+    cache_line* c = new_cacheline();
+    
+    // parse arguments
+    if (!PyArg_ParseTuple(args, "O", &po)) {
+        return NULL;
+    }
+    if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
+        return NULL;
+    }
+    
+    if (reader->type == 'p'){
+        printf("plain reader does not support get real time stamp\n");
+        exit(1);
+    }
+    else if (reader->type == 'c')
+        c->type = 'c';
+    else if (reader->type == 'v')
+        c->type = 'l';
+    else{
+        printf("reader type not recognized: %c\n", reader->type);
+        exit(1);
+    }
+    
+    read_one_element(reader, c);
+    if (c->valid){
+        if (c->type == 'c'){
+            PyObject* ret = Py_BuildValue("is", (long)c->real_time, (char*)(c->item_p));
+            destroy_cacheline(c);
+            return ret;
+        }
+        else if (c->type == 'l'){
+            guint64 item = *((guint64*)c->item_p);
+            destroy_cacheline(c);
+            return Py_BuildValue("ll", (long)c->real_time, item);
+        }
+        else
+            Py_RETURN_NONE;
+    }
+    else
+        Py_RETURN_NONE;
+}
+
+
+
 static PyObject* reader_reset_reader(PyObject* self, PyObject* args)
 {
     READER* reader;
@@ -256,6 +305,8 @@ static PyMethodDef c_cacheReader_funcs[] = {
     {"set_read_pos", (PyCFunction)reader_reader_set_read_pos,
         METH_VARARGS, "set the next reading position of reader,\
         accept arguments like 0.5, 0.3 ..."},
+    {"read_time_request", (PyCFunction)reader_read_time_request,
+        METH_VARARGS, "read one element with its real time from reader in the form of tuple (real time, request)"},
     {NULL}
 };
 

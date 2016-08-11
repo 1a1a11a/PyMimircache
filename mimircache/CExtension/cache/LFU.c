@@ -16,35 +16,35 @@
  */
 
 
-static inline int
+static  int
 cmp_pri(pqueue_pri_t next, pqueue_pri_t curr)
 {
     return (next > curr);
 }
 
 
-static inline pqueue_pri_t
+static  pqueue_pri_t
 get_pri(void *a)
 {
     return ((pq_node_t *) a)->pri;
 }
 
 
-static inline void
+static  void
 set_pri(void *a, pqueue_pri_t pri)
 {
     ((pq_node_t *) a)->pri = pri;
 }
 
 
-static inline size_t
+static  size_t
 get_pos(void *a)
 {
     return ((pq_node_t *) a)->pos;
 }
 
 
-static inline void
+static  void
 set_pos(void *a, size_t pos)
 {
     ((pq_node_t *) a)->pos = pos;
@@ -61,13 +61,13 @@ set_pos(void *a, size_t pos)
 
 
 
-inline void __LFU_insert_element(struct_cache* LFU, cache_line* cp){
+ void __LFU_insert_element(struct_cache* LFU, cache_line* cp){
     struct LFU_params* LFU_params = (struct LFU_params*)(LFU->cache_params);
     
     pq_node_t *node = g_new(pq_node_t, 1);
     gpointer key;
     if (cp->type == 'l'){
-        key = (gpointer)g_new(gint64, 1);
+        key = (gpointer)g_new(guint64, 1);
         *(guint64*)key = *(guint64*)(cp->item_p);
     }
     else{
@@ -88,7 +88,7 @@ inline void __LFU_insert_element(struct_cache* LFU, cache_line* cp){
 }
 
 
-inline gboolean LFU_check_element(struct_cache* cache, cache_line* cp){
+ gboolean LFU_check_element(struct_cache* cache, cache_line* cp){
     return g_hash_table_contains(
                                  ((struct LFU_params*)(cache->cache_params))->hashtable,
                                  (gconstpointer)(cp->item_p)
@@ -96,7 +96,7 @@ inline gboolean LFU_check_element(struct_cache* cache, cache_line* cp){
 }
 
 
-inline void __LFU_update_element(struct_cache* cache, cache_line* cp){
+ void __LFU_update_element(struct_cache* cache, cache_line* cp){
     struct LFU_params* LFU_params = (struct LFU_params*)(cache->cache_params);
     pq_node_t* node = (pq_node_t*) g_hash_table_lookup(LFU_params->hashtable, (gconstpointer)(cp->item_p));
     pqueue_change_priority(LFU_params->pq, node->pri+1, (void*)node);
@@ -104,7 +104,7 @@ inline void __LFU_update_element(struct_cache* cache, cache_line* cp){
 
 
 
-inline void __LFU_evict_element(struct_cache* cache, cache_line* cp){
+ void __LFU_evict_element(struct_cache* cache, cache_line* cp){
     struct LFU_params* LFU_params = (struct LFU_params*)(cache->cache_params);
     
     pq_node_t* node = (pq_node_t*) pqueue_pop(LFU_params->pq);
@@ -116,7 +116,7 @@ inline void __LFU_evict_element(struct_cache* cache, cache_line* cp){
 
 
 
-inline gboolean LFU_add_element(struct_cache* cache, cache_line* cp){
+ gboolean LFU_add_element(struct_cache* cache, cache_line* cp){
     struct LFU_params* LFU_params = (struct LFU_params*)(cache->cache_params);
     
     if (LFU_check_element(cache, cp)){
@@ -132,7 +132,7 @@ inline gboolean LFU_add_element(struct_cache* cache, cache_line* cp){
 }
 
 
-inline void LFU_destroy(struct_cache* cache){
+ void LFU_destroy(struct_cache* cache){
     struct LFU_params* LFU_params = (struct LFU_params*)(cache->cache_params);
     
     g_hash_table_destroy(LFU_params->hashtable);
@@ -141,7 +141,7 @@ inline void LFU_destroy(struct_cache* cache){
 }
 
 
-inline void LFU_destroy_unique(struct_cache* cache){
+ void LFU_destroy_unique(struct_cache* cache){
     /* the difference between destroy_unique and destroy
      is that the former one only free the resources that are
      unique to the cache, freeing these resources won't affect

@@ -14,12 +14,12 @@
  
  */
 
-inline void __fifo_insert_element(struct_cache* fifo, cache_line* cp){
+ void __fifo_insert_element(struct_cache* fifo, cache_line* cp){
     struct FIFO_params* fifo_params = (struct FIFO_params*)(fifo->cache_params);
     
     gpointer key;
     if (cp->type == 'l'){
-        key = (gpointer)g_new(gint64, 1);
+        key = (gpointer)g_new(guint64, 1);
         *(guint64*)key = *(guint64*)(cp->item_p);
     }
     else{
@@ -30,18 +30,18 @@ inline void __fifo_insert_element(struct_cache* fifo, cache_line* cp){
     g_queue_push_tail(fifo_params->list, (gpointer)key);
 }
 
-inline gboolean fifo_check_element(struct_cache* cache, cache_line* cp){
+ gboolean fifo_check_element(struct_cache* cache, cache_line* cp){
     struct FIFO_params* fifo_params = (struct FIFO_params*)(cache->cache_params);
     return g_hash_table_contains( fifo_params->hashtable, cp->item_p );
 }
 
 
-inline void __fifo_update_element(struct_cache* fifo, cache_line* cp){
+ void __fifo_update_element(struct_cache* fifo, cache_line* cp){
     return;
 }
 
 
-inline void __fifo_evict_element(struct_cache* fifo){
+ void __fifo_evict_element(struct_cache* fifo){
     struct FIFO_params* fifo_params = (struct FIFO_params*)(fifo->cache_params);
     gpointer data = g_queue_pop_head(fifo_params->list);
     g_hash_table_remove(fifo_params->hashtable, (gconstpointer)data);
@@ -50,7 +50,7 @@ inline void __fifo_evict_element(struct_cache* fifo){
 
 
 
-inline gboolean fifo_add_element(struct_cache* cache, cache_line* cp){
+ gboolean fifo_add_element(struct_cache* cache, cache_line* cp){
     struct FIFO_params* fifo_params = (struct FIFO_params*)(cache->cache_params);
     if (fifo_check_element(cache, cp)){
         return TRUE;

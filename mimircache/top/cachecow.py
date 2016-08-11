@@ -240,8 +240,8 @@ if __name__ == "__main__":
     # c.open('../data/trace.txt')
     # c.open("../data/test.dat")
 
-    # c.vscsi('../data/trace.vscsi')
-    c.vscsi('../data/traces/w38_vscsi1.vscsitrace')
+    c.vscsi('../data/trace.vscsi')
+    # c.vscsi('../data/traces/w38_vscsi1.vscsitrace')
     d = {"LRU_percentage": 0.3}
     # p = c.profiler("LRU_dataAware", cache_size=2000, cache_params=d, num_of_threads=8)
     # p = c.profiler("LRU")
@@ -250,9 +250,9 @@ if __name__ == "__main__":
     # print(p.get_reuse_distance())
     # print((p.get_hit_rate()))
     # p.plotHRC(figname="w27_LRULFU_0.3_HRC.png", cache_size=2800000)
-    c.differential_heatmap('v', 1000000, "hit_rate_start_time_end_time", algorithm1="LRU", algorithm2="MRU",
+    c.differential_heatmap('v', 100, "hit_rate_start_time_end_time", algorithm1="LRU_2", algorithm2="Optimal",
                            # cache_params2={"LRU_percentage":0.3},
-                           cache_size=800, figname="w38_differential_heatmap_LRU_MRU_800_v.png",
+                           cache_size=2000, figname="differential_heatmap_LRU2_Opt_v.png",
                            num_of_threads=8)
     print(d)
 

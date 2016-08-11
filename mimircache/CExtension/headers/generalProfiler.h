@@ -42,6 +42,8 @@ struct multithreading_params_generalProfiler{
 };
 
 return_res** profiler(READER* reader_in, struct cache* cache_in, int num_of_threads_in, int bin_size_in, gint64 begin_pos, gint64 end_pos);
+return_res** profiler_with_prefetch(READER* reader_in, struct_cache* cache_in, int num_of_threads_in, int bin_size_in, char* prefetch_file_loc, gint64 begin_pos, gint64 end_pos);
+
 gdouble* LRU_evict_err_statistics(READER* reader_in, struct_cache* cache_in, guint64 time_interval);
 
 

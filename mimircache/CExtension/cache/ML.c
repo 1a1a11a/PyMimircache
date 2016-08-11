@@ -10,7 +10,7 @@
 //
 //
 //
-//inline void __ML_insert_element(struct_cache* ML, cache_line* cp){
+// void __ML_insert_element(struct_cache* ML, cache_line* cp){
 //    /** update request is done at checking element,
 //     * now insert request into cache_hashtable and pq
 //     *
@@ -41,7 +41,7 @@
 //}
 //
 //
-//inline gboolean ML_check_element(struct_cache* cache, cache_line* cp){
+// gboolean ML_check_element(struct_cache* cache, cache_line* cp){
 //    /** check whether request is in the cache_hashtable,
 //     * then update ghost_hashtable and pq accordingly,
 //     * if in ghost_hashtable, then update it,
@@ -88,14 +88,14 @@
 //}
 //
 //
-//inline void __ML_update_element(struct_cache* cache, cache_line* cp){
+// void __ML_update_element(struct_cache* cache, cache_line* cp){
 //    /* move from segments to segments */
 //
 //    ;
 //}
 //
 //
-//inline void __ML_evict_element(struct_cache* ML){
+// void __ML_evict_element(struct_cache* ML){
 //    /** pop one node from pq, remove it from cache_hashtable
 //     **/
 //
@@ -108,7 +108,7 @@
 //
 //
 //
-//inline gboolean ML_add_element(struct_cache* cache, cache_line* cp){
+// gboolean ML_add_element(struct_cache* cache, cache_line* cp){
 //    struct ML_params* ML_params = (struct ML_params*)(cache->cache_params);
 //    ML_params->ts++;
 //    if (ML_check_element(cache, cp)){
@@ -154,7 +154,7 @@
 //
 //
 //
-//extern inline ML_hashtable_value_struct* report_feature_add_element(struct_cache* cache, cache_line* cp){
+//extern  ML_hashtable_value_struct* report_feature_add_element(struct_cache* cache, cache_line* cp){
 //
 //
 //    ;

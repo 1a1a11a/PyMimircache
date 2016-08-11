@@ -27,6 +27,17 @@ def debugPrint(s):
     print("{}: {}: {}".format(sys._getframe().f_code.co_name, sys._getframe().f_lineno, s))
 
 
+def printList(l, num_in_one_line=20):
+    counter = 0
+    for i in l:
+        print("{}".format(i), end="\t")
+        counter += 1
+        if counter%num_in_one_line==0:
+            print("")
+            counter = 0
+
+
+
 if __name__ == "__main__":
     colorfulPrint("purple", "T")
     colorfulPrintWithBackground("yellow", 'blue', 'text')
