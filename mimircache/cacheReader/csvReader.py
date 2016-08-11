@@ -6,7 +6,7 @@ from mimircache.cacheReader.abstractReader import cacheReaderAbstract
 class csvReader(cacheReaderAbstract):
     def __init__(self, file_loc, init_params=None, open_c_reader=True):
         super(csvReader, self).__init__(file_loc)
-        self.trace_file = open(file_loc, 'r')
+        self.trace_file = open(file_loc, 'r', encoding='utf-8', errors='ignore')
 
         self.init_params = init_params
         assert "label_column" in init_params, "please provide label_column for csv reader"

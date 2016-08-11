@@ -76,6 +76,8 @@ void read_one_element(READER* reader, cache_line* c){
         case 'p':
 
             if (fscanf(reader->file, "%s", c->item) == EOF)
+                //should change to the following to avoid buffer overflow
+//              if (fgets(c->item, cache_line_label_size, reader->file))
                 c->valid = FALSE;
             else {
                 if (strlen(c->item)==2 && c->item[0] == LINE_ENDING && c->item[1] == '\0')
