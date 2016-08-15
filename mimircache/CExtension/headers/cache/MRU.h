@@ -10,5 +10,35 @@
 #define MRU_h
 
 #include <stdio.h>
+#include "cache.h"
 
+
+
+struct MRU_params{
+    GHashTable *hashtable;
+};
+
+
+
+
+
+extern  void __MRU_insert_element(struct_cache* MRU, cache_line* cp);
+
+extern  gboolean MRU_check_element(struct_cache* cache, cache_line* cp);
+
+extern  void __MRU_update_element(struct_cache* MRU, cache_line* cp);
+
+extern  void __MRU_evict_element(struct_cache* MRU, cache_line* cp);
+
+extern  gboolean MRU_add_element(struct_cache* cache, cache_line* cp);
+
+extern  void MRU_destroy(struct_cache* cache);
+extern  void MRU_destroy_unique(struct_cache* cache);
+
+struct_cache* MRU_init(guint64 size, char data_type, void* params);
+
+
+
+
+ 
 #endif /* MRU_h */

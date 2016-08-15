@@ -26,9 +26,15 @@ typedef enum{
     e_Optimal,
     e_FIFO,
     e_LRU_K,
+    e_MRU,
+    e_Random,
     e_LRU_LFU,
     e_LRU_dataAware,
-    e_ML
+    e_ML,
+
+    
+    e_YJC
+    
 }cache_type;
 
 
