@@ -121,6 +121,27 @@
 }
 
 
+gpointer __LRU_evict_element_with_return(struct_cache* LRU, cache_line* cp){
+    /** evict one element and return the evicted element, needs to free the memory of returned data **/
+    
+    struct LRU_params* LRU_params = (struct LRU_params*)(LRU->cache_params);
+    
+    gpointer data = g_queue_pop_head(LRU_params->list);
+    
+    gpointer evicted_key;
+    if (cp->type == 'l'){
+        evicted_key = (gpointer)g_new(guint64, 1);
+        *(guint64*)evicted_key = *(guint64*)(data);
+    }
+    else{
+        evicted_key = (gpointer)g_strdup((gchar*)data);
+    }
+
+    g_hash_table_remove(LRU_params->hashtable, (gconstpointer)data);
+    return evicted_key;
+}
+
+
 
 
  gboolean LRU_add_element(struct_cache* cache, cache_line* cp){
@@ -192,7 +213,7 @@ struct_cache* LRU_init(guint64 size, char data_type, void* params){
 
 
 
- void __LRU_remove_element(struct_cache* cache, void* data_to_remove){
+ void LRU_remove_element(struct_cache* cache, void* data_to_remove){
     struct LRU_params* LRU_params = (struct LRU_params*)(cache->cache_params);
     
 //    if (cp->type == 'l'){
@@ -210,3 +231,7 @@ struct_cache* LRU_init(guint64 size, char data_type, void* params){
 
 }
 
+guint64 LRU_get_size(struct_cache* cache){
+    struct LRU_params* LRU_params = (struct LRU_params*)(cache->cache_params);
+    return (guint64) g_hash_table_size(LRU_params->hashtable);
+}

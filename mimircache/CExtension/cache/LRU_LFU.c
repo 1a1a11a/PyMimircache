@@ -39,7 +39,7 @@
     
     if (g_hash_table_contains( LRU_params->hashtable, cp->item_p )){
         // remove from LRU part, insert into LRU segment
-        __LRU_remove_element(LRU_LFU_params->LRU, cp->item_p);
+        LRU_remove_element(LRU_LFU_params->LRU, cp->item_p);
         __LFU_insert_element(LRU_LFU_params->LFU, cp);
 
         // the line below is not necessary, remove it then all elements in LFU begin with freq of 1

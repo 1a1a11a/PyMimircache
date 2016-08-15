@@ -104,7 +104,7 @@ set_pos(void *a, size_t pos)
 
 
 
- void __LFU_evict_element(struct_cache* cache, cache_line* cp){
+void __LFU_evict_element(struct_cache* cache, cache_line* cp){
     struct LFU_params* LFU_params = (struct LFU_params*)(cache->cache_params);
     
     pq_node_t* node = (pq_node_t*) pqueue_pop(LFU_params->pq);
@@ -113,6 +113,26 @@ set_pos(void *a, size_t pos)
     g_hash_table_remove(LFU_params->hashtable, (gconstpointer)(node->item));
 }
 
+
+gpointer __LFU_evict_element_with_return(struct_cache* cache, cache_line* cp){
+    struct LFU_params* LFU_params = (struct LFU_params*)(cache->cache_params);
+    
+    pq_node_t* node = (pq_node_t*) pqueue_pop(LFU_params->pq);
+    
+    
+    gpointer evicted_key;
+    if (cp->type == 'l'){
+        evicted_key = (gpointer)g_new(guint64, 1);
+        *(guint64*)evicted_key = *(guint64*)(node->item);
+    }
+    else{
+        evicted_key = (gpointer)g_strdup((gchar*)node->item);
+    }
+
+    
+    g_hash_table_remove(LFU_params->hashtable, (gconstpointer)(node->item));
+    return evicted_key;
+}
 
 
 
@@ -191,3 +211,15 @@ struct_cache* LFU_init(guint64 size, char data_type, void* params){
     return cache;
 }
 
+
+guint64 LFU_get_size(struct_cache* cache){
+    struct LFU_params* LFU_params = (struct LFU_params*)(cache->cache_params);
+    return (guint64) g_hash_table_size(LFU_params->hashtable);
+}
+
+void LFU_remove_element(struct_cache* cache, void* data_to_remove){
+    struct LFU_params* LFU_params = (struct LFU_params*)(cache->cache_params);
+    pq_node_t* node = (pq_node_t*) g_hash_table_lookup(LFU_params->hashtable, (gconstpointer)data_to_remove);
+    pqueue_remove(LFU_params->pq, (void*)node);
+    g_hash_table_remove(LFU_params->hashtable, (gconstpointer)data_to_remove);
+}
