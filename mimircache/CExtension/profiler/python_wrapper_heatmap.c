@@ -550,8 +550,9 @@ static PyObject* heatmap_get_break_points(PyObject* self, PyObject* args, PyObje
     
     
     guint64 i;
-    for (i=0; i<breakpoints->len; i++)
+    for (i=0; i<breakpoints->len; i++){
         *(long long*) PyArray_GETPTR1((PyArrayObject *)ret_array, i) = (long long)g_array_index(breakpoints, guint64, i);
+    }
 
     
     // clean up

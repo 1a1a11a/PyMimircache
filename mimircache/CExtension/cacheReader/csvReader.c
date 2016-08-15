@@ -17,11 +17,9 @@ static inline void csv_cb1(void *s, size_t len, void *data){
     if (reader->current_column_counter == reader->label_column){
         // this field is the request lable (key)
         cache_line* cp = reader->cache_line_pointer;
-        if (len < cache_line_label_size)
-            strncpy(cp->item, (char*)s, len);
-        else
-            strncpy(cp->item, (char*)s, cache_line_label_size-1);
-
+        if (len >= cache_line_label_size)
+            len = cache_line_label_size - 1;
+        strncpy(cp->item, (char*)s, len);
         cp->item[len] = 0;
         reader->already_got_cache_line = TRUE;
     }

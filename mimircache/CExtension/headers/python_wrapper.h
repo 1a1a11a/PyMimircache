@@ -21,8 +21,12 @@
 #include "LRU_K.h"
 #include "LRU.h"
 #include "LFU.h" 
+#include "MRU.h"
+#include "Random.h"
 #include "LRU_LFU.h" 
 #include "LRU_dataAware.h" 
+
+#include "YJC.h"
 
 #include <stdio.h>
 #include <stdlib.h>

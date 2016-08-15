@@ -43,7 +43,8 @@ GSList* get_last_access_dist_seq(READER* reader, void (*funcPtr)(READER*, cache_
     }
     else if (funcPtr == read_one_element_above){
         reader_set_read_pos(reader, 1.0);
-        go_back_one_line(reader);
+        if (go_back_one_line(reader)!=0)
+            fprintf(stderr, "error when going back one line\n");
         read_one_element(reader, cp);
         if (reader->type == 'c')
             reader->reader_end = FALSE;
@@ -206,7 +207,7 @@ GArray* gen_breakpoints_realtime(READER* reader, guint64 time_interval){
         printf("%snumber of pixels in one dimension are more than 10000, exact size: %d, it may take a very long time, if you didn't intend to do it, please try with a larger time stamp\n", KRED, break_points->len);
     else if (break_points->len < 20)
         printf("%snumber of pixels in one dimension are less than 20, exact size: %d, each pixel will be very large, if you didn't intend to do it, please try with a smaller time stamp\n", KRED, break_points->len);
-
+    
     struct break_point* bp = g_new(struct break_point, 1);
     bp->mode = 'r';
     bp->time_interval = time_interval;

@@ -25,6 +25,12 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
     else if (strcmp(algorithm, "LFU") == 0){
         cache = LFU_init(cache_size, data_type, NULL);
     }
+    else if (strcmp(algorithm, "MRU") == 0){
+        cache = MRU_init(cache_size, data_type, NULL);
+    }
+    else if (strcmp(algorithm, "Random") == 0){
+        cache = Random_init(cache_size, data_type, NULL);
+    }
     else if (strcmp(algorithm, "LRU_LFU") == 0){
         double LRU_percentage = PyFloat_AS_DOUBLE(PyDict_GetItemString(cache_params, "LRU_percentage"));
         DEBUG(printf("LRU_percentage=%lf\n", LRU_percentage));
@@ -47,6 +53,16 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
         init_params->K = 2;
         init_params->maxK = 2;
         cache = LRU_K_init(cache_size, data_type, (void*)init_params);
+    }
+    else if (strcmp(algorithm, "YJC") == 0){
+        double LRU_percentage = PyFloat_AS_DOUBLE(PyDict_GetItemString(cache_params, "LRU_percentage"));
+        DEBUG(printf("LRU_percentage=%lf\n", LRU_percentage));
+        double LFU_percentage = PyFloat_AS_DOUBLE(PyDict_GetItemString(cache_params, "LFU_percentage"));
+        DEBUG(printf("LFU_percentage=%lf\n", LFU_percentage));
+        struct YJC_init_params *init_params = g_new(struct YJC_init_params, 1);
+        init_params->LRU_percentage = LRU_percentage;
+        init_params->LFU_percentage = LFU_percentage;
+        cache = YJC_init(cache_size, data_type, (void*)init_params);
     }
     else if (strcmp(algorithm, "LRU_K") == 0){
 //        printf("check dict\n");
