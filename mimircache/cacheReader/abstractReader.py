@@ -1,6 +1,7 @@
 import abc
 import os
 from multiprocessing import Lock
+from collections import defaultdict
 import mimircache.c_cacheReader as c_cacheReader
 
 
@@ -41,6 +42,15 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
             self.reset()
 
         return self.num_of_line
+
+    def get_request_num_distribution(self):
+        d = defaultdict(int)
+        for i in self:
+            d[i] += 1
+        return d
+
+    def get_num_of_unique_requests(self):
+        return len(self.get_request_num_distribution())
 
     def __iter__(self):
         return self
