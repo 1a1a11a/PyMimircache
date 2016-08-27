@@ -256,6 +256,9 @@ class cachecow:
 
     def plotHRCs(self, algorithm_list, cache_params=None, cache_size=-1, auto_size=True, **kwargs):
         plot_dict = prepPlotParams("Hit Rate Curve", "Cache Size/A.U.", "Hit Rate", "HRC.png", **kwargs)
+        num_of_threads = 4
+        if 'num_of_threads' in kwargs:
+            num_of_threads=kwargs['num_of_threads']
 
         if auto_size:
             cache_size = LRUProfiler(self.reader).plotHRC(auto_resize=True, threshhold=0.98, no_save=True)
@@ -265,7 +268,8 @@ class cachecow:
                 cache_param = cache_params[i]
             else:
                 cache_param = None
-            profiler = self.profiler(alg, cache_param, cache_size, bin_size=cache_size//100)
+            profiler = self.profiler(alg, cache_param, cache_size,
+                                     bin_size=cache_size//100, num_of_threads=num_of_threads)
             hr = profiler.get_hit_rate()
             # plt.xlim(0, cache_size)
             if alg!="LRU":

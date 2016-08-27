@@ -121,9 +121,13 @@ class LRUProfiler:
             plt.xlabel("cache Size")
             plt.ylabel("Miss Rate")
             plt.title('Miss Rate Curve', fontsize=18, color='black')
-            plt.savefig(figname, dpi=300)
-            colorfulPrint("red", "plot is saved at the same directory")
-            plt.show()
+            if not 'no_save' in kwargs or not kwargs['no_save']:
+                plt.savefig(figname, dpi=600)
+                colorfulPrint("red", "plot is saved at the same directory")
+            try:
+                plt.show()
+            except:
+                pass
             plt.clf()
             return stop_point
         except Exception as e:
@@ -153,7 +157,7 @@ class LRUProfiler:
             plt.title('Hit Rate Curve', fontsize=18, color='black')
             if not 'no_save' in kwargs or not kwargs['no_save']:
                 plt.savefig(figname, dpi=600)
-            colorfulPrint("red", "plot is saved at the same directory")
+                colorfulPrint("red", "plot is saved at the same directory")
             try:
                 plt.show()
             except:
