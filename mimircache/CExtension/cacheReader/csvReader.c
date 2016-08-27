@@ -22,6 +22,7 @@ static inline void csv_cb1(void *s, size_t len, void *data){
         strncpy(cp->item, (char*)s, len);
         cp->item[len] = 0;
         reader->already_got_cache_line = TRUE;
+        (cp->ts) ++;
     }
     else if (reader->current_column_counter == reader->real_time_column){
         cache_line* cp = reader->cache_line_pointer;
@@ -43,15 +44,20 @@ static inline void csv_cb2(int c, void *data){
     
     
     READER* reader = (READER* )data;
-    cache_line* cp = reader->cache_line_pointer;
+//    cache_line* cp = reader->cache_line_pointer;
     reader->current_column_counter = 0;
-    if (c == -1){
-        // last line
-        ;
-    }
-    else{
-        cp->ts = (reader->ts)++;
-    }
+    
+    /* move the following code to csv_cb1 after detecting label, 
+     * because putting here will cause a bug when there is no new line at the 
+     * end of file, then the last line will have an incorrect ts 
+     */
+//    if (c == -1){
+//        // last line
+//        ;
+//    }
+//    else{
+//        cp->ts = (reader->ts)++;
+//    }
 }
 
 

@@ -82,12 +82,12 @@ void read_one_element(READER* reader, cache_line* c){
             else {
                 if (strlen(c->item)==2 && c->item[0] == LINE_ENDING && c->item[1] == '\0')
                     return read_one_element(reader, c);
-                c->ts = (reader->ts)++;
+                c->ts ++;
             }
             break;
         case 'v':
             vscsi_read(reader, c);
-            c->ts = (reader->ts)++;
+            c->ts ++;
             break;
         default:
             printf("cannot recognize reader type, it can only be c(csv), p(plain text), "
@@ -502,6 +502,7 @@ cache_line* new_cacheline(){
     cp->size = -1;
     cp->valid = TRUE;
     cp->item_p = (gpointer)cp->item;
+    cp->ts = 0; 
     
     return cp;
 }

@@ -146,7 +146,7 @@ class cHeatmap:
                                                cache_size, algorithm, cache_params=cache_params,
                                                num_of_threads=num_of_threads)
                 else:
-                    raise RuntimeError("haven't provide support given algorithm yet: " + str(algorithm))
+                    raise RuntimeError("haven't provided support given algorithm in C yet: " + str(algorithm))
                     pass
 
                 text = "      " \
@@ -486,18 +486,21 @@ if __name__ == "__main__":
     # server_plot_all(path="../../../../disk/traces/", num_of_threads=16)
     # localtest()
 
-    CACHE_SIZE = 15000
+    CACHE_SIZE = 200000
     BINSIZE = 1
-    TIME_INTERVAL = 100
-    CACHE_TYPE = "LRU_LFU"
-    TIME_TYPE = 'v'
+    TIME_INTERVAL = 1000000000
+    CACHE_TYPE = "YJC"
+    TIME_TYPE = 'r'
     PLOT_TYPE = "hit_rate_start_time_end_time"
-    NUM_OF_THREADS = 8
+    NUM_OF_THREADS = 48
 
     hm = cHeatmap()
-    reader = vscsiReader('../data/trace.vscsi')
-    hm.differential_heatmap(reader, TIME_TYPE, TIME_INTERVAL, PLOT_TYPE, "LRU", "LRU_LFU", cache_params2={'LRU_percentage': 0.1},
-                            cache_size=CACHE_SIZE, num_of_threads=NUM_OF_THREADS, figname="heatmap.png")
+    # reader = vscsiReader('../data/trace.vscsi')
+    reader = vscsiReader('/home/cloudphysics/traces/w38_vscsi1.vscsitrace')
+    # hm.heatmap(reader, TIME_TYPE, TIME_INTERVAL, PLOT_TYPE, CACHE_TYPE,
+    #                         cache_size=CACHE_SIZE, num_of_threads=NUM_OF_THREADS, figname="heatmap.png")
+    hm.differential_heatmap(reader, TIME_TYPE, TIME_INTERVAL, PLOT_TYPE, "YJC", "LRU", cache_params1={'LRU_percentage': 0.2, "LFU_percentage":0.1},
+                            cache_size=CACHE_SIZE, num_of_threads=NUM_OF_THREADS, figname="diff_heatmap.png")
 
     # print(hm.gen_breakpoints(reader, 'r', 1000000))
 

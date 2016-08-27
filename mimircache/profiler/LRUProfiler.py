@@ -80,9 +80,16 @@ class LRUProfiler:
         hit_count = c_LRUProfiler.get_hit_count_seq(self.reader.cReader, **kargs)
         return hit_count
 
-    def get_hit_rate(self, **kargs):
-        if 'cache_size' not in kargs:
+    def get_hit_rate(self, **kwargs):
+        kargs = {}
+        if 'cache_size' not in kwargs:
             kargs['cache_size'] = self.cache_size
+        else:
+            kargs['cache_size'] = kwargs['cache_size']
+        if 'begin' in kwargs:
+            kargs['begin'] = kwargs['begin']
+        if 'end' in kwargs:
+            kargs['end'] = kargs['end']
         hit_rate = c_LRUProfiler.get_hit_rate_seq(self.reader.cReader, **kargs)
         return hit_rate
 
@@ -144,10 +151,13 @@ class LRUProfiler:
             plt.xlabel("cache Size")
             plt.ylabel("Hit Rate")
             plt.title('Hit Rate Curve', fontsize=18, color='black')
-            plt.savefig(figname, dpi=600)
+            if not 'no_save' in kwargs or not kwargs['no_save']:
+                plt.savefig(figname, dpi=600)
             colorfulPrint("red", "plot is saved at the same directory")
-
-            plt.show()
+            try:
+                plt.show()
+            except:
+                pass
             plt.clf()
             return stop_point
         except Exception as e:

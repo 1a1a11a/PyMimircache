@@ -219,21 +219,24 @@ if __name__ == "__main__":
     # r = plainCacheReader('../../data/test')
     # r = plainCacheReader('../data/parda.trace')
     # r = vscsiReader('../data/trace.vscsi')
-    r = vscsiReader("../data/traces/w106_vscsi1.vscsitrace")
+    # r = vscsiReader("../data/traces/w38_vscsi1.vscsitrace")
+    r = vscsiReader("/home/cloudphysics/traces/w38_vscsi1.vscsitrace")
+
     # cg = cGeneralProfiler(r, 'Optimal', 2000, 200)
     # cg = cGeneralProfiler(r, 'LRU_2', 38000, 200, num_of_threads=8)
     # cg = cGeneralProfiler(r, 'LRU_K', 2000, 200, cache_params={"K":2})
-    cg = cGeneralProfiler(r, 'LRU', 100000, 2000, num_of_threads=8)
+    cg = cGeneralProfiler(r, 'LRU', 200000, 2000, num_of_threads=48, cache_params={"LRU_percentage":0.2, "LFU_percentage":0.1})
 
     t1 = time.time()
 
     # print(cg.get_hit_rate())
     # print(cg.get_hit_count())
     # print(cg.get_miss_rate())
-    prefetch = False
-    figname = "HRC_LRUNoPrefetch.png"
-    if prefetch:
-        figname = "HRC_LRUPrefetch.png"
+    prefetch = True
+    figname = "HRC_LRU_200000_prefetch.png"
+    # figname = "HRC_YJC_200000_0.2_0.1.png"
+    # if prefetch:
+    #     figname = "HRC_LRUPrefetch.png"
 
     cg.plotHRC(figname=figname, prefetch=prefetch)
 

@@ -1,0 +1,8 @@
+documentation add:
+eviction stat
+cachecow evicitonPlot
+reader unique_elements
+reader get_request_num_distribution
+
+switch to use prepPlotParams in utils
+

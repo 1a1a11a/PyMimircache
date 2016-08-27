@@ -70,8 +70,8 @@ typedef struct cache{
 
 
 
-//#define core->type type;
-//#define core->size size;
+//#define type core->type;
+//#define size core->size;
 //#define data_type core->data_type;
 //#define hit_count core->hit_count;
 //#define miss_count core->miss_count;

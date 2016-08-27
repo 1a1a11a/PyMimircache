@@ -7,4 +7,6 @@ LRU_2 = True
 LFU = True
 LRU_LFU = True
 LRU_dataAware = True
-
+MRU = True
+Random = True
+YJC = True
