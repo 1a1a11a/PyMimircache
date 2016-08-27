@@ -67,9 +67,9 @@ set_pos(void *a, size_t pos)
 
 
 
- void __optimal_insert_element(struct_cache* optimal, cache_line* cp){
+void __optimal_insert_element(struct_cache* optimal, cache_line* cp){
     struct optimal_params* optimal_params = (struct optimal_params*)(optimal->cache_params);
-    
+
     pq_node_t *node = g_new(pq_node_t, 1);
     gpointer key;
     if (cp->type == 'l'){
@@ -79,7 +79,8 @@ set_pos(void *a, size_t pos)
     else{
         key = (gpointer)g_strdup((gchar*)(cp->item_p));
     }
-    node->data_type = cp->type; 
+
+    node->data_type = cp->type;
     node->item = (gpointer)key;
     if ((gint)g_array_index(optimal_params->next_access, gint, optimal_params->ts) == -1)
         node->pri = G_MAXUINT64;
@@ -114,29 +115,18 @@ set_pos(void *a, size_t pos)
 
 
 
- void __optimal_evict_element(struct_cache* optimal, cache_line* cp){
+void __optimal_evict_element(struct_cache* optimal, cache_line* cp){
     struct optimal_params* optimal_params = (struct optimal_params*)(optimal->cache_params);
-
+    
     pq_node_t* node = (pq_node_t*) pqueue_pop(optimal_params->pq);
-    
-    
-//    pq_node_t* node_i = (pq_node_t* ) pqueue_peek(optimal_params->pq);
-//    guint64 a=0;
-//    guint64 b=0;
-//    if (node_i){
-//        a = *(guint64*)(node_i->item);
-//        b = node_i->pri;
-//    }
-//    printf("evicting %lu, inside: %lu, pri: %lu\n", *(guint64*)(node->item), a, b);
-    
     if (optimal->core->cache_debug_level == 1){
-        // save eviction 
+        // save eviction
         if (cp->type == 'l'){
-            ((guint64*)(optimal->core->eviction_array))[cp->ts] = *(guint64*)(node->item);
+            ((guint64*)(optimal->core->eviction_array))[cp->ts-1] = *(guint64*)(node->item);
         }
         else{
             gchar* key = g_strdup((gchar*)(node->item));
-            ((gchar**)(optimal->core->eviction_array))[cp->ts] = key;
+            ((gchar**)(optimal->core->eviction_array))[cp->ts-1] = key;
         }
     }
     
@@ -147,17 +137,15 @@ set_pos(void *a, size_t pos)
 
 
 
- gboolean optimal_add_element(struct_cache* cache, cache_line* cp){
+gboolean optimal_add_element(struct_cache* cache, cache_line* cp){
     struct optimal_params* optimal_params = (struct optimal_params*)(cache->cache_params);
-    
+
     if (optimal_check_element(cache, cp)){
         __optimal_update_element(cache, cp);
-
         
         if (cache->core->cache_debug_level == 1)
             if ((gint)g_array_index(optimal_params->next_access, gint, optimal_params->ts) == -1)
                 __optimal_evict_element(cache, cp);
-
         
         (optimal_params->ts) ++ ;
         return TRUE;
@@ -169,9 +157,9 @@ set_pos(void *a, size_t pos)
             if ((gint)g_array_index(optimal_params->next_access, gint, optimal_params->ts) == -1)
                 __optimal_evict_element(cache, cp);
         
-        (optimal_params->ts) ++ ;
         if ( (long)g_hash_table_size( optimal_params->hashtable) > cache->core->size)
             __optimal_evict_element(cache, cp);
+        (optimal_params->ts) ++ ;
         return FALSE;
     }
 }
@@ -212,7 +200,6 @@ struct_cache* optimal_init(guint64 size, char data_type, void* params){
 #define pq_size_multiplier 10       // ??? WHY 
     struct_cache* cache = cache_init(size, data_type);
     
-//    struct optimal_params* optimal_params = (struct optimal_params*) calloc(1, sizeof(struct optimal_params));
     struct optimal_params* optimal_params = g_new0(struct optimal_params, 1);
     cache->cache_params = (void*) optimal_params;
     
@@ -270,7 +257,6 @@ struct_cache* optimal_init(guint64 size, char data_type, void* params){
 
     cache->core->cache_init_params = params;
 
-    
     
     return cache;
     

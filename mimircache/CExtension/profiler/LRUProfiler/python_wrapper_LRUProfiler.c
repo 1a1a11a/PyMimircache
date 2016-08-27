@@ -109,7 +109,7 @@ static PyObject* LRUProfiler_get_hit_rate_seq(PyObject* self, PyObject* args, Py
     npy_intp dims[1] = { cache_size+3 };
     PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
     memcpy(PyArray_DATA((PyArrayObject*)ret_array), hit_rate, sizeof(double)*(cache_size+3));
-    
+
     if (!(begin==0 && (end==-1 || end==reader->total_num))){
         DEBUG(printf("free hit rate in LRUProfiler_get_hit_rate_seq\n"));
         g_free(hit_rate);

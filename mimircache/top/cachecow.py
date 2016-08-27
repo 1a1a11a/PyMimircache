@@ -3,7 +3,8 @@ from mimircache.profiler.heatmap import heatmap
 from mimircache.profiler.cGeneralProfiler import cGeneralProfiler
 from mimircache.const import *
 from mimircache.profiler.twoDPlots import *
-
+from mimircache.profiler.evictionStat import *
+from mimircache.utils.prepPlotParams import *
 
 class cachecow:
     def __init__(self, **kwargs):
@@ -225,12 +226,68 @@ class cachecow:
         #     self.reader.close()
 
     def twoDPlot(self, mode, time_interval, plot_type, **kwargs):
+        if "figname" in kwargs:
+            figname = kwargs['figname']
+        else:
+            figname = plot_type + ".png"
         if plot_type == 'cold_miss':
-            cold_miss_2d(self.reader, mode, time_interval)
+            cold_miss_2d(self.reader, mode, time_interval, figname=figname)
         elif plot_type == 'request_num':
-            request_num_2d(self.reader, mode, time_interval)
+            request_num_2d(self.reader, mode, time_interval, figname=figname)
         else:
             print("currently don't support your specified plot_type: " + str(plot_type))
+
+
+    def evictionPlot(self, mode, time_interval, plot_type, algorithm, cache_size, cache_params=None, **kwargs):
+        if plot_type == "reuse_dist":
+            eviction_stat_reuse_dist_plot(self.reader, algorithm, cache_size, mode,
+                                          time_interval, cache_params=cache_params, **kwargs)
+        elif plot_type == "freq":
+            eviction_stat_freq_plot(self.reader, algorithm, cache_size, mode, time_interval,
+                                    accumulative=False, cache_params=cache_params, **kwargs)
+
+        elif plot_type == "accumulative_freq":
+            eviction_stat_freq_plot(self.reader, algorithm, cache_size, mode, time_interval,
+                                    accumulative=True, cache_params=cache_params, **kwargs)
+        else:
+            print("the plot type you specified is not supported: {}, currently only support: {}".format(
+                plot_type, "reuse_dist, freq, accumulative_freq"
+            ))
+
+    def plotHRCs(self, algorithm_list, cache_params=None, cache_size=-1, auto_size=True, **kwargs):
+        plot_dict = prepPlotParams("Hit Rate Curve", "Cache Size/A.U.", "Hit Rate", "HRC.png", **kwargs)
+
+        if auto_size:
+            cache_size = LRUProfiler(self.reader).plotHRC(auto_resize=True, threshhold=0.98, no_save=True)
+        for i in range(len(algorithm_list)):
+            alg = algorithm_list[i]
+            if cache_params and i < len(cache_params):
+                cache_param = cache_params[i]
+            else:
+                cache_param = None
+            profiler = self.profiler(alg, cache_param, cache_size, bin_size=cache_size//100)
+            hr = profiler.get_hit_rate()
+            # plt.xlim(0, cache_size)
+            if alg!="LRU":
+                plt.plot(range(0, cache_size, cache_size//100), hr, label=alg)
+            else:
+                print(hr[:-2])
+                plt.plot(hr[:-2], label=alg)
+
+        plt.legend(loc="lower right")
+        plt.xlabel(plot_dict['xlabel'])
+        plt.ylabel(plot_dict['ylabel'])
+        plt.title(plot_dict['title'], fontsize=18, color='black')
+        if not 'no_save' in kwargs or not kwargs['no_save']:
+            plt.savefig(plot_dict['figname'], dpi=600)
+        colorfulPrint("red", "plot is saved at the same directory")
+        try:
+            plt.show()
+        except:
+            pass
+        plt.clf()
+
+
 
 
 
