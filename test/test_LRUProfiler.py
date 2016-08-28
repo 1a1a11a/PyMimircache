@@ -9,10 +9,18 @@ from mimircache.cacheReader.plainReader import plainReader
 from mimircache.cacheReader.vscsiReader import vscsiReader
 from mimircache.profiler.LRUProfiler import LRUProfiler
 
+DAT_FOLDER = "../data/"
+import os
+if not os.path.exists(DAT_FOLDER):
+    if os.path.exists("data/"):
+        DAT_FOLDER = "data/"
+    elif os.path.exists("../mimircache/data/"):
+        DAT_FOLDER = "../mimircache/data/"
+
 
 class LRUProfilerTest(unittest.TestCase):
     def test_reader_v(self):
-        reader = vscsiReader('../data/trace.vscsi')
+        reader = vscsiReader("{}/trace.vscsi".format(DAT_FOLDER))
         p = LRUProfiler(reader)
 
         hr = p.get_hit_rate()
@@ -48,7 +56,7 @@ class LRUProfilerTest(unittest.TestCase):
 
 
     def test_reader_p(self):
-        reader = plainReader('../data/trace.txt')
+        reader = plainReader("{}/trace.txt".format(DAT_FOLDER))
         p = LRUProfiler(reader)
 
         hr = p.get_hit_rate()
@@ -81,7 +89,7 @@ class LRUProfilerTest(unittest.TestCase):
 
 
     def test_reader_c(self):
-        reader = csvReader('../data/trace.csv', init_params={"header":True, "label_column":4})
+        reader = csvReader("{}/trace.csv".format(DAT_FOLDER), init_params={"header":True, "label_column":4})
         p = LRUProfiler(reader)
 
         rd = p.get_reuse_distance()

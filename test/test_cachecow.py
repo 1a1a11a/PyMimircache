@@ -11,6 +11,14 @@ from mimircache.profiler.cGeneralProfiler import cGeneralProfiler
 from mimircache.profiler.generalProfiler import generalProfiler
 from mimircache import cachecow
 
+DAT_FOLDER = "../data/"
+import os 
+if not os.path.exists(DAT_FOLDER):
+    if os.path.exists("data/"):
+        DAT_FOLDER = "data/"
+    elif os.path.exists("../mimircache/data/"):
+        DAT_FOLDER = "../mimircache/data/"
+
 class cachecowTest(unittest.TestCase):
     def test1(self):
         CACHE_SIZE = 2000
@@ -18,8 +26,8 @@ class cachecowTest(unittest.TestCase):
         TIME_INTERVAL = 50000000
         c = cachecow()
         # c.open('../data/trace.txt')
-        c.csv("../data/trace.csv", init_params={"header" :True, 'label_column' :4, 'real_time_column':1})
-        # c.vscsi('../mimircache/data/trace.vscsi')
+        c.csv("{}/trace.csv".format(DAT_FOLDER), init_params={"header" :True, 'label_column' :4, 'real_time_column':1})
+        # c.vscsi('{}/trace.vscsi'.format(DAT_FOLDER)
 
         p = c.profiler("LRU")
         p = LRUProfiler(c.reader)

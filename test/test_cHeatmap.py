@@ -12,9 +12,18 @@ from mimircache.profiler.cGeneralProfiler import cGeneralProfiler
 from mimircache.profiler.cHeatmap import cHeatmap
 
 
+DAT_FOLDER = "../data/"
+import os
+if not os.path.exists(DAT_FOLDER):
+    if os.path.exists("data/"):
+        DAT_FOLDER = "data/"
+    elif os.path.exists("../mimircache/data/"):
+        DAT_FOLDER = "../mimircache/data/"
+
+
 class cHeatmapTest(unittest.TestCase):
     def test1(self):
-        reader = vscsiReader('../data/trace.vscsi')
+        reader = vscsiReader("{}/trace.vscsi".format(DAT_FOLDER))
         cH = cHeatmap()
         bpr = cH.gen_breakpoints(reader, 'r', 1000000)
         self.assertEqual(bpr[10], 53)
@@ -31,7 +40,7 @@ class cHeatmapTest(unittest.TestCase):
 
 
     def test2(self):
-        reader = plainReader('../data/trace.txt')
+        reader = plainReader("{}/trace.txt".format(DAT_FOLDER))
         cH = cHeatmap()
         bpv = cH.gen_breakpoints(reader, 'v', 1000)
         self.assertEqual(bpv[10], 10000)
@@ -47,7 +56,7 @@ class cHeatmapTest(unittest.TestCase):
 
 
     def test3(self):
-        reader = csvReader('../data/trace.csv', init_params={"header":True, "label_column":4})
+        reader = csvReader("{}/trace.csv".format(DAT_FOLDER), init_params={"header":True, "label_column":4})
         cH = cHeatmap()
         bpv = cH.gen_breakpoints(reader, 'v', 1000)
         self.assertEqual(bpv[10], 10000)
@@ -63,7 +72,7 @@ class cHeatmapTest(unittest.TestCase):
 
 
     def test4(self):
-        reader = csvReader('../data/trace.csv', init_params={"header":True, "label_column":4, 'real_time_column':1})
+        reader = csvReader("{}/trace.csv".format(DAT_FOLDER), init_params={"header":True, "label_column":4, 'real_time_column':1})
         cH = cHeatmap()
         bpr = cH.gen_breakpoints(reader, 'r', 1000000)
         self.assertEqual(bpr[10], 53)
