@@ -20,6 +20,6 @@ before_install:
   - sudo apt-get install -y libglib2.0-dev python3-pip python3-matplotlib
 
 # command to install dependencies
-install: "pip3 install -r requirements.txt"
+install: "pip3 install -r requirements.txt; python3 setup.py build_ext -i"
 # command to run tests
 script: nosetests
