@@ -1,10 +1,35 @@
 
 
 from mimircache import *
+import mimircache.c_heatmap as c_heatmap
+
+TIME_MODE = 'r'
+TIME_INTERVAL = 2
+CACHE_SIZE = 12000
 
 
-reader = csvReader('../mimircache/data/trace.csv', init_params={"header" :True, 'label_column' :4, 'delimiter' :','})
+# reader = csvReader('../mimircache/data/wiki2.csv', init_params={"header": False, 'label_column': 2,
+                                                                # 'real_time_column': 1, 'delimiter': ','})
 # reader = plainReader('../mimircache/data/trace.txt')
+c = cachecow()
+c.csv('../mimircache/data/wiki.csv', init_params={"header": False, 'label_column': 2,
+                                                                'real_time_column': 1, 'delimiter': ','})
+# c.plotHRCs(["LRU", "Optimal", "LFU"])
+
+# print(cHeatmap().gen_breakpoints(c.reader, 'r', 2))
+#
+# import sys
+# sys.exit(1)
+
+
+c.heatmap(TIME_MODE, TIME_INTERVAL, "hit_rate_start_time_end_time", num_of_threads=8, cache_size=CACHE_SIZE)
+c.heatmap(TIME_MODE, TIME_INTERVAL, "rd_distribution", num_of_threads=8)
+
+c.differential_heatmap(TIME_MODE, TIME_INTERVAL, "hit_rate_start_time_end_time", cache_size=CACHE_SIZE,
+                       algorithm1="LRU", algorithm2="Optimal", cache_params2=None, num_of_threads=8)
+
+c.twoDPlot(TIME_MODE, TIME_INTERVAL, "cold_miss")
+c.twoDPlot(TIME_MODE, TIME_INTERVAL, "request_num")
 
 # p = cGeneralProfiler(reader, "FIFO", cache_size=2000, num_of_threads=1)
 # hr = p.get_hit_count()
@@ -15,7 +40,7 @@ reader = csvReader('../mimircache/data/trace.csv', init_params={"header" :True, 
 # hc = p.get_hit_count()
 # mr = p.get_miss_rate()
 
-print(c_heatmap.get_next_access_dist(reader.cReader))
+# print(c_heatmap.get_next_access_dist(reader.cReader))
 
 
 

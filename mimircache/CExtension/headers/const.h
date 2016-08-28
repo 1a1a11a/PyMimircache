@@ -23,7 +23,6 @@
 #define future_rd_distribution                          6
 #define rd_distribution_CDF                             7
 
-//#define DEBUG 
 
 #ifndef DEBUG
 #define DEBUG(stat) stat;

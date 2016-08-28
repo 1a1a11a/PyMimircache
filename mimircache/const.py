@@ -70,6 +70,7 @@ def _init_cache_alg_mapping():
     cache_alg_mapping['lru_lfu'] = "LRU_LFU"
     cache_alg_mapping['lfu'] = "LFU"
     cache_alg_mapping['lru_dataaware'] = "LRU_dataAware"
+    cache_alg_mapping['yjc'] = "YJC"
 
 
 def cache_name_to_class(name):
@@ -83,8 +84,6 @@ def cache_name_to_class(name):
             cache_class = S4LRU
         elif cache == 'ARC':
             cache_class = ARC
-        elif cache == 'LFU_RR':
-            cache_class = LFU_RR
         elif cache == 'LRU':
             cache_class = LRU
         elif cache == "Optimal":
@@ -97,8 +96,6 @@ def cache_name_to_class(name):
             cache_class = clock
         elif cache == 'FIFO':
             cache_class = FIFO
-        elif cache == 'LFU_MRU':
-            cache_class = LFU_MRU
     else:
         raise RuntimeError("cannot recognize given cache replacement algorithm " + str(name))
     return cache_class

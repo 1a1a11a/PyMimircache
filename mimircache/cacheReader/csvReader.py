@@ -25,6 +25,7 @@ class csvReader(cacheReaderAbstract):
 
         if open_c_reader:
             self.cReader = c_cacheReader.setup_reader(file_loc, 'c', init_params=init_params)
+        print("initialized")
 
     def read_one_element(self):
         super().read_one_element()
@@ -71,7 +72,7 @@ class csvReader(cacheReaderAbstract):
 
 
 if __name__ == "__main__":
-    reader = csvReader('../data/trace.csv', {"label_column":4, 'size_column':3, 'header':True, 'delimiter':','})
+    reader = csvReader('../data/trace2.csv', {"label_column":4, 'size_column':3, 'header':True, 'delimiter':','})
     # for i in range(10):
     #     print(c_cacheReader.read_one_element(reader.cReader))
     # c_cacheReader.reset_reader(reader.cReader)
@@ -82,6 +83,11 @@ if __name__ == "__main__":
     while e:
         print(e)
         e = c_cacheReader.read_one_element(reader.cReader)
+
+    for i in range(100000000):
+        x = i*i
+        if i % 10000000==0:
+            print(i)
 
         # usage one: for reading all elements
     # for i in reader:

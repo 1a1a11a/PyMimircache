@@ -41,7 +41,7 @@ class cachecowTest(unittest.TestCase):
         # c.evictionPlot('r', 10000000, "accumulative_freq", "Optimal", 1000)
         # c.evictionPlot('r', 10000000, "reuse_dist", "Optimal", 10000)
 
-        c.plotHRCs(["LRU", "Optimal", "LFU"])
+        c.plotHRCs(["LRU", "Optimal", "LFU", "LRU_K"], [None, None, None, {"K":2}])
 
 
 

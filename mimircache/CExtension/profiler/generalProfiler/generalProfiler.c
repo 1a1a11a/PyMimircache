@@ -290,16 +290,22 @@ static void profiler_with_prefetch_thread(gpointer data, gpointer user_data){
             miss_count ++;
         pos++;
         
-        // begin prefetch elements
-        GSList *slist = g_hash_table_lookup(prefetch_hashtable, cp->item_p);
-        while (slist != NULL){
-            if (cp->type == 'l')
-                *((guint64*) cp->item_p) = *((guint64*)slist->data);
-            else
-                strcpy((char*)(cp->item_p), (char*)(slist->data));
-            add_element(cache, cp);
-            slist = slist->next;
-        }
+        // FOR VSCSI AND FETCH BLOCK_NUM + 8
+        *(guint64*)(cp->item_p) = *(guint64*)(cp->item_p) + 8;
+        add_element(cache, cp);
+
+        
+        
+//        // begin prefetch elements
+//        GSList *slist = g_hash_table_lookup(prefetch_hashtable, cp->item_p);
+//        while (slist != NULL){
+//            if (cp->type == 'l')
+//                *((guint64*) cp->item_p) = *((guint64*)slist->data);
+//            else
+//                strcpy((char*)(cp->item_p), (char*)(slist->data));
+//            add_element(cache, cp);
+//            slist = slist->next;
+//        }
         
         read_one_element(reader_thread, cp);
     }
