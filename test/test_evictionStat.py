@@ -16,7 +16,7 @@ def eviction_stat_freq_test(reader):
 
 if __name__ == "__main__":
     reader = vscsiReader("../data/trace.vscsi")
-    reader = csvReader("../mimircache/data/trace.csv", init_params={"header": True, 'label_column': 4, 'real_time_column': 1})
+    reader = csvReader("../data/trace.csv", init_params={"header": True, 'label_column': 4, 'real_time_column': 1})
 
     # reader = plainReader("multi1.trc")
     # reader = plainReader()

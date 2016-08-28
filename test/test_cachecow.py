@@ -18,7 +18,7 @@ class cachecowTest(unittest.TestCase):
         TIME_INTERVAL = 50000000
         c = cachecow()
         # c.open('../data/trace.txt')
-        c.csv("../mimircache/data/trace.csv", init_params={"header" :True, 'label_column' :4, 'real_time_column':1})
+        c.csv("../data/trace.csv", init_params={"header" :True, 'label_column' :4, 'real_time_column':1})
         # c.vscsi('../mimircache/data/trace.vscsi')
 
         p = c.profiler("LRU")

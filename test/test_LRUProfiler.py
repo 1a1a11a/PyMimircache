@@ -12,7 +12,7 @@ from mimircache.profiler.LRUProfiler import LRUProfiler
 
 class LRUProfilerTest(unittest.TestCase):
     def test_reader_v(self):
-        reader = vscsiReader('../mimircache/data/trace.vscsi')
+        reader = vscsiReader('../data/trace.vscsi')
         p = LRUProfiler(reader)
 
         hr = p.get_hit_rate()
@@ -48,7 +48,7 @@ class LRUProfilerTest(unittest.TestCase):
 
 
     def test_reader_p(self):
-        reader = plainReader('../mimircache/data/trace.txt')
+        reader = plainReader('../data/trace.txt')
         p = LRUProfiler(reader)
 
         hr = p.get_hit_rate()
@@ -81,7 +81,7 @@ class LRUProfilerTest(unittest.TestCase):
 
 
     def test_reader_c(self):
-        reader = csvReader('../mimircache/data/trace.csv', init_params={"header":True, "label_column":4})
+        reader = csvReader('../data/trace.csv', init_params={"header":True, "label_column":4})
         p = LRUProfiler(reader)
 
         rd = p.get_reuse_distance()

@@ -13,8 +13,8 @@ from mimircache.profiler.cHeatmap import cHeatmap
 
 
 class cHeatmapTest(unittest.TestCase):
-    def t2est1(self):
-        reader = vscsiReader('../mimircache/data/trace.vscsi')
+    def test1(self):
+        reader = vscsiReader('../data/trace.vscsi')
         cH = cHeatmap()
         bpr = cH.gen_breakpoints(reader, 'r', 1000000)
         self.assertEqual(bpr[10], 53)
@@ -30,8 +30,8 @@ class cHeatmapTest(unittest.TestCase):
                                 cache_params2=None, num_of_threads=8)
 
 
-    def t2est2(self):
-        reader = plainReader('../mimircache/data/trace.txt')
+    def test2(self):
+        reader = plainReader('../data/trace.txt')
         cH = cHeatmap()
         bpv = cH.gen_breakpoints(reader, 'v', 1000)
         self.assertEqual(bpv[10], 10000)
@@ -46,8 +46,8 @@ class cHeatmapTest(unittest.TestCase):
                                 cache_params2=None, num_of_threads=8)
 
 
-    def t2est3(self):
-        reader = csvReader('../mimircache/data/trace.csv', init_params={"header":True, "label_column":4})
+    def test3(self):
+        reader = csvReader('../data/trace.csv', init_params={"header":True, "label_column":4})
         cH = cHeatmap()
         bpv = cH.gen_breakpoints(reader, 'v', 1000)
         self.assertEqual(bpv[10], 10000)
@@ -63,7 +63,7 @@ class cHeatmapTest(unittest.TestCase):
 
 
     def test4(self):
-        reader = csvReader('../mimircache/data/trace.csv', init_params={"header":True, "label_column":4, 'real_time_column':1})
+        reader = csvReader('../data/trace.csv', init_params={"header":True, "label_column":4, 'real_time_column':1})
         cH = cHeatmap()
         bpr = cH.gen_breakpoints(reader, 'r', 1000000)
         self.assertEqual(bpr[10], 53)

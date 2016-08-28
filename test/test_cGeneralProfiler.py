@@ -12,8 +12,8 @@ from mimircache.profiler.cGeneralProfiler import cGeneralProfiler
 from mimircache.profiler.generalProfiler import generalProfiler
 
 class cGeneralProfilerTest(unittest.TestCase):
-    def t2est_FIFO(self):
-        reader = vscsiReader('../mimircache/data/trace.vscsi')
+    def test_FIFO(self):
+        reader = vscsiReader('../data/trace.vscsi')
         p = cGeneralProfiler(reader, "FIFO", cache_size=2000, num_of_threads=8)
         p2 = generalProfiler(reader, 'FIFO', cache_size=2000, num_of_threads=8)
 
@@ -33,7 +33,7 @@ class cGeneralProfilerTest(unittest.TestCase):
         hr = p.get_hit_rate(begin=113852, end=113872, cache_size=5000)
         self.assertAlmostEqual(hr[1], 0.2)
 
-        reader = plainReader('../mimircache/data/trace.txt')
+        reader = plainReader('../data/trace.txt')
         p = cGeneralProfiler(reader, "FIFO", cache_size=2000, num_of_threads=8)
 
         hr = p.get_hit_rate()
@@ -58,7 +58,7 @@ class cGeneralProfilerTest(unittest.TestCase):
         self.assertAlmostEqual(mr[-1], 0.83065193891525269)
 
     def test_Optimal(self):
-        # reader = vscsiReader('../mimircache/data/trace.vscsi')
+        # reader = vscsiReader('../data/trace.vscsi')
         # p = cGeneralProfiler(reader, "Optimal", cache_size=2000)
         #
         # hr = p.get_hit_rate()
@@ -87,7 +87,7 @@ class cGeneralProfilerTest(unittest.TestCase):
         # self.assertAlmostEqual(mr[-1], 0.71893000602722168)
 
 
-        reader = csvReader('../mimircache/data/trace.csv', init_params={"header":True, 'label_column':4, 'delimiter':','})
+        reader = csvReader('../data/trace.csv', init_params={"header":True, 'label_column':4, 'delimiter':','})
         p = cGeneralProfiler(reader, "Optimal", cache_size=2000, num_of_threads=8)
 
         hr = p.get_hit_rate()
@@ -100,8 +100,8 @@ class cGeneralProfilerTest(unittest.TestCase):
         self.assertAlmostEqual(mr[-1], 0.71893000602722168)
 
 
-    def t2est_LRU_2(self):
-        reader = vscsiReader('../mimircache/data/trace.vscsi')
+    def test_LRU_2(self):
+        reader = vscsiReader('../data/trace.vscsi')
         p = cGeneralProfiler(reader, "LRU_2", cache_size=2000)
 
         hr = p.get_hit_rate()
@@ -117,7 +117,7 @@ class cGeneralProfilerTest(unittest.TestCase):
         self.assertAlmostEqual(hr[1], 0.2)
 
 
-        reader = plainReader('../mimircache/data/trace.txt')
+        reader = plainReader('../data/trace.txt')
         p = cGeneralProfiler(reader, "LRU_2", cache_size=2000, num_of_threads=8)
 
         hr = p.get_hit_rate()
@@ -130,7 +130,7 @@ class cGeneralProfilerTest(unittest.TestCase):
         self.assertAlmostEqual(mr[-1], 0.83455109596252441)
 
 
-        reader = csvReader('../mimircache/data/trace.csv', init_params={"header":True, 'label_column':4, 'delimiter':','})
+        reader = csvReader('../data/trace.csv', init_params={"header":True, 'label_column':4, 'delimiter':','})
         p = cGeneralProfiler(reader, "LRU_2", cache_size=2000, num_of_threads=8)
 
         hr = p.get_hit_rate()
@@ -142,8 +142,8 @@ class cGeneralProfilerTest(unittest.TestCase):
         mr = p.get_miss_rate()
         self.assertAlmostEqual(mr[-1], 0.83455109596252441)
 
-    def t2est_LRU_K(self):
-        reader = vscsiReader('../mimircache/data/trace.vscsi')
+    def test_LRU_K(self):
+        reader = vscsiReader('../data/trace.vscsi')
         p = cGeneralProfiler(reader, "LRU_K", cache_size=2000, cache_params={"K":2})
 
         hr = p.get_hit_rate()
@@ -158,7 +158,7 @@ class cGeneralProfilerTest(unittest.TestCase):
         hr = p.get_hit_rate(begin=113852, end=113872, cache_size=5000)
         self.assertAlmostEqual(hr[1], 0.2)
 
-        reader = plainReader('../mimircache/data/trace.txt')
+        reader = plainReader('../data/trace.txt')
         p = cGeneralProfiler(reader, "LRU_K", cache_size=2000, cache_params={"K":2}, num_of_threads=8)
 
         hr = p.get_hit_rate()
