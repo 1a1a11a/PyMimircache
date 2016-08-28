@@ -27,7 +27,7 @@ from mimircache.const import *
 
 
 
-from mimircache.cacheReader.vscsiReader_new import vscsiReader as vscsiReader
+from mimircache.cacheReader.vscsiReader import vscsiReader as vscsiReader
 
 
 
