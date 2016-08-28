@@ -8,9 +8,17 @@ python:
   - "3.5"
   - "3.5-dev" # 3.5 development branch
   - "nightly" # currently points to 3.6-dev
+
+addons:
+  apt:
+    sources:
+    - sourceline: 'deb http://us.archive.ubuntu.com/ubuntu/ trusty main restricted universe multiverse'
+    - sourceline: 'deb-src http://us.archive.ubuntu.com/ubuntu/ trusty main restricted universe multiverse'
+
 before_install:
   - sudo apt-get -qq update
   - sudo apt-get install -y libglib2.0-dev python3-pip python3-matplotlib
+
 # command to install dependencies
 install: "pip3 install -r requirements.txt"
 # command to run tests
