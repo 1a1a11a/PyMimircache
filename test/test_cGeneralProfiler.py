@@ -68,33 +68,33 @@ class cGeneralProfilerTest(unittest.TestCase):
         self.assertAlmostEqual(mr[-1], 0.83065193891525269)
 
     def test_Optimal(self):
-        # reader = vscsiReader("{}/trace.vscsi".format(DAT_FOLDER))
-        # p = cGeneralProfiler(reader, "Optimal", cache_size=2000)
-        #
-        # hr = p.get_hit_rate()
-        # self.assertAlmostEqual(hr[0], 0.0)
-        # self.assertAlmostEqual(hr[100], 0.28106996417045593)
-        # hc = p.get_hit_count()
-        # self.assertEqual(hc[10], 180)
-        # self.assertEqual(hc[0], 0)
-        # mr = p.get_miss_rate()
-        # self.assertAlmostEqual(mr[-1], 0.71893000602722168)
-        #
-        # hr = p.get_hit_rate(begin=113852, end=113872, cache_size=5000)
-        # self.assertAlmostEqual(hr[1], 0.2)
-        #
-        #
-        # reader = plainReader("{}/trace.txt".format(DAT_FOLDER))
-        # p = cGeneralProfiler(reader, "Optimal", cache_size=2000, num_of_threads=8)
+        reader = vscsiReader("{}/trace.vscsi".format(DAT_FOLDER))
+        p = cGeneralProfiler(reader, "Optimal", cache_size=2000)
 
-        # hr = p.get_hit_rate()
-        # self.assertAlmostEqual(hr[0], 0.0)
-        # self.assertAlmostEqual(hr[100], 0.28106996417045593)
-        # hc = p.get_hit_count()
-        # self.assertEqual(hc[10], 180)
-        # self.assertEqual(hc[0], 0)
-        # mr = p.get_miss_rate()
-        # self.assertAlmostEqual(mr[-1], 0.71893000602722168)
+        hr = p.get_hit_rate()
+        self.assertAlmostEqual(hr[0], 0.0)
+        self.assertAlmostEqual(hr[100], 0.28106996417045593)
+        hc = p.get_hit_count()
+        self.assertEqual(hc[10], 180)
+        self.assertEqual(hc[0], 0)
+        mr = p.get_miss_rate()
+        self.assertAlmostEqual(mr[-1], 0.71893000602722168)
+
+        hr = p.get_hit_rate(begin=113852, end=113872, cache_size=5000)
+        self.assertAlmostEqual(hr[1], 0.2)
+
+
+        reader = plainReader("{}/trace.txt".format(DAT_FOLDER))
+        p = cGeneralProfiler(reader, "Optimal", cache_size=2000, num_of_threads=8)
+
+        hr = p.get_hit_rate()
+        self.assertAlmostEqual(hr[0], 0.0)
+        self.assertAlmostEqual(hr[100], 0.28106996417045593)
+        hc = p.get_hit_count()
+        self.assertEqual(hc[10], 180)
+        self.assertEqual(hc[0], 0)
+        mr = p.get_miss_rate()
+        self.assertAlmostEqual(mr[-1], 0.71893000602722168)
 
 
         reader = csvReader("{}/trace.csv".format(DAT_FOLDER), init_params={"header":True, 'label_column':4, 'delimiter':','})

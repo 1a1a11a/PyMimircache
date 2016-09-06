@@ -134,12 +134,11 @@ class generalProfiler(profilerAbstract):
                 self.add_elements(l)
                 l.clear()
                 # self.addOneTraceElement(i)
-        # p.printMRC()
         if len(l) > 0:
             self.add_elements(l)
         self.calculate()
-        # self.outputHRC()
-        # self.plotHRC()
+        self.reader.reset()
+
 
     def add_elements(self, elements):
         for element in elements:
