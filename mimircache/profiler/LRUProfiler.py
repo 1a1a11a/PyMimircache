@@ -89,7 +89,7 @@ class LRUProfiler:
         if 'begin' in kwargs:
             kargs['begin'] = kwargs['begin']
         if 'end' in kwargs:
-            kargs['end'] = kargs['end']
+            kargs['end'] = kwargs['end']
         hit_rate = c_LRUProfiler.get_hit_rate_seq(self.reader.cReader, **kargs)
         return hit_rate
 

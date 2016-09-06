@@ -358,6 +358,10 @@ gint64* get_future_reuse_dist(READER* reader, gint64 begin, gint64 end){
     go_back_one_line(reader);
     read_one_element(reader, cp);
     while (cp->valid){
+//        if (ts>100000)
+//            printf("read in %s, ts %lu, end-begin %ld\n", cp->item, ts, end-begin);
+        if (reader->has_header && ts==reader->total_num)
+            break;
         splay_tree = process_one_element(cp, splay_tree, hash_table, ts, &reuse_dist);
         reuse_dist_array[end-begin-1-ts] = reuse_dist;
         if (reuse_dist > (gint64) max_rd)

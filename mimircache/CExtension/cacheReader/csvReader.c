@@ -44,20 +44,13 @@ static inline void csv_cb2(int c, void *data){
     
     
     READER* reader = (READER* )data;
-//    cache_line* cp = reader->cache_line_pointer;
     reader->current_column_counter = 0;
     
     /* move the following code to csv_cb1 after detecting label, 
      * because putting here will cause a bug when there is no new line at the 
      * end of file, then the last line will have an incorrect ts 
      */
-//    if (c == -1){
-//        // last line
-//        ;
-//    }
-//    else{
-//        cp->ts = (reader->ts)++;
-//    }
+
 }
 
 

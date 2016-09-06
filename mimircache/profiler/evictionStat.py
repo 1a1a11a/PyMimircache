@@ -116,7 +116,7 @@ def eviction_stat_freq_plot(reader, algorithm, cache_size, mode, time_interval,
                        accumulative=True, cache_params=None, yscale=6, **kwargs):
 
     plot_params = prepPlotParams("frequency of evicted elements by {}".format(algorithm),
-                                 "time({})".format(mode), "reuse dist/cache size",
+                                 "time({})".format(mode), "frequency",
                                  "eviction_stat_freq_{}_{}_{}_{}_{}_{}_{}.png".format(
                                      reader.file_loc[reader.file_loc.rfind('/')+1:], algorithm, cache_size,
                                      mode, time_interval, accumulative, cache_params), **kwargs)
