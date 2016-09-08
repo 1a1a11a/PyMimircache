@@ -278,7 +278,6 @@ class cachecow:
             if alg!="LRU":
                 plt.plot(range(0, cache_size, cache_size//100), hr, label=alg)
             else:
-                print(hr[:-2])
                 plt.plot(hr[:-2], label=alg)
 
         plt.legend(loc="lower right")
