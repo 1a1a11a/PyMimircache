@@ -54,26 +54,39 @@ def _init_cache_alg_mapping():
     """
 
     cache_alg_mapping['optimal'] = 'Optimal'
+    cache_alg_mapping['opt'] = "Optimal"
+
     cache_alg_mapping['rr'] = "Random"
     cache_alg_mapping['random'] = "Random"
+
     cache_alg_mapping['lru'] = "LRU"
+    cache_alg_mapping['lfu'] = "LFU"
+
     cache_alg_mapping['fifo'] = "FIFO"
+
     cache_alg_mapping['arc'] = "ARC"
+
     cache_alg_mapping['clock'] = "clock"
+
     cache_alg_mapping['mru'] = "MRU"
+
     cache_alg_mapping['slru'] = "SLRU"
     cache_alg_mapping['s4lru'] = "S4LRU"
+
     cache_alg_mapping['lfu_rr'] = "LFU_RR"
     cache_alg_mapping['lfu_mru'] = "LFU_MRU"
+
     cache_alg_mapping['lru_k'] = "LRU_K"
     cache_alg_mapping['lru_2'] = "LRU_2"
+
     cache_alg_mapping['lru_lfu'] = "LRU_LFU"
-    cache_alg_mapping['lfu'] = "LFU"
+
     cache_alg_mapping['lru_dataaware'] = "LRU_dataAware"
     cache_alg_mapping['yjc'] = "YJC"
 
 
 def cache_name_to_class(name):
+    cache_class = None
     if name.lower() in cache_alg_mapping:
         cache = cache_alg_mapping[name.lower()]
         if cache == 'Random':
@@ -96,6 +109,9 @@ def cache_name_to_class(name):
             cache_class = clock
         elif cache == 'FIFO':
             cache_class = FIFO
+
+    if cache_class:
+        return cache_class
     else:
         raise RuntimeError("cannot recognize given cache replacement algorithm " + str(name))
-    return cache_class
+

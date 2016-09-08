@@ -28,6 +28,9 @@ class cachecow:
         assert isinstance(size, int), "size can only be an integer"
         self.cache_size = size
 
+    def num_of_request(self):
+        return self.reader.get_num_of_total_requests()
+
     def reset(self):
         self.reader.reset()
 

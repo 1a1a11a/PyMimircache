@@ -1,36 +1,25 @@
-""" this module is used for all other cache replacement algorithms excluding LRU(LRU also works, but slow compared to
+""" this module is used for all cache replacement algorithms in python excluding LRU(LRU also works, but slow compared to
     using pardaProfiler),
 """
 # -*- coding: utf-8 -*-
 
 
 import math
-import os
-import time
-
 import traceback
-
 import numpy as np
-from multiprocessing import Process, Pipe, Array
-from os import path
-
-from mimircache.cacheReader.vscsiReader import vscsiReader
-from mimircache.utils.printing import *
-
-
-from mimircache.cacheReader.plainReader import plainReader
-
-
 import matplotlib.pyplot as plt
-
-from mimircache.profiler.abstract.abstractProfiler import profilerAbstract
+from multiprocessing import Process, Pipe, Array
 
 from mimircache.const import *
+from mimircache.utils.printing import *
+from mimircache.profiler.abstract.abstractProfiler import profilerAbstract
 
 
 class generalProfiler(profilerAbstract):
-    def __init__(self, reader, cache_class, cache_size, bin_size=-1, cache_params=None,
+    def __init__(self, reader, cache_class, cache_size,
+                 bin_size=-1, cache_params=None,
                  num_of_threads=DEFAULT_NUM_OF_THREADS):
+
         if isinstance(cache_class, str):
             cache_class = cache_name_to_class(cache_class)
         super(generalProfiler, self).__init__(cache_class, cache_size, reader)
@@ -67,8 +56,8 @@ class generalProfiler(profilerAbstract):
         for i in range(self.num_of_blocks):
             self.cache_distribution[i % self.num_of_threads].append((i + 1) * self.bin_size)
 
-            # build pipes for communication between main process and children process
-            # the pipe mainly sends element from main process to children
+        # build pipes for communication between main process and children process
+        # the pipe mainly sends element from main process to children
         self.pipe_list = []
         for i in range(self.num_of_threads):
             self.pipe_list.append(Pipe())
@@ -93,7 +82,8 @@ class generalProfiler(profilerAbstract):
         return
 
     # noinspection PyMethodMayBeStatic
-    def _addOneTraceElementSingleProcess(self, num_of_threads, process_num, cache_class, cache_size_list,
+    def _addOneTraceElementSingleProcess(self, num_of_threads, process_num,
+                                         cache_class, cache_size_list,
                                          cache_args, pipe, MRC_shared_array):
         """
 
@@ -143,9 +133,7 @@ class generalProfiler(profilerAbstract):
     def add_elements(self, elements):
         for element in elements:
             super().addOneTraceElement(element)
-
         for i in range(len(self.pipe_list)):
-            # print("send out: " + element)
             self.pipe_list[i][0].send(elements)
 
         return
@@ -227,36 +215,3 @@ class generalProfiler(profilerAbstract):
             print(e)
 
 
-
-
-if __name__ == "__main__":
-    import time
-
-    t1 = time.time()
-    # r = plainCacheReader('../data/test.dat')
-    # r = plainCacheReader('../data/parda.trace')
-    r = vscsiReader('../data/trace.vscsi')
-
-    arc_dict = {'p': 0.5, 'ghostlist_size': -1}
-    # p = generalProfiler(r, ARC, 1000, 100, arc_dict, 8)
-
-    # p = generalProfiler(r, "Random", 3000, 200, num_of_threads=8)
-    p = generalProfiler(r, "SLRU", 3000, 200, cache_params={"ratio": 1}, num_of_threads=8)
-    print(p.get_hit_rate())
-    print(p.get_hit_count())
-    t2 = time.time()
-    print("TIME: %f" % (t2 - t1))
-
-    t1 = time.time()
-    p.plotMRC()
-    # hr = c_generalProfiler.get_hit_rate(r.cReader, 2000, "Optimal", bin_size=200, num_of_threads=8)
-    # print(hr)
-
-    t2 = time.time()
-    print("TIME: %f" % (t2 - t1))
-
-    # for i in r:
-    #     # print(i)
-    #     p.addOneTraceElement(i)
-    # # p.printMRC()
-    # p.plotHRC()

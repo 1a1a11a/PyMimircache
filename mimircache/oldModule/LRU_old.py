@@ -32,12 +32,6 @@ class LRU(cache):
         :return: original rank
         """
         rank = self.getReuseDist(element)
-        # if rank >= 10:
-        #     print("WWWWWWWWHHHHHHHHAAAAAAATTTTTTT")
-        #     print(len(self.cache_dict))
-        #     print(element)
-        #     print(self.cache_dict)
-        #     self.printLinkedList()
         # even if reuse distance is 0, it still needs at least one cache line
         self.cacheDict[element] = 1
         node = None
@@ -95,13 +89,9 @@ class LRU(cache):
         # print(element, end=': \t')
         if self.checkElement(element):
             rank = self._updateElement(element)
-            # print(self.cache_dict)
-            # self.printLinkedList()
             return rank
         else:
             self._insertElement(element)
-            # print(self.cache_dict)
-            # self.printLinkedList()
             return -1
 
     def __repr__(self):

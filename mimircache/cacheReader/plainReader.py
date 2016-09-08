@@ -27,19 +27,3 @@ class plainReader(cacheReaderAbstract):
 
     def __repr__(self):
         return "basic cache reader, cache trace separated by line, %s" % super().__repr__()
-
-
-if __name__ == "__main__":
-    reader = plainReader('../data/trace_CloudPhysics')
-
-    # usage one: for reading all elements
-    for i in reader:
-        print(i)
-
-    # usage two: best for reading one element each time
-    s = reader.read_one_element()
-    # s2 = next(reader)
-    while s:
-        print(s)
-        s = reader.read_one_element()
-        # s2 = next(reader)

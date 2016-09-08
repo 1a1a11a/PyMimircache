@@ -164,7 +164,8 @@ extensions.append(Extension(
     glob("mimircache/CExtension/profiler/LRUProfiler/*.c") +
     glob('mimircache/CExtension/cacheReader/*.c') +
     glob('mimircache/CExtension/utils/*.c'),
-    include_dirs=["mimircache/CExtension/headers"] + numpy_headers, 
+    include_dirs=["mimircache/CExtension/headers"] +
+    ['mimircache/CExtension/headers/cache'] + numpy_headers, 
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args,
     language="c"))

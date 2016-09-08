@@ -12,13 +12,13 @@ from heapdict import heapdict
 class Optimal(cache):
     def __init__(self, cache_size, reader):
         super().__init__(cache_size)
-        reader.reset()
+        # reader.reset()
         self.reader = reader
         self.reader.lock.acquire()
         self.next_access = c_heatmap.get_next_access_dist(self.reader.cReader)
         self.reader.lock.release()
         self.pq = heapdict()
-        # self.seenset = set()
+
 
         self.ts = 0
 
@@ -84,10 +84,6 @@ class Optimal(cache):
                         (timestamp, real_request)
         :return: True if element in the cache
         """
-        # if self.pq.qsize() != len(self.seenset):
-        #     print("ERROR: %d: %d" % (self.pq.qsize(), len(self.seenset)))
-        #     print(self.seenset)
-        #     sys.exit(1)
         if self.checkElement(element):
             self._updateElement(element)
             self.ts += 1
@@ -100,39 +96,7 @@ class Optimal(cache):
             return False
 
     def __repr__(self):
-        return "Optimal Cache, current size: {}".format(self.cache_size, len(self.seenset),
-                                                        super().__repr__())
+        return "Optimal Cache, current size: {}".\
+            format(self.cache_size, super().__repr__())
 
 
-if __name__ == "__main__":
-    from mimircache.cacheReader.plainReader import plainReader
-    from mimircache.cacheReader.vscsiReader import vscsiReader
-    import mimircache.c_cacheReader as c_cacheReader
-
-    reader = plainReader('../data/test4.dat')
-    # reader = vscsiCacheReader('../data/trace.vscsi')
-    # for i in reader:
-    #     print(i)
-
-    # reader.reset()
-    print(reader.get_num_of_total_requests())
-
-    # for i in c_LRUProfiler.get_reuse_dist_seq(reader.cReader):
-    #     print(i)
-    #     pass
-
-    num = 0
-    c = Optimal(100, reader)
-    hit = 0
-    miss = 0
-
-    for i in reader:
-        if c.addElement(i):
-            hit += 1
-        else:
-            miss += 1
-        # c.printCacheLine()
-        # print(c.real_ts)
-        # print("")
-        num += 1
-    print("hit: %d, hit rate: %f" % (hit, hit / (hit + miss)))

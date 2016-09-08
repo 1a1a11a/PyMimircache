@@ -35,10 +35,6 @@ class LRU(cache):
         """
         return_content = None
         if self.cacheLinkedList.size >= self.cache_size:
-            # print("{}: {}".format(self.cacheLinkedList.size, self.cache_size))
-            # if self.cacheLinkedList.size == self.cache_size:
-            #     self.printCacheLine()
-            # print(self.cache_dict)
             return_content = self._evictOneElement()
 
         node = self.cacheLinkedList.insertAtTail(element)
@@ -60,9 +56,6 @@ class LRU(cache):
         :return: content of evicted element
         """
         content = self.cacheLinkedList.removeFromHead()
-        # print(content)
-        # self.printCacheLine()
-        # print(self.cache_dict)
         del self.cacheDict[content]
         return content
 

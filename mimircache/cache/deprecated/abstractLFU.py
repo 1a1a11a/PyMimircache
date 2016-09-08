@@ -30,9 +30,6 @@ class abstractLFU(cache):
         :return: original rank
         """
         self.cacheDict[element] += 1
-        # if self.cache_dict[element]>self.largest_freq:
-        #     self.largest_freq = self.cache_dict[element]
-        #     self.largest_freq_element = element
         if element in self.least_freq_elements_set:
             if len(self.least_freq_elements_set) > 1:
                 # more than one element, so just remove this element
@@ -56,9 +53,6 @@ class abstractLFU(cache):
             self._evictOneElement()
 
         self.cacheDict[element] = 1
-        # if self.cache_dict[element]>self.largest_freq:
-        #     self.largest_freq = self.cache_dict[element]
-        #     self.largest_freq_element = element
         if self.least_freq == 1:
             # this one needs to be added
             self.least_freq_elements_list.append(element)
