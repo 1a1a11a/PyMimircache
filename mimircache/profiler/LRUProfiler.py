@@ -66,12 +66,20 @@ class LRUProfiler:
         pass
 
     def _kwargs_parse(self, **kwargs):
+        kargs = {}
+        kargs['begin'] = 0
+        kargs['end'] = -1
+        kargs['cache_size'] = -1
+
         if 'begin' in kwargs:
-            begin = kwargs['begin']
+            kargs['begin'] = kwargs['begin']
         if 'end' in kwargs:
-            end = kwargs['end']
+            kargs['end'] = kwargs['end']
         if 'cache_size' in kwargs:
-            cache_size = kwargs['cache_size']
+            kargs['cache_size'] = kwargs['cache_size']
+
+        return kargs
+
 
 
     def get_hit_count(self, **kargs):
@@ -104,6 +112,7 @@ class LRUProfiler:
         return rd
 
     def plotMRC(self, figname="MRC.png", auto_resize=False, threshhold=0.98, **kwargs):
+        EXTENTION_LENGTH = 1024
         MRC = self.get_miss_rate(**kwargs)
         try:
             stop_point = len(MRC) - 2
@@ -112,8 +121,8 @@ class LRUProfiler:
                     if MRC[i] >= MRC[-3] / threshhold:
                         stop_point = i
                         break
-                if stop_point + 200 < len(MRC) - 2:
-                    stop_point += 200
+                if stop_point + EXTENTION_LENGTH < len(MRC) - 2:
+                    stop_point += EXTENTION_LENGTH
                 else:
                     stop_point = len(MRC) - 2
 
@@ -136,6 +145,7 @@ class LRUProfiler:
             print(e)
 
     def plotHRC(self, figname="HRC.png", auto_resize=False, threshhold=0.98, **kwargs):
+        EXTENTION_LENGTH = 1024
         HRC = self.get_hit_rate(**kwargs)
         try:
             stop_point = len(HRC) - 2
@@ -144,8 +154,8 @@ class LRUProfiler:
                     if HRC[i] <= HRC[-3] * threshhold:
                         stop_point = i
                         break
-                if stop_point + 200 < len(HRC) - 2:
-                    stop_point += 200
+                if stop_point + EXTENTION_LENGTH < len(HRC) - 2:
+                    stop_point += EXTENTION_LENGTH
                 else:
                     stop_point = len(HRC) - 2
             # print(HRC)

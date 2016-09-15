@@ -33,7 +33,8 @@ typedef enum{
     e_ML,
 
     
-    e_YJC
+    e_YJC,
+    e_mimir
     
 }cache_type;
 
@@ -48,8 +49,15 @@ struct cache_core{
     struct cache* (*cache_init)(guint64, char, void*);
     void (*destroy)(struct cache* );
     void (*destroy_unique)(struct cache* );
-    gboolean (*add_element)(struct cache*, cache_line* cp);
-    gboolean (*check_element)(struct cache*, cache_line* cp);
+    gboolean (*add_element)(struct cache*, cache_line*);
+    gboolean (*check_element)(struct cache*, cache_line*);
+    
+    void (*__insert_element)(struct cache*, cache_line*);       // newly added 0912, may not work for all cache
+    void (*__update_element)(struct cache*, cache_line*);       // newly added 0912, may not work for all cache
+    void (*__evict_element)(struct cache*, cache_line*);        // newly added 0912, may not work for all cache 
+    
+    guint64 (*get_size)(struct cache*);                         // newly added 0912, only works on LRU 
+    
     
     
     int cache_debug_level;  // 0 not debug, 1: prepare oracle, 2: compare to oracle

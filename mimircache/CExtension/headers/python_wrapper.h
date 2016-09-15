@@ -27,6 +27,7 @@
 #include "LRU_dataAware.h" 
 
 #include "YJC.h"
+#include "mimir.h" 
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -193,6 +193,10 @@ struct_cache* LRU_init(guint64 size, char data_type, void* params){
     cache->core->destroy_unique = LRU_destroy_unique;
     cache->core->add_element = LRU_add_element;
     cache->core->check_element = LRU_check_element;
+    cache->core->__insert_element = __LRU_insert_element;
+    cache->core->__update_element = __LRU_update_element;
+    cache->core->__evict_element  = __LRU_evict_element; 
+    cache->core->get_size = LRU_get_size; 
     cache->core->cache_init_params = NULL;
 
     if (data_type == 'l'){

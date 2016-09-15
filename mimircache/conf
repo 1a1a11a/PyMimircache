@@ -10,3 +10,4 @@ LRU_dataAware = True
 MRU = True
 Random = True
 YJC = True
+mimir = True

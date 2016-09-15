@@ -290,22 +290,22 @@ static void profiler_with_prefetch_thread(gpointer data, gpointer user_data){
             miss_count ++;
         pos++;
         
-        // FOR VSCSI AND FETCH BLOCK_NUM + 8
-        *(guint64*)(cp->item_p) = *(guint64*)(cp->item_p) + 8;
-        add_element(cache, cp);
-
+//        // FOR VSCSI AND FETCH BLOCK_NUM + 8
+//        *(guint64*)(cp->item_p) = *(guint64*)(cp->item_p) + 8;
+//        add_element(cache, cp);
+//
         
         
-//        // begin prefetch elements
-//        GSList *slist = g_hash_table_lookup(prefetch_hashtable, cp->item_p);
-//        while (slist != NULL){
-//            if (cp->type == 'l')
-//                *((guint64*) cp->item_p) = *((guint64*)slist->data);
-//            else
-//                strcpy((char*)(cp->item_p), (char*)(slist->data));
-//            add_element(cache, cp);
-//            slist = slist->next;
-//        }
+        // begin prefetch elements
+        GSList *slist = g_hash_table_lookup(prefetch_hashtable, cp->item_p);
+        while (slist != NULL){
+            if (cp->type == 'l')
+                *((guint64*) cp->item_p) = *((guint64*)slist->data);
+            else
+                strcpy((char*)(cp->item_p), (char*)(slist->data));
+            add_element(cache, cp);
+            slist = slist->next;
+        }
         
         read_one_element(reader_thread, cp);
     }
@@ -369,6 +369,10 @@ return_res** profiler_with_prefetch(READER* reader_in, struct_cache* cache_in, i
     result[0]->miss_rate = 1;
     
     // build prefetch hashtable
+    /** each line in the input file is tab seperated,
+     *  the first is treated as key, the rest are values
+     **/
+
     GHashTable *prefetch_hashtable;
     if (cache_in->core->data_type == 'l'){
         prefetch_hashtable = g_hash_table_new_full(g_int64_hash, g_int64_equal, simple_g_key_value_destroyer, g_slist_destroyer);
@@ -381,11 +385,11 @@ return_res** profiler_with_prefetch(READER* reader_in, struct_cache* cache_in, i
         while (fgets(buf, 1024*1024, file) != 0){
             list = NULL;
             key = NULL;
-            printf("line: %s\n", buf);
+//            printf("line: %s\n", buf);
             token = strtok(buf, "\t");
             while (token!=NULL){
                 req = (gint64)(atol(token));
-                printf("parsed: %ld\t", req);
+//                printf("parsed: %ld\t", req);
 //            sscanf(token, "%lu", &k);
                 if (key == NULL){
                     key = (gpointer)g_new(gint64, 1);
@@ -399,7 +403,7 @@ return_res** profiler_with_prefetch(READER* reader_in, struct_cache* cache_in, i
                 }
                 token = strtok(NULL, "\t");
             }
-            printf("\n");
+//            printf("\n");
             g_hash_table_insert(prefetch_hashtable, key, list);
         }
         

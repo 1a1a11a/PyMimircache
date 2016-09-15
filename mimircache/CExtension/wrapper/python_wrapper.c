@@ -54,16 +54,6 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
         init_params->maxK = 2;
         cache = LRU_K_init(cache_size, data_type, (void*)init_params);
     }
-    else if (strcmp(algorithm, "YJC") == 0){
-        double LRU_percentage = PyFloat_AS_DOUBLE(PyDict_GetItemString(cache_params, "LRU_percentage"));
-        DEBUG(printf("LRU_percentage=%lf\n", LRU_percentage));
-        double LFU_percentage = PyFloat_AS_DOUBLE(PyDict_GetItemString(cache_params, "LFU_percentage"));
-        DEBUG(printf("LFU_percentage=%lf\n", LFU_percentage));
-        struct YJC_init_params *init_params = g_new(struct YJC_init_params, 1);
-        init_params->LRU_percentage = LRU_percentage;
-        init_params->LFU_percentage = LFU_percentage;
-        cache = YJC_init(cache_size, data_type, (void*)init_params);
-    }
     else if (strcmp(algorithm, "LRU_K") == 0){
 //        printf("check dict\n");
 //        printf("check = %d\n", PyDict_Check(cache_params));
@@ -90,6 +80,38 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
         init_params->maxK = K;
         cache = LRU_K_init(cache_size, data_type, (void*)init_params);
         DEBUG(printf("cache->K = %d, maxK = %d\n", ((struct LRU_K_params*)(cache->cache_params))->K, ((struct LRU_K_params*)(cache->cache_params))->maxK));
+    }
+    else if (strcmp(algorithm, "YJC") == 0){
+        double LRU_percentage = PyFloat_AS_DOUBLE(PyDict_GetItemString(cache_params, "LRU_percentage"));
+        DEBUG(printf("LRU_percentage=%lf\n", LRU_percentage));
+        double LFU_percentage = PyFloat_AS_DOUBLE(PyDict_GetItemString(cache_params, "LFU_percentage"));
+        DEBUG(printf("LFU_percentage=%lf\n", LFU_percentage));
+        struct YJC_init_params *init_params = g_new(struct YJC_init_params, 1);
+        init_params->LRU_percentage = LRU_percentage;
+        init_params->LFU_percentage = LFU_percentage;
+        init_params->clustering_hashtable = NULL;
+        cache = YJC_init(cache_size, data_type, (void*)init_params);
+    }
+    else if (strcmp(algorithm, "mimir") == 0){
+        gint max_support = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "max_support"));
+        gint min_support = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "min_support"));
+        gint confidence = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "confidence"));
+        gint item_set_size = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "item_set_size"));
+        gdouble training_period = (gdouble) PyLong_AsLong(PyDict_GetItemString(cache_params, "training_period"));
+        
+        //        gint max_support = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "max_support"));
+        DEBUG(printf("max support=%d, min support %d, confidence %d\n", max_support, min_support, confidence));
+        
+        struct MIMIR_init_params *init_params = g_new(struct MIMIR_init_params, 1);
+        init_params->max_support = max_support;
+        init_params->min_support = min_support;
+        init_params->cache_type = "LRU";
+        init_params->confidence = confidence;
+        init_params->item_set_size = item_set_size;
+        init_params->training_period = training_period;
+        init_params->training_period_type = 'v';
+        
+        cache = MIMIR_init(cache_size, data_type, (void*)init_params);
     }
     else {
         printf("does not support given cache replacement algorithm: %s\n", algorithm);

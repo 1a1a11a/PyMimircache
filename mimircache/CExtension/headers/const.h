@@ -25,5 +25,5 @@
 
 
 #ifndef DEBUG
-#define DEBUG(stat) stat;
+#define DEBUG(stat) ;
 #endif 

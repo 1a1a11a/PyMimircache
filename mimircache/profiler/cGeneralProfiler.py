@@ -5,7 +5,7 @@
 
 
 import math
-import os
+import os, sys
 
 # deal with headless situation
 import traceback
@@ -14,6 +14,10 @@ import matplotlib
 
 from multiprocessing import Process, Pipe, Array
 from os import path
+
+from mimircache.utils.printing import colorfulPrint
+
+from mimircache.profiler.LRUProfiler import LRUProfiler
 
 from mimircache.cacheReader.vscsiReader import vscsiReader
 import matplotlib.ticker as ticker
@@ -148,13 +152,13 @@ class cGeneralProfiler:
             plt.ylabel("Miss Rate")
             plt.title('Miss Rate Curve', fontsize=18, color='black')
             plt.savefig(figname, dpi=600)
+            colorfulPrint("red", "plot is saved at the same directory")
             plt.show()
             plt.clf()
             del MRC
         except Exception as e:
             plt.savefig(figname)
-            print("the plotting function is not wrong, is this a headless server?")
-            print(e)
+            print("the plotting function is not wrong, is this a headless server?\n{}".format(e), file=sys.stderr)
 
     def plotHRC(self, figname="HRC.png", **kwargs):
         HRC = self.get_hit_rate(**kwargs)
@@ -168,6 +172,7 @@ class cGeneralProfiler:
             plt.ylabel("Hit Rate")
             plt.title('Hit Rate Curve', fontsize=18, color='black')
             plt.savefig(figname, dpi=600)
+            colorfulPrint("red", "plot is saved at the same directory")
             plt.show()
             plt.clf()
             del HRC
@@ -210,6 +215,45 @@ def server_plot_all(path='/run/shm/traces/', threads=48):
 
 
 
+
+def run():
+    from mimircache import cachecow
+    MAX_SUPPORT = 3
+    MIN_SUPPORT = 1
+    CONFIDENCE = 0
+    ITEM_SET_SIZE = 10       # 10 for w49~w106
+    TRAINING_PERIOD = 1000000
+
+    NUM_OF_THREADS = 7
+
+
+
+    # for f in os.listdir("/scratch/jason/traces/"):
+    if True:
+        f = sys.argv[1][sys.argv[1].rfind('/')+1:]
+        print(f)
+        c = cachecow()
+        if not f.endswith('vscsitrace'):
+            sys.exit(1)
+        if 'w01' in f:
+            sys.exit(1)
+        c.vscsi("/scratch/jason/traces/{}".format(f))
+        # c.vscsi(f)
+        n = c.num_of_request()
+        CACHE_SIZE = n//100
+        TRAINING_PERIOD = n//10
+        figname = "mimir/HRC_{}_{}_{}_{}_{}_{}.png".format(f, MAX_SUPPORT, MIN_SUPPORT, CONFIDENCE, ITEM_SET_SIZE, TRAINING_PERIOD)
+
+        if os.path.exists(figname):
+            sys.exit(1)
+
+        c.plotHRCs(["LRU", "mimir"],
+               cache_params=[None, {"max_support": MAX_SUPPORT, "min_support": MIN_SUPPORT, "confidence": CONFIDENCE,
+                                    "item_set_size": ITEM_SET_SIZE, "training_period": TRAINING_PERIOD}],
+               cache_size=CACHE_SIZE, auto_size=False, num_of_threads=NUM_OF_THREADS,
+               figname=figname)
+
+
 if __name__ == "__main__":
     import time
 
@@ -220,27 +264,94 @@ if __name__ == "__main__":
     # r = plainCacheReader('../data/parda.trace')
     # r = vscsiReader('../data/trace.vscsi')
     # r = vscsiReader("../data/traces/w38_vscsi1.vscsitrace")
-    r = vscsiReader("/home/cloudphysics/traces/w38_vscsi1.vscsitrace")
+    # print(r.get_num_of_total_requests())
+    # r = vscsiReader("../1a1a11a/prefetch_input_data/w15/xab")
+    # r = vscsiReader("/home/cloudphysics/traces/w38_vscsi1.vscsitrace")
 
     # cg = cGeneralProfiler(r, 'Optimal', 2000, 200)
     # cg = cGeneralProfiler(r, 'LRU_2', 38000, 200, num_of_threads=8)
     # cg = cGeneralProfiler(r, 'LRU_K', 2000, 200, cache_params={"K":2})
-    cg = cGeneralProfiler(r, 'LRU', 200000, 2000, num_of_threads=48, cache_params={"LRU_percentage":0.2, "LFU_percentage":0.1})
+    # cg = cGeneralProfiler(r, "mimir", 200000, 20000,
+    #                       cache_params={"max_support": 5, "min_support":1, "confidence":1,
+    #                             "item_set_size":5, "training_period":10000000}, num_of_threads=8)
+    # print(r.get_num_of_total_requests())
+    # p = LRUProfiler(reader=r)
+    # p.plotHRC(figname="HRC_LRU.png")
 
-    t1 = time.time()
+    # cg = cGeneralProfiler(r, 'YJC', 200000, 25000, num_of_threads=8,
+    #                       cache_params={"LRU_percentage": 0.2, "LFU_percentage": 0.1})
+    # cg = cGeneralProfiler(r, 'LRU', 200000, 1000, num_of_threads=8)
+    # cg = cGeneralProfiler(r, 'LRU', 5000000, 100000, num_of_threads=8)
 
+    # print(cg.plotHRC("mimir.png"))
     # print(cg.get_hit_rate())
     # print(cg.get_hit_count())
     # print(cg.get_miss_rate())
+    # run()
+
+
+    CACHE_SIZE = 160000
+    BIN_SIZE = 4000
+    NUM_OF_THREADS = 1
+    DAT = "w100"
+
+    from mimircache import *
+
+    MAX_SUPPORT = 3
+    MIN_SUPPORT = 1
+    CONFIDENCE = 0
+    ITEM_SET_SIZE = 10
+    TRAINING_PERIOD1 = 1000000
+
+
+    c = cachecow()
+    c.vscsi("../data/traces/{}_vscsi1.vscsitrace".format(DAT))
+    # c.vscsi("../data/trace.vscsi")
+    # c.vscsi(f)
+    n = c.num_of_request()
+    CACHE_SIZE = n // 100
+    TRAINING_PERIOD = n // 10
+    figname = "HRC_{}_{}_{}_{}_{}_{}.png".format("trace", MAX_SUPPORT, MIN_SUPPORT, CONFIDENCE, ITEM_SET_SIZE,
+                                                       TRAINING_PERIOD)
+
+
+    c.plotHRCs(["LRU", "mimir"],
+               cache_params=[None, {"max_support": MAX_SUPPORT, "min_support": MIN_SUPPORT, "confidence": CONFIDENCE,
+                                    "item_set_size": ITEM_SET_SIZE, "training_period": TRAINING_PERIOD}],
+               cache_size=CACHE_SIZE, bin_size=CACHE_SIZE//1, auto_size=False, num_of_threads=NUM_OF_THREADS,
+               figname=figname)
+
+
+
+'''
+    t1 = time.time()
+
+    # r = vscsiReader("../1a1a11a/prefetch_input_data/{}/xab".format(DAT))
+    # r = vscsiReader("/scratch/jason/traces/w38_vscsi1.vscsitrace")
+    cg = cGeneralProfiler(r, 'LRU', CACHE_SIZE, BIN_SIZE, num_of_threads=NUM_OF_THREADS)
+
+    prefetch = False
+    figname = "{}_xab_non_prefetch.png".format(DAT)
+    hr1 = cg.get_hit_rate(prefetch=prefetch)
+    print("TIME: %f" % (time.time() - t1))
+    t1 = time.time()
+
+
     prefetch = True
-    figname = "HRC_LRU_200000_prefetch.png"
-    # figname = "HRC_YJC_200000_0.2_0.1.png"
-    # if prefetch:
-    #     figname = "HRC_LRUPrefetch.png"
+    figname = "{}_xab_prefetch_all.5.png".format(DAT)
+    hr2 = cg.get_hit_rate(prefetch=prefetch)
+    print("TIME: %f" % (time.time() - t1))
 
-    cg.plotHRC(figname=figname, prefetch=prefetch)
 
-    t2 = time.time()
-    print("TIME: %f" % (t2 - t1))
+    plt.xlim(0, CACHE_SIZE)
+    plt.plot(range(0, CACHE_SIZE + 1, BIN_SIZE), hr1, label="no_prefetch")
+    plt.plot(range(0, CACHE_SIZE + 1, BIN_SIZE), hr2, label="prefetch")
 
-    # print(cg.get_hit_rate(begin=1, end=20))
+    plt.legend(loc="lower right")
+    plt.xlabel("cache Size")
+    plt.ylabel("Hit Rate")
+    plt.title('Hit Rate Curve', fontsize=18, color='black')
+    plt.savefig(figname, dpi=600)
+    colorfulPrint("red", "plot is saved at the same directory")
+'''
+

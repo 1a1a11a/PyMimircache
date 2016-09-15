@@ -40,7 +40,6 @@ extern  void LRU_destroy_unique(struct_cache* cache);
 struct_cache* LRU_init(guint64 size, char data_type, void* params);
 
 
-
 extern  void LRU_remove_element(struct_cache* cache, void* data_to_remove);
 extern gpointer __LRU_evict_element_with_return(struct_cache* LRU, cache_line* cp);
 extern guint64 LRU_get_size(struct_cache* cache);

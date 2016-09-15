@@ -285,7 +285,7 @@ static PyObject* generalProfiler_get_hit_rate_with_prefetch(PyObject* self, PyOb
     
     // get hit rate
     DEBUG(printf("before profiling\n"));
-    return_res** results = profiler_with_prefetch(reader, cache, num_of_threads, bin_size, "frequentItemSet", (gint64)begin, (gint64)end);
+    return_res** results = profiler_with_prefetch(reader, cache, num_of_threads, bin_size, "prefetchFile", (gint64)begin, (gint64)end);
     DEBUG(printf("after profiling\n"));
     
     // create numpy array
