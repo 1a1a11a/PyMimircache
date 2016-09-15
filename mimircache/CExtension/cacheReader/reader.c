@@ -116,9 +116,16 @@ int go_back_one_line(READER* reader){
             char c = getc(file);
             if (c != LINE_ENDING && c!=' ' && c!='\t' && c!=',' && c!='.')
                 after_empty_lines = TRUE;
+            else{
+                // this might happen if the length of line is 1(excluding \n)
+                char c2 = getc(file);
+                if (c2 != LINE_ENDING && c2!=' ' && c2!='\t' && c2!=',' && c2!='.')
+                    after_empty_lines = TRUE;
+                fseek(file, -1L, SEEK_CUR);
+            }
             while( c != LINE_ENDING || !after_empty_lines){
                 if (( r= fseek(file, -2L, SEEK_CUR)) != 0)
-                    return 0;
+                    return 1;
                 c = getc(file);
                 if (!after_empty_lines && c != LINE_ENDING && c!=' ' && c!='\t' && c!=',' && c!='.')
                     after_empty_lines = TRUE;
@@ -152,26 +159,30 @@ int go_back_two_lines(READER* reader){
             else
                 return 1;
         case 'p':
-//            ;
-//            int r;
-//            if ( (r=fseek(reader->file, -2L, SEEK_CUR)) != 0){
-//                return r;
+            ;
+            int r;
+            if ( (r=fseek(reader->file, -2L, SEEK_CUR)) != 0){
+                return r;
+            }
+            
+            while( getc(reader->file) != LINE_ENDING )
+                if ( (r= fseek(reader->file, -2L, SEEK_CUR)) != 0){
+                    return r;
+                }
+            fseek(reader->file, -2L, SEEK_CUR);
+            while( getc(reader->file) != LINE_ENDING )
+                if ( (r=fseek(reader->file, -2L, SEEK_CUR)) != 0){
+                    fseek(reader->file, -1L, SEEK_CUR);
+                    break;
+                }
+            return 0;
+            // the following will have problem when each line is length 1
+//            if (go_back_one_line(reader)==0){
+//                return go_back_one_line(reader);
+////                return 0;
 //            }
-//            
-//            while( getc(reader->file) != LINE_ENDING )
-//                if ( (r= fseek(reader->file, -2L, SEEK_CUR)) != 0){
-//                    return r;
-//                }
-//            fseek(reader->file, -2L, SEEK_CUR);
-//            while( getc(reader->file) != LINE_ENDING )
-//                if ( (r=fseek(reader->file, -2L, SEEK_CUR)) != 0){
-//                    fseek(reader->file, -1L, SEEK_CUR);
-//                    break;
-//                }
-            if (go_back_one_line(reader)==0)
-                return go_back_one_line(reader);
-            else
-                return 1;
+//            else
+//                return 1;
         case 'v':
             if (reader->offset >= (reader->record_size * 2))
                 reader->offset -= (reader->record_size)*2;

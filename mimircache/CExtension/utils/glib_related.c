@@ -18,7 +18,8 @@ void simple_g_key_value_destroyer(gpointer data) {
 }
 
 void g_slist_destroyer(gpointer data){
-    g_slist_free_full((GSList*)data, simple_g_key_value_destroyer);
+//    if (data!=NULL)
+        g_slist_free_full((GSList*)data, simple_g_key_value_destroyer);
 }
 
 void gqueue_destroyer(gpointer data) {
