@@ -47,6 +47,7 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
         d = defaultdict(int)
         for i in self:
             d[i] += 1
+        self.reset()
         return d
 
     def get_num_of_unique_requests(self):
