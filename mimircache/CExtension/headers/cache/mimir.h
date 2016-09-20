@@ -14,6 +14,7 @@
 #include "cache.h" 
 #include "LRU.h"
 #include "FIFO.h" 
+#include "Optimal.h" 
 
 
 #define CACHE_LINE_LABEL_SIZE2 16
@@ -47,6 +48,7 @@ struct MIMIR_init_params{
     gint max_support;
     gint min_support;
     gint confidence;
+    gint prefetch_list_size;
     gdouble training_period;
     gchar training_period_type;
     gint output_statistics;
@@ -62,6 +64,9 @@ struct MIMIR_params{
     gint max_support;                       // allow to reach max support 
     gint min_support;
     gint confidence;                        // use the difference in length of sequence as confidence 
+    
+    gint prefetch_list_size;
+    
     
     GHashTable *hashtable_for_training;      // from request to linkedlist node
     GHashTable *hashset_frequentItem;      // hashset for remembering frequent items
@@ -105,6 +110,7 @@ extern  void MIMIR_destroy_unique(struct_cache* MIMIR);
 
 extern void __MIMIR_mining(struct_cache* MIMIR);
 extern void __MIMIR_aging(struct_cache* MIMIR);
+extern void add_to_prefetch_table(struct_cache* MIMIR, gpointer gp1, gpointer gp2);
 
 
 struct_cache* MIMIR_init(guint64 size, char data_type, void* params);
@@ -113,6 +119,10 @@ struct_cache* MIMIR_init(guint64 size, char data_type, void* params);
 void training_node_destroyer(gpointer data);
 void prefetch_node_destroyer(gpointer data);
 void prefetch_array_node_destroyer(gpointer data);
+
+
+void
+prefetch_hashmap_count_length (gpointer key, gpointer value, gpointer user_data); 
 
 
 extern  void MIMIR_remove_element(struct_cache* cache, void* data_to_remove);
