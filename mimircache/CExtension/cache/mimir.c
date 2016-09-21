@@ -44,8 +44,14 @@ static inline void __MIMIR_record_entry(struct_cache* MIMIR, cache_line* cp){
     struct MIMIR_params* MIMIR_params = (struct MIMIR_params*)(MIMIR->cache_params);
     
     // check whether this is a frequent item, if so, don't insert
-    if (g_hash_table_contains(MIMIR_params->hashset_frequentItem, cp->item_p))
+    // change 0920 change2
+    // if the item is not in recording table, but in cache, means it is frequent, discard it
+    if (MIMIR_params->cache->core->check_element(MIMIR_params->cache, cp) &&
+        !g_hash_table_contains(MIMIR_params->hashtable_for_training, cp->item_p))
         return;
+    
+//    if (g_hash_table_contains(MIMIR_params->hashset_frequentItem, cp->item_p))
+//        return;
     
     // check the item in hashtable for training
     GList *list_node = (GList*) g_hash_table_lookup(MIMIR_params->hashtable_for_training, cp->item_p);
@@ -93,15 +99,15 @@ static inline void __MIMIR_record_entry(struct_cache* MIMIR, cache_line* cp){
             
             g_hash_table_remove(MIMIR_params->hashtable_for_training, cp->item_p);
             
-            gpointer key;
-            if (cp->type == 'l'){
-                key = (gpointer)g_new(guint64, 1);
-                *(guint64*)key = *(guint64*)(cp->item_p);
-            }
-            else{
-                key = (gpointer)g_strdup((gchar*)(cp->item_p));
-            }
-            g_hash_table_add(MIMIR_params->hashset_frequentItem, key);
+//            gpointer key;
+//            if (cp->type == 'l'){
+//                key = (gpointer)g_new(guint64, 1);
+//                *(guint64*)key = *(guint64*)(cp->item_p);
+//            }
+//            else{
+//                key = (gpointer)g_strdup((gchar*)(cp->item_p));
+//            }
+//            g_hash_table_add(MIMIR_params->hashset_frequentItem, key);
         }
         else{
             (data_node->array)[data_node->length] = (MIMIR_params->ts) & ((1L<<32)-1);
@@ -223,11 +229,14 @@ void __MIMIR_evict_element(struct_cache* MIMIR, cache_line* cp){
     
 
     if (MIMIR_params->output_statistics){
-        if ((MIMIR_params->cache->core->type != e_LRU))
-            printf("only suppport LRU\n");
-        gpointer gp = __LRU_evict_element_with_return(MIMIR_params->cache, cp);
-
+        gpointer gp;
+        if (MIMIR_params->cache->core->type == e_LRU)
+            gp = __LRU_evict_element_with_return(MIMIR_params->cache, cp);
+        else if (MIMIR_params->cache->core->type == e_FIFO)
+            gp = __fifo_evict_element_with_return(MIMIR_params->cache, cp);
+        
         g_hash_table_remove(MIMIR_params->prefetched_hashtable, gp);
+        g_free(gp); 
     }
     else
         MIMIR_params->cache->core->__evict_element(MIMIR_params->cache, cp);
@@ -415,6 +424,10 @@ void __MIMIR_mining(struct_cache* MIMIR){
     
     __MIMIR_aging(MIMIR);
 //    printf("ts: %lu, aging takes %lf seconds\n", MIMIR_params->ts, g_timer_elapsed(timer, &microsecond));
+//    g_hash_table_destroy(MIMIR_params->prefetch_hashtable);
+//    MIMIR_params->prefetch_hashtable = g_hash_table_new_full(g_str_hash, g_str_equal,
+//                                                             simple_g_key_value_destroyer,
+//                                                             prefetch_node_destroyer);
 
     GList* list_node1 = MIMIR_params->training_data;
     GList* list_node2;
@@ -500,12 +513,8 @@ void __MIMIR_mining(struct_cache* MIMIR){
         data_node->length = 1;
         
         gpointer item_p;
-        if (MIMIR->core->data_type == 'l'){
-            item_p = (gpointer)g_new(guint64, 1);
-            *(guint64*)item_p = *(guint64*)(last_data_node->item_p);
-        }
-        else
-            item_p = (gpointer)g_strdup((gchar*)(last_data_node->item_p));
+        item_p = (gpointer)g_new(guint64, 1);
+        *(guint64*)item_p = *(guint64*)(last_data_node->item_p);
         data_node->item_p = item_p;
         
         
@@ -516,13 +525,8 @@ void __MIMIR_mining(struct_cache* MIMIR){
         
         
         gpointer key;
-        if (MIMIR->core->data_type == 'l'){
-            key = (gpointer)g_new(guint64, 1);
-            *(guint64*)key = *(guint64*)(last_data_node->item_p);
-        }
-        else{
-            key = (gpointer)g_strdup((gchar*)(last_data_node->item_p));
-        }
+        key = (gpointer)g_new(guint64, 1);
+        *(guint64*)key = *(guint64*)(last_data_node->item_p);
         g_hash_table_insert(MIMIR_params->hashtable_for_training, key, MIMIR_params->training_data);
 
     
@@ -531,6 +535,27 @@ void __MIMIR_mining(struct_cache* MIMIR){
         MIMIR_params->hashtable_for_training = g_hash_table_new_full(g_str_hash, g_str_equal,
                                                                      simple_g_key_value_destroyer,
                                                                      training_node_destroyer);
+        struct training_data_node *last_data_node = (struct training_data_node*) (MIMIR_params->training_data->data);
+        struct training_data_node *data_node = g_new(struct training_data_node, 1);
+        data_node->array = g_new(gint32, MIMIR_params->max_support);
+        data_node->length = 1;
+        
+        gpointer item_p;
+        item_p = (gpointer)g_strdup((gchar*)(last_data_node->item_p));
+        data_node->item_p = item_p;
+        
+        
+        (data_node->array)[0] = last_data_node->array[last_data_node->length-1];
+        
+        MIMIR_params->training_data = NULL;
+        MIMIR_params->training_data = g_list_prepend(MIMIR_params->training_data, (gpointer)data_node);
+        
+        
+        gpointer key;
+        key = (gpointer)g_strdup((gchar*)(last_data_node->item_p));
+        g_hash_table_insert(MIMIR_params->hashtable_for_training, key, MIMIR_params->training_data);
+
+        
     }
     g_hash_table_destroy(old_hashtable);                                // do not need to free the list again
 //    MIMIR_params->training_data = NULL;
