@@ -22,6 +22,10 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
         printf("we suggest using LRUProfiler for profiling, it's faster\n");
         cache = LRU_init(cache_size, data_type, NULL);
     }
+    else if (strcmp(algorithm, "test1") == 0){
+        printf("we suggest using testProfiler for profiling, it's faster\n");
+        cache = test1_init(cache_size, data_type, NULL);
+    }
     else if (strcmp(algorithm, "LFU") == 0){
         cache = LFU_init(cache_size, data_type, NULL);
     }
@@ -81,6 +85,16 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
         cache = LRU_K_init(cache_size, data_type, (void*)init_params);
         DEBUG(printf("cache->K = %d, maxK = %d\n", ((struct LRU_K_params*)(cache->cache_params))->K, ((struct LRU_K_params*)(cache->cache_params))->maxK));
     }
+    else if (strcmp(algorithm, "AMP") == 0){
+        gint read_size = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "read_size"));
+        gint APT = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "APT"));
+        printf("AMP read size %d, APT %d\n", read_size, APT); 
+        struct AMP_init_params *init_params = g_new(struct AMP_init_params, 1);
+        init_params->APT = APT;
+        init_params->read_size = read_size;
+        init_params->p_threshold = 256;
+        cache = AMP_init(cache_size, data_type, (void*)init_params);
+    }
     else if (strcmp(algorithm, "YJC") == 0){
         double LRU_percentage = PyFloat_AS_DOUBLE(PyDict_GetItemString(cache_params, "LRU_percentage"));
         DEBUG(printf("LRU_percentage=%lf\n", LRU_percentage));
@@ -97,19 +111,38 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
         gint min_support = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "min_support"));
         gint confidence = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "confidence"));
         gint item_set_size = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "item_set_size"));
-        gdouble training_period = (gdouble) PyLong_AsLong(PyDict_GetItemString(cache_params, "training_period"));
+        gdouble mining_period = (gdouble) PyFloat_AsDouble(PyDict_GetItemString(cache_params, "mining_period"));
+        gint prefetch_list_size = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "prefetch_list_size"));
+        gchar* cache_type = "unknown";
+        gchar* mining_period_type;
         
-        //        gint max_support = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "max_support"));
-        DEBUG(printf("max support=%d, min support %d, confidence %d\n", max_support, min_support, confidence));
+        PyObject * temp_bytes = PyUnicode_AsEncodedString(PyDict_GetItemString(cache_params, "cache_type"), "utf-8", "strict"); // Owned reference
+        if (temp_bytes != NULL) {
+            cache_type = g_strdup( PyBytes_AS_STRING(temp_bytes) ); // Borrowed pointer
+            Py_DECREF(temp_bytes);
+            printf("cache type %s\n", cache_type);
+        }
+        
+        temp_bytes = PyUnicode_AsEncodedString(PyDict_GetItemString(cache_params, "mining_period_type"), "utf-8", "strict"); // Owned reference
+        if (temp_bytes != NULL) {
+            mining_period_type = PyBytes_AS_STRING(temp_bytes); // Borrowed pointer
+            Py_DECREF(temp_bytes);
+        }
+        
+        
+        
+        (printf("cache type %s, max support=%d, min support %d, confidence %d, mining period %lf\n",
+                     cache_type, max_support, min_support, confidence, mining_period));
         
         struct MIMIR_init_params *init_params = g_new(struct MIMIR_init_params, 1);
         init_params->max_support = max_support;
         init_params->min_support = min_support;
-        init_params->cache_type = "LRU";
+        init_params->cache_type = cache_type;
         init_params->confidence = confidence;
         init_params->item_set_size = item_set_size;
-        init_params->training_period = training_period;
-        init_params->training_period_type = 'v';
+        init_params->training_period = mining_period;
+        init_params->prefetch_list_size = prefetch_list_size; 
+        init_params->training_period_type = mining_period_type[0];
         
         cache = MIMIR_init(cache_size, data_type, (void*)init_params);
     }

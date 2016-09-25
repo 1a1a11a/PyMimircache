@@ -13,6 +13,11 @@
 #include <stdlib.h>
 
 
+//#define PROFILING 1
+
+
+
+
 void
 prefetch_hashmap_count_length (gpointer key, gpointer value, gpointer user_data){
     GPtrArray* pArray = (GPtrArray*) value;
@@ -21,7 +26,7 @@ prefetch_hashmap_count_length (gpointer key, gpointer value, gpointer user_data)
 }
 
 void training_hashtable_count_length(gpointer key, gpointer value, gpointer user_data){
-    GList* list_node = (GList*) value;
+    GSList* list_node = (GSList*) value;
     struct training_data_node *data_node = (struct training_data_node*) (list_node->data);
     guint64 *counter = (guint64*) user_data;
     (*counter) += data_node->length;
@@ -44,17 +49,13 @@ static inline void __MIMIR_record_entry(struct_cache* MIMIR, cache_line* cp){
     struct MIMIR_params* MIMIR_params = (struct MIMIR_params*)(MIMIR->cache_params);
     
     // check whether this is a frequent item, if so, don't insert
-    // change 0920 change2
     // if the item is not in recording table, but in cache, means it is frequent, discard it
     if (MIMIR_params->cache->core->check_element(MIMIR_params->cache, cp) &&
         !g_hash_table_contains(MIMIR_params->hashtable_for_training, cp->item_p))
         return;
-    
-//    if (g_hash_table_contains(MIMIR_params->hashset_frequentItem, cp->item_p))
-//        return;
-    
+//    printf("list size %u\n", g_slist_length(MIMIR_params->training_data)); 
     // check the item in hashtable for training
-    GList *list_node = (GList*) g_hash_table_lookup(MIMIR_params->hashtable_for_training, cp->item_p);
+    GSList *list_node = (GSList*) g_hash_table_lookup(MIMIR_params->hashtable_for_training, cp->item_p);
     if (list_node == NULL){
         // the node is not in the training data, should be added
         struct training_data_node *data_node = g_new(struct training_data_node, 1);
@@ -73,7 +74,7 @@ static inline void __MIMIR_record_entry(struct_cache* MIMIR, cache_line* cp){
         
         (data_node->array)[0] = (MIMIR_params->ts) & ((1L<<32)-1);
 
-        MIMIR_params->training_data = g_list_prepend(MIMIR_params->training_data, (gpointer)data_node);
+        MIMIR_params->training_data = g_slist_prepend(MIMIR_params->training_data, (gpointer)data_node);
         
         gpointer key;
         if (cp->type == 'l'){
@@ -94,7 +95,7 @@ static inline void __MIMIR_record_entry(struct_cache* MIMIR, cache_line* cp){
 
         if (data_node->length >= MIMIR_params->max_support){
             // we need to delete this list node, connect its precursor and successor, free data node inside it,
-            MIMIR_params->training_data = g_list_remove_link(MIMIR_params->training_data, list_node);
+            MIMIR_params->training_data = g_slist_remove_link(MIMIR_params->training_data, list_node);
             
             
             g_hash_table_remove(MIMIR_params->hashtable_for_training, cp->item_p);
@@ -139,9 +140,10 @@ static inline void __MIMIR_prefetch(struct_cache* MIMIR, cache_line* cp){
                 continue;
             
 
-            MIMIR_params->cache->core->__insert_element(MIMIR_params->cache, cp);
-            while ( MIMIR_params->cache->core->get_size(MIMIR_params->cache) > MIMIR->core->size)
-                __MIMIR_evict_element(MIMIR, cp);
+//            MIMIR_params->cache->core->__insert_element(MIMIR_params->cache, cp);
+//            while ( MIMIR_params->cache->core->get_size(MIMIR_params->cache) > MIMIR->core->size)
+//                __MIMIR_evict_element(MIMIR, cp);
+            MIMIR_params->cache->core->add_element(MIMIR_params->cache, cp); 
             
             
             if (MIMIR_params->output_statistics){
@@ -247,20 +249,11 @@ void __MIMIR_evict_element(struct_cache* MIMIR, cache_line* cp){
 
 gboolean MIMIR_add_element(struct_cache* MIMIR, cache_line* cp){
     struct MIMIR_params* MIMIR_params = (struct MIMIR_params*)(MIMIR->cache_params);
-    
     // only support virtual time now
-    if (MIMIR_params->training_period_type == 'v'){
-        if (MIMIR_params->ts - MIMIR_params->last_train_time > MIMIR_params->training_period){
-//            printf("ts %lu, last train time %lf, train period %lf, difference %lf\n", MIMIR_params->ts,
-//                   MIMIR_params->last_train_time, MIMIR_params->training_period,
-//                   MIMIR_params->ts - MIMIR_params->last_train_time);
-            guint64 counter = 0;
-            g_hash_table_foreach(MIMIR_params->hashtable_for_training, training_hashtable_count_length, &counter);
+    if (MIMIR_params->training_period_type == 'v'){        
+//        if (MIMIR_params->ts - MIMIR_params->last_train_time > MIMIR_params->training_period){
+        if (g_hash_table_size(MIMIR_params->hashtable_for_training) == MIMIR_params->training_period){
             
-//            printf("\ntraining table size %u, ave length: %lf, frequentItem size %u\n",
-//                   g_hash_table_size(MIMIR_params->hashtable_for_training),
-//                   (double) counter / g_hash_table_size(MIMIR_params->hashtable_for_training),
-//                   g_hash_table_size(MIMIR_params->hashset_frequentItem));
 
             __MIMIR_mining(MIMIR);
             MIMIR_params->last_train_time = (double)(MIMIR_params->ts);
@@ -282,7 +275,7 @@ gboolean MIMIR_add_element(struct_cache* MIMIR, cache_line* cp){
                 MIMIR_params->training_period_type);
         exit(1);
     }
-    
+
     
     
     MIMIR_params->ts ++;
@@ -309,7 +302,12 @@ void MIMIR_destroy(struct_cache* cache){
     g_hash_table_destroy(MIMIR_params->prefetch_hashtable);
     g_hash_table_destroy(MIMIR_params->hashtable_for_training);
     g_hash_table_destroy(MIMIR_params->hashset_frequentItem);
-//    g_list_free(MIMIR_params->training_data);                       // data have already been freed by hashtable
+//    g_slist_free(MIMIR_params->training_data);                       // data have already been freed by hashtable
+    if (MIMIR_params->output_statistics){
+        g_hash_table_destroy(MIMIR_params->prefetched_hashtable);
+    }
+    MIMIR_params->cache->core->destroy(MIMIR_params->cache);            // 0921
+//    g_free( ((struct MIMIR_init_params*)(cache->core->cache_init_params))->cache_type);
     cache_destroy(cache);
 }
 
@@ -326,6 +324,10 @@ void MIMIR_destroy_unique(struct_cache* cache){
     g_hash_table_destroy(MIMIR_params->prefetch_hashtable);
     g_hash_table_destroy(MIMIR_params->hashtable_for_training);
     g_hash_table_destroy(MIMIR_params->hashset_frequentItem);
+    if (MIMIR_params->output_statistics){
+        g_hash_table_destroy(MIMIR_params->prefetched_hashtable); 
+    }
+    MIMIR_params->cache->core->destroy_unique(MIMIR_params->cache);         // 0921
     cache_destroy_unique(cache);
 }
 
@@ -355,8 +357,10 @@ struct_cache* MIMIR_init(guint64 size, char data_type, void* params){
         MIMIR_params->cache = NULL;
         ;
     }
-    else
+    else{
+        fprintf(stderr, "can't recognize cache type: %s\n", init_params->cache_type); 
         MIMIR_params->cache = LRU_init(size, data_type, NULL);
+    }
 
     
     MIMIR_params->ave_length = -1;
@@ -418,19 +422,19 @@ struct_cache* MIMIR_init(guint64 size, char data_type, void* params){
 
 void __MIMIR_mining(struct_cache* MIMIR){
     struct MIMIR_params* MIMIR_params = (struct MIMIR_params*)(MIMIR->cache_params);
-    GTimer *timer = g_timer_new();    gulong microsecond = 0;
-
+    
+#ifdef PROFILING
+    GTimer *timer = g_timer_new();
+    gulong microsecond;
     g_timer_start(timer);
+#endif 
     
     __MIMIR_aging(MIMIR);
-//    printf("ts: %lu, aging takes %lf seconds\n", MIMIR_params->ts, g_timer_elapsed(timer, &microsecond));
-//    g_hash_table_destroy(MIMIR_params->prefetch_hashtable);
-//    MIMIR_params->prefetch_hashtable = g_hash_table_new_full(g_str_hash, g_str_equal,
-//                                                             simple_g_key_value_destroyer,
-//                                                             prefetch_node_destroyer);
-
-    GList* list_node1 = MIMIR_params->training_data;
-    GList* list_node2;
+#ifdef PROFILING
+    printf("ts: %lu, aging takes %lf seconds\n", MIMIR_params->ts, g_timer_elapsed(timer, &microsecond));
+#endif
+    GSList* list_node1 = MIMIR_params->training_data;
+    GSList* list_node2;
     struct training_data_node* data_node1, *data_node2;
     while (list_node1){
         
@@ -475,8 +479,9 @@ void __MIMIR_mining(struct_cache* MIMIR){
                         break;
                     }
                     // new0918 change1
-                    if ( labs(data_node2->array[i] - data_node1->array[i]) == 1 )
+                    if ( labs(data_node2->array[i] - data_node1->array[i]) == 1 ){
                         associated_flag = TRUE;
+                    }
                     
                 }
                 if (associated_flag){
@@ -496,15 +501,17 @@ void __MIMIR_mining(struct_cache* MIMIR){
         list_node1 = list_node1->next;
         
     }               // while list_node1
-//    printf("ts: %lu, training takes %lf seconds\n", MIMIR_params->ts, g_timer_elapsed(timer, &microsecond));
 
+#ifdef PROFILING
+    printf("ts: %lu, training takes %lf seconds\n", MIMIR_params->ts, g_timer_elapsed(timer, &microsecond));
+#endif
     
-    /* DO WE REALLY NEED TO CLEAR FREQUENT_ITEM??? */
+    /* clearing training hashtable and training list */
     GHashTable *old_hashtable = MIMIR_params->hashtable_for_training;
     
     // add the last record into new record table
     if (MIMIR->core->data_type == 'l'){
-        MIMIR_params->hashtable_for_training = g_hash_table_new_full(g_int64_hash, g_int_equal,
+        MIMIR_params->hashtable_for_training = g_hash_table_new_full(g_int64_hash, g_int64_equal,
                                                                      simple_g_key_value_destroyer,
                                                                      training_node_destroyer);
         struct training_data_node *last_data_node = (struct training_data_node*) (MIMIR_params->training_data->data);
@@ -521,7 +528,7 @@ void __MIMIR_mining(struct_cache* MIMIR){
         (data_node->array)[0] = last_data_node->array[last_data_node->length-1];
         
         MIMIR_params->training_data = NULL;
-        MIMIR_params->training_data = g_list_prepend(MIMIR_params->training_data, (gpointer)data_node);
+        MIMIR_params->training_data = g_slist_prepend(MIMIR_params->training_data, (gpointer)data_node);
         
         
         gpointer key;
@@ -548,8 +555,7 @@ void __MIMIR_mining(struct_cache* MIMIR){
         (data_node->array)[0] = last_data_node->array[last_data_node->length-1];
         
         MIMIR_params->training_data = NULL;
-        MIMIR_params->training_data = g_list_prepend(MIMIR_params->training_data, (gpointer)data_node);
-        
+        MIMIR_params->training_data = g_slist_prepend(MIMIR_params->training_data, (gpointer)data_node);
         
         gpointer key;
         key = (gpointer)g_strdup((gchar*)(last_data_node->item_p));
@@ -558,18 +564,16 @@ void __MIMIR_mining(struct_cache* MIMIR){
         
     }
     g_hash_table_destroy(old_hashtable);                                // do not need to free the list again
-//    MIMIR_params->training_data = NULL;
     
-    
-//    printf("ts: %lu, clearing training data takes %lf seconds\n", MIMIR_params->ts, g_timer_elapsed(timer, &microsecond));
-//    printf("prefetch table size %u\n", g_hash_table_size(MIMIR_params->prefetch_hashtable));
-//    g_hash_table_foreach(MIMIR_params->prefetch_hashtable, mprintHashTable, NULL);
-//    exit(1);
-
+   
+#ifdef PROFILING
+    printf("ts: %lu, clearing training data takes %lf seconds\n", MIMIR_params->ts, g_timer_elapsed(timer, &microsecond));
     g_timer_stop(timer);
+    g_timer_destroy(timer);
+#endif
 }
 
-    
+
 
 void add_to_prefetch_table(struct_cache* MIMIR, gpointer gp1, gpointer gp2){
     struct MIMIR_params* MIMIR_params = (struct MIMIR_params*)(MIMIR->cache_params);
@@ -577,7 +581,7 @@ void add_to_prefetch_table(struct_cache* MIMIR, gpointer gp1, gpointer gp2){
     GPtrArray* pArray = g_hash_table_lookup(MIMIR_params->prefetch_hashtable,
                                             gp1
                                             );
-    
+//    printf("add %s %s\n", gp1, gp2); 
     /** if we want to save space here, we can reuse the pointer from hashtable
      *  This can cut the memory usage to 1/3, but involves a hashtable look up
      *  and complicated memory free problem *******************************
@@ -654,12 +658,12 @@ void __MIMIR_aging(struct_cache* MIMIR){
 
 
 void training_node_destroyer(gpointer data){
-    GList* list_node = (GList*)data;
+    GSList* list_node = (GSList*)data;
     struct training_data_node *data_node = (struct training_data_node*) (list_node->data);
     g_free(data_node->array);
     g_free(data_node->item_p);
     g_free(data_node);
-    g_list_free_1(list_node);
+    g_slist_free_1(list_node);
 }
 
 void prefetch_node_destroyer(gpointer data){

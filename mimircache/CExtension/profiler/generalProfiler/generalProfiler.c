@@ -10,6 +10,7 @@
 #include "LRU.h"
 #include "python_wrapper.h"
 #include "LRU_dataAware.h"
+#include "AMP.h"
 
 
 
@@ -37,7 +38,7 @@ static void profiler_thread(gpointer data, gpointer user_data){
         skip_N_elements(reader_thread, begin_pos); 
     
     
-    // create cache lize struct and initialization
+    // create cache line struct and initialization
     cache_line* cp = new_cacheline();
     cp->type = params->cache->core->data_type;
     
@@ -46,6 +47,7 @@ static void profiler_thread(gpointer data, gpointer user_data){
     add_element = cache->core->add_element;
 
     read_one_element(reader_thread, cp);
+    
     while (cp->valid && pos<end_pos){
         if (add_element(cache, cp)){
             hit_count ++;
@@ -56,13 +58,41 @@ static void profiler_thread(gpointer data, gpointer user_data){
         read_one_element(reader_thread, cp);
     }
     
-//    DEBUG(printf("hit count %lu, total count %lu\n", hit_count, miss_count+hit_count));
     result[order]->hit_count = (long long) hit_count;
     result[order]->miss_count = (long long) miss_count;
     result[order]->total_count = hit_count + miss_count;
     result[order]->hit_rate = (double) hit_count / (hit_count + miss_count);
     result[order]->miss_rate = 1 - result[order]->hit_rate;
     
+    
+    if (cache->core->type == e_mimir){
+        struct MIMIR_params* MIMIR_params = (struct MIMIR_params*)(cache->cache_params);
+        long counter = 0;
+        g_hash_table_foreach(MIMIR_params->prefetch_hashtable, prefetch_hashmap_count_length, &counter);
+
+        printf("\ncache size %ld, hit rate %lf, total check %lu, prefetch %lu, hit %lu, prefetch table size %u, ave len: %lf\n\n\n",
+               cache->core->size,
+               (double)hit_count/(hit_count+miss_count),
+               ((struct MIMIR_params*)(cache->cache_params))->num_of_check,
+               ((struct MIMIR_params*)(cache->cache_params))->num_of_prefetch,
+               ((struct MIMIR_params*)(cache->cache_params))->hit_on_prefetch,
+               g_hash_table_size(MIMIR_params->prefetch_hashtable),
+               (double) counter / g_hash_table_size(MIMIR_params->prefetch_hashtable));
+    }
+    if (cache->core->type == e_test1){
+        printf("\ncache size %ld, hit rate %lf, total check %lu, prefetch %lu, hit %lu\n\n\n",
+               cache->core->size, (double)hit_count/(hit_count+miss_count),
+               ((struct test1_params*)(cache->cache_params))->num_of_check,
+               ((struct test1_params*)(cache->cache_params))->num_of_prefetch,
+               ((struct test1_params*)(cache->cache_params))->hit_on_prefetch);
+    }
+    if (cache->core->type == e_AMP){
+        printf("\ncache size %ld, hit rate %lf, prefetch %lu, hit %lu\n\n\n",
+               cache->core->size, (double)hit_count/(hit_count+miss_count),
+               ((struct AMP_params*)(cache->cache_params))->num_of_prefetch,
+               ((struct AMP_params*)(cache->cache_params))->num_of_hit);
+    }
+
     // clean up
     g_mutex_lock(&(params->mtx));
     (*(params->progress)) ++ ;
@@ -410,8 +440,31 @@ return_res** profiler_with_prefetch(READER* reader_in, struct_cache* cache_in, i
     }
     else{
         prefetch_hashtable = g_hash_table_new_full(g_str_hash, g_str_equal, simple_g_key_value_destroyer, g_slist_destroyer);
-        printf("current not supported\n");
-        exit(1);
+
+        
+        FILE* file = fopen(prefetch_file_loc, "r");
+        char buf[1024*1024];
+        char *token;
+        GSList* list = NULL;
+//        gint64 req;
+        gchar *key = NULL, *value = NULL;
+        while (fgets(buf, 1024*1024, file) != 0){
+            list = NULL;
+            key = NULL;
+            token = strtok(buf, "\t");
+            while (token!=NULL){
+                if (key == NULL){
+                    key = g_strdup(token);
+                }
+                else{
+                    value = g_strdup(token);
+                    list = g_slist_prepend(list, (gpointer)value);
+                }
+                token = strtok(NULL, "\t");
+            }
+            g_hash_table_insert(prefetch_hashtable, key, list);
+        }
+
     }
     
 

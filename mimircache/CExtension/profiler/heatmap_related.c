@@ -55,6 +55,7 @@ GSList* get_last_access_dist_seq(READER* reader, void (*funcPtr)(READER*, cache_
     }
     while (cp->valid){
         dist = process_one_element_last_access(cp, hash_table, ts);
+//        printf("read in %s, dist %d\n", cp->item, dist);
         list = g_slist_prepend(list, GINT_TO_POINTER(dist));
         funcPtr(reader, cp);
         ts++;

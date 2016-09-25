@@ -106,6 +106,7 @@ typedef struct{
 
 
 READER* setup_reader(char* file_loc, char file_type, void* setup_params);
+//READER* setup_reader(char* file_loc, char file_type, char data_type, void* setup_params);
 void read_one_element(READER* reader, cache_line* c);
 long skip_N_elements(READER* reader, long long N);
 int go_back_one_line(READER* reader);

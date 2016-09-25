@@ -12,6 +12,7 @@
 
 #include "cache.h" 
 
+#define PREDICTION_LIMIT 18
 
 
 
@@ -27,13 +28,35 @@ struct YJC_params{
     gint64 ts;
     
     GHashTable* prefetch_hashtable;
+    GHashTable* clustering_hashtable;
+    GHashTable* element_hashtable;
+    
+    guint64 counter;
+    
 };
 
 struct YJC_init_params{
     double LRU_percentage;
     double LFU_percentage;
+    GHashTable* clustering_hashtable;
 };
 
+
+struct element_info{
+    gint accessed_times;
+    gint effective_accessed_times;
+    gint64 last_access_time;
+    gboolean evicted;
+    gboolean already_prefetched; 
+};
+
+struct clustering_group{
+    GSList* list;
+    gint num_of_prediction;
+    GArray* predictions;
+    gint num_of_last_predictions;
+    gint64 last_predictions[PREDICTION_LIMIT+2];
+};
 
 
 extern  void __YJC_insert_element(struct_cache* YJC, cache_line* cp);

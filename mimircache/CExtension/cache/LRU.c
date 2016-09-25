@@ -12,7 +12,7 @@
 
 
 
- void __LRU_insert_element(struct_cache* LRU, cache_line* cp){
+void __LRU_insert_element(struct_cache* LRU, cache_line* cp){
     struct LRU_params* LRU_params = (struct LRU_params*)(LRU->cache_params);
     
     gpointer key;
@@ -33,7 +33,7 @@
     
 }
 
- gboolean LRU_check_element(struct_cache* cache, cache_line* cp){
+gboolean LRU_check_element(struct_cache* cache, cache_line* cp){
     struct LRU_params* LRU_params = (struct LRU_params*)(cache->cache_params);
     return g_hash_table_contains( LRU_params->hashtable, cp->item_p );
 }
@@ -164,6 +164,8 @@ gpointer __LRU_evict_element_with_return(struct_cache* LRU, cache_line* cp){
 void LRU_destroy(struct_cache* cache){
     struct LRU_params* LRU_params = (struct LRU_params*)(cache->cache_params);
 
+//    g_queue_free(LRU_params->list);                 // Jason: should call g_queue_free_full to free the memory of node content
+    // 0921
     g_queue_free(LRU_params->list);
     g_hash_table_destroy(LRU_params->hashtable);
     cache_destroy(cache);

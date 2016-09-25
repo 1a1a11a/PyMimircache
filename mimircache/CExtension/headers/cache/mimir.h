@@ -70,7 +70,7 @@ struct MIMIR_params{
     
     GHashTable *hashtable_for_training;      // from request to linkedlist node
     GHashTable *hashset_frequentItem;      // hashset for remembering frequent items
-    GList *training_data;       // a list of list of timestamps
+    GSList *training_data;       // a list of list of timestamps
     
     gdouble training_period;
     gchar training_period_type;

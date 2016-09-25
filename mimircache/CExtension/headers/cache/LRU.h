@@ -20,6 +20,11 @@ struct LRU_params{
     GQueue *list;
 };
 
+//struct node_data{
+//    gpointer label;
+//    int flag;
+//};
+
 
 
 extern  void __LRU_insert_element(struct_cache* LRU, cache_line* cp);

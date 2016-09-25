@@ -32,9 +32,7 @@ static void traverse_trace(READER* reader, struct_cache* cache){
     
     read_one_element(reader, cp);
     while (cp->valid){
-//        printf("read in %s, cp.ts: %lu, valid %d\n", cp->item, cp->ts, cp->valid);
         add_element(cache, cp);
-//        printf("after adding \n");
         read_one_element(reader, cp);
     }
     
@@ -65,14 +63,6 @@ gint64* eviction_stat(READER* reader_in, struct_cache* cache, evict_stat_type st
     
     traverse_trace(reader_in, cache);
     // done get eviction list
-
-//    int i;
-//    for (i=0; i<reader_in->total_num; i++)
-//        if (reader_in->data_type == 'c')
-//            printf("evict[%d] = %s\n", i, ((gchar**)(cache->core->eviction_array))[i]);
-//        else
-//            printf("evict[%d] = %lu\n", i, ((guint64*)(cache->core->eviction_array))[i]);
-    
     
     
     if (stat_type == evict_reuse_dist){
@@ -327,106 +317,4 @@ static inline sTree* process_one_element_eviction_reuse_dist(cache_line* cp, sTr
     
     return newtree;
 }
-
-
-
-
-
-
-
-
-
-//static gdouble* get_eviction_relative_freq(READER* reader, struct_cache* optimal){
-//    
-//    guint64 ts = 0;
-//    
-//    gpointer eviction_array = optimal->core->eviction_array;
-//    
-//    gdouble * freq_array = g_new0(gdouble, reader->total_num);
-//    
-//    
-//    // create cache lize struct and initialization
-//    cache_line* cp = new_cacheline();
-//    
-//    // create hashtable
-//    GHashTable * hash_table;
-//    if (reader->type == 'v'){
-//        cp->type = 'l';
-//        hash_table = g_hash_table_new_full(g_int64_hash, g_int64_equal, \
-//                                           (GDestroyNotify)simple_g_key_value_destroyer, \
-//                                           (GDestroyNotify)simple_g_key_value_destroyer);
-//    }
-//    else{
-//        cp->type = 'c';
-//        hash_table = g_hash_table_new_full(g_str_hash, g_str_equal, \
-//                                           (GDestroyNotify)simple_g_key_value_destroyer, \
-//                                           (GDestroyNotify)simple_g_key_value_destroyer);
-//    }
-//    
-//    gpointer gp;
-//    
-//    read_one_element(reader, cp);
-//    
-//    while (cp->valid){
-//        gp = g_hash_table_lookup(hash_table, cp->item_p);
-//        if (gp == NULL){
-//            // first time access
-//            gint64 *value = g_new(gint64, 1);
-//            *value = 1;
-//            if (cp->type == 'c')
-//                g_hash_table_insert(hash_table, g_strdup((gchar*)(cp->item_p)), (gpointer)(value));
-//            
-//            else if (cp->type == 'l'){
-//                gint64* key = g_new(gint64, 1);
-//                *key = *(guint64*)(cp->item_p);
-//                g_hash_table_insert(hash_table, (gpointer)(key), (gpointer)(value));
-//            }
-//            else{
-//                printf("unknown cache line content type: %c\n", cp->type);
-//                exit(1);
-//            }
-//        }
-//        else{
-//            *(gint64*)gp = *(gint64*)gp + 1;
-//        }
-//        read_one_element(reader, cp);
-//        
-//        
-//        // get freq of evicted item
-//        if (cp->type == 'c'){
-//            if (((gchar**)eviction_array)[ts] == NULL)
-//                freq_array[ts++] = -1;
-//            else{
-//                gp = g_hash_table_lookup(hash_table, ((gchar**)eviction_array)[ts]);
-//                freq_array[ts++] = *(gint64*)gp;
-//            }
-//        }
-//        else if (cp->type == 'l'){
-//            if ( *((guint64*)eviction_array+ts) == 0)
-//                freq_array[ts++] = -1;
-//            else{
-//                gp = g_hash_table_lookup(hash_table, ((guint64*)eviction_array + ts));
-//                freq_array[ts++] = *(gint64*)gp;
-//            }
-//        }
-//        
-//        // now change to relative frequency (compared to ave freq)
-//        gdouble relative_freq = freq_array[ts-1] / ((gdouble)ts / g_hash_table_size(hash_table));
-//        freq_array[ts-1] = relative_freq;
-//        
-////        if (relative_freq > 10)
-////            relative_freq = 19;
-////        else if (relative_freq < 1)
-////            relative_freq *= 10;
-//        
-//    }
-//    
-//    destroy_cacheline(cp);
-//    g_hash_table_destroy(hash_table);
-//    reset_reader(reader);
-//    return freq_array;
-//}
-
-
-
 

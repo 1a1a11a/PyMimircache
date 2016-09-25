@@ -41,10 +41,25 @@
 }
 
 
- void __fifo_evict_element(struct_cache* fifo){
+void __fifo_evict_element(struct_cache* fifo, cache_line* cp){
     struct FIFO_params* fifo_params = (struct FIFO_params*)(fifo->cache_params);
     gpointer data = g_queue_pop_head(fifo_params->list);
     g_hash_table_remove(fifo_params->hashtable, (gconstpointer)data);
+}
+
+gpointer __fifo_evict_element_with_return(struct_cache* fifo, cache_line* cp){
+    struct FIFO_params* fifo_params = (struct FIFO_params*)(fifo->cache_params);
+    gpointer data = g_queue_pop_head(fifo_params->list);
+    g_hash_table_remove(fifo_params->hashtable, (gconstpointer)data);
+    gpointer gp;
+    if (cp->type == 'l'){
+        gp = g_new(guint64, 1);
+        *(guint64*) gp = *(guint64*) data;
+    }
+    else{
+        gp = g_strdup((gchar*)data);
+    }
+    return gp;
 }
 
 
@@ -58,7 +73,7 @@
     else{
         __fifo_insert_element(cache, cp);
         if ( (long)g_hash_table_size( fifo_params->hashtable) > cache->core->size)
-            __fifo_evict_element(cache);
+            __fifo_evict_element(cache, cp);
         return FALSE;
     }
 }
@@ -98,6 +113,11 @@ struct_cache* fifo_init(guint64 size, char data_type, void* params){
     cache->core->destroy_unique = fifo_destroy_unique;
     cache->core->add_element = fifo_add_element;
     cache->core->check_element = fifo_check_element;
+    cache->core->__evict_element = __fifo_evict_element;
+    cache->core->__insert_element = __fifo_insert_element;
+    cache->core->__update_element = __fifo_update_element;
+    cache->core->get_size = fifo_get_size;
+    
     cache->core->cache_init_params = NULL;
 
     if (data_type == 'l'){
@@ -116,4 +136,7 @@ struct_cache* fifo_init(guint64 size, char data_type, void* params){
 }
 
 
-
+guint64 fifo_get_size(struct_cache *cache){
+    struct FIFO_params* fifo_params = (struct FIFO_params*)(cache->cache_params);
+    return g_hash_table_size(fifo_params->hashtable);
+}

@@ -31,15 +31,19 @@ extern  gboolean fifo_check_element(struct_cache* cache, cache_line* cp);
 
 extern  void __fifo_update_element(struct_cache* fifo, cache_line* cp);
 
-extern  void __fifo_evict_element(struct_cache* fifo);
+extern  void __fifo_evict_element(struct_cache* fifo, cache_line* cp);
 
 extern  gboolean fifo_add_element(struct_cache* cache, cache_line* cp);
 
 extern  void fifo_destroy(struct_cache* cache);
 extern  void fifo_destroy_unique(struct_cache* cache);
+extern guint64 fifo_get_size(struct_cache *cache); 
 
 
 struct_cache* fifo_init(guint64 size, char data_type, void* params);
+
+
+gpointer __fifo_evict_element_with_return(struct_cache* fifo, cache_line* cp);
 
 
 #endif

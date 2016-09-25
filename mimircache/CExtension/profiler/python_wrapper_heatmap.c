@@ -96,7 +96,7 @@ static PyObject* heatmap_get_next_access_dist_seq(PyObject* self, PyObject* args
 
     // get reversed last access dist list
     GSList* list = get_last_access_dist_seq(reader, read_one_element_above);
-    
+
     if (reader->total_num == -1)
         get_num_of_cache_lines(reader);
 
@@ -115,7 +115,7 @@ static PyObject* heatmap_get_next_access_dist_seq(PyObject* self, PyObject* args
     long i;
     for (i=0; i<begin; i++)
         gsl = gsl->next;
-    
+
     
     for (i=begin; i<end; i++,gsl=gsl->next){
         array[counter++] = GPOINTER_TO_INT(gsl->data);

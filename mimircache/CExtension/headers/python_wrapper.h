@@ -36,6 +36,8 @@
 #include "glib_related.h"
 #include "cache.h"
 #include "const.h"
+#include "test1.h" 
+#include "AMP.h" 
 
 
 struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyObject* cache_params, long begin);

@@ -31,6 +31,8 @@ typedef enum{
     e_LRU_LFU,
     e_LRU_dataAware,
     e_ML,
+    e_test1,
+    e_AMP, 
 
     
     e_YJC,
