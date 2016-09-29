@@ -51,6 +51,8 @@ struct MIMIR_init_params{
     gint prefetch_list_size;
     gdouble training_period;
     gchar training_period_type;
+    gint64 prefetch_table_size;
+    gint sequential_K; 
     gint output_statistics;
 };
 
@@ -77,11 +79,14 @@ struct MIMIR_params{
     gdouble last_train_time; 
     
     GHashTable *prefetch_hashtable;
-    
+    gint64 prefetch_table_size;
+
     guint64 ts;
     
     gpointer last;
     char last_request_storage[CACHE_LINE_LABEL_SIZE2];
+    
+    gint sequential_K;
     
     
     // for statistics

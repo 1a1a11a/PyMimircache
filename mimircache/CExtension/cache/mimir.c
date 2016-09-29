@@ -38,7 +38,27 @@ void mprintHashTable(gpointer key, gpointer value, gpointer userdata){
 
 
 
-
+static inline gboolean __MIMIR_check_sequential(struct_cache* MIMIR, cache_line *cp){
+    struct MIMIR_params* MIMIR_params = (struct MIMIR_params*)(MIMIR->cache_params);
+    int i;
+    if (MIMIR->core->data_type != 'l')
+        printf("ERROR sequential prefetching but data is not long int\n");
+    gint64 last = *(gint64*)(cp->item_p);
+    gboolean sequential = TRUE;
+    gpointer old_item_p = cp->item_p;
+    cp->item_p = &last;
+//    printf("last %ld\n", last);
+    for (i=0; i<MIMIR_params->sequential_K; i++){
+        last --;
+        if ( !MIMIR_params->cache->core->check_element(MIMIR_params->cache, cp) ){
+//        if (!g_hash_table_contains( ((struct LRU_params*)(MIMIR_params->cache->cache_params))->hashtable, &last)){
+            sequential = FALSE;
+            break;
+        }
+    }
+    cp->item_p = old_item_p;
+    return sequential;
+}
 
 void __MIMIR_insert_element(struct_cache* MIMIR, cache_line* cp){
     struct MIMIR_params* MIMIR_params = (struct MIMIR_params*)(MIMIR->cache_params);
@@ -53,7 +73,12 @@ static inline void __MIMIR_record_entry(struct_cache* MIMIR, cache_line* cp){
     if (MIMIR_params->cache->core->check_element(MIMIR_params->cache, cp) &&
         !g_hash_table_contains(MIMIR_params->hashtable_for_training, cp->item_p))
         return;
-//    printf("list size %u\n", g_slist_length(MIMIR_params->training_data)); 
+
+    /* check it is sequtial or not 0925     */
+    if (__MIMIR_check_sequential(MIMIR, cp))
+        return;
+
+    
     // check the item in hashtable for training
     GSList *list_node = (GSList*) g_hash_table_lookup(MIMIR_params->hashtable_for_training, cp->item_p);
     if (list_node == NULL){
@@ -99,16 +124,6 @@ static inline void __MIMIR_record_entry(struct_cache* MIMIR, cache_line* cp){
             
             
             g_hash_table_remove(MIMIR_params->hashtable_for_training, cp->item_p);
-            
-//            gpointer key;
-//            if (cp->type == 'l'){
-//                key = (gpointer)g_new(guint64, 1);
-//                *(guint64*)key = *(guint64*)(cp->item_p);
-//            }
-//            else{
-//                key = (gpointer)g_strdup((gchar*)(cp->item_p));
-//            }
-//            g_hash_table_add(MIMIR_params->hashset_frequentItem, key);
         }
         else{
             (data_node->array)[data_node->length] = (MIMIR_params->ts) & ((1L<<32)-1);
@@ -136,15 +151,12 @@ static inline void __MIMIR_prefetch(struct_cache* MIMIR, cache_line* cp){
             if (MIMIR_params->output_statistics)
                 MIMIR_params->num_of_check += 1;
             
-            if (MIMIR_params->cache->core->check_element(MIMIR_params->cache, cp))
+            if (MIMIR_params->cache->core->check_element(MIMIR_params->cache, cp)){
+//                MIMIR_params->cache->core->add_element(MIMIR_params->cache, cp);
                 continue;
+            }
             
-
-//            MIMIR_params->cache->core->__insert_element(MIMIR_params->cache, cp);
-//            while ( MIMIR_params->cache->core->get_size(MIMIR_params->cache) > MIMIR->core->size)
-//                __MIMIR_evict_element(MIMIR, cp);
-            MIMIR_params->cache->core->add_element(MIMIR_params->cache, cp); 
-            
+            MIMIR_params->cache->core->add_element(MIMIR_params->cache, cp);
             
             if (MIMIR_params->output_statistics){
                 MIMIR_params->num_of_prefetch += 1;
@@ -166,6 +178,40 @@ static inline void __MIMIR_prefetch(struct_cache* MIMIR, cache_line* cp){
             }
         }
         cp->item_p = old_cp_gp;
+    }
+    
+    
+    
+    
+    
+    
+    // prefetch sequential      0925
+    if (__MIMIR_check_sequential(MIMIR, cp)){
+        gpointer old_gp = cp->item_p;
+        gint64 next = *(gint64*) (cp->item_p) ;
+        cp->item_p = &next;
+        if (MIMIR_params->output_statistics)
+            MIMIR_params->num_of_check += 4;
+        
+        next ++;
+        if (MIMIR_params->cache->core->check_element(MIMIR_params->cache, cp)){
+            MIMIR_params->cache->core->add_element(MIMIR_params->cache, cp);
+            cp->item_p = old_gp;
+            return;
+        }
+
+        MIMIR_params->cache->core->add_element(MIMIR_params->cache, cp);
+        
+        if (MIMIR_params->output_statistics){
+            MIMIR_params->num_of_prefetch += 1;
+                
+            gpointer item_p;
+            item_p = (gpointer)g_new(gint64, 1);
+            *(gint64*)item_p = next;
+            
+            g_hash_table_add(MIMIR_params->prefetched_hashtable, item_p);
+        }
+        cp->item_p = old_gp;
     }
 }
 
@@ -369,7 +415,9 @@ struct_cache* MIMIR_init(guint64 size, char data_type, void* params){
     MIMIR_params->min_support = init_params->min_support;
     MIMIR_params->confidence = init_params->confidence;
     MIMIR_params->prefetch_list_size = init_params->prefetch_list_size;
+    MIMIR_params->sequential_K = init_params->sequential_K;
     MIMIR_params->training_period = init_params->training_period;
+    MIMIR_params->prefetch_table_size = init_params->prefetch_table_size;
     MIMIR_params->training_period_type = init_params->training_period_type;
     MIMIR_params->ts = 0;
     MIMIR_params->last = NULL;
@@ -645,6 +693,11 @@ void add_to_prefetch_table(struct_cache* MIMIR, gpointer gp1, gpointer gp2){
         
         g_hash_table_insert(MIMIR_params->prefetch_hashtable, gp1_dup, pArray);
     }
+    
+    if (g_hash_table_size(MIMIR_params->prefetch_hashtable) > MIMIR_params->prefetch_table_size){
+        ;
+    }
+    
 }
 
 
