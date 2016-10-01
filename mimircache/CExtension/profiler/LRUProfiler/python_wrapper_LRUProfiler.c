@@ -95,9 +95,7 @@ static PyObject* LRUProfiler_get_hit_rate_seq(PyObject* self, PyObject* args, Py
         end = reader->total_num;
     
     // get hit rate
-    DEBUG(printf("before get hit rate\n"));
     double* hit_rate = get_hit_rate_seq(reader, cache_size, begin, end);
-    DEBUG(printf("after get hit rate\n"));
 
     // create numpy array
     if (cache_size == -1){
@@ -111,7 +109,6 @@ static PyObject* LRUProfiler_get_hit_rate_seq(PyObject* self, PyObject* args, Py
     memcpy(PyArray_DATA((PyArrayObject*)ret_array), hit_rate, sizeof(double)*(cache_size+3));
 
     if (!(begin==0 && (end==-1 || end==reader->total_num))){
-        DEBUG(printf("free hit rate in LRUProfiler_get_hit_rate_seq\n"));
         g_free(hit_rate);
     }
 

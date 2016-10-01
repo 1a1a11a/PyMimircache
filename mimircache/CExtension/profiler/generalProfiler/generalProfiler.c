@@ -18,6 +18,104 @@
 /* this module is not reentrant-safe */
 
 
+struct HR_PE* get_HR_PE(READER* reader, int n, struct_cache *caches[]){
+    
+    
+    
+//    // create cache line struct and initialization
+//    cache_line* cp = new_cacheline();
+//    cp->type = params->cache->core->data_type;
+//    
+//    guint64 hit_count=0, miss_count=0;
+//    gboolean (*add_element)(struct cache*, cache_line* cp);
+//    add_element = cache->core->add_element;
+//    
+//    read_one_element(reader_thread, cp);
+//    
+//    while (cp->valid && pos<end_pos){
+//        if (add_element(cache, cp)){
+//            hit_count ++;
+//        }
+//        else
+//            miss_count ++;
+//        pos++;
+//        read_one_element(reader_thread, cp);
+//    }
+//    
+//    result[order]->hit_count = (long long) hit_count;
+//    result[order]->miss_count = (long long) miss_count;
+//    result[order]->total_count = hit_count + miss_count;
+//    result[order]->hit_rate = (double) hit_count / (hit_count + miss_count);
+//    result[order]->miss_rate = 1 - result[order]->hit_rate;
+//    
+//    
+//    if (cache->core->type == e_mimir){
+//        gint64 prefetch = ((struct MIMIR_params*)(cache->cache_params))->num_of_prefetch_mimir;
+//        gint64 hit = ((struct MIMIR_params*)(cache->cache_params))->hit_on_prefetch_mimir;
+//        
+//        struct MIMIR_params* MIMIR_params = (struct MIMIR_params*)(cache->cache_params);
+//        long counter = 0;
+//        g_hash_table_foreach(MIMIR_params->prefetch_hashtable, prefetch_hashmap_count_length, &counter);
+//        
+//        printf("\ncache size %ld, hit rate %lf, total check %lu, mimir prefetch %lu, hit %lu, accuracy: %lf, prefetch table size %u, ave len: %lf\n",
+//               cache->core->size,
+//               (double)hit_count/(hit_count+miss_count),
+//               ((struct MIMIR_params*)(cache->cache_params))->num_of_check,
+//               prefetch, hit, (double)hit/prefetch,
+//               g_hash_table_size(MIMIR_params->prefetch_hashtable),
+//               (double) counter / g_hash_table_size(MIMIR_params->prefetch_hashtable));
+//        
+//        if (MIMIR_params->sequential_type == 1){
+//            prefetch = ((struct MIMIR_params*)(cache->cache_params))->num_of_prefetch_sequential;
+//            hit = ((struct MIMIR_params*)(cache->cache_params))->hit_on_prefetch_sequential;
+//            printf("sequential prefetching, prefetch %lu, hit %lu, accuracy %lf\n", prefetch, hit, (double)hit/prefetch);
+//        }
+//        
+//        if (MIMIR_params->cache->core->type == e_AMP){
+//            prefetch = ((struct AMP_params*)(MIMIR_params->cache->cache_params))->num_of_prefetch;
+//            hit = ((struct AMP_params*)(MIMIR_params->cache->cache_params))->num_of_hit;
+//            printf("AMP cache size %ld, prefetch %lu, hit %lu, accuracy: %lf\n",
+//                   MIMIR_params->cache->core->size, prefetch, hit, (double)hit/prefetch);
+//            
+//        }
+//    }
+//    if (cache->core->type == e_test1){
+//        gint64 prefech = ((struct test1_params*)(cache->cache_params))->num_of_prefetch;
+//        gint64 hit = ((struct test1_params*)(cache->cache_params))->hit_on_prefetch;
+//        
+//        printf("\ncache size %ld, hit rate %lf, total check %lu, prefetch %lu, hit %lu, accuracy: %lf\n",
+//               cache->core->size, (double)hit_count/(hit_count+miss_count),
+//               ((struct test1_params*)(cache->cache_params))->num_of_check,
+//               prefech, hit, (double)hit/prefech);
+//    }
+//    if (cache->core->type == e_AMP){
+//        gint64 prefech = ((struct AMP_params*)(cache->cache_params))->num_of_prefetch;
+//        gint64 hit = ((struct AMP_params*)(cache->cache_params))->num_of_hit;
+//        
+//        printf("\ncache size %ld, hit rate %lf, prefetch %lu, hit %lu, accuracy: %lf\n",
+//               cache->core->size, (double)hit_count/(hit_count+miss_count),
+//               prefech, hit, (double)hit/prefech);
+//    }
+//    
+//    // clean up
+//    g_mutex_lock(&(params->mtx));
+//    (*(params->progress)) ++ ;
+//    g_mutex_unlock(&(params->mtx));
+//    
+//    g_free(cp);
+//    if (reader_thread->type != 'v')
+//        fclose(reader_thread->file);
+//    g_free(reader_thread);
+//    cache->core->destroy_unique(cache);
+    return NULL; 
+}
+
+
+
+
+
+
+
 static void profiler_thread(gpointer data, gpointer user_data){
     struct multithreading_params_generalProfiler* params = (struct multithreading_params_generalProfiler*) user_data;
 
@@ -66,31 +164,51 @@ static void profiler_thread(gpointer data, gpointer user_data){
     
     
     if (cache->core->type == e_mimir){
+        gint64 prefetch = ((struct MIMIR_params*)(cache->cache_params))->num_of_prefetch_mimir;
+        gint64 hit = ((struct MIMIR_params*)(cache->cache_params))->hit_on_prefetch_mimir;
+        
         struct MIMIR_params* MIMIR_params = (struct MIMIR_params*)(cache->cache_params);
         long counter = 0;
         g_hash_table_foreach(MIMIR_params->prefetch_hashtable, prefetch_hashmap_count_length, &counter);
 
-        printf("\ncache size %ld, hit rate %lf, total check %lu, prefetch %lu, hit %lu, prefetch table size %u, ave len: %lf\n\n\n",
+        printf("\ncache size %ld, hit rate %lf, total check %lu, mimir prefetch %lu, hit %lu, accuracy: %lf, prefetch table size %u, ave len: %lf\n",
                cache->core->size,
                (double)hit_count/(hit_count+miss_count),
                ((struct MIMIR_params*)(cache->cache_params))->num_of_check,
-               ((struct MIMIR_params*)(cache->cache_params))->num_of_prefetch,
-               ((struct MIMIR_params*)(cache->cache_params))->hit_on_prefetch,
+               prefetch, hit, (double)hit/prefetch,
                g_hash_table_size(MIMIR_params->prefetch_hashtable),
                (double) counter / g_hash_table_size(MIMIR_params->prefetch_hashtable));
+        
+        if (MIMIR_params->sequential_type == 1){
+            prefetch = ((struct MIMIR_params*)(cache->cache_params))->num_of_prefetch_sequential;
+            hit = ((struct MIMIR_params*)(cache->cache_params))->hit_on_prefetch_sequential;
+            printf("sequential prefetching, prefetch %lu, hit %lu, accuracy %lf\n", prefetch, hit, (double)hit/prefetch);
+        }
+        
+        if (MIMIR_params->cache->core->type == e_AMP){
+            prefetch = ((struct AMP_params*)(MIMIR_params->cache->cache_params))->num_of_prefetch;
+            hit = ((struct AMP_params*)(MIMIR_params->cache->cache_params))->num_of_hit;
+            printf("AMP cache size %ld, prefetch %lu, hit %lu, accuracy: %lf\n",
+                   MIMIR_params->cache->core->size, prefetch, hit, (double)hit/prefetch); 
+
+        }
     }
     if (cache->core->type == e_test1){
-        printf("\ncache size %ld, hit rate %lf, total check %lu, prefetch %lu, hit %lu\n\n\n",
+        gint64 prefech = ((struct test1_params*)(cache->cache_params))->num_of_prefetch;
+        gint64 hit = ((struct test1_params*)(cache->cache_params))->hit_on_prefetch;
+        
+        printf("\ncache size %ld, hit rate %lf, total check %lu, prefetch %lu, hit %lu, accuracy: %lf\n",
                cache->core->size, (double)hit_count/(hit_count+miss_count),
                ((struct test1_params*)(cache->cache_params))->num_of_check,
-               ((struct test1_params*)(cache->cache_params))->num_of_prefetch,
-               ((struct test1_params*)(cache->cache_params))->hit_on_prefetch);
+               prefech, hit, (double)hit/prefech);
     }
     if (cache->core->type == e_AMP){
-        printf("\ncache size %ld, hit rate %lf, prefetch %lu, hit %lu\n\n\n",
+        gint64 prefech = ((struct AMP_params*)(cache->cache_params))->num_of_prefetch;
+        gint64 hit = ((struct AMP_params*)(cache->cache_params))->num_of_hit;
+
+        printf("\ncache size %ld, hit rate %lf, prefetch %lu, hit %lu, accuracy: %lf\n",
                cache->core->size, (double)hit_count/(hit_count+miss_count),
-               ((struct AMP_params*)(cache->cache_params))->num_of_prefetch,
-               ((struct AMP_params*)(cache->cache_params))->num_of_hit);
+               prefech, hit, (double)hit/prefech);
     }
 
     // clean up
@@ -117,7 +235,6 @@ return_res** profiler(READER* reader_in, struct_cache* cache_in, int num_of_thre
     
     long i;
     guint64 progress = 0;
-    
     if (end_pos<=begin_pos && end_pos!=-1){
         printf("end pos <= beigin pos in general profiler, please check\n");
         exit(1);

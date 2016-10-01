@@ -50,7 +50,9 @@ static PyObject* generalProfiler_get_hit_rate(PyObject* self, PyObject* args, Py
     if(begin == -1)
         begin = 0;
         
-    DEBUG(printf("bin size: %d, threads: %d\n", bin_size, num_of_threads));
+#ifdef DEBUG
+    printf("bin size: %d, threads: %d\n", bin_size, num_of_threads);
+#endif 
     
     if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
@@ -60,9 +62,13 @@ static PyObject* generalProfiler_get_hit_rate(PyObject* self, PyObject* args, Py
     cache = build_cache(reader, cache_size, algorithm, cache_params, begin);
     
     // get hit rate
-    DEBUG(printf("before profiling\n"));
+#ifdef DEBUG
+    printf("before profiling\n");
+#endif
     return_res** results = profiler(reader, cache, num_of_threads, bin_size, (gint64)begin, (gint64)end);
-    DEBUG(printf("after profiling\n"));
+#ifdef DEBUG
+    printf("after profiling\n");
+#endif
     
     // create numpy array 
     guint num_of_bins = ceil(cache_size/bin_size)+1;
@@ -113,7 +119,9 @@ static PyObject* generalProfiler_get_hit_count(PyObject* self, PyObject* args, P
     if(begin == -1)
         begin = 0;
     
-    DEBUG(printf("bin size: %d, threads: %d\n", bin_size, num_of_threads));
+#ifdef DEBUG
+    printf("bin size: %d, threads: %d\n", bin_size, num_of_threads);
+#endif
     
     if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
@@ -124,9 +132,13 @@ static PyObject* generalProfiler_get_hit_count(PyObject* self, PyObject* args, P
     
     
     // get hit rate
-    DEBUG(printf("before profiling\n"));
+#ifdef DEBUG
+    printf("before profiling\n");
+#endif
     return_res** results = profiler(reader, cache, num_of_threads, bin_size, (gint64)begin, (gint64)end);
-    DEBUG(printf("after profiling\n"));
+#ifdef DEBUG
+    printf("after profiling\n");
+#endif
     
     // create numpy array
     guint num_of_bins = ceil(cache_size/bin_size)+1;
@@ -170,7 +182,9 @@ static PyObject* generalProfiler_get_miss_rate(PyObject* self, PyObject* args, P
     if(begin == -1)
         begin = 0;
     
-    DEBUG(printf("bin size: %d, threads: %d\n", bin_size, num_of_threads));
+#ifdef DEBUG
+    printf("bin size: %d, threads: %d\n", bin_size, num_of_threads);
+#endif
     
     if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
@@ -181,9 +195,13 @@ static PyObject* generalProfiler_get_miss_rate(PyObject* self, PyObject* args, P
 
     
     // get hit rate
-    DEBUG(printf("before profiling\n"));
+#ifdef DEBUG
+    printf("before profiling\n");
+#endif
     return_res** results = profiler(reader, cache, num_of_threads, bin_size, (gint64)begin, (gint64)end);
-    DEBUG(printf("after profiling\n"));
+#ifdef DEBUG
+    printf("after profiling\n");
+#endif
     
     // create numpy array
     guint num_of_bins = ceil(cache_size/bin_size)+1;
@@ -231,9 +249,7 @@ static PyObject* generalProfiler_get_evict_err_rate(PyObject* self, PyObject* ar
     
     
     // get hit rate
-    DEBUG(printf("before profiling\n"));
     gdouble* result = LRU_evict_err_statistics(reader, cache, time_interval);
-    DEBUG(printf("after profiling\n"));
     
     // create numpy array
     guint num_of_bins = reader->break_points->array->len - 1;
@@ -274,7 +290,9 @@ static PyObject* generalProfiler_get_hit_rate_with_prefetch(PyObject* self, PyOb
     if(begin == -1)
         begin = 0;
     
-    DEBUG(printf("get_hit_rate_with_prefetch, bin size: %d, threads: %d\n", bin_size, num_of_threads));
+#ifdef DEBUG
+    printf("get_hit_rate_with_prefetch, bin size: %d, threads: %d\n", bin_size, num_of_threads);
+#endif
     
     if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
@@ -284,9 +302,13 @@ static PyObject* generalProfiler_get_hit_rate_with_prefetch(PyObject* self, PyOb
     cache = build_cache(reader, cache_size, algorithm, cache_params, begin);
     
     // get hit rate
-    DEBUG(printf("before profiling\n"));
+#ifdef DEBUG
+    printf("before profiling\n");
+#endif
     return_res** results = profiler_with_prefetch(reader, cache, num_of_threads, bin_size, "prefetchFile", (gint64)begin, (gint64)end);
-    DEBUG(printf("after profiling\n"));
+#ifdef DEBUG
+    printf("after profiling\n");
+#endif 
     
     // create numpy array
     guint num_of_bins = ceil(cache_size/bin_size)+1;

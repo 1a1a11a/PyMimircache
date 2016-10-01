@@ -36,7 +36,9 @@ typedef enum{
 
     
     e_YJC,
-    e_mimir
+    e_mimir,
+    e_MS1,
+    e_MS2
     
 }cache_type;
 
@@ -56,7 +58,8 @@ struct cache_core{
     
     void (*__insert_element)(struct cache*, cache_line*);       // newly added 0912, may not work for all cache
     void (*__update_element)(struct cache*, cache_line*);       // newly added 0912, may not work for all cache
-    void (*__evict_element)(struct cache*, cache_line*);        // newly added 0912, may not work for all cache 
+    void (*__evict_element)(struct cache*, cache_line*);        // newly added 0912, may not work for all cache
+    gpointer (*__evict_element_with_return)(struct cache*, cache_line*);
     
     guint64 (*get_size)(struct cache*);                         // newly added 0912, only works on LRU 
     

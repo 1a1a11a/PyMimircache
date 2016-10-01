@@ -24,6 +24,6 @@
 #define rd_distribution_CDF                             7
 
 
-#ifndef DEBUG
-#define DEBUG(stat) ;
-#endif 
+//#ifndef DEBUG
+//#define DEBUG(stat) ;
+//#endif 

@@ -15,6 +15,7 @@
 #include "LRU.h"
 #include "FIFO.h" 
 #include "Optimal.h" 
+#include "AMP.h" 
 
 
 #define CACHE_LINE_LABEL_SIZE2 16
@@ -52,6 +53,10 @@ struct MIMIR_init_params{
     gdouble training_period;
     gchar training_period_type;
     gint64 prefetch_table_size;
+    gint sequential_type;               /** 0: no sequential_prefetching,
+                                         *  1: simple sequential_prefetching,
+                                         *  2: AMP
+                                         **/
     gint sequential_K; 
     gint output_statistics;
 };
@@ -83,17 +88,22 @@ struct MIMIR_params{
 
     guint64 ts;
     
-    gpointer last;
-    char last_request_storage[CACHE_LINE_LABEL_SIZE2];
+
     
+    gint sequential_type; 
     gint sequential_K;
     
     
     // for statistics
     gint output_statistics;                 // a flag for turning on statistics analysis 
-    GHashTable *prefetched_hashtable;
-    guint64 hit_on_prefetch;
-    guint64 num_of_prefetch;
+    GHashTable *prefetched_hashtable_mimir;
+    guint64 hit_on_prefetch_mimir;
+    guint64 num_of_prefetch_mimir;
+    
+    GHashTable *prefetched_hashtable_sequential;
+    guint64 hit_on_prefetch_sequential;
+    guint64 num_of_prefetch_sequential;
+
     guint64 num_of_check;
 };
 

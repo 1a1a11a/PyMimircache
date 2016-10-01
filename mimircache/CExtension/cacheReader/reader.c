@@ -14,7 +14,7 @@
 
 
 
-READER* setup_reader(char* file_loc, char file_type, void* setup_params){
+READER* setup_reader(char* file_loc, char file_type, char data_type, void* setup_params){
     /* setup the reader struct for reading trace
      file_type: c: csv, v: vscsi, p: plain text
      data_type: i: int, s: string
@@ -29,6 +29,7 @@ READER* setup_reader(char* file_loc, char file_type, void* setup_params){
     reader->best_LRU_cache_size = NULL;
     reader->max_reuse_dist = 0;
     reader->total_num = -1;
+    reader->data_type = data_type;
     
     
     if (strlen(file_loc)>FILE_LOC_STR_SIZE-1){
@@ -45,7 +46,6 @@ READER* setup_reader(char* file_loc, char file_type, void* setup_params){
             break;
         case 'p':
             reader->type = 'p';
-            reader->data_type = 'c';
             reader->ts = 0;
             reader->file = fopen(file_loc, "r");
             if (reader->file == 0){
@@ -73,6 +73,10 @@ void read_one_element(READER* reader, cache_line* c){
     switch (reader->type) {
         case 'c':
             csv_read_one_element(reader, c);
+            if (reader->data_type == 'l'){
+                int64_t n = atoll(c->item);
+                *(int64_t*) (c->item_p) = n;
+            }
             break;
         case 'p':
 
@@ -84,6 +88,10 @@ void read_one_element(READER* reader, cache_line* c){
                 if (strlen(c->item)==2 && c->item[0] == LINE_ENDING && c->item[1] == '\0')
                     return read_one_element(reader, c);
                 c->ts ++;
+            }
+            if (reader->data_type == 'l'){
+                int64_t n = atoll(c->item);
+                *(int64_t*) (c->item_p) = n;
             }
             break;
         case 'v':

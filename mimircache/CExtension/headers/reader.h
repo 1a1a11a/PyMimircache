@@ -64,7 +64,7 @@ typedef struct{
         };
     };
     char type;                              /* possible types: c(csv), v(vscsi), p(plain text)  */
-    char data_type;                         /* possible types: l(guint64), c(char*) */
+    char data_type;                         /* possible types: l(gint64), c(char*) */
     long long total_num;
     guint64 ts;                             /* current timestamp, record current line, even if some
                                              * lines are not processed(skipped) */
@@ -105,8 +105,8 @@ typedef struct{
 
 
 
-READER* setup_reader(char* file_loc, char file_type, void* setup_params);
-//READER* setup_reader(char* file_loc, char file_type, char data_type, void* setup_params);
+//READER* setup_reader(char* file_loc, char file_type, void* setup_params);
+READER* setup_reader(char* file_loc, char file_type, char data_type, void* setup_params);
 void read_one_element(READER* reader, cache_line* c);
 long skip_N_elements(READER* reader, long long N);
 int go_back_one_line(READER* reader);

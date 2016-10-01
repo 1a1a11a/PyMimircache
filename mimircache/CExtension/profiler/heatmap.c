@@ -10,7 +10,9 @@ draw_dict* heatmap_hit_rate_start_time_end_time(READER* reader, struct_cache* ca
 
 draw_dict* heatmap(READER* reader, struct_cache* cache, char mode, guint64 time_interval, int plot_type, int num_of_threads){
 
-    DEBUG(printf("before break points\n"));
+#ifdef DEBUG
+    printf("before break points\n");
+#endif
     
     if (mode == 'v')
         gen_breakpoints_virtualtime(reader, time_interval);
@@ -20,7 +22,9 @@ draw_dict* heatmap(READER* reader, struct_cache* cache, char mode, guint64 time_
         printf("unsupported mode: %c\n", mode);
         exit(1);
     }
-    DEBUG(printf("after break points\n"));
+#ifdef DEBUG
+    printf("after break points\n");
+#endif 
     // check cache is LRU or not
     if (cache && cache->core->type == e_LRU){
         return heatmap_LRU(reader, cache, mode, time_interval, plot_type, num_of_threads);

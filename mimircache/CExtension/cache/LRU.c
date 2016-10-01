@@ -39,7 +39,7 @@ gboolean LRU_check_element(struct_cache* cache, cache_line* cp){
 }
 
 
- void __LRU_update_element(struct_cache* cache, cache_line* cp){
+void __LRU_update_element(struct_cache* cache, cache_line* cp){
     struct LRU_params* LRU_params = (struct LRU_params*)(cache->cache_params);
     GList* node = (GList* ) g_hash_table_lookup(LRU_params->hashtable, cp->item_p);
     g_queue_unlink(LRU_params->list, node);
@@ -47,7 +47,7 @@ gboolean LRU_check_element(struct_cache* cache, cache_line* cp){
 }
 
 
- void __LRU_evict_element(struct_cache* LRU, cache_line* cp){
+void __LRU_evict_element(struct_cache* LRU, cache_line* cp){
     struct LRU_params* LRU_params = (struct LRU_params*)(LRU->cache_params);
 
     if (LRU->core->cache_debug_level == 2){     // compare to Oracle
@@ -144,7 +144,7 @@ gpointer __LRU_evict_element_with_return(struct_cache* LRU, cache_line* cp){
 
 
 
- gboolean LRU_add_element(struct_cache* cache, cache_line* cp){
+gboolean LRU_add_element(struct_cache* cache, cache_line* cp){
     struct LRU_params* LRU_params = (struct LRU_params*)(cache->cache_params);
     if (LRU_check_element(cache, cp)){
         __LRU_update_element(cache, cp);
@@ -197,7 +197,8 @@ struct_cache* LRU_init(guint64 size, char data_type, void* params){
     cache->core->check_element = LRU_check_element;
     cache->core->__insert_element = __LRU_insert_element;
     cache->core->__update_element = __LRU_update_element;
-    cache->core->__evict_element  = __LRU_evict_element; 
+    cache->core->__evict_element  = __LRU_evict_element;
+    cache->core->__evict_element_with_return = __LRU_evict_element_with_return; 
     cache->core->get_size = LRU_get_size; 
     cache->core->cache_init_params = NULL;
 

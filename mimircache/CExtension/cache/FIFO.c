@@ -116,6 +116,7 @@ struct_cache* fifo_init(guint64 size, char data_type, void* params){
     cache->core->__evict_element = __fifo_evict_element;
     cache->core->__insert_element = __fifo_insert_element;
     cache->core->__update_element = __fifo_update_element;
+    cache->core->__evict_element_with_return = __fifo_evict_element_with_return; 
     cache->core->get_size = fifo_get_size;
     
     cache->core->cache_init_params = NULL;

@@ -181,9 +181,7 @@ static PyObject* heatmap_computation(PyObject* self, PyObject* args, PyObject* k
         exit(1);
     }
     
-    DEBUG(printf("before computation\n"));
     draw_dict* dd = heatmap(reader, cache, *mode, time_interval, plot_type, num_of_threads);
-    DEBUG(printf("after computation\n"));
     
     // create numpy array
     npy_intp dims[2] = { dd->ylength, dd->xlength };
@@ -271,10 +269,7 @@ static PyObject* differential_heatmap_with_Optimal(PyObject* self, PyObject* arg
     
 
     
-    DEBUG(printf("before computation\n"));
     draw_dict* dd = differential_heatmap(reader, cache, optimal, *mode, time_interval, plot_type, num_of_threads);
-    //    draw_dict* dd = heatmap(reader, cache, *mode, time_interval, plot_type, num_of_threads);
-    DEBUG(printf("after computation\n"));
     
     // create numpy array
     npy_intp dims[2] = { dd->ylength, dd->xlength };
@@ -364,9 +359,7 @@ static PyObject* differential_heatmap_py(PyObject* self, PyObject* args, PyObjec
         exit(1);
     }
     
-    DEBUG(printf("before computation\n"));
     draw_dict* dd = differential_heatmap(reader, cache[0], cache[1], *mode, time_interval, plot_type, num_of_threads);
-    DEBUG(printf("after computation\n"));
     
     // create numpy array
     npy_intp dims[2] = { dd->ylength, dd->xlength };
@@ -421,14 +414,12 @@ static PyObject* heatmap_rd_distribution_py(PyObject* self, PyObject* args, PyOb
     }
     
     
-    DEBUG(printf("before computation\n"));
     draw_dict* dd;
     if (CDF){
         dd = heatmap(reader, NULL, *mode, time_interval, rd_distribution_CDF, num_of_threads);
     }
     else
         dd = heatmap(reader, NULL, *mode, time_interval, rd_distribution, num_of_threads);
-    DEBUG(printf("after computation\n"));
     
     // create numpy array
     npy_intp dims[2] = { dd->ylength, dd->xlength };
@@ -487,10 +478,7 @@ static PyObject* heatmap_future_rd_distribution_py(PyObject* self, PyObject* arg
         return NULL;
     }
     
-    
-    DEBUG(printf("before computation\n"));
     draw_dict* dd = heatmap(reader, NULL, *mode, time_interval, future_rd_distribution, num_of_threads);
-    DEBUG(printf("after computation\n"));
     
     // create numpy array
     npy_intp dims[2] = { dd->ylength, dd->xlength };
@@ -535,13 +523,11 @@ static PyObject* heatmap_get_break_points(PyObject* self, PyObject* args, PyObje
     }
     
     
-    DEBUG(printf("before get break points\n"));
     GArray* breakpoints;
     if (mode[0] == 'r')
         breakpoints = gen_breakpoints_realtime(reader, (guint64)time_interval);
     else
         breakpoints = gen_breakpoints_virtualtime(reader, (guint64)time_interval);
-    DEBUG(printf("after get break points\n"));
     
     // create numpy array
     npy_intp dims[1] = { breakpoints->len };

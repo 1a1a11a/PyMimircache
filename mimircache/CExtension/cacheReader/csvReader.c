@@ -104,7 +104,9 @@ void csv_setup_Reader(char* file_loc, READER* reader, csvReader_init_params* ini
         free(line);
     }
         
-    DEBUG(printf("after initialization, current_column %d, label_column: %d, real_time_column %d, size_column: %d\n", reader->current_column_counter, reader->label_column, reader->real_time_column, reader->size_column));
+#ifdef DEBUG
+    (printf("after initialization, current_column %d, label_column: %d, real_time_column %d, size_column: %d\n", reader->current_column_counter, reader->label_column, reader->real_time_column, reader->size_column));
+#endif
 
 }
 

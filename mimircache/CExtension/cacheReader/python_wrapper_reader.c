@@ -23,16 +23,19 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
 {   
     char* file_loc;
     char* file_type;
+    char* data_type = "c";
     PyObject *py_init_params;
     void *init_params = NULL;
 
-    static char *kwlist[] = {"file_loc", "file_type", "init_params", NULL};
+    static char *kwlist[] = {"file_loc", "file_type", "data_type", "init_params", NULL};
     
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "ss|O", kwlist, &file_loc, &file_type, &py_init_params)) {
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "ss|sO", kwlist, &file_loc, &file_type, &data_type, &py_init_params)) {
         printf("parsing argument failed in setup reader\n");
         return NULL;
     }
+    if (file_type[0] == 'v')
+        data_type = "l"; 
 
     if (file_type[0] == 'c'){
         init_params = (void*) new_csvReader_init_params(-1, -1, -1, -1, FALSE, 0);
@@ -86,17 +89,18 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
         Py_DECREF(py_real_time);
         Py_DECREF(py_header);
         Py_DECREF(py_delimiter);
-        
+
+#ifdef DEBUG
         if (((csvReader_init_params*)init_params)->has_header)
-            DEBUG(printf("has header\n"));
+            printf("csv data has header\n");
         
         if (((csvReader_init_params*)init_params)->delimiter)
-            DEBUG(printf("delimiter %c\n", ((csvReader_init_params*)init_params)->delimiter));
-        
+            printf("delimiter %c\n", ((csvReader_init_params*)init_params)->delimiter);
+#endif
         
     }
     
-    READER* reader = setup_reader(file_loc, *file_type, init_params);
+    READER* reader = setup_reader(file_loc, *file_type, *data_type, init_params);
 
     if (init_params != NULL){
         g_free(init_params);

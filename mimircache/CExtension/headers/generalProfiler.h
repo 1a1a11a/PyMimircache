@@ -41,6 +41,13 @@ struct multithreading_params_generalProfiler{
     guint64* progress;
 };
 
+struct HR_PE{
+    double HR[8];
+    double PE[8];
+};
+
+struct HR_PE* get_HR_PE(READER* reader, int n, struct_cache *caches[]);
+
 return_res** profiler(READER* reader_in, struct cache* cache_in, int num_of_threads_in, int bin_size_in, gint64 begin_pos, gint64 end_pos);
 return_res** profiler_with_prefetch(READER* reader_in, struct_cache* cache_in, int num_of_threads_in, int bin_size_in, char* prefetch_file_loc, gint64 begin_pos, gint64 end_pos);
 
