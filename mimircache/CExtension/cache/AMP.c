@@ -55,7 +55,7 @@ static gboolean AMP_isLast(struct AMP_page* page){
 }
 
 
-void createPages(struct_cache* AMP, gint64 block_begin, gint length){
+void createPages_no_eviction(struct_cache* AMP, gint64 block_begin, gint length){
     /* this function currently is used for prefetching */
     struct AMP_params* AMP_params = (struct AMP_params*)(AMP->cache_params);
     if (length <= 0)
@@ -92,12 +92,16 @@ void createPages(struct_cache* AMP, gint64 block_begin, gint length){
 
     last_page->p = MAX(prev_page->p, last_page->g +1);
     last_page->g = prev_page->g;
-    AMP_lookup(AMP, last_page->block_number-prev_page->g)->tag = TRUE; 
-    
-    
+    AMP_lookup(AMP, last_page->block_number-prev_page->g)->tag = TRUE;
+}
+
+void createPages(struct_cache* AMP, gint64 block_begin, gint length){
+    struct AMP_params* AMP_params = (struct AMP_params*)(AMP->cache_params);
+    createPages_no_eviction(AMP, block_begin, length);
     while ( (long)g_hash_table_size( AMP_params->hashtable) > AMP->core->size)
         __AMP_evict_element(AMP, NULL);
 }
+
 
 struct AMP_page* lastInSequence(struct_cache* AMP, struct AMP_page *page){
     struct AMP_page* l1 = AMP_last(AMP, page);
@@ -262,12 +266,8 @@ gpointer __AMP_evict_element_with_return(struct_cache* AMP, cache_line* cp){
 
 
 
-gboolean AMP_add_element(struct_cache* AMP, cache_line* cp){
+gboolean AMP_add_element_no_eviction(struct_cache* AMP, cache_line* cp){
     struct AMP_params* AMP_params = (struct AMP_params*)(AMP->cache_params);
-//    g_hash_table_foreach(AMP_params->hashtable, checkHashTable, NULL);
-//    printf("%d\n", (AMP_params->temp ++));
-    
-    
     gint64 block;
     if (cp->type == 'l')
         block = *(gint64*) (cp->item_p);
@@ -311,7 +311,7 @@ gboolean AMP_add_element(struct_cache* AMP, cache_line* cp){
         /* this is done here, because the page may be evicted when createPages */
         if (page->tag){
             page->tag = FALSE;
-            createPages(AMP, page->last_block_number+1, length);
+            createPages_no_eviction(AMP, page->last_block_number+1, length);
         }
         return TRUE;
     }
@@ -327,13 +327,18 @@ gboolean AMP_add_element(struct_cache* AMP, cache_line* cp){
             length = page_prev->p;
         // miss -> prefetch
         if (page_prev)
-            createPages(AMP, block+1, length);
-        
-        while ( (long)g_hash_table_size( AMP_params->hashtable) > AMP->core->size)
-            __AMP_evict_element(AMP, cp);
+            createPages_no_eviction(AMP, block+1, length);
         
         return FALSE;
     }
+}
+
+gboolean AMP_add_element(struct_cache* AMP, cache_line* cp){
+    struct AMP_params* AMP_params = (struct AMP_params*)(AMP->cache_params);
+    gboolean result = AMP_add_element_no_eviction(AMP, cp);
+    while ( (long)g_hash_table_size( AMP_params->hashtable) > AMP->core->size)
+        __AMP_evict_element(AMP, NULL);
+    return result;
 }
 
 

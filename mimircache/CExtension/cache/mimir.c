@@ -20,10 +20,21 @@
 
 void
 prefetch_hashmap_count_length (gpointer key, gpointer value, gpointer user_data){
-    GPtrArray* pArray = (GPtrArray*) value;
+    gint64* pArray = (gint64*) value;
+//    gint prefetch_list_size = *(gint*)user_data; 
     guint64 *counter = (guint64*) user_data;
-    (*counter) += pArray->len;
+//    (*counter) += pArray->len;
 }
+
+void check_prefetched_hashtable (gpointer key, gpointer value, gpointer user_data){
+    struct MIMIR_params* MIMIR_params = (struct MIMIR_params*) user_data;
+    GHashTable *h = ((struct LRU_params*)(MIMIR_params->cache->cache_params))->hashtable;
+    if (!g_hash_table_contains(h, key)){
+        printf("ERROR in prefetched, not in cache %ld, %d\n", *(gint64*)key, GPOINTER_TO_INT(value));
+        exit(1);
+    }
+}
+
 
 void training_hashtable_count_length(gpointer key, gpointer value, gpointer user_data){
     GSList* list_node = (GSList*) value;
@@ -137,25 +148,34 @@ static inline void __MIMIR_record_entry(struct_cache* MIMIR, cache_line* cp){
 
 static inline void __MIMIR_prefetch(struct_cache* MIMIR, cache_line* cp){
     struct MIMIR_params* MIMIR_params = (struct MIMIR_params*)(MIMIR->cache_params);
-    GPtrArray* pArray = (GPtrArray*)g_hash_table_lookup(MIMIR_params->prefetch_hashtable, cp->item_p);
-    if (pArray){
+    gint prefetch_table_index = GPOINTER_TO_INT(g_hash_table_lookup(MIMIR_params->prefetch_hashtable, cp->item_p));
+    gint dim1 = floor(prefetch_table_index/PREFETCH_TABLE_SHARD_SIZE);
+    gint dim2 = prefetch_table_index % PREFETCH_TABLE_SHARD_SIZE * (MIMIR_params->prefetch_list_size+1);
+    
+    if (prefetch_table_index){
         gpointer old_cp_gp = cp->item_p;
         int i;
-        for (i=0; i<pArray->len; i++){
-            gpointer gp = g_ptr_array_index(pArray, i);
-            cp->item_p = gp;
-            
+        for (i=1; i<MIMIR_params->prefetch_list_size+1; i++){
+            if (cp->type == 'l')
+                cp->item_p = &(MIMIR_params->prefetch_table_array[dim1][dim2+i]);
+            else
+                cp->item_p = (char*) (MIMIR_params->prefetch_table_array[dim1][dim2+i]);
+
             if (MIMIR_params->output_statistics)
                 MIMIR_params->num_of_check += 1;
             
+            // can't use MIMIR_check_element here
             if (MIMIR_params->cache->core->check_element(MIMIR_params->cache, cp)){
-//                MIMIR_params->cache->core->add_element(MIMIR_params->cache, cp);
                 continue;
             }
             
 //            MIMIR_params->cache->core->add_element(MIMIR_params->cache, cp);
+//            if (g_hash_table_contains( MIMIR_params->prefetched_hashtable_mimir, cp->item_p))
+//                printf("THIS SHOULD NOT HAPPEN %ld\n", *(gint64*)(cp->item_p));
+            
             MIMIR_params->cache->core->__insert_element(MIMIR_params->cache, cp);
             while (MIMIR_params->cache->core->get_size(MIMIR_params->cache) > MIMIR_params->cache->core->size)
+                // use this because we need to record stat when evicting 
                 __MIMIR_evict_element(MIMIR, cp);
             
             
@@ -170,12 +190,8 @@ static inline void __MIMIR_prefetch(struct_cache* MIMIR, cache_line* cp){
                 else
                     item_p = (gpointer)g_strdup((gchar*)(cp->item_p));
 
-                g_hash_table_add(MIMIR_params->prefetched_hashtable_mimir, item_p);
-                
-                // sanity check
-                if (g_hash_table_contains(MIMIR_params->prefetched_hashtable_mimir, item_p) != g_hash_table_contains(((struct LRU_params*)(MIMIR_params->cache->cache_params))->hashtable, item_p)){
-                    printf("ERROR in prefetched !same in cache\n");
-                }
+//                g_hash_table_add(MIMIR_params->prefetched_hashtable_mimir, item_p);
+                g_hash_table_insert(MIMIR_params->prefetched_hashtable_mimir, item_p, GINT_TO_POINTER(1));
             }
         }
         cp->item_p = old_cp_gp;
@@ -189,19 +205,23 @@ static inline void __MIMIR_prefetch(struct_cache* MIMIR, cache_line* cp){
     // prefetch sequential      0925
     if (MIMIR_params->sequential_type == 1 && __MIMIR_check_sequential(MIMIR, cp)){
         gpointer old_gp = cp->item_p;
-        gint64 next = *(gint64*) (cp->item_p) ;
+        gint64 next = *(gint64*) (cp->item_p) + 1;
         cp->item_p = &next;
-        if (MIMIR_params->output_statistics)
-            MIMIR_params->num_of_check += 4;
+//        if (MIMIR_params->output_statistics)
+//            MIMIR_params->num_of_check += 1;
         
-        next ++;
+//        next ++;
         if (MIMIR_params->cache->core->check_element(MIMIR_params->cache, cp)){
-            MIMIR_params->cache->core->add_element(MIMIR_params->cache, cp);
+            MIMIR_params->cache->core->__update_element(MIMIR_params->cache, cp);
             cp->item_p = old_gp;
             return;
         }
 
-        MIMIR_params->cache->core->add_element(MIMIR_params->cache, cp);
+        // use this because we need to record stat when evicting
+        MIMIR_params->cache->core->__insert_element(MIMIR_params->cache, cp);
+        while (MIMIR_params->cache->core->get_size(MIMIR_params->cache) > MIMIR_params->cache->core->size)
+            __MIMIR_evict_element(MIMIR, cp);
+        
         
         if (MIMIR_params->output_statistics){
             MIMIR_params->num_of_prefetch_sequential += 1;
@@ -249,7 +269,7 @@ gboolean MIMIR_check_element(struct_cache* MIMIR, cache_line* cp){
 //        if (MIMIR_params->last == NULL)
 //            MIMIR_params->last = MIMIR_params->last_request_storage;
 //        else
-//            add_to_prefetch_table(MIMIR, MIMIR_params->last, cp->item_p);
+//            mimir_add_to_prefetch_table(MIMIR, MIMIR_params->last, cp->item_p);
 //        
 //        *(guint64*)(MIMIR_params->last) = *(guint64*)(cp->item_p);
 //    }
@@ -257,7 +277,7 @@ gboolean MIMIR_check_element(struct_cache* MIMIR, cache_line* cp){
 //        if (MIMIR_params->last == NULL)
 //            MIMIR_params->last = MIMIR_params->last_request_storage;
 //        else
-//            add_to_prefetch_table(MIMIR, MIMIR_params->last, cp->item_p);
+//            mimir_add_to_prefetch_table(MIMIR, MIMIR_params->last, cp->item_p);
 //        
 //        strncpy(MIMIR_params->last_request_storage, cp->item_p, CACHE_LINE_LABEL_SIZE2);
 //    }
@@ -279,15 +299,37 @@ void __MIMIR_update_element(struct_cache* MIMIR, cache_line* cp){
 
 void __MIMIR_evict_element(struct_cache* MIMIR, cache_line* cp){
     struct MIMIR_params* MIMIR_params = (struct MIMIR_params*)(MIMIR->cache_params);
+//    g_hash_table_foreach(MIMIR_params->prefetched_hashtable_mimir, check_prefetched_hashtable, MIMIR_params);
     if (MIMIR_params->output_statistics){
         gpointer gp;
         gp = MIMIR_params->cache->core->__evict_element_with_return(MIMIR_params->cache, cp);
+
+        gint type = GPOINTER_TO_INT( g_hash_table_lookup(MIMIR_params->prefetched_hashtable_mimir, gp));
+        if (type !=0 && type < MIMIR_params->cycle_time){
+//            printf("give one more chance \n");
+            gint64* new_int = g_new(gint64, 1);
+            *new_int = *(gint64*) gp;
+            g_hash_table_insert(MIMIR_params->prefetched_hashtable_mimir, new_int, GINT_TO_POINTER(type+1));
+            gpointer old_cp = cp->item_p;
+            cp->item_p = gp;
+            __MIMIR_insert_element(MIMIR, cp);
+            cp->item_p = old_cp;
+            __MIMIR_evict_element(MIMIR, cp);
+        }
+        else{
+
+//            if (g_hash_table_contains(MIMIR_params->prefetched_hashtable_mimir, gp)){
+//                MIMIR_params->evicted_prefetch ++;
+//            }
+
         g_hash_table_remove(MIMIR_params->prefetched_hashtable_mimir, gp);
         g_hash_table_remove(MIMIR_params->prefetched_hashtable_sequential, gp);
+        }
         g_free(gp);
     }
     else
         MIMIR_params->cache->core->__evict_element(MIMIR_params->cache, cp);
+    
 
 }
 
@@ -326,7 +368,8 @@ gboolean MIMIR_add_element(struct_cache* MIMIR, cache_line* cp){
     MIMIR_params->ts ++;
     if (MIMIR_params->cache->core->type == e_AMP){
         gboolean result = MIMIR_check_element(MIMIR, cp);
-        MIMIR_params->cache->core->add_element(MIMIR_params->cache, cp);
+//        MIMIR_params->cache->core->add_element(MIMIR_params->cache, cp);
+        AMP_add_element_no_eviction(MIMIR_params->cache, cp);
         __MIMIR_prefetch(MIMIR, cp);
         while ( MIMIR_params->cache->core->get_size(MIMIR_params->cache) > MIMIR->core->size)
             __MIMIR_evict_element(MIMIR, cp);
@@ -358,6 +401,22 @@ void MIMIR_destroy(struct_cache* cache){
     g_hash_table_destroy(MIMIR_params->prefetch_hashtable);
     g_hash_table_destroy(MIMIR_params->hashtable_for_training);
     g_hash_table_destroy(MIMIR_params->hashset_frequentItem);
+    int i = 0;
+    while (1){
+        if (MIMIR_params->prefetch_table_array[i]){
+            if (cache->core->data_type == 'c'){
+                int j=0;
+                for (j=0; j<PREFETCH_TABLE_SHARD_SIZE*(1+MIMIR_params->prefetch_list_size); j++)
+                    g_free((char*)MIMIR_params->prefetch_table_array[i][j]);
+            }
+            g_free(MIMIR_params->prefetch_table_array[i]);
+        }
+        else
+            break;
+        i++;
+    }
+    g_free(MIMIR_params->prefetch_table_array);
+    
 //    g_slist_free(MIMIR_params->training_data);                       // data have already been freed by hashtable
     if (MIMIR_params->output_statistics){
         g_hash_table_destroy(MIMIR_params->prefetched_hashtable_mimir);
@@ -381,6 +440,22 @@ void MIMIR_destroy_unique(struct_cache* cache){
     g_hash_table_destroy(MIMIR_params->prefetch_hashtable);
     g_hash_table_destroy(MIMIR_params->hashtable_for_training);
     g_hash_table_destroy(MIMIR_params->hashset_frequentItem);
+    int i = 0;
+    while (1){
+        if (MIMIR_params->prefetch_table_array[i]){
+            if (cache->core->data_type == 'c'){
+                int j=0;
+                for (j=0; j<PREFETCH_TABLE_SHARD_SIZE*(1+MIMIR_params->prefetch_list_size); j++)
+                    g_free((char*)MIMIR_params->prefetch_table_array[i][j]);
+            }
+            g_free(MIMIR_params->prefetch_table_array[i]);
+        }
+        else
+            break;
+        i++;
+    }
+    g_free(MIMIR_params->prefetch_table_array);
+
     if (MIMIR_params->output_statistics){
         g_hash_table_destroy(MIMIR_params->prefetched_hashtable_mimir);
         g_hash_table_destroy(MIMIR_params->prefetched_hashtable_sequential);
@@ -395,15 +470,62 @@ struct_cache* MIMIR_init(guint64 size, char data_type, void* params){
     cache->cache_params = g_new0(struct MIMIR_params, 1);
     struct MIMIR_params* MIMIR_params = (struct MIMIR_params*)(cache->cache_params);
     
-    cache->core->type = e_mimir;
-    cache->core->cache_init = MIMIR_init;
-    cache->core->destroy = MIMIR_destroy;
-    cache->core->destroy_unique = MIMIR_destroy_unique;
-    cache->core->add_element = MIMIR_add_element;
-    cache->core->check_element = MIMIR_check_element;
-    cache->core->cache_init_params = params;
+    cache->core->type               = e_mimir;
+    cache->core->cache_init         = MIMIR_init;
+    cache->core->destroy            = MIMIR_destroy;
+    cache->core->destroy_unique     = MIMIR_destroy_unique;
+    cache->core->add_element        = MIMIR_add_element;
+    cache->core->check_element      = MIMIR_check_element;
+    cache->core->cache_init_params  = params;
     
     struct MIMIR_init_params *init_params = (struct MIMIR_init_params*) params;
+    
+    
+    MIMIR_params->item_set_size     = init_params->item_set_size;
+    MIMIR_params->max_support       = init_params->max_support;
+    MIMIR_params->min_support       = init_params->min_support;
+    MIMIR_params->confidence        = init_params->confidence;
+    MIMIR_params->prefetch_list_size= init_params->prefetch_list_size;
+    MIMIR_params->sequential_type   = init_params->sequential_type;
+    MIMIR_params->sequential_K      = init_params->sequential_K;
+    MIMIR_params->training_period   = init_params->training_period;
+    MIMIR_params->cycle_time        = init_params->cycle_time;
+    
+//    MIMIR_params->prefetch_table_size = init_params->prefetch_table_size;
+    MIMIR_params->max_metadata_size = (gint64) (init_params->block_size * size * init_params->max_metadata_size);
+    MIMIR_params->block_size = init_params->block_size;
+    gint max_num_of_shards_in_prefetch_table = (gint) (MIMIR_params->max_metadata_size /
+                                                       (PREFETCH_TABLE_SHARD_SIZE * init_params->prefetch_list_size));
+    MIMIR_params->current_prefetch_table_pointer = 0;
+    MIMIR_params->prefetch_table_fully_allocatd = FALSE;
+    // always save to size+1 position, and enlarge table when size%shards_size == 0
+    MIMIR_params->prefetch_table_array = g_new0(gint64*, max_num_of_shards_in_prefetch_table);
+    MIMIR_params->prefetch_table_array[0] = g_new0(gint64, PREFETCH_TABLE_SHARD_SIZE*(MIMIR_params->prefetch_list_size+1));
+    
+    /* now adjust the cache size by deducting current meta data size
+        8 is the size of storage for block, 4 is the size of storage for index to array */
+    MIMIR_params->current_metadata_size = (init_params->max_support * 2 + 8 + 4) * init_params->training_period +
+                                            max_num_of_shards_in_prefetch_table * 8 +
+                                            PREFETCH_TABLE_SHARD_SIZE * (MIMIR_params->prefetch_list_size*8 + 8 + 4) ;
+    
+    size = size - (gint)(MIMIR_params->current_metadata_size/init_params->block_size);
+//    printf("size decrease %d\n", (gint)(MIMIR_params->current_metadata_size/init_params->block_size));
+    
+    
+    MIMIR_params->training_period_type = init_params->training_period_type;
+    MIMIR_params->ts = 0;
+    MIMIR_params->last_train_time = 0;
+
+    MIMIR_params->output_statistics = init_params->output_statistics;
+    MIMIR_params->output_statistics = 1;
+    
+    MIMIR_params->evicted_prefetch = 0;
+    MIMIR_params->hit_on_prefetch_mimir = 0;
+    MIMIR_params->hit_on_prefetch_sequential = 0;
+    MIMIR_params->num_of_prefetch_mimir = 0;
+    MIMIR_params->num_of_prefetch_sequential = 0;
+    MIMIR_params->num_of_check = 0;
+    
     
     if (strcmp(init_params->cache_type, "LRU") == 0)
         MIMIR_params->cache = LRU_init(size, data_type, NULL);
@@ -423,33 +545,10 @@ struct_cache* MIMIR_init(guint64 size, char data_type, void* params){
         ;
     }
     else{
-        fprintf(stderr, "can't recognize cache type: %s\n", init_params->cache_type); 
+        fprintf(stderr, "can't recognize cache type: %s\n", init_params->cache_type);
         MIMIR_params->cache = LRU_init(size, data_type, NULL);
     }
 
-    
-    MIMIR_params->item_set_size = init_params->item_set_size;
-    MIMIR_params->max_support = init_params->max_support;
-    MIMIR_params->min_support = init_params->min_support;
-    MIMIR_params->confidence = init_params->confidence;
-    MIMIR_params->prefetch_list_size = init_params->prefetch_list_size;
-    MIMIR_params->sequential_type = init_params->sequential_type; 
-    MIMIR_params->sequential_K = init_params->sequential_K;
-    MIMIR_params->training_period = init_params->training_period;
-    MIMIR_params->prefetch_table_size = init_params->prefetch_table_size;
-    MIMIR_params->training_period_type = init_params->training_period_type;
-    MIMIR_params->ts = 0;
-    MIMIR_params->last_train_time = 0;
-
-    MIMIR_params->output_statistics = init_params->output_statistics;
-    MIMIR_params->output_statistics = 1;
-    
-    MIMIR_params->hit_on_prefetch_mimir = 0;
-    MIMIR_params->hit_on_prefetch_sequential = 0;
-    MIMIR_params->num_of_prefetch_mimir = 0;
-    MIMIR_params->num_of_prefetch_sequential = 0;
-    MIMIR_params->num_of_check = 0;
-    
     
 
     if (data_type == 'l'){
@@ -459,9 +558,9 @@ struct_cache* MIMIR_init(guint64 size, char data_type, void* params){
         MIMIR_params->hashset_frequentItem = g_hash_table_new_full(g_int64_hash, g_int64_equal,
                                                                    simple_g_key_value_destroyer,
                                                                    NULL);
-        MIMIR_params->prefetch_hashtable = g_hash_table_new_full(g_int64_hash, g_int64_equal,
-                                                                 simple_g_key_value_destroyer,
-                                                                 prefetch_node_destroyer);
+        MIMIR_params->prefetch_hashtable = g_hash_table_new_full(g_int64_hash, g_int64_equal, NULL, NULL);
+//                                                                 simple_g_key_value_destroyer, NULL);
+//                                                                 prefetch_node_destroyer);
         
         if (MIMIR_params->output_statistics){
             MIMIR_params->prefetched_hashtable_mimir = g_hash_table_new_full(g_int64_hash, g_int64_equal,
@@ -480,9 +579,9 @@ struct_cache* MIMIR_init(guint64 size, char data_type, void* params){
         MIMIR_params->hashset_frequentItem = g_hash_table_new_full(g_str_hash, g_str_equal,
                                                                    simple_g_key_value_destroyer,
                                                                    NULL);
-        MIMIR_params->prefetch_hashtable = g_hash_table_new_full(g_str_hash, g_str_equal,
-                                                                 simple_g_key_value_destroyer,
-                                                                 prefetch_node_destroyer);
+        MIMIR_params->prefetch_hashtable = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, NULL);
+//                                                                 simple_g_key_value_destroyer, NULL);
+//                                                                 prefetch_node_destroyer);
         if (MIMIR_params->output_statistics){
             MIMIR_params->prefetched_hashtable_mimir = g_hash_table_new_full(g_str_hash, g_str_equal,
                                                                              simple_g_key_value_destroyer,
@@ -561,12 +660,11 @@ void __MIMIR_mining(struct_cache* MIMIR){
                     if ( labs(data_node2->array[i] - data_node1->array[i]) == 1 ){
                         associated_flag = TRUE;
                     }
-                    
                 }
                 if (associated_flag){
                     // finally, add to prefetch table
-                    add_to_prefetch_table(MIMIR, data_node2->item_p, data_node1->item_p);
-//                    add_to_prefetch_table(MIMIR, data_node1->item_p, data_node2->item_p);
+                    mimir_add_to_prefetch_table(MIMIR, data_node2->item_p, data_node1->item_p);
+//                    mimir_add_to_prefetch_table(MIMIR, data_node1->item_p, data_node2->item_p);
                 
                 
                 }
@@ -654,81 +752,131 @@ void __MIMIR_mining(struct_cache* MIMIR){
 
 
 
-void add_to_prefetch_table(struct_cache* MIMIR, gpointer gp1, gpointer gp2){
+void mimir_add_to_prefetch_table(struct_cache* MIMIR, gpointer gp1, gpointer gp2){
+    /** currently prefetch table can only support up to 2^31 entries, and this function assumes the platform is 64 bit */
+    
     struct MIMIR_params* MIMIR_params = (struct MIMIR_params*)(MIMIR->cache_params);
     
-    GPtrArray* pArray = g_hash_table_lookup(MIMIR_params->prefetch_hashtable,
-                                            gp1
-                                            );
-//    printf("add %s %s\n", gp1, gp2); 
-    /** if we want to save space here, we can reuse the pointer from hashtable
-     *  This can cut the memory usage to 1/3, but involves a hashtable look up
-     *  and complicated memory free problem *******************************
-     **/
-    
-    gpointer key2;
-    if (MIMIR->core->data_type == 'l'){
-        key2 = (gpointer)g_new(guint64, 1);
-        *(guint64*)key2 = *(guint64*)(gp2);
-    }
-    else{
-        key2 = (gpointer)g_strdup((gchar*)gp2);
-    }
+    gint prefetch_table_index = GPOINTER_TO_INT(g_hash_table_lookup(MIMIR_params->prefetch_hashtable, gp1));
+    gint dim1 = floor(prefetch_table_index/PREFETCH_TABLE_SHARD_SIZE);
+    gint dim2 = prefetch_table_index % PREFETCH_TABLE_SHARD_SIZE * (MIMIR_params->prefetch_list_size+1);
     
     
     // insert into prefetch hashtable
     int i;
-    if (pArray){
+    if (prefetch_table_index){
         gboolean insert = TRUE;
         if (MIMIR->core->data_type == 'l'){
-            for (i=0; i<pArray->len; i++)
+            for (i=1; i<MIMIR_params->prefetch_list_size+1; i++){
                 // if this element is already in the array, then don't need prefetch again
-                if (*(guint64*)(g_ptr_array_index(pArray, i)) == *(guint64*)(gp2)){
+//                if (*(guint64*)(g_ptr_array_index(pArray, i)) == *(guint64*)(gp2)){
+                // ATTENTION: the following assumes a 64 bit platform
+                if (MIMIR_params->prefetch_table_array[dim1][dim2] != *(gint64*)(gp1)){
+                    printf("ERROR prefetch table pos wrong %ld %ld, dim %d %d\n", *(gint64*)gp1, MIMIR_params->prefetch_table_array[dim1][dim2], dim1, dim2);
+                    exit(1);
+                }
+                if ((MIMIR_params->prefetch_table_array[dim1][dim2+i]) == 0)
+                    break;
+                if ((MIMIR_params->prefetch_table_array[dim1][dim2+i]) == *(gint64*)(gp2))
                     /* update score here, not implemented yet */
                     insert = FALSE;
-                    g_free(key2);
-                }
+            }
         }
         else{
-            for (i=0; i<pArray->len; i++)
+            for (i=1; i<MIMIR_params->prefetch_list_size+1; i++){
                 // if this element is already in the cache, then don't need prefetch again
-                if ( strcmp((gchar*)(g_ptr_array_index(pArray, i)), (gchar*)gp2) == 0 ){
+                if ( strcmp((char*)(MIMIR_params->prefetch_table_array[dim1][dim2]), gp1) != 0){
+                    printf("ERROR prefetch table pos wrong\n");
+                    exit(1);
+                }
+                if ((MIMIR_params->prefetch_table_array[dim1][dim2+i]) == 0)
+                    break;
+                if ( strcmp((gchar*)(MIMIR_params->prefetch_table_array[dim1][dim2+1]), (gchar*)gp2) == 0 )
                     /* update score here, not implemented yet */
                     insert = FALSE;
-                    g_free(key2);
-                }
+            }
         }
         
         if (insert){
-            if (pArray->len >= MIMIR_params->prefetch_list_size){
-                int p = rand()%MIMIR_params->prefetch_list_size;
-                // free the content ??????????????
-//                g_free(g_ptr_array_index(pArray, p));
-                g_ptr_array_remove_index_fast(pArray, p);
-                
+            if (i == MIMIR_params->prefetch_list_size+1){
+                // list full, randomly pick one for replacement
+                i = rand()%MIMIR_params->prefetch_list_size + 1;
+                if (MIMIR->core->data_type == 'c'){
+                    g_free((gchar*)(MIMIR_params->prefetch_table_array[dim1][dim2+i]));
+                }
             }
-            g_ptr_array_add(pArray, key2);
+            // new add at position i
+            if (MIMIR->core->data_type == 'c'){
+                char* key2 = g_strdup((gchar*)gp2);
+                MIMIR_params->prefetch_table_array[dim1][dim2+i] = (gint64)key2;
+            }
+            else{
+                MIMIR_params->prefetch_table_array[dim1][dim2+i] = *(gint64*)(gp2);
+            }
         }
     }
     else{
-        pArray = g_ptr_array_new_with_free_func(prefetch_array_node_destroyer);
-        g_ptr_array_add(pArray, key2);
+        MIMIR_params->current_prefetch_table_pointer ++;
+        dim1 = floor(MIMIR_params->current_prefetch_table_pointer/PREFETCH_TABLE_SHARD_SIZE);
+        dim2 = MIMIR_params->current_prefetch_table_pointer % PREFETCH_TABLE_SHARD_SIZE *
+                                (MIMIR_params->prefetch_list_size + 1);
+        
+        /* check whether prefetch table is fully allocated, if True, we are going to replace the 
+            entry at current_prefetch_table_pointer by set the entry it points to as 0, 
+            delete from prefetch_hashtable and add new entry */
+        if (MIMIR_params->prefetch_table_fully_allocatd){
+            g_hash_table_remove(MIMIR_params->prefetch_hashtable, &(MIMIR_params->prefetch_table_array[dim1][dim2]));
+            memset(&(MIMIR_params->prefetch_table_array[dim1][dim2]), 0,
+                   sizeof(gint64) * (MIMIR_params->prefetch_list_size+1));
+        }
+        
         gpointer gp1_dup;
         if (MIMIR->core->data_type == 'l'){
-            gp1_dup = (gpointer)g_new(guint64, 1);
-            *(guint64*)gp1_dup = *(guint64*)(gp1);
+//            gp1_dup = (gpointer)g_new(guint64, 1);
+//            *(guint64*)gp1_dup = *(guint64*)(gp1);
+            gp1_dup = &(MIMIR_params->prefetch_table_array[dim1][dim2]);
         }
         else{
             gp1_dup = (gpointer)g_strdup((gchar*)(gp1));
         }
         
-        g_hash_table_insert(MIMIR_params->prefetch_hashtable, gp1_dup, pArray);
+        if (MIMIR->core->data_type == 'c'){
+            char* key2 = g_strdup((gchar*)gp2);
+            MIMIR_params->prefetch_table_array[dim1][dim2+1] = (gint64)key2;
+            MIMIR_params->prefetch_table_array[dim1][dim2]   = (gint64)gp1_dup;
+        }
+        else{
+            MIMIR_params->prefetch_table_array[dim1][dim2+1] = *(gint64*)(gp2);
+            MIMIR_params->prefetch_table_array[dim1][dim2]   = *(gint64*)(gp1);
+        }
+
+
+        if (g_hash_table_contains(MIMIR_params->prefetch_hashtable, gp1)){
+            gpointer gp = g_hash_table_lookup(MIMIR_params->prefetch_hashtable, gp1);
+            printf("ERROR contains %ld, value %d, %d\n", *(gint64*)gp1, GPOINTER_TO_INT(gp), prefetch_table_index);
+            
+        }
+        g_hash_table_insert(MIMIR_params->prefetch_hashtable, gp1_dup,
+                            GINT_TO_POINTER(MIMIR_params->current_prefetch_table_pointer));
+        
+        
+        if ( (MIMIR_params->current_prefetch_table_pointer +1) % PREFETCH_TABLE_SHARD_SIZE == 0){
+            /* need to allocate a new shard for prefetch table */
+            if (MIMIR_params->current_metadata_size + PREFETCH_TABLE_SHARD_SIZE * (MIMIR_params->prefetch_list_size * 8 +8 + 4)
+                            < MIMIR_params->max_metadata_size){
+                MIMIR_params->prefetch_table_array[dim1+1] = g_new0(gint64, PREFETCH_TABLE_SHARD_SIZE *
+                                                                    (MIMIR_params->prefetch_list_size + 1));
+                gint required_meta_data_size = PREFETCH_TABLE_SHARD_SIZE * (MIMIR_params->prefetch_list_size * 8 + 8 + 4);
+                MIMIR_params->current_metadata_size += required_meta_data_size;
+                MIMIR_params->cache->core->size = MIMIR->core->size -
+                                                    (gint)(MIMIR_params->current_metadata_size/MIMIR_params->block_size);
+            }
+            else{
+                MIMIR_params->prefetch_table_fully_allocatd = TRUE;
+                MIMIR_params->current_prefetch_table_pointer = 0;
+            }
+        }
     }
-    
-    if (g_hash_table_size(MIMIR_params->prefetch_hashtable) > MIMIR_params->prefetch_table_size){
-        ;
-    }
-    
 }
 
 

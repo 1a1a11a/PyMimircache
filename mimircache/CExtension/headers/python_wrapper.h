@@ -28,6 +28,8 @@
 
 #include "YJC.h"
 #include "mimir.h" 
+#include "MS1.h" 
+#include "MS2.h" 
 
 #include <stdio.h>
 #include <stdlib.h>

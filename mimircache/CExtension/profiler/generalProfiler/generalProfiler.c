@@ -163,21 +163,22 @@ static void profiler_thread(gpointer data, gpointer user_data){
     result[order]->miss_rate = 1 - result[order]->hit_rate;
     
     
-    if (cache->core->type == e_mimir){
-        gint64 prefetch = ((struct MIMIR_params*)(cache->cache_params))->num_of_prefetch_mimir;
-        gint64 hit = ((struct MIMIR_params*)(cache->cache_params))->hit_on_prefetch_mimir;
-        
+    if (cache->core->type == e_mimir){ // || cache->core->type == e_MS1 || cache->core->type == e_MS2){
         struct MIMIR_params* MIMIR_params = (struct MIMIR_params*)(cache->cache_params);
-        long counter = 0;
-        g_hash_table_foreach(MIMIR_params->prefetch_hashtable, prefetch_hashmap_count_length, &counter);
+        gint64 prefetch = MIMIR_params->num_of_prefetch_mimir;
+        gint64 hit = MIMIR_params->hit_on_prefetch_mimir;
+//        gint64 effective_hit = MIMIR_params->effective_hit_on_prefetch_mimir;
+        
+//        long counter = 0;
+//        g_hash_table_foreach(MIMIR_params->prefetch_hashtable, prefetch_hashmap_count_length, &counter);
 
-        printf("\ncache size %ld, hit rate %lf, total check %lu, mimir prefetch %lu, hit %lu, accuracy: %lf, prefetch table size %u, ave len: %lf\n",
-               cache->core->size,
+        printf("\ncache size %ld, real size: %ld, hit rate %lf, total check %lu, mimir prefetch %lu, hit %lu, accuracy: %lf, prefetch table size %u, ave len: %lf, evicted_prefetch %lu\n\n",
+               cache->core->size, MIMIR_params->cache->core->size,
                (double)hit_count/(hit_count+miss_count),
                ((struct MIMIR_params*)(cache->cache_params))->num_of_check,
                prefetch, hit, (double)hit/prefetch,
-               g_hash_table_size(MIMIR_params->prefetch_hashtable),
-               (double) counter / g_hash_table_size(MIMIR_params->prefetch_hashtable));
+               g_hash_table_size(MIMIR_params->prefetch_hashtable), 0.0, MIMIR_params->evicted_prefetch);
+//               (double) counter / g_hash_table_size(MIMIR_params->prefetch_hashtable));
         
         if (MIMIR_params->sequential_type == 1){
             prefetch = ((struct MIMIR_params*)(cache->cache_params))->num_of_prefetch_sequential;

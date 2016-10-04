@@ -20,8 +20,7 @@
 
 #define CACHE_LINE_LABEL_SIZE2 16
 #define INIT_PREFETCH_SCORE 8
-
-
+#define PREFETCH_TABLE_SHARD_SIZE 2000
 
 
 //struct prefetch_hashtable_value{
@@ -52,7 +51,18 @@ struct MIMIR_init_params{
     gint prefetch_list_size;
     gdouble training_period;
     gchar training_period_type;
-    gint64 prefetch_table_size;
+//    gint64 prefetch_table_size;
+    
+    gint block_size;
+    gdouble max_metadata_size;
+    gint cycle_time;                    /* when a prefetched element is going to be evicted,
+                                            but haven't been accessed, how many chances we 
+                                            give to it before it is really evicted 
+                                            1: no cycle, no more chance, otherwise give cycle_time-1 chances 
+                                         **/
+    
+    
+    
     gint sequential_type;               /** 0: no sequential_prefetching,
                                          *  1: simple sequential_prefetching,
                                          *  2: AMP
@@ -66,24 +76,33 @@ struct MIMIR_init_params{
 struct MIMIR_params{
     struct_cache* cache;
     
-    gint ave_length;
     gint item_set_size;
     gint max_support;                       // allow to reach max support 
     gint min_support;
     gint confidence;                        // use the difference in length of sequence as confidence 
+    gint cycle_time; 
     
     gint prefetch_list_size;
+    gint block_size;
+    gint64 max_metadata_size;               // in bytes
+    gint64 current_metadata_size;           // in bytes 
     
-    
-    GHashTable *hashtable_for_training;      // from request to linkedlist node
-    GHashTable *hashset_frequentItem;      // hashset for remembering frequent items
-    GSList *training_data;       // a list of list of timestamps
+    GHashTable *hashtable_for_training;     // from request to linkedlist node
+    GHashTable *hashset_frequentItem;       // hashset for remembering frequent items
+    GSList *training_data;                  // a list of list of timestamps
     
     gdouble training_period;
     gchar training_period_type;
     gdouble last_train_time; 
     
     GHashTable *prefetch_hashtable;
+    gint32 current_prefetch_table_pointer;
+    gboolean prefetch_table_fully_allocatd;    /* a flag indicates whether prefetch table is full or not
+                                                    if it is full, we are replacing using a FIFO policy, 
+                                                    and we don't allocate prefetch table shard when it 
+                                                    reaches end of current shard
+                                                */
+    gint64 **prefetch_table_array;             // two dimension array
     gint64 prefetch_table_size;
 
     guint64 ts;
@@ -98,7 +117,9 @@ struct MIMIR_params{
     gint output_statistics;                 // a flag for turning on statistics analysis 
     GHashTable *prefetched_hashtable_mimir;
     guint64 hit_on_prefetch_mimir;
+//    guint64 effective_hit_on_prefetch_mimir;    // hit within range 
     guint64 num_of_prefetch_mimir;
+    guint64 evicted_prefetch;
     
     GHashTable *prefetched_hashtable_sequential;
     guint64 hit_on_prefetch_sequential;
@@ -125,7 +146,7 @@ extern  void MIMIR_destroy_unique(struct_cache* MIMIR);
 
 extern void __MIMIR_mining(struct_cache* MIMIR);
 extern void __MIMIR_aging(struct_cache* MIMIR);
-extern void add_to_prefetch_table(struct_cache* MIMIR, gpointer gp1, gpointer gp2);
+extern void mimir_add_to_prefetch_table(struct_cache* MIMIR, gpointer gp1, gpointer gp2);
 
 
 struct_cache* MIMIR_init(guint64 size, char data_type, void* params);
