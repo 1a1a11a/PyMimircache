@@ -18,8 +18,7 @@
 #include "AMP.h" 
 
 
-#define CACHE_LINE_LABEL_SIZE2 16
-#define INIT_PREFETCH_SCORE 8
+#define MINING_THRESHOLD 1024                // when there are MINING_THRESHOLD entries longer than min_support, mining
 #define PREFETCH_TABLE_SHARD_SIZE 2000
 
 
@@ -49,6 +48,7 @@ struct MIMIR_init_params{
     gint min_support;
     gint confidence;
     gint prefetch_list_size;
+    
     gdouble training_period;
     gchar training_period_type;
 //    gint64 prefetch_table_size;
@@ -80,16 +80,21 @@ struct MIMIR_params{
     gint max_support;                       // allow to reach max support 
     gint min_support;
     gint confidence;                        // use the difference in length of sequence as confidence 
-    gint cycle_time; 
-    
+    gint cycle_time;
+    gint mining_threshold;
+
+    gint num_of_entry_available_for_training;
+
     gint prefetch_list_size;
     gint block_size;
     gint64 max_metadata_size;               // in bytes
-    gint64 current_metadata_size;           // in bytes 
+    gint64 current_metadata_size;           // in bytes
+    gint64 residual_mining_table_size;      // in bytes 
     
     GHashTable *hashtable_for_training;     // from request to linkedlist node
     GHashTable *hashset_frequentItem;       // hashset for remembering frequent items
-    GSList *training_data;                  // a list of list of timestamps
+    GList *training_data;                  // a list of list of timestamps, use glist, not gslist because we need to
+                                            //  remove_link, which is O(N) for GSList 
     
     gdouble training_period;
     gchar training_period_type;
