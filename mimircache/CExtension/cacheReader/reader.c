@@ -10,6 +10,9 @@
 #include "vscsi_trace_format.h"
 #include "csvReader.h"
 
+/* when label is number, we plus one to it, to avoid cases of block 0 */
+
+
 // add support for lock in reader to prevent simultaneous access reader
 
 
@@ -75,7 +78,7 @@ void read_one_element(READER* reader, cache_line* c){
             csv_read_one_element(reader, c);
             if (reader->data_type == 'l'){
                 int64_t n = atoll(c->item);
-                *(int64_t*) (c->item_p) = n;
+                *(int64_t*) (c->item_p) = n + 1;
             }
             break;
         case 'p':
@@ -91,11 +94,12 @@ void read_one_element(READER* reader, cache_line* c){
             }
             if (reader->data_type == 'l'){
                 int64_t n = atoll(c->item);
-                *(int64_t*) (c->item_p) = n;
+                *(int64_t*) (c->item_p) = n + 1;
             }
             break;
         case 'v':
             vscsi_read(reader, c);
+            *(int64_t*) (c->item_p) = *(int64_t*)(c->item_p) + 1;
             c->ts ++;
             break;
         default:
