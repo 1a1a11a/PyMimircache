@@ -274,6 +274,7 @@ gboolean AMP_add_element_no_eviction(struct_cache* AMP, cache_line* cp){
     else{
         block = atoll(cp->item);
     }
+
     struct AMP_page* page = AMP_lookup(AMP, block);
 
     if (AMP_check_element_int(AMP, block)){

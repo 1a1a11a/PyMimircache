@@ -65,7 +65,7 @@ static inline void __MS1_record_entry(struct_cache* MS1, cache_line* cp){
     GSList *list_node = (GSList*) g_hash_table_lookup(MS1_params->hashtable_for_training, cp->item_p);
     if (list_node == NULL){
         // the node is not in the training data, should be added
-        struct training_data_node *data_node = g_new(struct training_data_node, 1);
+        struct MS1_training_data_node *data_node = g_new(struct MS1_training_data_node, 1);
         data_node->array = g_new(gint32, MS1_params->max_support);
         data_node->length = 1;
 
@@ -98,7 +98,7 @@ static inline void __MS1_record_entry(struct_cache* MS1, cache_line* cp){
          *  if less than max support, add to list 
          *  otherwise recycle the list and add item to frequent hashset. 
          **/
-        struct training_data_node* data_node = (struct training_data_node*)(list_node->data);
+        struct MS1_training_data_node* data_node = (struct MS1_training_data_node*)(list_node->data);
 
         if (data_node->length >= MS1_params->max_support){
             // we need to delete this list node, connect its precursor and successor, free data node inside it,
@@ -435,7 +435,7 @@ struct_cache* MS1_init(guint64 size, char data_type, void* params){
     if (data_type == 'l'){
         MS1_params->hashtable_for_training = g_hash_table_new_full(g_int64_hash, g_int_equal,
                                                                      simple_g_key_value_destroyer,
-                                                                     training_node_destroyer);
+                                                                     MS1_training_node_destroyer);
         MS1_params->hashset_frequentItem = g_hash_table_new_full(g_int64_hash, g_int64_equal,
                                                                    simple_g_key_value_destroyer,
                                                                    NULL);
@@ -456,7 +456,7 @@ struct_cache* MS1_init(guint64 size, char data_type, void* params){
     else if (data_type == 'c'){
         MS1_params->hashtable_for_training = g_hash_table_new_full(g_str_hash, g_str_equal,
                                                                      simple_g_key_value_destroyer,
-                                                                     training_node_destroyer);
+                                                                     MS1_training_node_destroyer);
         MS1_params->hashset_frequentItem = g_hash_table_new_full(g_str_hash, g_str_equal,
                                                                    simple_g_key_value_destroyer,
                                                                    NULL);
@@ -494,10 +494,10 @@ void __MS1_mining(struct_cache* MS1){
 #endif
     GSList* list_node1 = MS1_params->training_data;
     GSList* list_node2;
-    struct training_data_node* data_node1, *data_node2;
+    struct MS1_training_data_node* data_node1, *data_node2;
     while (list_node1){
         
-        data_node1 = (struct training_data_node*)(list_node1->data);
+        data_node1 = (struct MS1_training_data_node*)(list_node1->data);
         if (data_node1->length < MS1_params->min_support){
             list_node1 = list_node1->next;
             continue;
@@ -505,7 +505,7 @@ void __MS1_mining(struct_cache* MS1){
         list_node2 = list_node1->next;
         gboolean first_flag = TRUE;
         while (list_node2){
-            data_node2 = (struct training_data_node*)(list_node2->data);
+            data_node2 = (struct MS1_training_data_node*)(list_node2->data);
             if (data_node1->array[0] - data_node2->array[0] > MS1_params->item_set_size)
                 break;
             /** We can have better approximation for association rule mining here, maybe using bitwise op, 
@@ -572,9 +572,9 @@ void __MS1_mining(struct_cache* MS1){
     if (MS1->core->data_type == 'l'){
         MS1_params->hashtable_for_training = g_hash_table_new_full(g_int64_hash, g_int64_equal,
                                                                      simple_g_key_value_destroyer,
-                                                                     training_node_destroyer);
-        struct training_data_node *last_data_node = (struct training_data_node*) (MS1_params->training_data->data);
-        struct training_data_node *data_node = g_new(struct training_data_node, 1);
+                                                                     MS1_training_node_destroyer);
+        struct MS1_training_data_node *last_data_node = (struct MS1_training_data_node*) (MS1_params->training_data->data);
+        struct MS1_training_data_node *data_node = g_new(struct MS1_training_data_node, 1);
         data_node->array = g_new(gint32, MS1_params->max_support);
         data_node->length = 1;
         
@@ -600,9 +600,9 @@ void __MS1_mining(struct_cache* MS1){
     else{
         MS1_params->hashtable_for_training = g_hash_table_new_full(g_str_hash, g_str_equal,
                                                                      simple_g_key_value_destroyer,
-                                                                     training_node_destroyer);
-        struct training_data_node *last_data_node = (struct training_data_node*) (MS1_params->training_data->data);
-        struct training_data_node *data_node = g_new(struct training_data_node, 1);
+                                                                     MS1_training_node_destroyer);
+        struct MS1_training_data_node *last_data_node = (struct MS1_training_data_node*) (MS1_params->training_data->data);
+        struct MS1_training_data_node *data_node = g_new(struct MS1_training_data_node, 1);
         data_node->array = g_new(gint32, MS1_params->max_support);
         data_node->length = 1;
         
@@ -720,4 +720,12 @@ void __MS1_aging(struct_cache* MS1){
     ;
 }
 
+void MS1_training_node_destroyer(gpointer data){
+    GList* list_node = (GList*)data;
+    struct MS1_training_data_node *data_node = (struct MS1_training_data_node*) (list_node->data);
+    g_free(data_node->array);
+    g_free(data_node->item_p);
+    g_free(data_node);
+    g_list_free_1(list_node);
+}
 
