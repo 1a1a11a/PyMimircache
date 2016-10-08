@@ -18,6 +18,9 @@
 
 
 
+static inline void __MIMIR_record_entry_min_support_1(struct_cache* MIMIR, cache_line* cp);
+
+
 void
 check_rm_hashtable (gpointer key, gpointer value, gpointer user_data){
     struct_cache* MIMIR = (struct_cache*) user_data;
@@ -185,6 +188,11 @@ static inline void __MIMIR_record_entry(struct_cache* MIMIR, cache_line* cp){
     if (MIMIR_params->sequential_type && __MIMIR_check_sequential(MIMIR, cp))
         return;
     
+    if (MIMIR_params->min_support == 1){
+        __MIMIR_record_entry_min_support_1(MIMIR, cp);
+        return;
+    }
+    
     
     gint64* row_in_recording_table;
     // check the item in hashtable for training
@@ -276,7 +284,7 @@ static inline void __MIMIR_record_entry(struct_cache* MIMIR, cache_line* cp){
             int i, timestamps_length = 0;
             
             
-            for (i=1; i < r_m_struct->recording_table_row_len; i++){
+            for (i=1; i < r_m_struct->mining_table_row_len; i++){
                 timestamps_length += NUM_OF_TS(row_in_mining_table[i]);
                 if (NUM_OF_TS(row_in_mining_table[i]) < 4){
                     row_in_mining_table[i] = ADD_TS(row_in_mining_table[i], MIMIR_params->ts);
@@ -381,11 +389,12 @@ static inline void __MIMIR_record_entry(struct_cache* MIMIR, cache_line* cp){
                 }
                 else if (cp->type == 'c'){
                     gpointer gp1 = g_strdup((char*)(*inserted_row_in_mining_table));
-                    gpointer gp2 = g_strdup((char*)*row_in_recording_table);
                     /* use insert because we don't want to free the original key, instead free just passed key */
                     g_hash_table_insert(r_m_struct->hashtable, gp1, GINT_TO_POINTER(-((gint)r_m_struct->mining_table->len-1+1) ));
-                    if (index != r_m_struct->recording_table_pointer && r_m_struct->recording_table_pointer >= 2)
+                    if (index != r_m_struct->recording_table_pointer-1 && r_m_struct->recording_table_pointer >= 2){
+                        gpointer gp2 = g_strdup((char*)(*row_in_recording_table));
                         g_hash_table_insert(r_m_struct->hashtable, gp2, GINT_TO_POINTER(index));
+                    }
                 }
                 else
                     fprintf(stderr, "does not recognize data type in __MIMIR_record_entry\n");
@@ -402,230 +411,84 @@ static inline void __MIMIR_record_entry(struct_cache* MIMIR, cache_line* cp){
 static inline void __MIMIR_record_entry_min_support_1(struct_cache* MIMIR, cache_line* cp){
     struct MIMIR_params* MIMIR_params = (struct MIMIR_params*)(MIMIR->cache_params);
     struct recording_mining_struct *r_m_struct = MIMIR_params->record_mining_struct;
-    /** check whether this is a frequent item, if so, don't insert
-     *  if the item is not in recording table, but in cache, means it is frequent, discard it   **/
-    if (MIMIR_params->cache->core->check_element(MIMIR_params->cache, cp) &&
-        !g_hash_table_contains(r_m_struct->hashtable, cp->item_p))
-        return;
+
     
-    /* check it is sequtial or not 0925     */
-    if (MIMIR_params->sequential_type && __MIMIR_check_sequential(MIMIR, cp))
-        return;
-    
-    
-    gint64* row_in_recording_table;
+    int i;
     // check the item in hashtable for training
     gint index = GPOINTER_TO_INT( g_hash_table_lookup(r_m_struct->hashtable, cp->item_p) );
     if (index == 0){
         // the node is not in the mining data, should be added
-        row_in_recording_table = GET_CURRENT_ROW_IN_RECORDING_TABLE(MIMIR_params);
-        if (cp->type == 'l'){
-            row_in_recording_table[0] = *(gint64*)(cp->item_p);
-            g_hash_table_insert(r_m_struct->hashtable, row_in_recording_table,
-                                GINT_TO_POINTER(r_m_struct->recording_table_pointer));
-        }
-        else if (cp->type == 'c'){
-            gchar* str = g_strdup(cp->item_p);
-            row_in_recording_table[0] = (gint64)str;
-            g_hash_table_insert(r_m_struct->hashtable, str,
-                                GINT_TO_POINTER(r_m_struct->recording_table_pointer));
+        gint64 array_ele[r_m_struct->mining_table_row_len];
+        gpointer hash_key;
+        if (cp->type == 'c'){
+            array_ele[0] = (gint64) g_strdup(cp->item_p);
+            hash_key = (void*)(array_ele[0]);
         }
         else{
-            fprintf(stderr, "does not recognize data type in __MIMIR_record_entry\n");
+            array_ele[0] = *(gint64*) (cp->item_p);
+            hash_key = GET_ROW_IN_MINING_TABLE(MIMIR_params, r_m_struct->mining_table->len);
         }
-        row_in_recording_table[1] = ADD_TS(row_in_recording_table[1], MIMIR_params->ts);
+        for (i=1; i<r_m_struct->mining_table_row_len; i++)
+            array_ele[i] = 0;
+        array_ele[1] = ADD_TS(array_ele[1], MIMIR_params->ts);
         
-        // move pointer to next position
-        r_m_struct->recording_table_pointer ++;
-        if (r_m_struct->recording_table_pointer >= r_m_struct->num_of_rows_in_recording_table){
-            /* recording table is full */
-            r_m_struct->recording_table_pointer = 1;
-        }
+        g_array_append_val(r_m_struct->mining_table, array_ele);
+        r_m_struct->num_of_entry_available_for_mining ++;
         
-        /* clean the row it currently points to (after add 1) */
-        row_in_recording_table = GET_ROW_IN_RECORDING_TABLE(MIMIR_params, r_m_struct->recording_table_pointer);
-        
-
-        if (row_in_recording_table[0] != 0){
-            /* clear current row,
-             this is because the recording table is full and we need to begin from beginning
-             and current position has old resident, we need to remove them */
-            if (cp->type == 'c'){
-                if (!g_hash_table_remove(r_m_struct->hashtable, (char*)(row_in_recording_table[0])))
-                    printf("ERROR remove old entry from recording table, but it is not in recording hashtable \
-                           %s, pointer %ld, ts %ld\n", (char*)(row_in_recording_table[0]), \
-                           r_m_struct->recording_table_pointer, MIMIR_params->ts);
-            }
-            else if (cp->type == 'l'){
-                if (!g_hash_table_remove(r_m_struct->hashtable, row_in_recording_table))
-                    printf("ERROR old entry should be deleted from recording table, \
-                           but it is not in recording hashtable %ld pointer %ld, ts %ld\n", \
-                           *row_in_recording_table, r_m_struct->recording_table_pointer, MIMIR_params->ts);
-            }
-            else{
-                fprintf(stderr, "does not recognize data type in __MIMIR_record_entry\n");
-            }
-            int i;
-            for (i=0; i< r_m_struct->recording_table_row_len; i++){
-                row_in_recording_table[i] = 0 ;
-            }
-        }
-        
+        g_hash_table_insert(r_m_struct->hashtable, hash_key, GINT_TO_POINTER(r_m_struct->mining_table->len));       // all index is real row number + 1
     }
+    
     else{
-        /** first check it is in recording table or mining table,
-         *  if in mining table (index < 0),
-         *  check how many entries are there, if equal max_support, remove it
-         *  otherwise add to mining table;
-         *  if in recording table (index > 0),
-         *  check how many entries are there in the list,
-         *  if equal to min_support-1, add and move to mining table,
-         **/
-        if (index < 0){
-            /* in mining table */
-            gint64* row_in_mining_table = GET_ROW_IN_MINING_TABLE(MIMIR_params, -index-1);
-            
+        /* in mining table */
+        gint64* row_in_mining_table = GET_ROW_IN_MINING_TABLE(MIMIR_params, index-1);
+        
 #ifdef SANITY_CHECK
-            if (cp->type == 'l'){
-                if (*(gint64*)(cp->item_p) != row_in_mining_table[0]){
-                    printf("ERROR hashtable mining found position not correct %ld %ld\n", *(gint64*)(cp->item_p), row_in_mining_table[0]);
-                    exit(1);
-                }
-            }
-            else{
-                if (strcmp(cp->item_p, (char*)(row_in_mining_table[0]))!=0){
-                    printf("ERROR hashtable mining found position not correct %s %s\n", (char*)(cp->item_p), (char*)(row_in_mining_table[0]));
-                    exit(1);
-                }
-            }
-#endif
-            
-            int i, timestamps_length = 0;
-            
-            
-            for (i=1; i < r_m_struct->recording_table_row_len; i++){
-                timestamps_length += NUM_OF_TS(row_in_mining_table[i]);
-                if (NUM_OF_TS(row_in_mining_table[i]) < 4){
-                    row_in_mining_table[i] = ADD_TS(row_in_mining_table[i], MIMIR_params->ts);
-                    break;
-                }
-            }
-            if (timestamps_length == MIMIR_params->max_support){
-                /* no timestamp added, drop this request, it is too frequent */
-                if (!__MIMIR_remove_from_recording_hashtable(cp->type, r_m_struct, row_in_mining_table))
-                    printf("ERROR move from recording table to mining table, first step remove from recording table failed, \
-                           %s, mining table length %u\n", (char*)*row_in_mining_table, r_m_struct->mining_table->len);
-                
-                //                guint old_len = r_m_struct->mining_table->len;
-                /* for dataType c, now the pointer to string has been freed, so mining table entry is incorrent,
-                 but it needs to be deleted, so it is OK
-                 */
-                
-                g_array_remove_index_fast(r_m_struct->mining_table, -index-1);
-                
-                
-                // if array is moved, need to update hashtable
-                if (-index - 1 != r_m_struct->mining_table->len ){          // r_m_struct->mining_table->len == old_len-1 &&
-                    if (cp->type == 'l'){
-                        g_hash_table_replace(r_m_struct->hashtable, row_in_mining_table, GINT_TO_POINTER(index));
-                    }
-                    else if (cp->type == 'c'){
-                        gpointer gp = g_strdup((char*)*row_in_mining_table);
-                        g_hash_table_insert(r_m_struct->hashtable, gp, GINT_TO_POINTER(index));
-                    }
-                }
-                r_m_struct->num_of_entry_available_for_mining --;
+        if (cp->type == 'l'){
+            if (*(gint64*)(cp->item_p) != row_in_mining_table[0]){
+                printf("ERROR hashtable mining found position not correct %ld %ld\n", *(gint64*)(cp->item_p), row_in_mining_table[0]);
+                exit(1);
             }
         }
-        else {
-            /* in recording table */
-            row_in_recording_table = GET_ROW_IN_RECORDING_TABLE(MIMIR_params, index);
-            gint64* current_row_in_recording_table = GET_ROW_IN_RECORDING_TABLE(MIMIR_params, r_m_struct->recording_table_pointer-1);
-            int i, timestamps_length = 0;
-            
-#ifdef SANITY_CHECK
-            if (cp->type == 'l'){
-                if (*(gint64*)(cp->item_p) != row_in_recording_table[0]){
-                    printf("ERROR hashtable recording found position not correct %ld %ld\n", *(gint64*)(cp->item_p), row_in_recording_table[0]);
-                    exit(1);
-                }
+        else{
+            if (strcmp(cp->item_p, (char*)(row_in_mining_table[0]))!=0){
+                printf("ERROR hashtable mining found position not correct %s %s\n", (char*)(cp->item_p), (char*)(row_in_mining_table[0]));
+                exit(1);
             }
-            else{
-                if (strcmp(cp->item_p, (char*)(row_in_recording_table[0]))!=0){
-                    printf("ERROR hashtable recording found position not correct %s %s\n", (char*)(cp->item_p), (char*)(row_in_recording_table[0]));
-                    exit(1);
-                }
-            }
+        }
 #endif
-            
-            
-            
-            for (i=1; i < r_m_struct->recording_table_row_len; i++){
-                timestamps_length += NUM_OF_TS(row_in_recording_table[i]);
-                if (NUM_OF_TS(row_in_recording_table[i]) < 4){
-                    row_in_recording_table[i] = ADD_TS(row_in_recording_table[i], MIMIR_params->ts);
-                    break;
-                }
+        
+        int timestamps_length = 0;
+        
+        for (i=1; i < r_m_struct->mining_table_row_len; i++){
+            timestamps_length += NUM_OF_TS(row_in_mining_table[i]);
+            if (NUM_OF_TS(row_in_mining_table[i]) < 4){
+                row_in_mining_table[i] = ADD_TS(row_in_mining_table[i], MIMIR_params->ts);
+                break;
             }
+        }
+        if (timestamps_length == MIMIR_params->max_support){
+            /* no timestamp added, drop this request, it is too frequent */
+            if (!__MIMIR_remove_from_recording_hashtable(cp->type, r_m_struct, row_in_mining_table))
+                printf("ERROR move from recording table to mining table, first step remove from recording table failed, \
+                       %s, mining table length %u\n", (char*)*row_in_mining_table, r_m_struct->mining_table->len);
             
-            if (timestamps_length == MIMIR_params->min_support-1){
-                /* time to move to mining table */
-                gint64 array_ele[r_m_struct->mining_table_row_len];
-                memcpy(array_ele, row_in_recording_table, sizeof(TS_REPRESENTATION)*r_m_struct->recording_table_row_len);
-                // this is important as we don't clear the content of array after mining
-                memset(array_ele + r_m_struct->recording_table_row_len, 0,
-                       sizeof(TS_REPRESENTATION) * (r_m_struct->mining_table_row_len - r_m_struct->recording_table_row_len));
-                g_array_append_val(r_m_struct->mining_table, array_ele);
-                r_m_struct->num_of_entry_available_for_mining ++;
-                
-                if (r_m_struct->recording_table_pointer >= 2)
-                    r_m_struct->recording_table_pointer --;
-                
-                
-                
-                if (index != r_m_struct->recording_table_pointer && r_m_struct->recording_table_pointer >= 2){
-                    // moved line is not the last entry in recording table
-#ifdef SANITY_CHECK
-                    if (row_in_recording_table == current_row_in_recording_table)
-                        printf("FOUND SRC DEST same, ts %ld %p %p %ld %ld %d %ld\n", MIMIR_params->ts, row_in_recording_table, current_row_in_recording_table,
-                               *row_in_recording_table, *current_row_in_recording_table, index, r_m_struct->recording_table_pointer);
-#endif
-                    memcpy(row_in_recording_table, current_row_in_recording_table, sizeof(TS_REPRESENTATION)*r_m_struct->recording_table_row_len);
-                }
-                if (r_m_struct->recording_table_pointer >= 2)
-                    for (i=0; i<r_m_struct->recording_table_row_len; i++)
-                        current_row_in_recording_table[i] = 0;
-                else{
-                    for (i=0; i<r_m_struct->recording_table_row_len; i++)
-                        row_in_recording_table[i] = 0;
-                }
-                
-                
-                gint64* inserted_row_in_mining_table = GET_ROW_IN_MINING_TABLE(MIMIR_params, r_m_struct->mining_table->len-1);
+            g_array_remove_index_fast(r_m_struct->mining_table, index-1);
+            
+            
+            // if array is moved, need to update hashtable
+            if (index - 1 != r_m_struct->mining_table->len ){          // r_m_struct->mining_table->len == old_len-1 &&
                 if (cp->type == 'l'){
-                    /* because we don't want to have zero as index, so we add one before taking negative,
-                     in other words, the range of mining table index is -1 ~ -max_index-1, mapping to 0~max_index
-                     */
-                    g_hash_table_replace(r_m_struct->hashtable, inserted_row_in_mining_table, GINT_TO_POINTER(-((gint)r_m_struct->mining_table->len-1+1)));
-                    if (index != r_m_struct->recording_table_pointer && r_m_struct->recording_table_pointer >= 2)
-                        // last entry in the recording table is moved up index position
-                        g_hash_table_replace(r_m_struct->hashtable, row_in_recording_table, GINT_TO_POINTER(index));
+                    g_hash_table_replace(r_m_struct->hashtable, row_in_mining_table, GINT_TO_POINTER(index));
                 }
                 else if (cp->type == 'c'){
-                    gpointer gp1 = g_strdup((char*)(*inserted_row_in_mining_table));
-                    gpointer gp2 = g_strdup((char*)*row_in_recording_table);
-                    /* use insert because we don't want to free the original key, instead free just passed key */
-                    g_hash_table_insert(r_m_struct->hashtable, gp1, GINT_TO_POINTER(-((gint)r_m_struct->mining_table->len-1+1) ));
-                    if (index != r_m_struct->recording_table_pointer && r_m_struct->recording_table_pointer >= 2)
-                        g_hash_table_insert(r_m_struct->hashtable, gp2, GINT_TO_POINTER(index));
+                    gpointer gp = g_strdup((char*)*row_in_mining_table);
+                    g_hash_table_insert(r_m_struct->hashtable, gp, GINT_TO_POINTER(index));
                 }
-                else
-                    fprintf(stderr, "does not recognize data type in __MIMIR_record_entry\n");
             }
+            r_m_struct->num_of_entry_available_for_mining --;
         }
     }
 }
-
 
 
 
@@ -804,13 +667,15 @@ void __MIMIR_evict_element(struct_cache* MIMIR, cache_line* cp){
             __MIMIR_evict_element(MIMIR, cp);
         }
         else{
-
 //            if (g_hash_table_contains(MIMIR_params->prefetched_hashtable_mimir, gp)){
 //                MIMIR_params->evicted_prefetch ++;
 //            }
-
-        g_hash_table_remove(MIMIR_params->prefetched_hashtable_mimir, gp);
-        g_hash_table_remove(MIMIR_params->prefetched_hashtable_sequential, gp);
+            gpointer old_gp = cp->item_p;
+            cp->item_p = gp;
+            __MIMIR_record_entry(MIMIR, cp);
+            cp->item_p = old_gp;
+            g_hash_table_remove(MIMIR_params->prefetched_hashtable_mimir, gp);
+            g_hash_table_remove(MIMIR_params->prefetched_hashtable_sequential, gp);
         }
         g_free(gp);
     }
@@ -868,16 +733,6 @@ void MIMIR_destroy(struct_cache* cache){
 
     g_hash_table_destroy(MIMIR_params->prefetch_hashtable);
     g_hash_table_destroy(MIMIR_params->record_mining_struct->hashtable);
-//    if (cache->core->data_type == 'c'){
-//        int i;
-//        int gap = ceil(MIMIR_params->min_support/4)+1;
-//        gint64* pos = MIMIR_params->record_mining_struct->recording_table;
-//        for (i=0; i<MIMIR_params->record_mining_struct->num_of_rows_in_recording_table; i++){
-//            if (pos[0])
-//                g_free((char*)(pos[0]));
-//            pos += gap;
-//        }
-//    }
     g_free(MIMIR_params->record_mining_struct->recording_table);
     g_array_free(MIMIR_params->record_mining_struct->mining_table, TRUE);
 
@@ -918,17 +773,6 @@ void MIMIR_destroy_unique(struct_cache* cache){
     struct MIMIR_params* MIMIR_params = (struct MIMIR_params*)(cache->cache_params);
     g_hash_table_destroy(MIMIR_params->prefetch_hashtable);
     g_hash_table_destroy(MIMIR_params->record_mining_struct->hashtable);
-//    if (cache->core->data_type == 'c'){
-//        int i;
-//        int gap = ceil(MIMIR_params->min_support/4)+1;
-//        gint64* pos = MIMIR_params->record_mining_struct->recording_table;
-//        for (i=0; i<MIMIR_params->record_mining_struct->num_of_rows_in_recording_table; i++){
-//            if (pos[0])
-//                g_free((char*)(pos[0]));
-//            pos += gap;
-//        }
-//    }
-
     
     g_free(MIMIR_params->record_mining_struct->recording_table);
     g_array_free(MIMIR_params->record_mining_struct->mining_table, TRUE);
@@ -996,12 +840,8 @@ struct_cache* MIMIR_init(guint64 size, char data_type, void* params){
                                                  sizeof(gint64)*((gint)ceil(MIMIR_params->max_support/(double)4)+1),
                                                  MIMIR_params->mining_threshold);
     
-    r_m_struct->num_of_rows_in_recording_table = (gint)(size * MIMIR_params->block_size * RECORDING_TABLE_MAXIMAL /
-                                                                    ( (gint)ceil(MIMIR_params->min_support/(double)2) * 2 + 8 + 4));
-    r_m_struct->recording_table = g_new0(gint64, r_m_struct->num_of_rows_in_recording_table * r_m_struct->recording_table_row_len);        // this should begins with 1
     
     
-//    MIMIR_params->prefetch_table_size = init_params->prefetch_table_size;
     MIMIR_params->max_metadata_size = (gint64) (init_params->block_size * size * init_params->max_metadata_size);
     gint max_num_of_shards_in_prefetch_table = (gint) (MIMIR_params->max_metadata_size /
                                                        (PREFETCH_TABLE_SHARD_SIZE * init_params->prefetch_list_size));
@@ -1011,17 +851,24 @@ struct_cache* MIMIR_init(guint64 size, char data_type, void* params){
     MIMIR_params->prefetch_table_array = g_new0(gint64*, max_num_of_shards_in_prefetch_table);
     MIMIR_params->prefetch_table_array[0] = g_new0(gint64, PREFETCH_TABLE_SHARD_SIZE*(MIMIR_params->prefetch_list_size+1));
     
+    
     /* now adjust the cache size by deducting current meta data size
         8 is the size of storage for block, 4 is the size of storage for index to array */
     MIMIR_params->current_metadata_size = (init_params->max_support * 2 + 8 + 4) * MIMIR_params->mining_threshold  +
-                                            ( ((gint)ceil(init_params->min_support/(double)4+1) * 8 + 4) *
-                                             r_m_struct->num_of_rows_in_recording_table) +
                                             max_num_of_shards_in_prefetch_table * 8 +
                                             PREFETCH_TABLE_SHARD_SIZE * (MIMIR_params->prefetch_list_size*8 + 8 + 4) ;
+
+    if (MIMIR_params->max_support != 1){
+        r_m_struct->num_of_rows_in_recording_table = (gint)(size * MIMIR_params->block_size * RECORDING_TABLE_MAXIMAL /
+                                                            ( (gint)ceil(MIMIR_params->min_support/(double)2) * 2 + 8 + 4));
+        r_m_struct->recording_table = g_new0(gint64, r_m_struct->num_of_rows_in_recording_table * r_m_struct->recording_table_row_len);        // this should begins with 1
+        MIMIR_params->current_metadata_size += ( ((gint)ceil(init_params->min_support/(double)4+1) * 8 + 4) *
+                                                r_m_struct->num_of_rows_in_recording_table);
+    }
+
     
     size = size - (gint)(MIMIR_params->current_metadata_size/init_params->block_size);
-    
-    
+
     MIMIR_params->training_period_type = init_params->training_period_type;
     MIMIR_params->ts = 0;
 
@@ -1170,9 +1017,10 @@ void __MIMIR_mining(struct_cache* MIMIR){
             if (shorter_length == 1 && ABS(GET_NTH_TS(item1, 1) - GET_NTH_TS(item2, 1)) == 1)
                 associated_flag = TRUE;
             
-            
+//            gint error = 0;
             for (k=1; k<shorter_length; k++){
                 if ( ABS(GET_NTH_TS(item1, k) - GET_NTH_TS(item2, k)) > MIMIR_params->item_set_size){
+//                    error ++;
                     associated_flag = FALSE;
                     break;
                 }
