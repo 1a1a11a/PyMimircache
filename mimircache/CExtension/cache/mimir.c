@@ -1017,12 +1017,14 @@ void __MIMIR_mining(struct_cache* MIMIR){
             if (shorter_length == 1 && ABS(GET_NTH_TS(item1, 1) - GET_NTH_TS(item2, 1)) == 1)
                 associated_flag = TRUE;
             
-//            gint error = 0;
+            gint error = 0;
             for (k=1; k<shorter_length; k++){
                 if ( ABS(GET_NTH_TS(item1, k) - GET_NTH_TS(item2, k)) > MIMIR_params->item_set_size){
-//                    error ++;
-                    associated_flag = FALSE;
-                    break;
+                    error ++;
+                    if (error > MIMIR_params->confidence){
+                        associated_flag = FALSE;
+                        break;
+                    }
                 }
 
                 if ( ABS(GET_NTH_TS(item1, k) - GET_NTH_TS(item2, k)) == 1 ){
@@ -1117,10 +1119,18 @@ void mimir_add_to_prefetch_table(struct_cache* MIMIR, gpointer gp1, gpointer gp2
         if (insert){
             if (i == MIMIR_params->prefetch_list_size+1){
                 // list full, randomly pick one for replacement
-                i = rand()%MIMIR_params->prefetch_list_size + 1;
-                if (MIMIR->core->data_type == 'c'){
-                    g_free((gchar*)(MIMIR_params->prefetch_table_array[dim1][dim2+i]));
-                }
+//                i = rand()%MIMIR_params->prefetch_list_size + 1;
+//                if (MIMIR->core->data_type == 'c'){
+//                    g_free((gchar*)(MIMIR_params->prefetch_table_array[dim1][dim2+i]));
+//                }
+                
+                // use FIFO
+                int j;
+                for (j=2; j<MIMIR_params->prefetch_list_size+1; j++)
+                    MIMIR_params->prefetch_table_array[dim1][dim2+j] = MIMIR_params->prefetch_table_array[dim1][dim2+j-1];
+                i = MIMIR_params->prefetch_list_size;
+                
+                
             }
             // new add at position i
             if (MIMIR->core->data_type == 'c'){
