@@ -112,7 +112,7 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
         gint min_support = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "min_support"));
         gint confidence = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "confidence"));
         gint item_set_size = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "item_set_size"));
-        gdouble mining_period = (gdouble) PyFloat_AsDouble(PyDict_GetItemString(cache_params, "mining_period"));
+//        gdouble mining_period = (gdouble) PyFloat_AsDouble(PyDict_GetItemString(cache_params, "mining_period"));
         gint prefetch_list_size = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "prefetch_list_size"));
 //        gint64 prefetch_table_size = PyLong_AsLong(PyDict_GetItemString(cache_params, "prefetch_table_size"));
         gint sequential_type = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "sequential_type"));
@@ -148,8 +148,8 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
         
         
 #ifdef DEBUG
-        printf("cache type %s, max support=%d, min support %d, confidence %d, mining period %lf, sequential %d\n",
-                     cache_type, max_support, min_support, confidence, mining_period, sequential_K);
+        printf("cache type %s, max support=%d, min support %d, confidence %d, sequential %d\n",
+                     cache_type, max_support, min_support, confidence, sequential_K);
 #endif
         
         struct MIMIR_init_params *init_params = g_new(struct MIMIR_init_params, 1);
@@ -158,7 +158,7 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
         init_params->cache_type = cache_type;
         init_params->confidence = confidence;
         init_params->item_set_size = item_set_size;
-        init_params->training_period = mining_period;
+        init_params->training_period = 0;
         init_params->prefetch_list_size = prefetch_list_size;
         init_params->block_size = block_size;
         init_params->max_metadata_size = max_metadata_size;

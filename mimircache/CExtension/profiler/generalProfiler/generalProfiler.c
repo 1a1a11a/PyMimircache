@@ -18,96 +18,238 @@
 /* this module is not reentrant-safe */
 
 
-struct HR_PE* get_HR_PE(READER* reader, int n, struct_cache *caches[]){
+struct HR_PE* get_HR_PE(READER* reader_in, guint64 size){
+    
+    long i;
+    int n = 22; 
+    
+    
+    // initialization
+    int num_of_threads = 8;
+    
+    // create the result storage area and caches of varying sizes
+    struct HR_PE* hrpe = g_new0(struct HR_PE, 1);
+   
+
+    // build parameters and send to thread pool
+    struct HR_PE_params* hrpe_params = g_new0(struct HR_PE_params, 1);
+    hrpe_params->hrpe = hrpe;
+    hrpe_params->reader = reader_in;
+    hrpe_params->caches = g_new0(struct_cache*, n);
+    
+    hrpe_params->caches[0] = LRU_init(size, reader_in->data_type, NULL);
+
+    struct AMP_init_params* AMP_initp = g_new0(struct AMP_init_params, 1);
+    AMP_initp->APT = 4;
+    AMP_initp->p_threshold = 256;
+    AMP_initp->read_size = 1;
+    hrpe_params->caches[1] = AMP_init(size, reader_in->data_type, AMP_initp);
+    
+    struct MIMIR_init_params** mimir_initp = g_new0(struct MIMIR_init_params*, n-2);
+    for (i=0; i<n-2; i++){
+        mimir_initp[i] = g_new0(struct MIMIR_init_params, 1);
+        mimir_initp[i]->block_size = 64 * 1024;
+        mimir_initp[i]->cache_type = "LRU";
+        mimir_initp[i]->max_support = 20;
+        mimir_initp[i]->min_support = 2;
+        mimir_initp[i]->confidence = 0;
+        mimir_initp[i]->item_set_size = 20;
+        mimir_initp[i]->training_period = 0;
+        mimir_initp[i]->prefetch_list_size = 2;
+        mimir_initp[i]->max_metadata_size = 0.2;
+        mimir_initp[i]->training_period_type = 'v';
+        mimir_initp[i]->sequential_type = 0;
+        mimir_initp[i]->sequential_K = -1;
+        mimir_initp[i]->cycle_time = 2;
+    }
+    
+    
+    mimir_initp[0]->min_support = 1;
+    mimir_initp[0]->max_support = 8;
+
+    mimir_initp[1]->min_support = 2;
+    mimir_initp[1]->max_support = 10;
+
+    mimir_initp[2]->min_support = 3;
+    mimir_initp[2]->max_support = 15;
+
+    mimir_initp[3]->min_support = 4;
+    mimir_initp[3]->max_support = 20;
+
+    mimir_initp[4]->min_support = 5;
+    mimir_initp[4]->max_support = 25;
+
+    mimir_initp[5]->min_support = 6;
+    mimir_initp[5]->max_support = 30;
+
+    mimir_initp[6]->min_support = 7;
+    mimir_initp[6]->max_support = 35;
+
+    mimir_initp[7]->min_support = 8;
+    mimir_initp[7]->max_support = 40;
+
+    mimir_initp[8]->min_support = 1;
+    mimir_initp[8]->max_support = 8;
+    mimir_initp[8]->sequential_type = 1;
+    mimir_initp[8]->sequential_K = 1;
+    
+    mimir_initp[9]->min_support = 2;
+    mimir_initp[9]->max_support = 10;
+    mimir_initp[9]->sequential_type = 1;
+    mimir_initp[9]->sequential_K = 1;
+    
+    mimir_initp[10]->min_support = 3;
+    mimir_initp[10]->max_support = 15;
+    mimir_initp[10]->sequential_type = 1;
+    mimir_initp[10]->sequential_K = 2;
+    
+    mimir_initp[11]->min_support = 4;
+    mimir_initp[11]->max_support = 20;
+    mimir_initp[11]->sequential_type = 1;
+    mimir_initp[11]->sequential_K = 2;
+    
+    mimir_initp[12]->min_support = 6;
+    mimir_initp[12]->max_support = 30;
+    mimir_initp[12]->sequential_type = 1;
+    mimir_initp[12]->sequential_K = 2;
+    
+    mimir_initp[13]->cache_type = "AMP";
+    mimir_initp[13]->min_support = 1;
+    mimir_initp[13]->max_support = 8;
+    mimir_initp[13]->sequential_type = 2;
+
+    mimir_initp[14]->cache_type = "AMP";
+    mimir_initp[14]->min_support = 2;
+    mimir_initp[14]->max_support = 10;
+    mimir_initp[14]->sequential_type = 2;
+
+    mimir_initp[15]->cache_type = "AMP";
+    mimir_initp[15]->min_support = 3;
+    mimir_initp[15]->max_support = 15;
+    mimir_initp[15]->sequential_type = 2;
+
+    mimir_initp[16]->cache_type = "AMP";
+    mimir_initp[16]->min_support = 4;
+    mimir_initp[16]->max_support = 20;
+    mimir_initp[16]->sequential_type = 2;
+    
+    mimir_initp[17]->cache_type = "AMP";
+    mimir_initp[17]->min_support = 5;
+    mimir_initp[17]->max_support = 25;
+    mimir_initp[17]->sequential_type = 2;
+
+    mimir_initp[18]->cache_type = "AMP";
+    mimir_initp[18]->min_support = 6;
+    mimir_initp[18]->max_support = 30;
+    mimir_initp[18]->sequential_type = 2;
+
+    mimir_initp[19]->cache_type = "AMP";
+    mimir_initp[19]->min_support = 8;
+    mimir_initp[19]->max_support = 40;
+    mimir_initp[19]->sequential_type = 2;
     
     
     
-//    // create cache line struct and initialization
-//    cache_line* cp = new_cacheline();
-//    cp->type = params->cache->core->data_type;
-//    
-//    guint64 hit_count=0, miss_count=0;
-//    gboolean (*add_element)(struct cache*, cache_line* cp);
-//    add_element = cache->core->add_element;
-//    
-//    read_one_element(reader_thread, cp);
-//    
-//    while (cp->valid && pos<end_pos){
-//        if (add_element(cache, cp)){
-//            hit_count ++;
-//        }
-//        else
-//            miss_count ++;
-//        pos++;
-//        read_one_element(reader_thread, cp);
-//    }
-//    
-//    result[order]->hit_count = (long long) hit_count;
-//    result[order]->miss_count = (long long) miss_count;
-//    result[order]->total_count = hit_count + miss_count;
-//    result[order]->hit_rate = (double) hit_count / (hit_count + miss_count);
-//    result[order]->miss_rate = 1 - result[order]->hit_rate;
-//    
-//    
-//    if (cache->core->type == e_mimir){
-//        gint64 prefetch = ((struct MIMIR_params*)(cache->cache_params))->num_of_prefetch_mimir;
-//        gint64 hit = ((struct MIMIR_params*)(cache->cache_params))->hit_on_prefetch_mimir;
-//        
-//        struct MIMIR_params* MIMIR_params = (struct MIMIR_params*)(cache->cache_params);
-//        long counter = 0;
-//        g_hash_table_foreach(MIMIR_params->prefetch_hashtable, prefetch_hashmap_count_length, &counter);
-//        
-//        printf("\ncache size %ld, hit rate %lf, total check %lu, mimir prefetch %lu, hit %lu, accuracy: %lf, prefetch table size %u, ave len: %lf\n",
-//               cache->core->size,
-//               (double)hit_count/(hit_count+miss_count),
-//               ((struct MIMIR_params*)(cache->cache_params))->num_of_check,
-//               prefetch, hit, (double)hit/prefetch,
-//               g_hash_table_size(MIMIR_params->prefetch_hashtable),
-//               (double) counter / g_hash_table_size(MIMIR_params->prefetch_hashtable));
-//        
-//        if (MIMIR_params->sequential_type == 1){
-//            prefetch = ((struct MIMIR_params*)(cache->cache_params))->num_of_prefetch_sequential;
-//            hit = ((struct MIMIR_params*)(cache->cache_params))->hit_on_prefetch_sequential;
-//            printf("sequential prefetching, prefetch %lu, hit %lu, accuracy %lf\n", prefetch, hit, (double)hit/prefetch);
-//        }
-//        
-//        if (MIMIR_params->cache->core->type == e_AMP){
-//            prefetch = ((struct AMP_params*)(MIMIR_params->cache->cache_params))->num_of_prefetch;
-//            hit = ((struct AMP_params*)(MIMIR_params->cache->cache_params))->num_of_hit;
-//            printf("AMP cache size %ld, prefetch %lu, hit %lu, accuracy: %lf\n",
-//                   MIMIR_params->cache->core->size, prefetch, hit, (double)hit/prefetch);
-//            
-//        }
-//    }
-//    if (cache->core->type == e_test1){
-//        gint64 prefech = ((struct test1_params*)(cache->cache_params))->num_of_prefetch;
-//        gint64 hit = ((struct test1_params*)(cache->cache_params))->hit_on_prefetch;
-//        
-//        printf("\ncache size %ld, hit rate %lf, total check %lu, prefetch %lu, hit %lu, accuracy: %lf\n",
-//               cache->core->size, (double)hit_count/(hit_count+miss_count),
-//               ((struct test1_params*)(cache->cache_params))->num_of_check,
-//               prefech, hit, (double)hit/prefech);
-//    }
-//    if (cache->core->type == e_AMP){
-//        gint64 prefech = ((struct AMP_params*)(cache->cache_params))->num_of_prefetch;
-//        gint64 hit = ((struct AMP_params*)(cache->cache_params))->num_of_hit;
-//        
-//        printf("\ncache size %ld, hit rate %lf, prefetch %lu, hit %lu, accuracy: %lf\n",
-//               cache->core->size, (double)hit_count/(hit_count+miss_count),
-//               prefech, hit, (double)hit/prefech);
-//    }
-//    
-//    // clean up
-//    g_mutex_lock(&(params->mtx));
-//    (*(params->progress)) ++ ;
-//    g_mutex_unlock(&(params->mtx));
-//    
-//    g_free(cp);
-//    if (reader_thread->type != 'v')
-//        fclose(reader_thread->file);
-//    g_free(reader_thread);
+    for (i=0; i<n-2; i++)
+        hrpe_params->caches[i+2] = MIMIR_init(size, reader_in->data_type, mimir_initp[i]);
+    
+    
+    // build the thread pool
+    GThreadPool * gthread_pool = g_thread_pool_new ( (GFunc) get_HR_PE_thread, (gpointer)hrpe_params, num_of_threads, TRUE, NULL);
+    if (gthread_pool == NULL)
+        g_error("cannot create thread pool in general profiler\n");
+    
+    
+    for (i=1; i<n+1; i++){
+        if ( g_thread_pool_push (gthread_pool, GUINT_TO_POINTER(i), NULL) == FALSE)
+            g_error("cannot push data into thread in generalprofiler\n");
+    }
+    
+    
+    g_thread_pool_free (gthread_pool, FALSE, TRUE);
+    
+    
+    // clean up
+    LRU_destroy(hrpe_params->caches[0]);
+    AMP_destroy(hrpe_params->caches[1]);
+    for (i=0; i<n-2; i++)
+        MIMIR_destroy(hrpe_params->caches[i+2]);
+    
+    g_free(hrpe_params);
+    // needs to free result later
+    return hrpe;
+}
+
+void get_HR_PE_thread(gpointer data, gpointer user_data){
+    int order = (int) data - 1;
+    struct HR_PE_params* hrpe_params = (struct HR_PE_params*)user_data;
+    
+    
+    struct_cache* cache = (hrpe_params->caches[order]);
+    struct HR_PE* hrpe = hrpe_params->hrpe;
+    READER* reader = hrpe_params->reader;
+    READER* reader_thread = copy_reader(reader);
+
+    // create cache line struct and initialization
+    cache_line* cp = new_cacheline();
+    cp->type = reader->data_type;
+
+    
+    
+    guint64 hit_count=0, miss_count=0;
+    gboolean (*add_element)(struct cache*, cache_line* cp);
+    add_element = cache->core->add_element;
+    
+    read_one_element(reader_thread, cp);
+    
+    while (cp->valid){
+        if (add_element(cache, cp)){
+            hit_count ++;
+        }
+        else
+            miss_count ++;
+        read_one_element(reader_thread, cp);
+    }
+    
+    
+    hrpe->HR[order] = (double)hit_count/(hit_count+miss_count);
+    hrpe->real_cache_size[order] = cache->core->size; 
+
+    if (cache->core->type == e_mimir){
+        gint64 prefetch = ((struct MIMIR_params*)(cache->cache_params))->num_of_prefetch_mimir;
+        gint64 hit = ((struct MIMIR_params*)(cache->cache_params))->hit_on_prefetch_mimir;
+        
+        struct MIMIR_params* MIMIR_params = (struct MIMIR_params*)(cache->cache_params);
+        hrpe->PE[order] = (double)hit/prefetch;
+        hrpe->real_cache_size[order] = MIMIR_params->cache->core->size;
+        
+        
+        if (MIMIR_params->sequential_type == 1){
+            prefetch += ((struct MIMIR_params*)(cache->cache_params))->num_of_prefetch_sequential;
+            hit += ((struct MIMIR_params*)(cache->cache_params))->hit_on_prefetch_sequential;
+            hrpe->PE[order] = (double)hit/prefetch;
+        }
+        
+        if (MIMIR_params->cache->core->type == e_AMP){
+            prefetch += ((struct AMP_params*)(MIMIR_params->cache->cache_params))->num_of_prefetch;
+            hit += ((struct AMP_params*)(MIMIR_params->cache->cache_params))->num_of_hit;
+            hrpe->PE[order] = (double)hit/prefetch;
+        }
+        hrpe->prefetch[order] = prefetch;
+    }
+    if (cache->core->type == e_AMP){
+        gint64 prefetch = ((struct AMP_params*)(cache->cache_params))->num_of_prefetch;
+        gint64 hit = ((struct AMP_params*)(cache->cache_params))->num_of_hit;
+        hrpe->PE[order] = (double)hit/prefetch;
+        hrpe->prefetch[order] = prefetch;
+    }
+    
+    // clean up
+    g_free(cp);
+    if (reader_thread->type != 'v')
+        fclose(reader_thread->file);
+    g_free(reader_thread);
 //    cache->core->destroy_unique(cache);
-    return NULL; 
 }
 
 
@@ -285,9 +427,9 @@ return_res** profiler(READER* reader_in, struct_cache* cache_in, int num_of_thre
     }
     
     while (progress < (guint64)num_of_bins-1){
-        printf("%.2f%%\n", ((double)progress) / (num_of_bins-1) * 100);
-        sleep(1);
-        printf("\033[A\033[2K\r");
+            printf("%.2f%%\n", ((double)progress) / (num_of_bins-1) * 100);
+            sleep(1);
+            printf("\033[A\033[2K\r");
     }
     
     g_thread_pool_free (gthread_pool, FALSE, TRUE);

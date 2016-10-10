@@ -335,6 +335,64 @@ static PyObject* generalProfiler_get_hit_rate_with_prefetch(PyObject* self, PyOb
 
 
 
+
+
+static PyObject* generalProfiler_get_hrpe(PyObject* self, PyObject* args, PyObject* keywds)
+{
+    PyObject* po;
+    READER* reader;
+    long cache_size;
+    static char *kwlist[] = {"reader", "cache_size", NULL};
+    
+    // parse arguments
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Ol", kwlist, &po, &cache_size)) {
+        printf("parsing argument failed in generalProfiler_get_hit_rate\n");
+        return NULL;
+    }
+
+    if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
+        return NULL;
+    }
+    
+    
+    // get hrpe
+#ifdef DEBUG
+    printf("before profiling\n");
+#endif
+    struct HR_PE* hrpe = get_HR_PE(reader, cache_size);
+#ifdef DEBUG
+    printf("after profiling\n");
+#endif
+    
+    // create numpy array
+    guint num_of_bins = 22;
+    npy_intp dims[1] = { num_of_bins*4 };
+    PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    guint64 i;
+    for(i=0; i<num_of_bins; i++){
+        *(double *)PyArray_GETPTR1((PyArrayObject*)ret_array, i*4) = (double)(hrpe->real_cache_size[i]);
+        *(double *)PyArray_GETPTR1((PyArrayObject*)ret_array, i*4+1) = (double)(hrpe->prefetch[i]);
+        *(double *)PyArray_GETPTR1((PyArrayObject*)ret_array, i*4+2) = hrpe->HR[i];
+        *(double *)PyArray_GETPTR1((PyArrayObject*)ret_array, i*4+3) = hrpe->PE[i];
+    }
+    
+    
+    g_free(hrpe);
+    return ret_array;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 static PyMethodDef c_generalProfiler_funcs[] = {
     {"get_hit_rate", (PyCFunction)generalProfiler_get_hit_rate,
         METH_VARARGS | METH_KEYWORDS, "get hit rate numpy array"},
@@ -346,6 +404,8 @@ static PyMethodDef c_generalProfiler_funcs[] = {
         METH_VARARGS | METH_KEYWORDS, "get err rate numpy array"},
     {"get_hit_rate_with_prefetch", (PyCFunction)generalProfiler_get_hit_rate_with_prefetch,
         METH_VARARGS | METH_KEYWORDS, "get hit rate with prefetch in numpy array"},
+    {"get_HR_PE", (PyCFunction)generalProfiler_get_hrpe,
+        METH_VARARGS | METH_KEYWORDS, "get hit rate and prefetching efficiency"},
     
     {NULL, NULL, 0, NULL}
 };
