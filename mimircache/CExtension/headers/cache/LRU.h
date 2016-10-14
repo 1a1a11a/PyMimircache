@@ -20,9 +20,10 @@ struct LRU_params{
     GQueue *list;
 };
 
-//struct node_data{
-//    gpointer label;
-//    int flag;
+
+//struct page{
+//    void *key;
+//    void *content; 
 //};
 
 

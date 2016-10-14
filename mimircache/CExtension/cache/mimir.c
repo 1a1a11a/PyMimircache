@@ -144,6 +144,9 @@ static inline gboolean __MIMIR_remove_from_recording_hashtable(char data_type, s
 
 static inline gboolean __MIMIR_check_sequential(struct_cache* MIMIR, cache_line *cp){
     struct MIMIR_params* MIMIR_params = (struct MIMIR_params*)(MIMIR->cache_params);
+    if (MIMIR_params->sequential_K == 0)                  // new 1010
+        return FALSE;
+    
     int i;
     if (MIMIR->core->data_type != 'l')
         printf("ERROR sequential prefetching but data is not long int\n");
@@ -184,6 +187,10 @@ static inline void __MIMIR_record_entry(struct_cache* MIMIR, cache_line* cp){
         !g_hash_table_contains(r_m_struct->hashtable, cp->item_p))
         return;
 
+    if (MIMIR_params->cache->core->check_element(MIMIR_params->cache, cp))
+        return;
+    
+    
     /* check it is sequtial or not 0925     */
     if (MIMIR_params->sequential_type && __MIMIR_check_sequential(MIMIR, cp))
         return;
@@ -702,6 +709,21 @@ gboolean MIMIR_add_element(struct_cache* MIMIR, cache_line* cp){
     struct MIMIR_params* MIMIR_params = (struct MIMIR_params*)(MIMIR->cache_params);
 //    struct recording_mining_struct* r_m_struct = MIMIR_params->record_mining_struct;
 //    printf("%u %d/%d\n", r_m_struct->mining_table->len, r_m_struct->num_of_entry_available_for_mining, MIMIR_params->mining_threshold);
+
+    // new 1010
+//    if (MIMIR_params->sequential_type == 1 && MIMIR_params->ts % 100000 == 0){
+////        if (MIMIR_params->num_of_prefetch_sequential ==0){
+////            MIMIR_params->sequential_K = 2;
+////        }
+//        
+//        if (MIMIR_params->num_of_prefetch_mimir!=0 &&
+//                 (double)(MIMIR_params->hit_on_prefetch_sequential/MIMIR_params->num_of_prefetch_sequential) -
+//                 (double)(MIMIR_params->hit_on_prefetch_mimir/MIMIR_params->num_of_prefetch_mimir) < -0.1){
+//            // stop sequential prefetching
+//            MIMIR_params->sequential_K = 0;
+//        }
+//        
+//    }
     
     
 //        if (MIMIR_params->ts - MIMIR_params->last_train_time > MIMIR_params->training_period){

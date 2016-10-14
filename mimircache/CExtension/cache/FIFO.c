@@ -50,7 +50,6 @@ void __fifo_evict_element(struct_cache* fifo, cache_line* cp){
 gpointer __fifo_evict_element_with_return(struct_cache* fifo, cache_line* cp){
     struct FIFO_params* fifo_params = (struct FIFO_params*)(fifo->cache_params);
     gpointer data = g_queue_pop_head(fifo_params->list);
-    g_hash_table_remove(fifo_params->hashtable, (gconstpointer)data);
     gpointer gp;
     if (cp->type == 'l'){
         gp = g_new(guint64, 1);
@@ -59,6 +58,8 @@ gpointer __fifo_evict_element_with_return(struct_cache* fifo, cache_line* cp){
     else{
         gp = g_strdup((gchar*)data);
     }
+    g_hash_table_remove(fifo_params->hashtable, (gconstpointer)data);
+    
     return gp;
 }
 

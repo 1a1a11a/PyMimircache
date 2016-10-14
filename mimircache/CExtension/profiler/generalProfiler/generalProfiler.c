@@ -21,7 +21,7 @@
 struct HR_PE* get_HR_PE(READER* reader_in, guint64 size){
     
     long i;
-    int n = 22; 
+    int n = 15;
     
     
     // initialization
@@ -113,40 +113,40 @@ struct HR_PE* get_HR_PE(READER* reader_in, guint64 size){
     mimir_initp[12]->sequential_type = 1;
     mimir_initp[12]->sequential_K = 2;
     
-    mimir_initp[13]->cache_type = "AMP";
-    mimir_initp[13]->min_support = 1;
-    mimir_initp[13]->max_support = 8;
-    mimir_initp[13]->sequential_type = 2;
-
-    mimir_initp[14]->cache_type = "AMP";
-    mimir_initp[14]->min_support = 2;
-    mimir_initp[14]->max_support = 10;
-    mimir_initp[14]->sequential_type = 2;
-
-    mimir_initp[15]->cache_type = "AMP";
-    mimir_initp[15]->min_support = 3;
-    mimir_initp[15]->max_support = 15;
-    mimir_initp[15]->sequential_type = 2;
-
-    mimir_initp[16]->cache_type = "AMP";
-    mimir_initp[16]->min_support = 4;
-    mimir_initp[16]->max_support = 20;
-    mimir_initp[16]->sequential_type = 2;
-    
-    mimir_initp[17]->cache_type = "AMP";
-    mimir_initp[17]->min_support = 5;
-    mimir_initp[17]->max_support = 25;
-    mimir_initp[17]->sequential_type = 2;
-
-    mimir_initp[18]->cache_type = "AMP";
-    mimir_initp[18]->min_support = 6;
-    mimir_initp[18]->max_support = 30;
-    mimir_initp[18]->sequential_type = 2;
-
-    mimir_initp[19]->cache_type = "AMP";
-    mimir_initp[19]->min_support = 8;
-    mimir_initp[19]->max_support = 40;
-    mimir_initp[19]->sequential_type = 2;
+//    mimir_initp[13]->cache_type = "AMP";
+//    mimir_initp[13]->min_support = 1;
+//    mimir_initp[13]->max_support = 8;
+//    mimir_initp[13]->sequential_type = 2;
+//
+//    mimir_initp[14]->cache_type = "AMP";
+//    mimir_initp[14]->min_support = 2;
+//    mimir_initp[14]->max_support = 10;
+//    mimir_initp[14]->sequential_type = 2;
+//
+//    mimir_initp[15]->cache_type = "AMP";
+//    mimir_initp[15]->min_support = 3;
+//    mimir_initp[15]->max_support = 15;
+//    mimir_initp[15]->sequential_type = 2;
+//
+//    mimir_initp[16]->cache_type = "AMP";
+//    mimir_initp[16]->min_support = 4;
+//    mimir_initp[16]->max_support = 20;
+//    mimir_initp[16]->sequential_type = 2;
+//    
+//    mimir_initp[17]->cache_type = "AMP";
+//    mimir_initp[17]->min_support = 5;
+//    mimir_initp[17]->max_support = 25;
+//    mimir_initp[17]->sequential_type = 2;
+//
+//    mimir_initp[18]->cache_type = "AMP";
+//    mimir_initp[18]->min_support = 6;
+//    mimir_initp[18]->max_support = 30;
+//    mimir_initp[18]->sequential_type = 2;
+//
+//    mimir_initp[19]->cache_type = "AMP";
+//    mimir_initp[19]->min_support = 8;
+//    mimir_initp[19]->max_support = 40;
+//    mimir_initp[19]->sequential_type = 2;
     
     
     
@@ -314,7 +314,7 @@ static void profiler_thread(gpointer data, gpointer user_data){
 //        long counter = 0;
 //        g_hash_table_foreach(MIMIR_params->prefetch_hashtable, prefetch_hashmap_count_length, &counter);
 
-        printf("\ncache size %ld, real size: %ld, hit rate %lf, total check %lu, mimir prefetch %lu, hit %lu, accuracy: %lf, prefetch table size %u, ave len: %lf, evicted_prefetch %lu\n\n",
+        printf("\ncache size %ld, real size: %ld, hit rate %lf, total check %lu, mimir prefetch %lu, hit %lu, accuracy: %lf, prefetch table size %u, ave len: %lf, evicted_prefetch %lu\n",
                cache->core->size, MIMIR_params->cache->core->size,
                (double)hit_count/(hit_count+miss_count),
                ((struct MIMIR_params*)(cache->cache_params))->num_of_check,
@@ -323,9 +323,11 @@ static void profiler_thread(gpointer data, gpointer user_data){
 //               (double) counter / g_hash_table_size(MIMIR_params->prefetch_hashtable));
         
         if (MIMIR_params->sequential_type == 1){
-            prefetch = ((struct MIMIR_params*)(cache->cache_params))->num_of_prefetch_sequential;
-            hit = ((struct MIMIR_params*)(cache->cache_params))->hit_on_prefetch_sequential;
-            printf("sequential prefetching, prefetch %lu, hit %lu, accuracy %lf\n", prefetch, hit, (double)hit/prefetch);
+            gint64 prefetch2 = ((struct MIMIR_params*)(cache->cache_params))->num_of_prefetch_sequential;
+            gint64 hit2 = ((struct MIMIR_params*)(cache->cache_params))->hit_on_prefetch_sequential;
+            printf("sequential prefetching, prefetch %lu, hit %lu, accuracy %lf\n", prefetch2, hit2, (double)hit2/prefetch2);
+            printf("overall size %ld, hit rate %lf, efficiency %lf\n", MIMIR_params->cache->core->size,
+                   (double)hit_count/(hit_count+miss_count), (double)(hit+hit2)/(prefetch+prefetch2));
         }
         
         if (MIMIR_params->cache->core->type == e_AMP){
