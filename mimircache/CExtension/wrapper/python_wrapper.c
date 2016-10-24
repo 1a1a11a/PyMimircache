@@ -85,13 +85,16 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
         
     }
     else if (strcmp(algorithm, "AMP") == 0){
-        gint read_size = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "read_size"));
-        gint APT = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "APT"));
-        printf("AMP read size %d, APT %d\n", read_size, APT); 
+        gint threshold = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "pthreshold"));
+        gint K = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "K"));
+#ifdef DEBUG
+        printf("AMP K %d, threshold %d\n", K, threshold);
+#endif 
         struct AMP_init_params *init_params = g_new(struct AMP_init_params, 1);
-        init_params->APT = APT;
-        init_params->read_size = read_size;
-        init_params->p_threshold = 256;
+        init_params->APT            = 4;
+        init_params->read_size      = 1;
+        init_params->p_threshold    = threshold;
+        init_params->K              = K;
         cache = AMP_init(cache_size, data_type, (void*)init_params);
     }
     else if (strcmp(algorithm, "YJC") == 0){
@@ -112,19 +115,17 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
         gint min_support = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "min_support"));
         gint confidence = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "confidence"));
         gint item_set_size = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "item_set_size"));
-//        gdouble mining_period = (gdouble) PyFloat_AsDouble(PyDict_GetItemString(cache_params, "mining_period"));
         gint prefetch_list_size = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "prefetch_list_size"));
-//        gint64 prefetch_table_size = PyLong_AsLong(PyDict_GetItemString(cache_params, "prefetch_table_size"));
         gint sequential_type = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "sequential_type"));
         gdouble max_metadata_size = (gdouble) PyFloat_AsDouble(PyDict_GetItemString(cache_params, "max_metadata_size"));
         gint block_size = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "block_size"));
         gint cycle_time = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "cycle_time"));
-
+        gint AMP_pthreshold = -1;
+        
         gint sequential_K = -1;
-        if (sequential_type == 1) 
+        if (sequential_type != 0)
             sequential_K = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "sequential_K"));
         gchar* cache_type = "unknown";
-        gchar* mining_period_type = "unknown";
         
         PyObject * temp_bytes = PyUnicode_AsEncodedString(PyDict_GetItemString(cache_params, "cache_type"), "utf-8", "strict"); // Owned reference
         if (temp_bytes != NULL) {
@@ -135,16 +136,19 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
             printf("please provide cache_type\n");
             exit(1);
         }
+        if (strcmp(cache_type, "AMP") == 0)
+            AMP_pthreshold = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "AMP_pthreshold"));
         
-        temp_bytes = PyUnicode_AsEncodedString(PyDict_GetItemString(cache_params, "mining_period_type"), "utf-8", "strict"); // Owned reference
-        if (temp_bytes != NULL) {
-            mining_period_type = PyBytes_AS_STRING(temp_bytes); // Borrowed pointer
-            Py_DECREF(temp_bytes);
-        }
-        if (strcmp(mining_period_type, "unknown") == 0){
-            printf("please provide mining_period_type\n");
-            exit(1);
-        }
+        
+//        temp_bytes = PyUnicode_AsEncodedString(PyDict_GetItemString(cache_params, "mining_period_type"), "utf-8", "strict"); // Owned reference
+//        if (temp_bytes != NULL) {
+//            mining_period_type = PyBytes_AS_STRING(temp_bytes); // Borrowed pointer
+//            Py_DECREF(temp_bytes);
+//        }
+//        if (strcmp(mining_period_type, "unknown") == 0){
+//            printf("please provide mining_period_type\n");
+//            exit(1);
+//        }
         
         
 #ifdef DEBUG
@@ -153,19 +157,20 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
 #endif
         
         struct MIMIR_init_params *init_params = g_new(struct MIMIR_init_params, 1);
-        init_params->max_support = max_support;
-        init_params->min_support = min_support;
-        init_params->cache_type = cache_type;
-        init_params->confidence = confidence;
-        init_params->item_set_size = item_set_size;
-        init_params->training_period = 0;
-        init_params->prefetch_list_size = prefetch_list_size;
-        init_params->block_size = block_size;
-        init_params->max_metadata_size = max_metadata_size;
-        init_params->training_period_type = mining_period_type[0];
-        init_params->sequential_type = sequential_type; 
-        init_params->sequential_K = sequential_K;
-        init_params->cycle_time = cycle_time; 
+        init_params->max_support            = max_support;
+        init_params->min_support            = min_support;
+        init_params->cache_type             = cache_type;
+        init_params->confidence             = confidence;
+        init_params->item_set_size          = item_set_size;
+        init_params->training_period        = 0;
+        init_params->prefetch_list_size     = prefetch_list_size;
+        init_params->block_size             = block_size;
+        init_params->max_metadata_size      = max_metadata_size;
+        init_params->training_period_type   = 'v';
+        init_params->sequential_type        = sequential_type;
+        init_params->sequential_K           = sequential_K;
+        init_params->AMP_pthreshold         = AMP_pthreshold;
+        init_params->cycle_time             = cycle_time;
         
         cache = MIMIR_init(cache_size, data_type, (void*)init_params);
     }

@@ -59,7 +59,7 @@ void createPages_no_eviction(struct_cache* AMP, gint64 block_begin, gint length)
     /* this function currently is used for prefetching */
     struct AMP_params* AMP_params = (struct AMP_params*)(AMP->cache_params);
     if (length <= 0)
-        fprintf(stderr, "prefetch length %d\n", length);
+        fprintf(stderr, "error AMP prefetch length %d\n", length);
 //    printf("prefetch %ld, length %d\n", block_begin, length);
     gint64 i;
     gint64 lastblock = block_begin + length -1;
@@ -327,8 +327,14 @@ gboolean AMP_add_element_no_eviction(struct_cache* AMP, cache_line* cp){
         if (page_prev && page_prev->p)
             length = page_prev->p;
         // miss -> prefetch
-        if (page_prev)
-            createPages_no_eviction(AMP, block+1, length);
+        if (page_prev){
+            gboolean check = TRUE;
+            int m;
+            for (m=2; m<=AMP_params->K; m++)
+                check = check && AMP_lookup(AMP, block-m);
+            if (check)
+                createPages_no_eviction(AMP, block+1, length);
+        }
         
         return FALSE;
     }
@@ -376,24 +382,24 @@ struct_cache* AMP_init(guint64 size, char data_type, void* params){
     struct AMP_params* AMP_params = (struct AMP_params*)(cache->cache_params);
     struct AMP_init_params* init_params = (struct AMP_init_params*) params;
     
-    cache->core->type = e_AMP;
-    cache->core->cache_init = AMP_init;
-    cache->core->destroy = AMP_destroy;
-    cache->core->destroy_unique = AMP_destroy_unique;
-    cache->core->add_element = AMP_add_element;
-    cache->core->check_element = AMP_check_element;
-    cache->core->__insert_element = __AMP_insert_element;
-    cache->core->__update_element = __AMP_update_element;
-    cache->core->__evict_element = __AMP_evict_element;
-    cache->core->__evict_element_with_return = __AMP_evict_element_with_return;
+    cache->core->type                           =       e_AMP;
+    cache->core->cache_init                     =       AMP_init;
+    cache->core->destroy                        =       AMP_destroy;
+    cache->core->destroy_unique                 =       AMP_destroy_unique;
+    cache->core->add_element                    =       AMP_add_element;
+    cache->core->check_element                  =       AMP_check_element;
+    cache->core->__insert_element               =       __AMP_insert_element;
+    cache->core->__update_element               =       __AMP_update_element;
+    cache->core->__evict_element                =       __AMP_evict_element;
+    cache->core->__evict_element_with_return    =       __AMP_evict_element_with_return;
 
-    cache->core->get_size = AMP_get_size;
-    cache->core->cache_init_params = params;
+    cache->core->get_size                       =       AMP_get_size;
+    cache->core->cache_init_params              =       params;
     
-    AMP_params->APT = init_params->APT;
-    AMP_params->read_size = init_params->read_size;
-    AMP_params->p_threshold = init_params->p_threshold;
-    AMP_params->temp = 0;
+    AMP_params->K           =   init_params->K;
+    AMP_params->APT         =   init_params->APT;
+    AMP_params->read_size   =   init_params->read_size;
+    AMP_params->p_threshold =   init_params->p_threshold;
     
 
     AMP_params->hashtable = g_hash_table_new_full(

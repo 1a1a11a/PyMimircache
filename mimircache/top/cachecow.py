@@ -11,17 +11,17 @@ class cachecow:
         self.reader = None
         self.cacheclass_mapping = {}
 
-    def open(self, file_path):
+    def open(self, file_path, data_type='c'):
         # assert os.path.exists(file_path), "data file does not exist"
-        self.reader = plainReader(file_path)
+        self.reader = plainReader(file_path, data_type=data_type)
         return self.reader
 
-    def csv(self, file_path, init_params):
-        self.reader = csvReader(file_path, init_params=init_params)
+    def csv(self, file_path, init_params, data_type='c'):
+        self.reader = csvReader(file_path, data_type=data_type, init_params=init_params)
         return self.reader
 
-    def vscsi(self, file_path):
-        self.reader = vscsiReader(file_path)
+    def vscsi(self, file_path, data_type='v'):
+        self.reader = vscsiReader(file_path, data_type=data_type)
         return self.reader
 
     def set_size(self, size):
@@ -263,10 +263,15 @@ class cachecow:
         if 'num_of_threads' in kwargs:
             num_of_threads=kwargs['num_of_threads']
 
+        label = algorithm_list
+        if 'label' in kwargs:
+            label = kwargs['label']
+
+
         if auto_size:
             cache_size = LRUProfiler(self.reader).plotHRC(auto_resize=True, threshhold=0.98, no_save=True)
         if bin_size == -1:
-            bin_size = cache_size // DEFAULT_BIN_NUM_PROFILER
+            bin_size = cache_size // DEFAULT_BIN_NUM_PROFILER +1
         for i in range(len(algorithm_list)):
             alg = algorithm_list[i]
             if cache_params and i < len(cache_params):
@@ -276,11 +281,12 @@ class cachecow:
             profiler = self.profiler(alg, cache_param, cache_size,
                                      bin_size=bin_size, num_of_threads=num_of_threads)
             hr = profiler.get_hit_rate()
+            self.reader.reset()
             # plt.xlim(0, cache_size)
             if alg!="LRU":
-                plt.plot([i*bin_size for i in range(len(hr))], hr, label=alg)
+                plt.plot([i*bin_size for i in range(len(hr))], hr, label=label[i])
             else:
-                plt.plot(hr[:-2], label=alg)
+                plt.plot(hr[:-2], label=label[i])
 
         plt.legend(loc="lower right")
         plt.xlabel(plot_dict['xlabel'])
@@ -296,7 +302,55 @@ class cachecow:
         plt.clf()
 
 
+    def plotMRCs(self, algorithm_list, cache_params=None, cache_size=-1, bin_size=-1, auto_size=True, **kwargs):
+        plot_dict = prepPlotParams("Miss Rate Curve", "Cache Size/blocks.", "Miss Rate", "MRC.png", **kwargs)
+        num_of_threads = 4
+        if 'num_of_threads' in kwargs:
+            num_of_threads = kwargs['num_of_threads']
+        if 'label' not in kwargs:
+            label = algorithm_list
+        else:
+            label = kwargs['label']
+        ymin = 1
 
+        if auto_size:
+            cache_size = LRUProfiler(self.reader).plotMRC(auto_resize=True, threshhold=0.98, no_save=True)
+        if bin_size == -1:
+            bin_size = cache_size // DEFAULT_BIN_NUM_PROFILER +1
+        for i in range(len(algorithm_list)):
+            alg = algorithm_list[i]
+            if cache_params and i < len(cache_params):
+                cache_param = cache_params[i]
+            else:
+                cache_param = None
+            profiler = self.profiler(alg, cache_param, cache_size,
+                                     bin_size=bin_size, num_of_threads=num_of_threads)
+            mr = profiler.get_miss_rate()
+            ymin = min(ymin, max(min(mr)-0.02, 0))
+            self.reader.reset()
+            # plt.xlim(0, cache_size)
+            if alg != "LRU":
+                plt.plot([i * bin_size for i in range(len(mr))], mr, label=label[i])
+            else:
+                plt.plot(mr[:-2], label=label[i])
+
+        if "ymin" in kwargs:
+            ymin = kwargs['ymin']
+
+        plt.ylim(ymin=ymin)
+        plt.semilogy()
+        plt.legend(loc="upper right")
+        plt.xlabel(plot_dict['xlabel'])
+        plt.ylabel(plot_dict['ylabel'])
+        plt.title(plot_dict['title'], fontsize=18, color='black')
+        if not 'no_save' in kwargs or not kwargs['no_save']:
+            plt.savefig(plot_dict['figname'], dpi=600)
+        colorfulPrint("red", "plot is saved at the same directory")
+        try:
+            plt.show()
+        except:
+            pass
+        plt.clf()
 
 
 if __name__ == "__main__":

@@ -43,10 +43,6 @@ typedef gint64 TS_REPRESENTATION;
 /************ macros for getting and setting time stamp in 64-bit int   ************/
 #define NUM_OF_TS(param)        ((gint)((param)>>60))
 
-//#define GET_FIRST_TS(param)     (((param)>>45)&((1UL<<15)-1))
-//#define GET_SECOND_TS(param)    (((param)>>30)&((1UL<<15)-1))
-//#define GET_THIRD_TS(param)     (((param)>>15)&((1UL<<15)-1))
-//#define GET_FOURTH_TS(param)    ( (param)    &((1UL<<15)-1))
 #define _GET_NTH_TS(param, n)    (((param)>>(15*(4-(n)))) & ((1UL<<15)-1) )
 #define GET_NTH_TS(row, n)       ( (gint)_GET_NTH_TS( (*( (gint64*)(row) + 1 + (gint)(floor((n)/4)) )), ((n)%4) )  )
 
@@ -107,7 +103,8 @@ struct MIMIR_init_params{
                                          *  1: simple sequential_prefetching,
                                          *  2: AMP
                                          **/
-    gint sequential_K; 
+    gint sequential_K;
+    gint AMP_pthreshold;
     gint output_statistics;
 };
 

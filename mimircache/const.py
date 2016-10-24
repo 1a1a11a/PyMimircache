@@ -85,6 +85,12 @@ def _init_cache_alg_mapping():
     cache_alg_mapping['yjc'] = "YJC"
     cache_alg_mapping['mimir'] = 'mimir'
 
+    cache_alg_mapping['test1'] = "test1"
+    cache_alg_mapping['amp'] = "AMP"
+
+    cache_alg_mapping['ms1'] = "MS1"
+    cache_alg_mapping['ms2'] = "MS2"
+
 
 def cache_name_to_class(name):
     cache_class = None
