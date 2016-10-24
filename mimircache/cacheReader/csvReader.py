@@ -4,8 +4,8 @@ from mimircache.cacheReader.abstractReader import cacheReaderAbstract
 
 
 class csvReader(cacheReaderAbstract):
-    def __init__(self, file_loc, init_params=None, open_c_reader=True):
-        super(csvReader, self).__init__(file_loc)
+    def __init__(self, file_loc, data_type='c', init_params=None, open_c_reader=True):
+        super(csvReader, self).__init__(file_loc, data_type)
         self.trace_file = open(file_loc, 'r', encoding='utf-8', errors='ignore')
 
         self.init_params = init_params
@@ -24,7 +24,7 @@ class csvReader(cacheReaderAbstract):
             # self.read_one_element()
 
         if open_c_reader:
-            self.cReader = c_cacheReader.setup_reader(file_loc, 'c', init_params=init_params)
+            self.cReader = c_cacheReader.setup_reader(file_loc, 'c', data_type=data_type, init_params=init_params)
         print("initialized")
 
     def read_one_element(self):

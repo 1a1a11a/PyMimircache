@@ -9,7 +9,7 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractclassmethod
-    def __init__(self, file_loc):
+    def __init__(self, file_loc, data_type='c'):
         self.file_loc = file_loc
         assert (os.path.exists(file_loc)), "data file does not exist"
         # self.trace_file = open(file_loc, 'r')
@@ -39,7 +39,7 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
             while self.read_one_element():
                 # use the one above, not output progress
                 self.num_of_line += 1
-            self.reset()
+        self.reset()
 
         return self.num_of_line
 
@@ -80,7 +80,7 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
             self.trace_file.close()
             if self.cReader:
                 # pass
-                print("close cReader")
+                # print("close cReader")
                 c_cacheReader.close_reader(self.cReader)
         except:
             pass

@@ -7,10 +7,10 @@ import mimircache.c_cacheReader as c_cacheReader
 
 
 class vscsiReader(cacheReaderAbstract):
-    def __init__(self, file_loc, open_c_reader=True):
-        super().__init__(file_loc)
+    def __init__(self, file_loc, data_type='l', open_c_reader=True):
+        super().__init__(file_loc, data_type='l')
         if open_c_reader:
-            self.cReader = c_cacheReader.setup_reader(file_loc, 'v')
+            self.cReader = c_cacheReader.setup_reader(file_loc, 'v', data_type=data_type)
 
 
         self.get_num_of_total_requests()
@@ -30,21 +30,35 @@ class vscsiReader(cacheReaderAbstract):
         return c_cacheReader.read_one_element(self.cReader)
 
 
-    # def __next__(self):  # Python 3
-    #     super().__next__()
-    #     if self.buffer_pointer < self.c_read_size.value:
-    #         self.buffer_pointer += 1
-    #         return self.c_long_lbn[self.buffer_pointer - 1]
-    #
-    #     elif self.read_in_num < self.c_num_of_rec.value:
-    #         self._read()
-    #         self.buffer_pointer = 1
-    #         return self.c_long_lbn[self.buffer_pointer - 1]
-    #     else:
-    #         raise StopIteration
-
     def read_time_request(self):
+        """
+        return real_time information for the request in the form of (time, request)
+        :return:
+        """
         return c_cacheReader.read_time_request(self.cReader)
+
+    def read_one_request_full_info(self):
+        """
+        obtain more info for the request in the form of (time, request, size)
+        :return:
+        """
+        return c_cacheReader.read_one_request_full_info(self.cReader)
+
+    def get_average_size(self):
+        """
+        sum sizes for all the requests, then divided by number of requests
+        :return:
+        """
+        sizes = 0
+        counter = 0
+
+        t = self.read_one_request_full_info()
+        while t:
+            sizes += t[2]
+            counter += 1
+            t = self.read_one_request_full_info()
+        self.reset()
+        return sizes/counter
 
 
 
@@ -63,38 +77,4 @@ class vscsiReader(cacheReaderAbstract):
 
 if __name__ == "__main__":
     reader = vscsiReader('../data/trace.vscsi')
-
-    # # usage one: for reading all elements
-    num = 0
-    ofile = open('testoutput', 'w')
-    t = reader.read_time_request()
-    while t != None:
-        # print(t)
-        ofile.write('{}\n'.format(t))
-        t= reader.read_time_request()
-
-        num += 1
-
-
-        # print("{}: {}".format(num, i))
-        # print(num)
-        # print(reader)
-        # print(reader.get_first_line())
-        # print(reader.get_last_line())
-
-    #
-    # # usage two: best for reading one element each time
-    # s = reader.read_one_element()
-    # # s2 = next(reader)
-    # while (s):
-    #     print(s)
-    #     s = reader.read_one_element()
-    #     # s2 = next(reader)
-
-    # test3: read first 10 elements twice
-    # for i in range(10):
-    #     print(reader.read_one_element())
-    # print("after reset")
-    # reader.reset()
-    # for i in range(10):
-    #     print(reader.read_one_element())
+    print(reader.get_average_size())

@@ -8,6 +8,9 @@ class LRU(cache):
         self.cacheLinkedList = LinkedList()
         self.cacheDict = dict()  # key -> linked list node (in reality, it should also contains value)
 
+    def __len__(self):
+        return len(self.cacheDict)
+
     def checkElement(self, element):
         """
         :param element:
@@ -27,14 +30,14 @@ class LRU(cache):
         node = self.cacheDict[element]
         self.cacheLinkedList.moveNodeToTail(node)
 
-    def _insertElement(self, element):
+    def _insertElement(self, element, evict=True):
         """
         the given element is not in the cache, now insert it into cache
         :param element:
         :return: evicted element or None
         """
         return_content = None
-        if self.cacheLinkedList.size >= self.cache_size:
+        if evict and self.cacheLinkedList.size >= self.cache_size:
             return_content = self._evictOneElement()
 
         node = self.cacheLinkedList.insertAtTail(element)

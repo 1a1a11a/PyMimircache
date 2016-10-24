@@ -3,11 +3,11 @@ import mimircache.c_cacheReader as c_cacheReader
 
 
 class plainReader(cacheReaderAbstract):
-    def __init__(self, file_loc, open_c_reader=True):
-        super(plainReader, self).__init__(file_loc)
+    def __init__(self, file_loc, data_type='c', open_c_reader=True):
+        super(plainReader, self).__init__(file_loc, data_type)
         self.trace_file = open(file_loc, 'r')
         if open_c_reader:
-            self.cReader = c_cacheReader.setup_reader(file_loc, 'p')
+            self.cReader = c_cacheReader.setup_reader(file_loc, 'p', data_type=data_type)
 
     def read_one_element(self):
         super().read_one_element()
