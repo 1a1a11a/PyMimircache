@@ -430,13 +430,26 @@ static PyObject* heatmap_rd_distribution_py(PyObject* self, PyObject* args, PyOb
 
     
     if (!CDF){
-        ret_array = PyArray_EMPTY(2, dims, NPY_LONGLONG, 0);
+//        ret_array = PyArray_EMPTY(2, dims, NPY_LONGLONG, 0);
+        ret_array = PyArray_EMPTY(2, dims, NPY_DOUBLE, 0);
     
-        long long *array;
+        double *array;
+        gint64 *sum_array = g_new0(gint64, dd->xlength);
+        for (i=0; i<dd->xlength; i++)
+            for (j=0; j<dd->ylength; j++)
+                sum_array[i] += (long long)matrix[i][j];
         for (i=0; i<dd->ylength; i++){
-            array = (long long*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
+            array = (double*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
             for (j=0; j<dd->xlength; j++)
-                array[j] = (long long)matrix[j][i];
+                array[j] = (double)matrix[j][i] / sum_array[j];
+
+        
+        
+//        long long *array;
+//        for (i=0; i<dd->ylength; i++){
+//            array = (long long*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
+//            for (j=0; j<dd->xlength; j++)
+//                array[j] = (long long)matrix[j][i];
         }
     }
     else{
@@ -488,12 +501,27 @@ static PyObject* heatmap_future_rd_distribution_py(PyObject* self, PyObject* arg
     
     guint64 i, j;
     double **matrix = dd->matrix;
-    long long *array;
+//    long long *array;
+//    for (i=0; i<dd->ylength; i++){
+//        array = (long long*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
+//        for (j=0; j<dd->xlength; j++)
+//            array[j] = (long long)matrix[j][i];
+//    }
+    
+    
+    ret_array = PyArray_EMPTY(2, dims, NPY_DOUBLE, 0);
+    
+    double *array;
+    gint64 *sum_array = g_new0(gint64, dd->xlength);
+    for (i=0; i<dd->xlength; i++)
+        for (j=0; j<dd->ylength; j++)
+            sum_array[i] += (long long)matrix[i][j];
     for (i=0; i<dd->ylength; i++){
-        array = (long long*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
+        array = (double*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
         for (j=0; j<dd->xlength; j++)
-            array[j] = (long long)matrix[j][i];
+            array[j] = (double)matrix[j][i] / sum_array[j];
     }
+    
     
     // clean up
     free_draw_dict(dd);

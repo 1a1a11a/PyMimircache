@@ -65,14 +65,14 @@ class cHeatmap:
         else:
             print("unsupported axis: " + str(axis))
 
-        if axis_type == 'virtual_time':
+        if axis_type == 'virtual time':
             if 'label' in kwargs:
                 label = kwargs['label']
             else:
                 label = 'virtual time'
             # tick = ticker.FuncFormatter(lambda x, pos: '{:2.0f}'.format(bin_size * x))
             tick = ticker.FuncFormatter(lambda x, pos: '{:2.0f}%'.format(x * 100 / (len(array) - 1)))
-        elif axis_type == 'real_time':
+        elif axis_type == 'real time':
             if 'label' in kwargs:
                 label = kwargs['label']
             else:
@@ -88,7 +88,7 @@ class cHeatmap:
         elif axis_type == 'reuse_dist':
             assert log_base != 1, "please provide log_base"
             label = 'reuse distance'
-            tick = ticker.FuncFormatter(lambda x, pos: '{:2.0f}'.format(log_base ** x))
+            tick = ticker.FuncFormatter(lambda x, pos: '{:2.0f}'.format(log_base ** x-1))
 
         if axis == 'x':
             plt.xlabel(label)
@@ -134,6 +134,11 @@ class cHeatmap:
             figname = kwargs['figname']
 
         if mode == 'r' or mode == 'v':
+            if mode == 'r':
+                mode_string = "real time"
+            else:
+                mode_string = "virtual time"
+
             if plot_type == "hit_rate_start_time_end_time":
                 # assert algorithm!=None, "please specify your cache replacement algorithm in heatmap plotting"
                 assert cache_size != -1, "please provide cache_size parameter for plotting hit_rate_start_time_end_time"
@@ -199,9 +204,10 @@ class cHeatmap:
                 xydict, log_base = c_heatmap.heatmap_rd_distribution(reader.cReader, mode, time_interval,
                                                                      num_of_threads=num_of_threads)
 
-                self.set_plot_params('x', 'real_time', xydict=xydict)
+
+                self.set_plot_params('x', mode_string, xydict=xydict)
                 self.set_plot_params('y', 'reuse_dist', xydict=xydict, log_base=log_base)
-                self.set_plot_params('cb', 'count')
+                self.set_plot_params('cb', 'count', fixed_range=(0.01, 1))
                 self.draw_heatmap(xydict, figname=figname, not_mask=True)
 
             elif plot_type == "rd_distribution_CDF":
@@ -210,7 +216,7 @@ class cHeatmap:
 
                 xydict, log_base = c_heatmap.heatmap_rd_distribution(reader.cReader, mode, time_interval,
                                                                      num_of_threads=num_of_threads, CDF=1)
-                self.set_plot_params('x', 'real_time', xydict=xydict)
+                self.set_plot_params('x', mode_string, xydict=xydict)
                 self.set_plot_params('y', 'reuse_dist', xydict=xydict, log_base=log_base)
                 # self.set_plot_params('cb', 'count')
                 self.draw_heatmap(xydict, figname=figname, not_mask=True)
@@ -222,9 +228,9 @@ class cHeatmap:
 
                 xydict, log_base = c_heatmap.heatmap_future_rd_distribution(reader.cReader, mode, time_interval,
                                                                             num_of_threads=num_of_threads)
-                self.set_plot_params('x', 'real_time', xydict=xydict)
+                self.set_plot_params('x', mode_string, xydict=xydict)
                 self.set_plot_params('y', 'reuse_dist', xydict=xydict, log_base=log_base)
-                self.set_plot_params('cb', 'count')
+                self.set_plot_params('cb', 'count', fixed_range=(0.01, 1))
                 self.draw_heatmap(xydict, figname=figname, not_mask=True)
 
 
@@ -343,6 +349,7 @@ class cHeatmap:
             plot_array = np.ma.array(xydict, mask=np.tri(len(xydict), dtype=int).T)
 
         cmap = plt.cm.jet
+        # cmap = plt.get_cmap("Oranges")
         cmap.set_bad('w', 1.)
 
         # plt.yscale('log')
@@ -350,16 +357,14 @@ class cHeatmap:
         plt.title("Heatmap")
 
         try:
-            # ax.pcolor(masked_array.T, cmap=cmap)
-            # print(str(**self.other_plot_kwargs))
             if 'fixed_range' in self.other_plot_kwargs and self.other_plot_kwargs['fixed_range']:
                 vmin, vmax = self.other_plot_kwargs['fixed_range']
                 del self.other_plot_kwargs['fixed_range']
                 img = plt.imshow(plot_array, vmin=vmin, vmax=vmax, interpolation='nearest', origin='lower',
-                                 aspect='auto', **self.other_plot_kwargs)
+                                 cmap=cmap, aspect='auto', **self.other_plot_kwargs)
             else:
                 img = plt.imshow(plot_array, interpolation='nearest', origin='lower', aspect='auto',
-                                 **self.other_plot_kwargs)
+                                 cmap=cmap, **self.other_plot_kwargs)
 
             # , vmin=0, vmax=1
 

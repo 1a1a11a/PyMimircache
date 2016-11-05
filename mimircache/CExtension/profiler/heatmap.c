@@ -26,7 +26,7 @@ draw_dict* heatmap(READER* reader, struct_cache* cache, char mode, guint64 time_
     printf("after break points\n");
 #endif 
     // check cache is LRU or not
-    if (cache && cache->core->type == e_LRU){
+    if (cache==NULL || cache->core->type == e_LRU){
         return heatmap_LRU(reader, cache, mode, time_interval, plot_type, num_of_threads);
     }
     else{
@@ -80,7 +80,9 @@ draw_dict* heatmap_LRU(READER* reader, struct_cache* cache, char mode, long time
         return heatmap_rd_distribution(reader, mode, time_interval, num_of_threads, 1);
     }
     else if (plot_type == future_rd_distribution){
-        get_future_reuse_dist(reader, 0, -1);
+        g_free(reader->reuse_dist);
+        reader->reuse_dist = get_future_reuse_dist(reader, 0, -1);
+        
         draw_dict* dd = heatmap_rd_distribution(reader, mode, time_interval, num_of_threads, 0);
         
         reader->max_reuse_dist = 0;
@@ -124,24 +126,24 @@ draw_dict* heatmap_nonLRU(READER* reader, struct_cache* cache, char mode, long t
         
         
     }
-    else if (plot_type == rd_distribution){
-        get_reuse_dist_seq(reader, 0, -1);
-        return heatmap_rd_distribution(reader, mode, time_interval, num_of_threads, 0);
-    }
-    else if (plot_type == rd_distribution_CDF){
-        get_reuse_dist_seq(reader, 0, -1);
-        return heatmap_rd_distribution(reader, mode, time_interval, num_of_threads, 1);
-    }
-    else if (plot_type == future_rd_distribution){
-        get_future_reuse_dist(reader, 0, -1);
-        draw_dict* dd = heatmap_rd_distribution(reader, mode, time_interval, num_of_threads, 0);
-        
-        reader->max_reuse_dist = 0;
-        g_free(reader->reuse_dist);
-        reader->reuse_dist = NULL;
-        
-        return dd;
-    }
+//    else if (plot_type == rd_distribution){
+//        get_reuse_dist_seq(reader, 0, -1);
+//        return heatmap_rd_distribution(reader, mode, time_interval, num_of_threads, 0);
+//    }
+//    else if (plot_type == rd_distribution_CDF){
+//        get_reuse_dist_seq(reader, 0, -1);
+//        return heatmap_rd_distribution(reader, mode, time_interval, num_of_threads, 1);
+//    }
+//    else if (plot_type == future_rd_distribution){
+//        get_future_reuse_dist(reader, 0, -1);
+//        draw_dict* dd = heatmap_rd_distribution(reader, mode, time_interval, num_of_threads, 0);
+//        
+//        reader->max_reuse_dist = 0;
+//        g_free(reader->reuse_dist);
+//        reader->reuse_dist = NULL;
+//        
+//        return dd;
+//    }
 
     else if (plot_type == hit_rate_start_time_cache_size){
         
