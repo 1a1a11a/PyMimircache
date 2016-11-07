@@ -18,10 +18,6 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
         printf("we suggest using LRUProfiler for profiling, it's faster\n");
         cache = LRU_init(cache_size, data_type, NULL);
     }
-    else if (strcmp(algorithm, "test1") == 0){
-        printf("we suggest using testProfiler for profiling, it's faster\n");
-        cache = test1_init(cache_size, data_type, NULL);
-    }
     else if (strcmp(algorithm, "LFU") == 0){
         cache = LFU_init(cache_size, data_type, NULL);
     }

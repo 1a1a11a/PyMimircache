@@ -14,6 +14,6 @@ mimircache only support Python3 and 64bit platform
 $ pip3 install mimircache 
 
 ### mimircache Tutorial 
-[Check here for tutorial](http://docs.mimircache.info) 
+[Check here for tutorial](http://mimircacheemory.readthedocs.io/en/latest/) 
 
 

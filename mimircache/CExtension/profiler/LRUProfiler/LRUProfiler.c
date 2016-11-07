@@ -322,7 +322,7 @@ gint64* get_future_reuse_dist(READER* reader, gint64 begin, gint64 end){
     
     if (reader->total_num == -1)
         get_num_of_cache_lines(reader);
-    
+
     if (begin < 0)
         begin = 0;
     if (end < 0)
