@@ -30,33 +30,20 @@ struct PG_params{
     struct_cache *cache;
     
     GHashTable *graph;
+    gdouble prefetch_threshold;
     
     gint64 num_of_prefetch;
     gint64 num_of_hit;
     GHashTable *prefetched; 
 };
 
-struct PG_page{
-    gint64 block_number;
-    gint64 last_block_number;
-    gboolean accessed;
-    gboolean tag;
-    gboolean old;
-    gint16 p;                   // prefetch degree
-    gint16 g;                   // trigger distance 
-
-    gint size;
-};
 
 struct PG_init_params{
-    int APT;
-    int read_size;
-    int p_threshold; 
+    gdouble prefetch_threshold;
 };
 
 
 
-extern struct PG_page* __PG_insert_element_int(struct_cache* PG, gint64 block);
 extern void __PG_insert_element(struct_cache* PG, cache_line* cp);
 
 extern  gboolean PG_check_element_int(struct_cache* cache, gint64 block);
