@@ -112,6 +112,10 @@ class LRUProfiler:
         rd = c_LRUProfiler.get_reuse_dist_seq(self.reader.cReader, **kargs)
         return rd
 
+    def get_future_reuse_distance(self, **kargs):
+        frd = c_LRUProfiler.get_future_reuse_dist(self.reader.cReader, **kargs)
+        return frd
+
     def plotMRC(self, figname="MRC.png", auto_resize=False, threshhold=0.98, **kwargs):
         EXTENTION_LENGTH = 1024
         MRC = self.get_miss_rate(**kwargs)
