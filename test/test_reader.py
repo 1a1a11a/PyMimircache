@@ -21,12 +21,13 @@ class cReaderTest(unittest.TestCase):
         reader = c_cacheReader.setup_reader("{}/trace.vscsi".format(DAT_FOLDER), 'v')
         lines = c_cacheReader.get_num_of_lines(reader)
         self.assertEqual(lines, 113872)
+
         first_request = c_cacheReader.read_one_element(reader)
-        self.assertEqual(int(first_request), 42932745)
-        first_request = None
+        self.assertEqual(int(first_request), 42932745 + 1)              # +1 is to avoid block 0
+
         c_cacheReader.reset_reader(reader)
         first_request = c_cacheReader.read_one_element(reader)
-        self.assertEqual(int(first_request), 42932745)
+        self.assertEqual(int(first_request), 42932745 + 1)
         c_cacheReader.close_reader(reader)
 
 
@@ -44,8 +45,8 @@ class cReaderTest(unittest.TestCase):
 
 
     def test_reader_c(self):
-        reader = c_cacheReader.setup_reader("{}/trace.csv".format(DAT_FOLDER), 'c',
-                                            {"header":True, "delimiter":",", "label_column":4, "size_column":3})
+        reader = c_cacheReader.setup_reader("{}/trace.csv".format(DAT_FOLDER), 'c', data_type='c',
+                                            init_params={"header":True, "delimiter":",", "label_column":4, "size_column":3})
         lines = c_cacheReader.get_num_of_lines(reader)
         self.assertEqual(lines, 113872)
         first_request = c_cacheReader.read_one_element(reader)
