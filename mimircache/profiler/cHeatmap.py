@@ -164,13 +164,13 @@ class cHeatmap:
                 x1 = int(x1 / 2.8)
                 y1 /= 8
                 if mode == 'r':
-                    self.set_plot_params('x', 'real_time', xydict=xydict, label='start time (real)',
+                    self.set_plot_params('x', mode_string, xydict=xydict, label='start time (real)',
                                          text=(x1, y1, text))
-                    self.set_plot_params('y', 'real_time', xydict=xydict, label='end time (real)', fixed_range=(0, 1))
+                    self.set_plot_params('y', mode_string, xydict=xydict, label='end time (real)', fixed_range=(0, 1))
                 else:
-                    self.set_plot_params('x', 'virtual_time', xydict=xydict, label='start time (virtual)',
+                    self.set_plot_params('x', mode_string, xydict=xydict, label='start time (virtual)',
                                          text=(x1, y1, text))
-                    self.set_plot_params('y', 'virtual_time', xydict=xydict, label='end time (virtual)',
+                    self.set_plot_params('y', mode_string, xydict=xydict, label='end time (virtual)',
                                          fixed_range=(0, 1))
 
                 if not figname:
@@ -203,6 +203,17 @@ class cHeatmap:
 
                 xydict, log_base = c_heatmap.heatmap_rd_distribution(reader.cReader, mode, time_interval,
                                                                      num_of_threads=num_of_threads)
+                shape = xydict.shape
+                # shape = (shape[0]+1, shape[1]+1)
+
+                # xydict2 = np.zeros(shape)
+                # for i in range(xydict.shape[0]):
+                #     for j in range(xydict.shape[1]):
+                #         if i+ log_base**j//time_interval>=417:
+                #             print(i+ log_base**j//time_interval)
+                #         else:
+                #             xydict2[i+ log_base**j//time_interval][j] += xydict[i][j]
+
 
 
                 self.set_plot_params('x', mode_string, xydict=xydict)
@@ -276,6 +287,11 @@ class cHeatmap:
             figname = kwargs['figname']
 
         if mode == 'r' or mode == 'v':
+            if mode == 'r':
+                mode_string = "real time"
+            else:
+                mode_string = "virtual time"
+
             if plot_type == "hit_rate_start_time_end_time":
                 assert cache_size != -1, "please provide cache_size for plotting hit_rate_start_time_end_time"
                 print("going to plot differential heatmap of hit_rate_start_time_end_time using {} - {} "
@@ -297,13 +313,13 @@ class cHeatmap:
                 x1 = int(x1 / 2.8)
                 y1 /= 8
                 if mode == 'r':
-                    self.set_plot_params('x', 'real_time', xydict=xydict, label='start time (real)',
+                    self.set_plot_params('x', mode_string, xydict=xydict, label='start time (real)',
                                          text=(x1, y1, text))
-                    self.set_plot_params('y', 'real_time', xydict=xydict, label='end time (real)', fixed_range=(-1, 1))
+                    self.set_plot_params('y', mode_string, xydict=xydict, label='end time (real)', fixed_range=(-1, 1))
                 else:
-                    self.set_plot_params('x', 'virtual_time', xydict=xydict, label='start time (virtual)',
+                    self.set_plot_params('x', mode_string, xydict=xydict, label='start time (virtual)',
                                          text=(x1, y1, text))
-                    self.set_plot_params('y', 'virtual_time', xydict=xydict, label='end time (virtual)',
+                    self.set_plot_params('y', mode_string, xydict=xydict, label='end time (virtual)',
                                          fixed_range=(-1, 1))
 
                 self.draw_heatmap(xydict, figname=figname)
