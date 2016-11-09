@@ -167,7 +167,8 @@ int go_back_two_lines(READER* reader){
     switch (reader->type) {
         case 'c':
             if (go_back_one_line(reader)==0){
-                return go_back_one_line(reader);
+                go_back_one_line(reader);
+                return 0;
             }
             else
                 return 1;
