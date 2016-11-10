@@ -55,7 +55,6 @@ GSList* get_last_access_dist_seq(READER* reader, void (*funcPtr)(READER*, cache_
     }
     while (cp->valid){
         dist = process_one_element_last_access(cp, hash_table, ts);
-//        printf("read in %s, dist %d\n", cp->item, dist);
         list = g_slist_prepend(list, GINT_TO_POINTER(dist));
         funcPtr(reader, cp);
         ts++;
@@ -107,7 +106,7 @@ static inline gint process_one_element_last_access(cache_line* cp, GHashTable* h
 }
 
 
-GArray* gen_breakpoints_virtualtime(READER* reader, guint64 time_interval){
+GArray* gen_breakpoints_virtualtime(READER* reader, gint64 time_interval, gint64 num_of_piexls){
     /* 
      return a GArray of break points, including the last break points
      */
@@ -125,8 +124,12 @@ GArray* gen_breakpoints_virtualtime(READER* reader, guint64 time_interval){
     }
     
     guint i;
-    guint array_size = (guint) ceil((reader->total_num/time_interval)+1) ;
-    array_size ++ ;
+    gint array_size = (gint) num_of_piexls;
+    if (array_size==-1)
+        array_size = (gint) ceil( reader->total_num/time_interval + 1); 
+    else
+        time_interval = (gint) ceil( reader->total_num/num_of_piexls + 1);
+//    array_size ++ ;
     
     GArray* break_points = g_array_sized_new(FALSE, FALSE, sizeof(guint64), array_size);
     for (i=0; i<array_size-1; i++){
@@ -137,9 +140,9 @@ GArray* gen_breakpoints_virtualtime(READER* reader, guint64 time_interval){
     
     
     if (break_points->len > 10000)
-        printf("%snumber of pixels in one dimension are more than 10000, exact size: %d, it may take a very long time, if you didn't intend to do it, please try with a larger time stamp\n", KRED, break_points->len);
+        fprintf(stderr, "%snumber of pixels in one dimension is larger than 10000, exact size: %d, it may take a very long time, if you didn't intend to do it, please try with a larger time stamp\n", KRED, break_points->len);
     else if (break_points->len < 20)
-        printf("%snumber of pixels in one dimension are less than 20, exact size: %d, each pixel will be very large, if you didn't intend to do it, please try with a smaller time stamp\n", KRED, break_points->len);
+        fprintf(stderr, "%snumber of pixels in one dimension is smaller than 20, exact size: %d, each pixel will be very large, if you didn't intend to do this, please try with a smaller time stamp\n", KRED, break_points->len);
     
     
     struct break_point* bp = g_new(struct break_point, 1);
@@ -153,7 +156,7 @@ GArray* gen_breakpoints_virtualtime(READER* reader, guint64 time_interval){
 }
 
 
-GArray* gen_breakpoints_realtime(READER* reader, guint64 time_interval){
+GArray* gen_breakpoints_realtime(READER* reader, gint64 time_interval, gint64 num_of_piexls){
     /*
      currently this only works for vscsi reader !!!
      return a GArray of break points, including the last break points
@@ -167,9 +170,14 @@ GArray* gen_breakpoints_realtime(READER* reader, guint64 time_interval){
             printf("gen_breakpoints_realtime needs you to provide real_time_column parameter, program exit\n");
             exit(1);
         }
-            
+
+    
+    if (reader->total_num == -1)
+        get_num_of_cache_lines(reader);
+    
+    
     if (reader->break_points){
-        if (reader->break_points->mode == 'r' && reader->break_points->time_interval == time_interval){
+        if (reader->break_points->mode == 'r' && reader->break_points->time_interval == time_interval ){
             return reader->break_points->array;
         }
         else{
@@ -178,13 +186,10 @@ GArray* gen_breakpoints_realtime(READER* reader, guint64 time_interval){
         }
     }
     
-    if (reader->total_num == -1)
-        get_num_of_cache_lines(reader);
-
     guint64 previous_time = 0;
     GArray* break_points = g_array_new(FALSE, FALSE, sizeof(guint64));
 
-    // create cache lize struct and initialization
+    // create cache line struct and initialization
     cache_line* cp = new_cacheline();
     
     guint64 num = 0;
@@ -193,6 +198,17 @@ GArray* gen_breakpoints_realtime(READER* reader, guint64 time_interval){
     previous_time = cp->real_time;
     g_array_append_val(break_points, num);
 
+    
+    
+    if (num_of_piexls != -1 && time_interval == -1){
+        reader_set_read_pos(reader, 1);
+        read_one_element_above(reader, cp);
+        time_interval = (gint64) ceil( (cp->real_time - previous_time) /num_of_piexls + 1);
+        reader_set_read_pos(reader, 0);
+        read_one_element(reader, cp);
+    }
+    
+        
     while (cp->valid){
         if (cp->real_time - previous_time > (guint64)time_interval){
             g_array_append_val(break_points, num);
@@ -203,11 +219,15 @@ GArray* gen_breakpoints_realtime(READER* reader, guint64 time_interval){
     }
     if ((long long)g_array_index(break_points, guint64, break_points->len-1) != reader->total_num)
         g_array_append_val(break_points, reader->total_num);
-
+    
+    
+    
+    
+    
     if (break_points->len > 10000)
-        printf("%snumber of pixels in one dimension are more than 10000, exact size: %d, it may take a very long time, if you didn't intend to do it, please try with a larger time stamp\n", KRED, break_points->len);
+        fprintf(stderr, "%snumber of pixels in one dimension is larger than 10000, exact size: %d, it may take a very long time, if you didn't intend to do it, please try with a larger time stamp\n", KRED, break_points->len);
     else if (break_points->len < 20)
-        printf("%snumber of pixels in one dimension are less than 20, exact size: %d, each pixel will be very large, if you didn't intend to do it, please try with a smaller time stamp\n", KRED, break_points->len);
+        fprintf(stderr, "%snumber of pixels in one dimension is smaller than 20, exact size: %d, each pixel will be very large, if you didn't intend to do this, please try with a smaller time stamp\n", KRED, break_points->len);
     
     struct break_point* bp = g_new(struct break_point, 1);
     bp->mode = 'r';

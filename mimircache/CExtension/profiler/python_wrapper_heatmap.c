@@ -137,19 +137,22 @@ static PyObject* heatmap_computation(PyObject* self, PyObject* args, PyObject* k
     char* plot_type_s;
     int plot_type;
     char* mode;
-    long time_interval;
+    long time_interval = -1;
+    long num_of_pixels = 200;
     struct_cache* cache;
 
-    static char *kwlist[] = {"reader", "mode", "time_interval", "plot_type", "cache_size", "algorithm", "cache_params", "num_of_threads", NULL};
+    static char *kwlist[] = {"reader", "mode", "plot_type", "cache_size", "algorithm", "time_interval", "num_of_pixels", "cache_params", "num_of_threads", NULL};
     
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Oslsls|$Oi", kwlist, &po, &mode, &time_interval, &plot_type_s, &cache_size, &algorithm, &cache_params, &num_of_threads)) {
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Ossls|$llOi", kwlist, &po, &mode, &plot_type_s, &cache_size, &algorithm, &time_interval, &num_of_pixels, &cache_params, &num_of_threads)) {
         printf("parsing argument failed in heatmap_computation\n");
         return NULL;
     }
+    if (time_interval == -1 && num_of_pixels == -1)
+        num_of_pixels = 200;
 
     
-    printf("plot type: %s, cache size: %ld, mode: %s, time_interval: %ld, num_of_threads: %d\n", plot_type_s, cache_size, mode, time_interval, num_of_threads);
+    printf("plot type: %s, cache size: %ld, mode: %s, time_interval: %ld, num_of_pixels: %ld, num_of_threads: %d\n", plot_type_s, cache_size, mode, time_interval, num_of_pixels, num_of_threads);
     
     if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
@@ -181,7 +184,7 @@ static PyObject* heatmap_computation(PyObject* self, PyObject* args, PyObject* k
         exit(1);
     }
     
-    draw_dict* dd = heatmap(reader, cache, *mode, time_interval, plot_type, num_of_threads);
+    draw_dict* dd = heatmap(reader, cache, *mode, time_interval, num_of_pixels, plot_type, num_of_threads);
     
     // create numpy array
     npy_intp dims[2] = { dd->ylength, dd->xlength };
@@ -223,17 +226,20 @@ static PyObject* differential_heatmap_with_Optimal(PyObject* self, PyObject* arg
     char* plot_type_s;
     int plot_type;
     char* mode;
-    long time_interval;
+    long time_interval = -1;
+    long num_of_pixels = 200;
     struct_cache* cache;
 
     
-    static char *kwlist[] = {"reader", "mode", "time_interval", "plot_type", "cache_size", "algorithm", "cache_params", "num_of_threads", NULL};
+    static char *kwlist[] = {"reader", "mode", "plot_type", "cache_size", "algorithm", "time_interval", "num_of_pixels", "cache_params", "num_of_threads", NULL};
     
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Oslsls|$Oi", kwlist, &po, &mode, &time_interval, &plot_type_s, &cache_size, &algorithm, &cache_params, &num_of_threads)) {
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Ossls|$llOi", kwlist, &po, &mode, &plot_type_s, &cache_size, &algorithm, &time_interval, &num_of_pixels, &cache_params, &num_of_threads)) {
         printf("parsing argument failed in heatmap_computation\n");
         return NULL;
     }
+    if (time_interval == -1 && num_of_pixels == -1)
+        num_of_pixels = 200;
     
     
     printf("plot type: %s, cache size: %ld, mode: %s, time_interval: %ld, num_of_threads: %d\n", plot_type_s, cache_size, mode, time_interval, num_of_threads);
@@ -269,7 +275,7 @@ static PyObject* differential_heatmap_with_Optimal(PyObject* self, PyObject* arg
     
 
     
-    draw_dict* dd = differential_heatmap(reader, cache, optimal, *mode, time_interval, plot_type, num_of_threads);
+    draw_dict* dd = differential_heatmap(reader, cache, optimal, *mode, time_interval, num_of_pixels, plot_type, num_of_threads);
     
     // create numpy array
     npy_intp dims[2] = { dd->ylength, dd->xlength };
@@ -314,17 +320,20 @@ static PyObject* differential_heatmap_py(PyObject* self, PyObject* args, PyObjec
     int plot_type;
     char* mode;
     PyObject* cache_params[2];
-    long time_interval;
+    long time_interval = -1;
+    long num_of_pixels = 200;
     struct_cache* cache[2];
     
-    static char *kwlist[] = {"reader", "mode", "time_interval", "plot_type", "cache_size", "algorithm1", "algorithm2", "cache_params1", "cache_params2", "num_of_threads", NULL};
+    static char *kwlist[] = {"reader", "mode", "plot_type", "cache_size", "algorithm1", "algorithm2", "time_interval", "num_of_pixels", "cache_params1", "cache_params2", "num_of_threads", NULL};
     
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Oslslss|$OOi", kwlist, &po, &mode, &time_interval, &plot_type_s, &cache_size, &algorithm[0], &algorithm[1], &(cache_params[0]), &(cache_params[1]), &num_of_threads)) {
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osslss|$llOOi", kwlist, &po, &mode, &plot_type_s, &cache_size, &algorithm[0], &algorithm[1], &time_interval, &num_of_pixels, &(cache_params[0]), &(cache_params[1]), &num_of_threads)) {
         printf("parsing argument failed in heatmap_computation\n");
         return NULL;
     }
-    
+    if (time_interval == -1 && num_of_pixels == -1)
+        num_of_pixels = 200;
+
     
     if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
@@ -359,7 +368,7 @@ static PyObject* differential_heatmap_py(PyObject* self, PyObject* args, PyObjec
         exit(1);
     }
     
-    draw_dict* dd = differential_heatmap(reader, cache[0], cache[1], *mode, time_interval, plot_type, num_of_threads);
+    draw_dict* dd = differential_heatmap(reader, cache[0], cache[1], *mode, time_interval, num_of_pixels, plot_type, num_of_threads);
     
     // create numpy array
     npy_intp dims[2] = { dd->ylength, dd->xlength };
@@ -372,7 +381,6 @@ static PyObject* differential_heatmap_py(PyObject* self, PyObject* args, PyObjec
     for (i=0; i<dd->ylength; i++){
         array = (double*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
         for (j=0; j<dd->xlength; j++)
-//            if (matrix[j][i])
                 array[j] = matrix[j][i];
     }
     
@@ -398,13 +406,14 @@ static PyObject* heatmap_rd_distribution_py(PyObject* self, PyObject* args, PyOb
     READER* reader;
     int num_of_threads = 4;
     char* mode;
-    long time_interval;
+    long time_interval = -1;
+    long num_of_pixels = -1;
     int CDF = 0;
     
-    static char *kwlist[] = {"reader", "mode", "time_interval", "num_of_threads", "CDF", NULL};
+    static char *kwlist[] = {"reader", "mode", "time_interval", "num_of_pixels", "num_of_threads", "CDF", NULL};
     
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osl|$ii", kwlist, &po, &mode, &time_interval, &num_of_threads, &CDF)) {
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Os|$llii", kwlist, &po, &mode, &time_interval, &num_of_pixels, &num_of_threads, &CDF)) {
         printf("parsing argument failed in heatmap_rd_distribution\n");
         return NULL;
     }
@@ -412,14 +421,16 @@ static PyObject* heatmap_rd_distribution_py(PyObject* self, PyObject* args, PyOb
     if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
     }
-    
+    if (time_interval == -1 && num_of_pixels == -1)
+        num_of_pixels = 200;
+
     
     draw_dict* dd;
     if (CDF){
-        dd = heatmap(reader, NULL, *mode, time_interval, rd_distribution_CDF, num_of_threads);
+        dd = heatmap(reader, NULL, *mode, time_interval, num_of_pixels, rd_distribution_CDF, num_of_threads);
     }
     else
-        dd = heatmap(reader, NULL, *mode, time_interval, rd_distribution, num_of_threads);
+        dd = heatmap(reader, NULL, *mode, time_interval, num_of_pixels, rd_distribution, num_of_threads);
     
     // create numpy array
     npy_intp dims[2] = { dd->ylength, dd->xlength };
@@ -477,12 +488,13 @@ static PyObject* heatmap_future_rd_distribution_py(PyObject* self, PyObject* arg
     READER* reader;
     int num_of_threads = 4;
     char* mode;
-    long time_interval;
+    long time_interval = -1;
+    long num_of_pixels = 200;
     
-    static char *kwlist[] = {"reader", "mode", "time_interval", "num_of_threads", NULL};
+    static char *kwlist[] = {"reader", "mode", "time_interval", "num_of_pixels", "num_of_threads", NULL};
     
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osl|$i", kwlist, &po, &mode, &time_interval, &num_of_threads)) {
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Os|$lli", kwlist, &po, &mode, &time_interval, &num_of_pixels, &num_of_threads)) {
         printf("parsing argument failed in heatmap_rd_distribution\n");
         return NULL;
     }
@@ -490,8 +502,11 @@ static PyObject* heatmap_future_rd_distribution_py(PyObject* self, PyObject* arg
     if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
     }
+    if (time_interval == -1 && num_of_pixels == -1)
+        num_of_pixels = 200;
+
     
-    draw_dict* dd = heatmap(reader, NULL, *mode, time_interval, future_rd_distribution, num_of_threads);
+    draw_dict* dd = heatmap(reader, NULL, *mode, time_interval, num_of_pixels, future_rd_distribution, num_of_threads);
     
     // create numpy array
     npy_intp dims[2] = { dd->ylength, dd->xlength };
@@ -534,14 +549,14 @@ static PyObject* heatmap_get_break_points(PyObject* self, PyObject* args, PyObje
 {
     PyObject* po;
     READER* reader;
-    int num_of_threads = 4;
     char* mode;
-    long time_interval;
+    long time_interval = -1;
+    long num_of_pixels = -1;
     
-    static char *kwlist[] = {"reader", "mode", "time_interval", NULL};
+    static char *kwlist[] = {"reader", "mode", "time_interval", "num_of_pixels", NULL};
     
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osl", kwlist, &po, &mode, &time_interval, &num_of_threads)) {
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Os|ll", kwlist, &po, &mode, &time_interval, &num_of_pixels)) {
         printf("parsing argument failed in heatmap_get_break_points\n");
         return NULL;
     }
@@ -549,13 +564,17 @@ static PyObject* heatmap_get_break_points(PyObject* self, PyObject* args, PyObje
     if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
     }
-    
+    if (time_interval == -1 && num_of_pixels == -1)
+        num_of_pixels = 200;
+#ifdef DEBUG
+    printf("get break points, time interval %ld, num_of_pixels %ld\n", time_interval, num_of_pixels);
+#endif
     
     GArray* breakpoints;
     if (mode[0] == 'r')
-        breakpoints = gen_breakpoints_realtime(reader, (guint64)time_interval);
+        breakpoints = gen_breakpoints_realtime(reader, (guint64)time_interval, num_of_pixels);
     else
-        breakpoints = gen_breakpoints_virtualtime(reader, (guint64)time_interval);
+        breakpoints = gen_breakpoints_virtualtime(reader, (guint64)time_interval, num_of_pixels);
     
     // create numpy array
     npy_intp dims[1] = { breakpoints->len };

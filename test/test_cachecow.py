@@ -34,20 +34,26 @@ class cachecowTest(unittest.TestCase):
         hr = p.get_hit_rate()
         self.assertAlmostEqual(hr[2000], 0.172851974146)
 
-        # p = c.profiler("LRU_K", cache_size=CACHE_SIZE, cache_params={"K": 2}, num_of_threads=8)
-        # hr = p.get_hit_rate()
-        # self.assertAlmostEqual(hr[0], 0.0)
-        # self.assertAlmostEqual(hr[100], 0.16544891893863678)
-        #
-        # c.heatmap('v', 1000, "hit_rate_start_time_end_time", num_of_threads=8, cache_size=2000)
-        # c.heatmap('v', 1000, "rd_distribution", num_of_threads=8)
-        #
-        # c.differential_heatmap(TIME_MODE, TIME_INTERVAL, "hit_rate_start_time_end_time", cache_size=CACHE_SIZE,
-        #                        algorithm1="LRU", algorithm2="MRU", cache_params2=None, num_of_threads=8)
-        #
-        # c.twoDPlot('v', 1000, "cold_miss")
-        # c.evictionPlot('r', 10000000, "accumulative_freq", "Optimal", 1000)
-        # c.evictionPlot('r', 10000000, "reuse_dist", "Optimal", 10000)
+        p = c.profiler("LRU_K", cache_size=CACHE_SIZE, cache_params={"K": 2}, num_of_threads=8)
+        hr = p.get_hit_rate()
+        self.assertAlmostEqual(hr[0], 0.0)
+        self.assertAlmostEqual(hr[100], 0.16544891893863678)
+
+        c.heatmap('v', "hit_rate_start_time_end_time",
+                  time_interval=1000, num_of_threads=8, cache_size=2000)
+        c.heatmap('v', "hit_rate_start_time_end_time",
+                  num_of_pixels=100, num_of_threads=8, cache_size=2000)
+        c.heatmap('v', "rd_distribution", time_interval=1000, num_of_threads=8)
+
+        c.differential_heatmap(TIME_MODE, "hit_rate_start_time_end_time",
+                               time_interval=TIME_INTERVAL,
+                               cache_size=CACHE_SIZE,
+                               algorithm1="LRU", algorithm2="MRU",
+                               cache_params2=None, num_of_threads=8)
+
+        c.twoDPlot('v', 1000, "cold_miss")
+        c.evictionPlot('r', 10000000, "accumulative_freq", "Optimal", 1000)
+        c.evictionPlot('r', 10000000, "reuse_dist", "Optimal", 10000)
 
         c.plotHRCs(["LRU", "Optimal", "LFU", "LRU_K"], [None, None, None, {"K":2}])
 

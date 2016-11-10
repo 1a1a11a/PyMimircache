@@ -41,7 +41,9 @@ class heatmap:
         #     os.mkdir('temp')
         pass
 
-    def _prepare_reuse_distance_and_break_points(self, mode, reader, time_interval, calculate=True, save=False,
+    def _prepare_reuse_distance_and_break_points(self, mode, reader,
+                                                 time_interval=-1, num_of_pixels=-1,
+                                                 calculate=True, save=False,
                                                  **kwargs):
         reader.reset()
 
@@ -74,7 +76,9 @@ class heatmap:
 
         # check break points are loaded or not, if not need to calculate it
         if not break_points:
-            break_points = cHeatmap().gen_breakpoints(reader, mode, time_interval)
+            break_points = cHeatmap().gen_breakpoints(reader, mode,
+                                                      time_interval=time_interval,
+                                                      num_of_pixels=num_of_pixels)
             if save:
                 with open('temp/break_points_' + mode + str(time_interval) + '.dat', 'wb') as ifile:
                     pickle.dump(break_points, ifile)
@@ -161,7 +165,7 @@ class heatmap:
 
         return result, kwargs_subprocess, kwargs_plot, func_pointer
 
-    def calculate_heatmap_dat(self, reader, mode, time_interval, plot_type,
+    def calculate_heatmap_dat(self, reader, mode, plot_type, time_interval=-1, num_of_pixels=-1,
                               algorithm="LRU", cache_params=None, num_of_threads=4, **kwargs):
         """
             calculate the data for plotting heatmap
@@ -183,7 +187,7 @@ class heatmap:
 
         if algorithm == "LRU":
             reuse_dist, break_points = self._prepare_reuse_distance_and_break_points(
-                mode, reader, time_interval, **kwargs)
+                mode, reader, time_interval=time_interval, num_of_pixels=num_of_pixels, **kwargs)
 
             # create shared memory for child process
             reuse_dist_share_array = Array('l', len(reuse_dist), lock=False)
@@ -204,7 +208,9 @@ class heatmap:
 
             # prepare break points
             if mode[0] == 'r' or mode[0] == 'v':
-                break_points = cHeatmap().gen_breakpoints(reader, mode[0], time_interval)
+                break_points = cHeatmap().gen_breakpoints(reader, mode[0],
+                                                          time_interval=time_interval,
+                                                          num_of_pixels=num_of_pixels)
             else:
                 raise RuntimeError("unrecognized mode, it can only be r or v")
 
@@ -378,7 +384,9 @@ class heatmap:
                 os.remove('temp/' + filename)
             os.rmdir('temp/')
 
-    def heatmap(self, reader, mode, time_interval, plot_type, algorithm="LRU", cache_params=None, **kwargs):
+    def heatmap(self, reader, mode, plot_type,
+                time_interval=-1, num_of_pixels=-1,
+                algorithm="LRU", cache_params=None, **kwargs):
         """
 
         :param plot_type:
@@ -391,8 +399,9 @@ class heatmap:
         reader.reset()
 
         if mode == 'r' or mode == 'v':
-            xydict, kwargs_plot = self.calculate_heatmap_dat(reader, mode, time_interval, plot_type, algorithm,
-                                                             cache_params=None, **kwargs)
+            xydict, kwargs_plot = self.calculate_heatmap_dat(reader, mode, plot_type, algorithm,
+                                                             time_interval=time_interval, num_of_pixels=num_of_pixels,
+                                                             cache_params=cache_params, **kwargs)
         else:
             raise RuntimeError("Cannot recognize this mode, it can only be either real time(r) or virtual time(v), "
                                "but you input %s" % mode)

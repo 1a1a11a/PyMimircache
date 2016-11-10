@@ -238,7 +238,7 @@ Plot Types
 How to Plot
 ^^^^^^^^^^^
 Plotting heatmaps are easy, just calling the following function on cachecow,
-    >>> c.heatmap(mode, time_interval, plot_type...):
+    >>> c.heatmap(mode, plot_type...):
 
 The first three parameters are the same as before, which are time mode (r or v), time interval, the types of plot(see table above)
 Besides these three parameters, there are several keywords arguments listed below.
@@ -247,6 +247,10 @@ Besides these three parameters, there are several keywords arguments listed belo
 
 +-------------------+---------------+--------------------------------------------+------------------------------------------------------------+
 | Keyword Arguments | Default Value | Possible Values                            | Necessary                                                  |
++-------------------+---------------+--------------------------------------------+------------------------------------------------------------+
+| time_interval     | "-1"          | a time interval                            | give this value or num_of_pixels                           |
++-------------------+---------------+--------------------------------------------+------------------------------------------------------------+
+| num_of_pixels     | "-1"          | the number of pixels on one dimension      | give this value or time_interval                           |
 +-------------------+---------------+--------------------------------------------+------------------------------------------------------------+
 | algorithm         | "LRU"         | All available cache replacement algorithms | No                                                         |
 +-------------------+---------------+--------------------------------------------+------------------------------------------------------------+
@@ -262,7 +266,7 @@ Besides these three parameters, there are several keywords arguments listed belo
 
 Ploting Examples
 ^^^^^^^^^^^^^^^^
-    >>> c.heatmap('r', 10000000, "hit_rate_start_time_end_time", cache_size=2000, figname="heatmap1.png", num_of_threads=8)
+    >>> c.heatmap('r', "hit_rate_start_time_end_time", num_of_pixels=1000, cache_size=2000, figname="heatmap1.png", num_of_threads=8)
 
 .. figure:: ../images/example_heatmap.png
         :width: 50%
@@ -275,7 +279,7 @@ Ploting Examples
 
 Another example
 
-    >>> c.heatmap('r', 10000000, "rd_distribution")
+    >>> c.heatmap('r', "rd_distribution", time_interval=10000000)
 
 .. figure:: ../images/example_heatmap_rd_distibution.png
         :width: 50%
@@ -294,7 +298,7 @@ You are in the right place! Differential heatmaps allow you to compare cache rep
 
 Currently we only support differential heatmap of hit_rate_start_time_end_time, and the function to plot is shown below:
 
-    >>> c.differential_heatmap(mode, interval, plot_type, algorithm1, cache_size...)
+    >>> c.differential_heatmap(mode, plot_type, algorithm1, cache_size...)
 
 The first three parameters are the same as before, which are time mode (r or v), time interval, the types of plot(only support hit_rate_start_time_end_time for now)
 algorithm1 is the first algorithm, algorithm2 is the second algorithm (default to be Optimal), cache_size is a **necessary** parameter here and it can only be used as keyword argument.
@@ -303,6 +307,10 @@ Besides these parameters, there are several keywords arguments listed below.
 
 +-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
 | Keyword Arguments | Default Value            | Possible Values                            | Necessary                                                  |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| time_interval     | "-1"                     | a time interval                            | give this value or num_of_pixels                           |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| num_of_pixels     | "-1"                     | the number of pixels on one dimension      | give this value or time_interval                           |
 +-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
 | algorithm1        | "LRU"                    | All available cache replacement algorithms | Yes                                                        |
 +-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
@@ -321,7 +329,7 @@ Besides these parameters, there are several keywords arguments listed below.
 
 
 Example:
-    >>> c.differential_heatmap('r', 1000000, "hit_rate_start_time_end_time", algorithm1="LRU", cache_size=2000)
+    >>> c.differential_heatmap('r', "hit_rate_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
 
 .. figure:: ../images/example_differential_heatmap.png
         :width: 50%

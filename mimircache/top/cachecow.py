@@ -67,7 +67,8 @@ class cachecow:
 
         return reader, num_of_threads
 
-    def heatmap(self, mode, interval, plot_type, algorithm="LRU", cache_params=None, cache_size=-1, **kwargs):
+    def heatmap(self, mode, plot_type, time_interval=-1, num_of_pixels=-1,
+                algorithm="LRU", cache_params=None, cache_size=-1, **kwargs):
         """
 
         :param mode:
@@ -89,13 +90,17 @@ class cachecow:
             else:
                 hm = heatmap()
 
-        hm.heatmap(reader, mode, interval, plot_type,
+        print(hm)
+        print(kwargs)
+        hm.heatmap(reader, mode, plot_type,
+                   time_interval=time_interval,
+                   num_of_pixels=num_of_pixels,
                    cache_size=cache_size,
                    algorithm=cache_alg_mapping[algorithm.lower()],
                    cache_params=cache_params,
                    **kwargs)
 
-    def differential_heatmap(self, mode, interval, plot_type, algorithm1,
+    def differential_heatmap(self, mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
                              algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs):
         """
         alg2 - alg1
@@ -117,8 +122,10 @@ class cachecow:
 
         if algorithm1.lower() in c_available_cache and algorithm2.lower() in c_available_cache:
             hm = cHeatmap()
-            hm.differential_heatmap(reader, mode, interval, plot_type,
+            hm.differential_heatmap(reader, mode, plot_type,
                                     cache_size=cache_size,
+                                    time_interval=time_interval,
+                                    num_of_pixels=num_of_pixels,
                                     algorithm1=cache_alg_mapping[algorithm1.lower()],
                                     algorithm2=cache_alg_mapping[algorithm2.lower()],
                                     cache_params1=cache_params1,
@@ -128,31 +135,39 @@ class cachecow:
         else:
             hm = heatmap()
             if algorithm1.lower() not in c_available_cache:
-                xydict1 = hm.calculate_heatmap_dat(reader, mode, interval, plot_type,
-                                                   cache_size=cache_size, algorithm=algorithm1,
+                xydict1 = hm.calculate_heatmap_dat(reader, mode, plot_type,
+                                                   time_interval=time_interval,
+                                                   cache_size=cache_size,
+                                                   algorithm=algorithm1,
                                                    cache_params=cache_params1,
                                                    **kwargs)[0]
             else:
-                xydict1 = c_heatmap.heatmap(reader.cReader, mode, interval, plot_type,
-                                            cache_size=cache_size, algorithm=algorithm1,
+                xydict1 = c_heatmap.heatmap(reader.cReader, mode, plot_type,
+                                            cache_size=cache_size,
+                                            time_interval=time_interval,
+                                            algorithm=algorithm1,
                                             cache_params=cache_params1,
                                             num_of_threads=num_of_threads)
 
             if algorithm2.lower() not in c_available_cache:
                 xydict2 = hm.calculate_heatmap_dat(reader, mode, interval, plot_type,
-                                                   cache_size=cache_size, algorithm=algorithm2,
+                                                   # time_interval=interval,
+                                                   cache_size=cache_size,
+                                                   algorithm=algorithm2,
                                                    cache_params=cache_params2,
                                                    **kwargs)[0]
             else:
-                xydict2 = c_heatmap.heatmap(reader.cReader, mode, interval, plot_type,
-                                            cache_size=cache_size, algorithm=algorithm2,
+                xydict2 = c_heatmap.heatmap(reader.cReader, mode, plot_type,
+                                            time_interval=time_interval,
+                                            cache_size=cache_size,
+                                            algorithm=algorithm2,
                                             cache_params=cache_params2,
                                             num_of_threads=num_of_threads)
 
             cHm = cHeatmap()
             text = "      differential heatmap\n      cache size: {},\n      cache type: ({}-{})/{},\n" \
                    "      time type: {},\n      time interval: {},\n      plot type: \n{}".format(
-                cache_size, algorithm2, algorithm1, algorithm1, mode, interval, plot_type)
+                cache_size, algorithm2, algorithm1, algorithm1, mode, time_interval, plot_type)
 
             x1, y1 = xydict1.shape
             x1 = int(x1 / 2.8)
@@ -281,6 +296,8 @@ class cachecow:
             profiler = self.profiler(alg, cache_param, cache_size,
                                      bin_size=bin_size, num_of_threads=num_of_threads)
             hr = profiler.get_hit_rate()
+            # if alg == "LRU":
+            #     print(hr[cache_size])
             self.reader.reset()
             # plt.xlim(0, cache_size)
             if alg!="LRU":
@@ -334,6 +351,7 @@ class cachecow:
             else:
                 plt.plot(mr[:-2], label=label[i])
 
+        print("ymin = {}".format(ymin))
         if "ymin" in kwargs:
             ymin = kwargs['ymin']
 

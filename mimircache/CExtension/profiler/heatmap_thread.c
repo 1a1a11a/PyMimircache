@@ -74,6 +74,7 @@ void heatmap_LRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer use
     miss_count = 0;
     
 
+    // unnecessary ? 
     skip_N_elements(reader_thread, g_array_index(break_points, guint64, order));
 
     for (i=order; i<break_points->len-1; i++){

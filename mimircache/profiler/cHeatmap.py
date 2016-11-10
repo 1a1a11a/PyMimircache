@@ -16,7 +16,7 @@ class cHeatmap:
     def __init__(self):
         self.other_plot_kwargs = {}
 
-    def gen_breakpoints(self, reader, mode, time_interval):
+    def gen_breakpoints(self, reader, mode, time_interval=-1, num_of_pixels=-1):
         """
 
         :param reader:
@@ -24,7 +24,11 @@ class cHeatmap:
         :param time_interval:
         :return: a numpy list of break points begin with 0, ends with total_num_requests
         """
-        return c_heatmap.gen_breakpoints(reader.cReader, mode, time_interval)
+        assert time_interval!=-1 or num_of_pixels!=-1, \
+            "please provide at least one parameter, time_interval or num_of_pixels"
+        return c_heatmap.gen_breakpoints(reader.cReader, mode,
+                                         time_interval=time_interval,
+                                         num_of_pixels=num_of_pixels)
 
     def set_plot_params(self, axis, axis_type, **kwargs):
         log_base = 1
@@ -104,19 +108,23 @@ class cHeatmap:
         else:
             print("unsupported axis: " + str(axis))
 
-    def heatmap(self, reader, mode, time_interval, plot_type, algorithm="LRU", cache_params=None, **kwargs):
+    def heatmap(self, reader, mode, plot_type, algorithm="LRU", time_interval=-1, num_of_pixels=-1,
+                cache_params=None, **kwargs):
         """
 
         :param plot_type:
         :param mode:
         :param interval:
         :param reader:
-        :param kwargs: include num_of_process, figname
+        :param kwargs: include num_of_threads, figname
         :return:
         """
 
         figname = None
         self.time_interval = time_interval
+        self.num_of_pixels = num_of_pixels
+        # assert time_interval != -1 or num_of_pixels != -1, \
+        #     "please provide at least one parameter, time_interval or num_of_pixels"
         self.mode = mode
         reader.reset()
 
@@ -147,8 +155,11 @@ class cHeatmap:
 
                 if algorithm.lower() in const.c_available_cache:
                     print('time: {}, size: {}, threads: {}'.format(time_interval, cache_size, num_of_threads))
-                    xydict = c_heatmap.heatmap(reader.cReader, mode, time_interval, plot_type,
-                                               cache_size, algorithm, cache_params=cache_params,
+                    xydict = c_heatmap.heatmap(reader.cReader, mode, plot_type,
+                                               cache_size, algorithm,
+                                               time_interval=time_interval,
+                                               num_of_pixels=num_of_pixels,
+                                               cache_params=cache_params,
                                                num_of_threads=num_of_threads)
                 else:
                     raise RuntimeError("haven't provided support given algorithm in C yet: " + str(algorithm))
@@ -201,7 +212,9 @@ class cHeatmap:
                 if not figname:
                     figname = 'rd_distribution.png'
 
-                xydict, log_base = c_heatmap.heatmap_rd_distribution(reader.cReader, mode, time_interval,
+                xydict, log_base = c_heatmap.heatmap_rd_distribution(reader.cReader, mode,
+                                                                     time_interval=time_interval,
+                                                                     num_of_pixels=num_of_pixels,
                                                                      num_of_threads=num_of_threads)
                 shape = xydict.shape
                 # shape = (shape[0]+1, shape[1]+1)
@@ -225,7 +238,9 @@ class cHeatmap:
                 if not figname:
                     figname = 'rd_distribution_CDF.png'
 
-                xydict, log_base = c_heatmap.heatmap_rd_distribution(reader.cReader, mode, time_interval,
+                xydict, log_base = c_heatmap.heatmap_rd_distribution(reader.cReader, mode,
+                                                                     time_interval=time_interval,
+                                                                     num_of_pixels=num_of_pixels,
                                                                      num_of_threads=num_of_threads, CDF=1)
                 self.set_plot_params('x', mode_string, xydict=xydict)
                 self.set_plot_params('y', 'reuse_dist', xydict=xydict, log_base=log_base)
@@ -237,7 +252,9 @@ class cHeatmap:
                 if not figname:
                     figname = 'future_rd_distribution.png'
 
-                xydict, log_base = c_heatmap.heatmap_future_rd_distribution(reader.cReader, mode, time_interval,
+                xydict, log_base = c_heatmap.heatmap_future_rd_distribution(reader.cReader, mode,
+                                                                            time_interval=time_interval,
+                                                                            num_of_pixels=num_of_pixels,
                                                                             num_of_threads=num_of_threads)
                 self.set_plot_params('x', mode_string, xydict=xydict)
                 self.set_plot_params('y', 'reuse_dist', xydict=xydict, log_base=log_base)
@@ -255,7 +272,8 @@ class cHeatmap:
 
         reader.reset()
 
-    def differential_heatmap(self, reader, mode, time_interval, plot_type, algorithm1, algorithm2="Optimal",
+    def differential_heatmap(self, reader, mode, plot_type, algorithm1,
+                             time_interval=-1, num_of_pixels=-1, algorithm2="Optimal",
                              cache_params1=None, cache_params2=None, **kwargs):
         """
 
@@ -268,6 +286,8 @@ class cHeatmap:
         """
 
         self.time_interval = time_interval
+        self.num_of_pixels = num_of_pixels
+
         self.mode = mode
         reader.reset()
 
@@ -297,13 +317,14 @@ class cHeatmap:
                 print("going to plot differential heatmap of hit_rate_start_time_end_time using {} - {} "
                       "of cache size: {}".format(algorithm2, algorithm1, cache_size))
 
-                xydict = c_heatmap.differential_heatmap(reader.cReader, mode, time_interval,
-                                                        plot_type, cache_size, algorithm1, algorithm2,
-                                                        cache_params1=cache_params1, cache_params2=cache_params2,
+                xydict = c_heatmap.differential_heatmap(reader.cReader, mode,
+                                                        plot_type, cache_size,
+                                                        algorithm1, algorithm2,
+                                                        time_interval=time_interval,
+                                                        num_of_pixels=num_of_pixels,
+                                                        cache_params1=cache_params1,
+                                                        cache_params2=cache_params2,
                                                         num_of_threads=num_of_threads)
-                # xydict = c_heatmap.differential_heatmap_with_Optimal(reader.cReader, cache_size, alg1, mode,
-                #                                         time_interval,
-                #                                         plot_type, num_of_threads=num_of_threads)
 
                 text = "      differential heatmap\n      cache size: {},\n      cache type: ({}-{})/{},\n" \
                        "      time type: {},\n      time interval: {},\n      plot type: \n{}".format(

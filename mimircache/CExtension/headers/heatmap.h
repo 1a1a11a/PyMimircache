@@ -59,13 +59,13 @@ void free_draw_dict(draw_dict* dd);
 
 GSList* get_last_access_dist_seq(READER* reader, void (*funcPtr)(READER*, cache_line*));
 
-draw_dict* heatmap(READER* reader, struct_cache* cache, char mode, guint64 time_interval, int plot_type, int num_of_threads);
-draw_dict* differential_heatmap(READER* reader, struct_cache* cache1, struct_cache* cache2, char mode, guint64 time_interval, int plot_type, int num_of_threads);
-draw_dict* heatmap_rd_distribution(READER* reader, char mode, long time_interval, int num_of_threads, int CDF);
+draw_dict* heatmap(READER* reader, struct_cache* cache, char mode, gint64 time_interval, gint64 num_of_pixels, int plot_type, int num_of_threads);
+draw_dict* differential_heatmap(READER* reader, struct_cache* cache1, struct_cache* cache2, char mode, gint64 time_interval, gint64 num_of_pixels, int plot_type, int num_of_threads);
+draw_dict* heatmap_rd_distribution(READER* reader, char mode, int num_of_threads, int CDF);
 
 
-GArray* gen_breakpoints_virtualtime(READER* reader, guint64 time_interval);
-GArray* gen_breakpoints_realtime(READER* reader, guint64 time_interval);
+GArray* gen_breakpoints_virtualtime(READER* reader, gint64 time_interval, gint64 num_of_pixels);
+GArray* gen_breakpoints_realtime(READER* reader, gint64 time_interval, gint64 num_of_pixels);
 
 
 
