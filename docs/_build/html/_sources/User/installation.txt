@@ -65,6 +65,7 @@ Since Ubuntu 12 does not come with Python3 or above and some related components 
 
 Add the following two lines to the top of /etc/apt/source.list
 ::
+
 deb http://us.archive.ubuntu.com/ubuntu/ trusty main restricted universe multiverse
 deb-src http://us.archive.ubuntu.com/ubuntu/ trusty main restricted universe multiverse
 

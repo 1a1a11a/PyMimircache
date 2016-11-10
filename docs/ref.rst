@@ -1,2 +1,2 @@
 .. |exampleMRC| image:: images/example_MRC.png
-.. |version| 0.0.2.11
+.. |version| replace:: 0.0.2.65
