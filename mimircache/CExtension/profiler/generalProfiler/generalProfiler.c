@@ -497,10 +497,6 @@ static void profiler_thread(gpointer data, gpointer user_data){
         struct MIMIR_params* MIMIR_params = (struct MIMIR_params*)(cache->cache_params);
         gint64 prefetch = MIMIR_params->num_of_prefetch_mimir;
         gint64 hit = MIMIR_params->hit_on_prefetch_mimir;
-//        gint64 effective_hit = MIMIR_params->effective_hit_on_prefetch_mimir;
-        
-//        long counter = 0;
-//        g_hash_table_foreach(MIMIR_params->prefetch_hashtable, prefetch_hashmap_count_length, &counter);
 
         printf("\ncache size %ld, real size: %ld, hit rate %lf, total check %lu, mimir prefetch %lu, hit %lu, accuracy: %lf, prefetch table size %u\n",
                cache->core->size, MIMIR_params->cache->core->size,
@@ -508,7 +504,6 @@ static void profiler_thread(gpointer data, gpointer user_data){
                ((struct MIMIR_params*)(cache->cache_params))->num_of_check,
                prefetch, hit, (double)hit/prefetch,
                g_hash_table_size(MIMIR_params->prefetch_hashtable));
-//               (double) counter / g_hash_table_size(MIMIR_params->prefetch_hashtable));
         
         if (MIMIR_params->sequential_type == 1){
             gint64 prefetch2 = ((struct MIMIR_params*)(cache->cache_params))->num_of_prefetch_sequential;
@@ -689,7 +684,7 @@ static void get_evict_err(READER* reader, struct_cache* cache){
 
 gdouble* LRU_evict_err_statistics(READER* reader_in, struct_cache* cache_in, guint64 time_interval){
     
-    gen_breakpoints_realtime(reader_in, time_interval);
+    gen_breakpoints_realtime(reader_in, time_interval, -1);
     cache_in->core->bp = reader_in->break_points;
     cache_in->core->cache_debug_level = 2;
     
