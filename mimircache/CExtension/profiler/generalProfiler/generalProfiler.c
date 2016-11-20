@@ -21,7 +21,7 @@
 struct HR_PE* get_HR_PE(READER* reader_in, guint64 size){
     
     int i;
-    int AMP_n = 8, mimir_n1 = 12, mimir_n2 = 0;
+    int AMP_n = 1, mimir_n1 = 12, mimir_n2 = 0;
     int n = AMP_n + mimir_n1 + mimir_n2 + 1;
     
     
@@ -54,17 +54,17 @@ struct HR_PE* get_HR_PE(READER* reader_in, guint64 size){
     for (i=0; i<mimir_n1+mimir_n2; i++){
         mimir_initp[i] = g_new0(struct MIMIR_init_params, 1);
         mimir_initp[i]->block_size = 64 * 1024;
-        mimir_initp[i]->cache_type = "LRU";
+        mimir_initp[i]->cache_type = "AMP";
 //        mimir_initp[i]->max_support = 20;
 //        mimir_initp[i]->min_support = 2;
         mimir_initp[i]->confidence = 0;
         mimir_initp[i]->item_set_size = 20;
         mimir_initp[i]->training_period = 0;
         mimir_initp[i]->prefetch_list_size = 2;
-        mimir_initp[i]->max_metadata_size = 0.2;
+        mimir_initp[i]->max_metadata_size = 0.10;
         mimir_initp[i]->training_period_type = 'v';
-        mimir_initp[i]->sequential_type = 0;
-        mimir_initp[i]->sequential_K = -1;
+        mimir_initp[i]->sequential_type = 2;
+        mimir_initp[i]->sequential_K = 1;
         mimir_initp[i]->cycle_time = 2;
         mimir_initp[i]->AMP_pthreshold = 256;
     }
@@ -547,6 +547,10 @@ static void profiler_thread(gpointer data, gpointer user_data){
     g_free(cp);
     if (reader_thread->type != 'v')
         fclose(reader_thread->file);
+    if (reader_thread->type == 'c'){
+        csv_free(reader_thread->csv_parser);
+        g_free(reader_thread->csv_parser); 
+    }
     g_free(reader_thread);
     cache->core->destroy_unique(cache);
 

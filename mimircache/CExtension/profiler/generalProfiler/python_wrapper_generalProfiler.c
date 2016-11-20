@@ -12,6 +12,7 @@
 #include <numpy/arrayobject.h>
 
 #include "generalProfiler.h"
+#include "partition.h"
 #include "FIFO.h"
 #include "Optimal.h"
 #include "LRU_K.h"
@@ -383,6 +384,61 @@ static PyObject* generalProfiler_get_hrpe(PyObject* self, PyObject* args, PyObje
 
 
 
+static PyObject* generalProfiler_get_partition(PyObject* self, PyObject* args, PyObject* keywds)
+{
+    PyObject* po;
+    READER* reader;
+    long cache_size;
+    char* algorithm;
+    int n_partitions;
+    struct_cache* cache;
+    PyObject* cache_params=NULL;
+    
+    static char *kwlist[] = {"reader", "algorithm", "cache_size", "n_partitions", "cache_params", NULL};
+    
+    // parse arguments
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osli|O", kwlist, &po, &algorithm, &cache_size, &n_partitions, &cache_params)) {
+        printf("parsing argument failed in generalProfiler_get_hit_rate\n");
+        return NULL;
+    }
+
+    
+    if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
+        return NULL;
+    }
+    
+    // build cache
+    cache = build_cache(reader, cache_size, algorithm, cache_params, 0);
+    
+    
+    // get partition
+#ifdef DEBUG
+    printf("partitions %i, %ld before getting partition\n", n_partitions, cache_size);
+#endif
+    partition_t* partitions = get_partition(reader, cache, n_partitions);
+#ifdef DEBUG
+    printf("after getting partition\n");
+#endif
+    
+    // create numpy array
+    npy_intp dims[2] = { n_partitions, partitions->partition_history[0]->len };
+    PyObject* ret_array = PyArray_SimpleNew(2, dims, NPY_DOUBLE);
+    guint i, j;
+    
+    double *array;
+    uint length = partitions->partition_history[0]->len;
+    for (i=0; i<n_partitions; i++){
+        array = (double*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
+        for (j=0; j<length; j++)
+            array[j] = g_array_index(partitions->partition_history[i], double, j);
+    }
+        
+    
+    
+    free_partition_t(partitions);
+    cache->core->destroy(cache);
+    return ret_array;
+}
 
 
 
@@ -406,6 +462,9 @@ static PyMethodDef c_generalProfiler_funcs[] = {
         METH_VARARGS | METH_KEYWORDS, "get hit rate with prefetch in numpy array"},
     {"get_HR_PE", (PyCFunction)generalProfiler_get_hrpe,
         METH_VARARGS | METH_KEYWORDS, "get hit rate and prefetching efficiency"},
+    {"get_partition", (PyCFunction)generalProfiler_get_partition,
+        METH_VARARGS | METH_KEYWORDS, "get partition results with given alg"},
+    
     
     {NULL, NULL, 0, NULL}
 };
