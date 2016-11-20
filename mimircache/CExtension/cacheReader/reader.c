@@ -332,7 +332,7 @@ void reader_set_read_pos(READER* reader, float pos){
             break;
             
         case 'v':
-            reader->offset = (guint64)reader->record_size * reader->total_num;
+            reader->offset = (guint64)reader->record_size * (gint64)(reader->total_num * pos);
             reader->ts = 0;
             break;
         default:
@@ -522,7 +522,7 @@ guint64 read_one_request_size(READER* reader){
 }
 
 cache_line* new_cacheline(){
-    cache_line* cp = g_new(cache_line, 1);
+    cache_line* cp = g_new0(cache_line, 1);
     cp->op = -1;
     cp->size = -1;
     cp->valid = TRUE;

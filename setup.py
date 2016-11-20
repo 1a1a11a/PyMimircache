@@ -144,12 +144,12 @@ print('all link flasgs: ' + str(extra_link_args))
 # ))
 
 # # --------------------- vscsi module ---------------------------
-extensions.append(Extension(
-    "mimircache.cacheReader.libvscsi",
-    glob("mimircache/cacheReader/vscsi/src/*.c"),
-    include_dirs=["mimircache/cacheReader/vscsi/src/"],
-    language="c"
-))
+# extensions.append(Extension(
+#     "mimircache.cacheReader.libvscsi",
+#     glob("mimircache/cacheReader/vscsi/src/*.c"),
+#     include_dirs=["mimircache/cacheReader/vscsi/src/"],
+#     language="c"
+# ))
 
 extensions.append(Extension(
     'mimircache.c_cacheReader',

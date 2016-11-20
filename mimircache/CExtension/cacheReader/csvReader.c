@@ -35,6 +35,11 @@ static inline void csv_cb1(void *s, size_t len, void *data){
         cache_line* cp = reader->cache_line_pointer;
         cp->size = (size_t) atoi((char*) s);
     }
+    else if (reader->current_column_counter == reader->size_column){
+        cache_line* cp = reader->cache_line_pointer;
+        cp->traceID = (unsigned char) *((char*) s);
+    }
+
     
     reader->current_column_counter ++ ;
 }
@@ -54,14 +59,22 @@ static inline void csv_cb2(int c, void *data){
 }
 
 
-csvReader_init_params* new_csvReader_init_params(gint label_column, gint op_column, gint real_time_column, gint size_column, gboolean has_header, unsigned char delimiter){
-    csvReader_init_params* init_params = g_new(csvReader_init_params, 1);
-    init_params->label_column = label_column;
-    init_params->op_column = op_column;
-    init_params->real_time_column = real_time_column;
-    init_params->size_column = size_column;
-    init_params->has_header = has_header;
-    init_params->delimiter = delimiter;
+csvReader_init_params* new_csvReader_init_params(gint label_column,
+                                                 gint op_column,
+                                                 gint real_time_column,
+                                                 gint size_column,
+                                                 gboolean has_header,
+                                                 unsigned char delimiter,
+                                                 gint traceID_column){
+    
+    csvReader_init_params* init_params  =   g_new0(csvReader_init_params, 1);
+    init_params->label_column           =   label_column;
+    init_params->op_column              =   op_column;
+    init_params->real_time_column       =   real_time_column;
+    init_params->size_column            =   size_column;
+    init_params->has_header             =   has_header;
+    init_params->delimiter              =   delimiter;
+    init_params->traceID_column         =   traceID_column;
     return init_params; 
 }
 

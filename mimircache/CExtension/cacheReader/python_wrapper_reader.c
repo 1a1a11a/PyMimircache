@@ -38,15 +38,16 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
         data_type = "l"; 
 
     if (file_type[0] == 'c'){
-        init_params = (void*) new_csvReader_init_params(-1, -1, -1, -1, FALSE, 0);
+        init_params = (void*) new_csvReader_init_params(-1, -1, -1, -1, FALSE, ',', -1);
         /* if it is csv file, we need extra init parameters */
-        PyObject *py_label, *py_size, *py_op, *py_real_time, *py_header, *py_delimiter;
+        PyObject *py_label, *py_size, *py_op, *py_real_time, *py_header, *py_delimiter, *py_traceID;
         py_label = PyUnicode_FromString("label_column");
         py_size = PyUnicode_FromString("size_column");
         py_op = PyUnicode_FromString("op_column");
         py_real_time = PyUnicode_FromString("real_time_column");
         py_header = PyUnicode_FromString("header");
         py_delimiter = PyUnicode_FromString("delimiter");
+        py_traceID = PyUnicode_FromString("traceID_column");
         
         if (PyDict_Contains(py_init_params, py_label)){
             ((csvReader_init_params*)init_params)->label_column =
@@ -82,6 +83,11 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
             *((unsigned char*)PyUnicode_AsUTF8(PyDict_GetItemString(py_init_params, "delimiter")));
         }
 
+        if (PyDict_Contains(py_init_params, py_traceID)){
+            ((csvReader_init_params*)init_params)->traceID_column =
+                                    (gint)PyLong_AsLong(PyDict_GetItemString(py_init_params, "traceID_column"));
+        }
+
         
         Py_DECREF(py_label);
         Py_DECREF(py_size);
@@ -89,13 +95,13 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
         Py_DECREF(py_real_time);
         Py_DECREF(py_header);
         Py_DECREF(py_delimiter);
+        Py_DECREF(py_traceID);
 
 #ifdef DEBUG
         if (((csvReader_init_params*)init_params)->has_header)
             printf("csv data has header\n");
         
-        if (((csvReader_init_params*)init_params)->delimiter)
-            printf("delimiter %c\n", ((csvReader_init_params*)init_params)->delimiter);
+        printf("delimiter %c\n", ((csvReader_init_params*)init_params)->delimiter);
 #endif
         
     }

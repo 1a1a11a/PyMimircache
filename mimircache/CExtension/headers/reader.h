@@ -98,6 +98,9 @@ typedef struct{
     int op;
     guint64 real_time;
     gboolean valid;
+    unsigned char traceID;                           /* this is for mixed trace */
+    void *content;                                   /* the content of page */ 
+    guint size_of_content;                           /* the size of mem area content points to */
 }cache_line;
 
 
@@ -105,7 +108,6 @@ typedef struct{
 
 
 
-//READER* setup_reader(char* file_loc, char file_type, void* setup_params);
 READER* setup_reader(char* file_loc, char file_type, char data_type, void* setup_params);
 void read_one_element(READER* reader, cache_line* c);
 long skip_N_elements(READER* reader, long long N);

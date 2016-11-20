@@ -32,7 +32,8 @@ typedef enum{
     e_LRU_dataAware,
     e_ML,
     e_test1,
-    e_AMP, 
+    e_AMP,
+    e_LRUPage,
 
     
     e_YJC,
@@ -44,35 +45,37 @@ typedef enum{
 
 
 struct cache_core{
-    cache_type type;
-    long size;
-    char data_type;     // l, c
-    long long hit_count;
-    long long miss_count;
-    void* cache_init_params;
-    struct cache* (*cache_init)(guint64, char, void*);
-    void (*destroy)(struct cache* );
-    void (*destroy_unique)(struct cache* );
-    gboolean (*add_element)(struct cache*, cache_line*);
-    gboolean (*check_element)(struct cache*, cache_line*);
+    cache_type          type;
+    long                size;
+    char                data_type;     // l, c
+    long long           hit_count;
+    long long           miss_count;
+    void*               cache_init_params;
+    struct cache*       (*cache_init)(guint64, char, void*);
+    void                (*destroy)(struct cache* );
+    void                (*destroy_unique)(struct cache* );
+    gboolean            (*add_element)(struct cache*, cache_line*);
+    gboolean            (*check_element)(struct cache*, cache_line*);
     
-    void (*__insert_element)(struct cache*, cache_line*);       // newly added 0912, may not work for all cache
-    void (*__update_element)(struct cache*, cache_line*);       // newly added 0912, may not work for all cache
-    void (*__evict_element)(struct cache*, cache_line*);        // newly added 0912, may not work for all cache
-    gpointer (*__evict_element_with_return)(struct cache*, cache_line*);
+    // newly added 0912, may not work for all cache
+    void                (*__insert_element)(struct cache*, cache_line*);
+    void                (*__update_element)(struct cache*, cache_line*);
+    void                (*__evict_element)(struct cache*, cache_line*);
+    gpointer            (*__evict_element_with_return)(struct cache*, cache_line*);
     
-    guint64 (*get_size)(struct cache*);                         // newly added 0912, only works on LRU 
+    // newly added 0912, only works on LRU
+    guint64             (*get_size)(struct cache*);
     
     
     
-    int cache_debug_level;  // 0 not debug, 1: prepare oracle, 2: compare to oracle
-    void* oracle; 
-    void* eviction_array;           // Optimal Eviction Array, either guint64* or char**
-    guint64 eviction_array_len;
-    guint64 evict_err;      // used for counting
-    struct break_point* bp; // break points, same as the one in reader, just one more pointer
-    guint64 bp_pos;         // the current location in bp->array
-    gdouble* evict_err_array;       // in each time interval, the eviction error array 
+    int                 cache_debug_level;  // 0 not debug, 1: prepare oracle, 2: compare to oracle
+    void*               oracle;
+    void*               eviction_array;           // Optimal Eviction Array, either guint64* or char**
+    guint64             eviction_array_len;
+    guint64             evict_err;      // used for counting
+    struct              break_point* bp; // break points, same as the one in reader, just one more pointer
+    guint64             bp_pos;         // the current location in bp->array
+    gdouble*            evict_err_array;       // in each time interval, the eviction error array 
 };
 
 
