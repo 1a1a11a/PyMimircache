@@ -219,7 +219,7 @@ void __AMP_evict_element(struct_cache* AMP, cache_line* cp){
     }
 }
 
-gpointer __AMP_evict_element_with_return(struct_cache* AMP, cache_line* cp){
+void* __AMP__evict_with_return(struct_cache* AMP, cache_line* cp){
     /** return a pointer points to the data that being evicted, 
      *  it can be a pointer pointing to gint64 or a pointer pointing to char*
      *  it is the user's responsbility to g_free the pointer 
@@ -259,7 +259,7 @@ gpointer __AMP_evict_element_with_return(struct_cache* AMP, cache_line* cp){
             if (last_sequence_page->g < 0)
                 last_sequence_page->g = 0;
         }
-        return __AMP_evict_element_with_return(AMP, cp); 
+        return __AMP__evict_with_return(AMP, cp); 
     }
 }
 
@@ -391,7 +391,7 @@ struct_cache* AMP_init(guint64 size, char data_type, void* params){
     cache->core->__insert_element               =       __AMP_insert_element;
     cache->core->__update_element               =       __AMP_update_element;
     cache->core->__evict_element                =       __AMP_evict_element;
-    cache->core->__evict_element_with_return    =       __AMP_evict_element_with_return;
+    cache->core->__evict_with_return    =       __AMP__evict_with_return;
 
     cache->core->get_size                       =       AMP_get_size;
     cache->core->cache_init_params              =       params;
@@ -420,7 +420,7 @@ struct_cache* AMP_init(guint64 size, char data_type, void* params){
 
 
 
-guint64 AMP_get_size(struct_cache* cache){
+uint64_t AMP_get_size(struct_cache* cache){
     struct AMP_params* AMP_params = (struct AMP_params*)(cache->cache_params);
     return (guint64) g_hash_table_size(AMP_params->hashtable);
 }

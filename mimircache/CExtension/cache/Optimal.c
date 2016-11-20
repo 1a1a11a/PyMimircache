@@ -10,62 +10,39 @@
 #include "cache.h"
 #include "pqueue.h" 
 #include "heatmap.h"
-#include "Optimal.h" 
+#include "Optimal.h"
 
 
-/* need add support for p and c type of data
- 
- */
+/******************* priority queue structs and def **********************/
 
-
-/** priority queue structs and def 
- */
-
-
-static  int
-cmp_pri(pqueue_pri_t next, pqueue_pri_t curr)
-{
+static int cmp_pri(pqueue_pri_t next, pqueue_pri_t curr){
     return (next < curr);
 }
 
 
-static  pqueue_pri_t
-get_pri(void *a)
-{
+static pqueue_pri_t get_pri(void *a){
     return ((pq_node_t *) a)->pri;
 }
 
 
-static  void
-set_pri(void *a, pqueue_pri_t pri)
-{
+static void set_pri(void *a, pqueue_pri_t pri){
     ((pq_node_t *) a)->pri = pri;
 }
 
 
-static  size_t
-get_pos(void *a)
-{
+static size_t get_pos(void *a){
     return ((pq_node_t *) a)->pos;
 }
 
 
-static  void
-set_pos(void *a, size_t pos)
-{
+static void set_pos(void *a, size_t pos){
     ((pq_node_t *) a)->pos = pos;
 }
 
 
-//static void print_cacheline(struct_cache* optimal){
-//    struct optimal_params* optimal_params = (struct optimal_params*)(optimal->cache_params);
-//    if (!pqueue_peek(optimal_params->pq))
-//        printf("pq size: %zu, hashtable size: %u, peek: EMPTY\n", pqueue_size(optimal_params->pq), g_hash_table_size(optimal_params->hashtable));
-//    else
-//        printf("pq size: %zu, hashtable size: %u, peek: %lld\n", pqueue_size(optimal_params->pq), g_hash_table_size(optimal_params->hashtable), ((pq_node_t*)pqueue_peek(optimal_params->pq))->long_item);
-//}
 
 
+/*************************** OPT related ****************************/
 
 void __optimal_insert_element(struct_cache* optimal, cache_line* cp){
     struct optimal_params* optimal_params = (struct optimal_params*)(optimal->cache_params);
@@ -91,7 +68,7 @@ void __optimal_insert_element(struct_cache* optimal, cache_line* cp){
 }
 
 
- gboolean optimal_check_element(struct_cache* cache, cache_line* cp){
+gboolean optimal_check_element(struct_cache* cache, cache_line* cp){
     return g_hash_table_contains(
                                 ((struct optimal_params*)(cache->cache_params))->hashtable,
                                 (gconstpointer)(cp->item_p)
@@ -99,7 +76,7 @@ void __optimal_insert_element(struct_cache* optimal, cache_line* cp){
 }
 
 
- void __optimal_update_element(struct_cache* optimal, cache_line* cp){
+void __optimal_update_element(struct_cache* optimal, cache_line* cp){
     struct optimal_params* optimal_params = (struct optimal_params*)(optimal->cache_params);
     void* node;
     node = (void*) g_hash_table_lookup(optimal_params->hashtable, (gconstpointer)(cp->item_p));
@@ -130,10 +107,33 @@ void __optimal_evict_element(struct_cache* optimal, cache_line* cp){
         }
     }
     
-    
     g_hash_table_remove(optimal_params->hashtable, (gconstpointer)(node->item));
 }
 
+
+void* __optimal_evict_with_return(struct_cache* optimal, cache_line* cp){
+    struct optimal_params* optimal_params = (struct optimal_params*)(optimal->cache_params);
+    
+    void* evicted_key;
+    pq_node_t* node = (pq_node_t*) pqueue_pop(optimal_params->pq);
+    
+    if (cp->type == 'l'){
+        evicted_key = (gpointer)g_new(guint64, 1);
+        *(guint64*)evicted_key = *(guint64*)(node->item);
+    }
+    else{
+        evicted_key = (gpointer)g_strdup((gchar*)(node->item));
+    }
+
+    g_hash_table_remove(optimal_params->hashtable, (gconstpointer)(node->item));
+    return evicted_key;
+}
+
+
+guint64 optimal_get_size(struct_cache* cache){
+    struct optimal_params* optimal_params = (struct optimal_params*)(cache->cache_params);
+    return (guint64) g_hash_table_size(optimal_params->hashtable);
+}
 
 
 
@@ -203,12 +203,21 @@ struct_cache* optimal_init(guint64 size, char data_type, void* params){
     struct optimal_params* optimal_params = g_new0(struct optimal_params, 1);
     cache->cache_params = (void*) optimal_params;
     
-    cache->core->type = e_Optimal;
-    cache->core->cache_init = optimal_init;
-    cache->core->destroy = optimal_destroy;
-    cache->core->destroy_unique = optimal_destroy_unique;
-    cache->core->add_element = optimal_add_element;
-    cache->core->check_element = optimal_check_element;
+    cache->core->type                   = e_Optimal;
+    cache->core->cache_init             = optimal_init;
+    cache->core->destroy                = optimal_destroy;
+    cache->core->destroy_unique         = optimal_destroy_unique;
+    cache->core->add_element            = optimal_add_element;
+    cache->core->check_element          = optimal_check_element;
+    
+    cache->core->__insert_element       = __optimal_insert_element;
+    cache->core->__update_element       = __optimal_update_element;
+    cache->core->__evict_element        = __optimal_evict_element;
+    cache->core->__evict_with_return = __optimal_evict_with_return;
+    cache->core->get_size               = optimal_get_size;
+
+    
+    
     optimal_params->ts = ((struct optimal_init_params*)params)->ts;
 
     READER* reader = ((struct optimal_init_params*)params)->reader;

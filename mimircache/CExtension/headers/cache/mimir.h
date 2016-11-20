@@ -70,12 +70,7 @@ typedef gint64 TS_REPRESENTATION;
 
 
 
-//struct training_data_node{
-//    gint32* array;              // use array makes more sense as the length would be very short,
-//                                // use list will take more space for the pointers
-//    gint8 length;
-//    gpointer item_p; 
-//};
+
 
 struct MIMIR_init_params{
     char *cache_type;
@@ -87,7 +82,6 @@ struct MIMIR_init_params{
     
     gdouble training_period;
     gchar training_period_type;
-//    gint64 prefetch_table_size;
     
     gint block_size;
     gdouble max_metadata_size;
@@ -106,26 +100,6 @@ struct MIMIR_init_params{
     gint sequential_K;
     gint AMP_pthreshold;
     gint output_statistics;
-};
-
-
-//struct mining_table_entry{
-//    void* label;
-//    char* ts;
-//};
-
-
-struct recording_mining_struct{
-    GHashTable *hashtable;
-    gint64* recording_table;                // N*(min_support/4+1) array, N is number of entries, extra one is for label
-    gint8 recording_table_row_len;          // (min_support/4+1)
-    gint8 mining_table_row_len;             // (max_support/4+1)
-    gint64 num_of_rows_in_recording_table;  
-    gint64 recording_table_pointer;
-    GArray* mining_table;                   // mining_threshold array, maybe can adaptively increase
-    gint num_of_entry_available_for_mining;
-    
-//    GSList *available_mining_table_pos;
 };
 
 
@@ -159,7 +133,6 @@ struct MIMIR_params{
                                                     reaches end of current shard
                                                 */
     gint64 **prefetch_table_array;             // two dimension array
-//    gint64 prefetch_table_size;
 
     guint64 ts;
     
@@ -173,7 +146,6 @@ struct MIMIR_params{
     gint output_statistics;                 // a flag for turning on statistics analysis 
     GHashTable *prefetched_hashtable_mimir;
     guint64 hit_on_prefetch_mimir;
-//    guint64 effective_hit_on_prefetch_mimir;    // hit within range 
     guint64 num_of_prefetch_mimir;
     guint64 evicted_prefetch;
     
@@ -186,39 +158,50 @@ struct MIMIR_params{
 
 
 
-extern  void __MIMIR_insert_element(struct_cache* MIMIR, cache_line* cp);
-
-extern  gboolean MIMIR_check_element(struct_cache* MIMIR, cache_line* cp);
-
-extern  void __MIMIR_update_element(struct_cache* MIMIR, cache_line* cp);
-
-extern  void __MIMIR_evict_element(struct_cache* MIMIR, cache_line* cp);
-
-extern  gboolean MIMIR_add_element(struct_cache* MIMIR, cache_line* cp);
-
-
-extern  void MIMIR_destroy(struct_cache* MIMIR);
-extern  void MIMIR_destroy_unique(struct_cache* MIMIR);
-
-extern void __MIMIR_mining(struct_cache* MIMIR);
-extern void __MIMIR_aging(struct_cache* MIMIR);
-extern void mimir_add_to_prefetch_table(struct_cache* MIMIR, gpointer gp1, gpointer gp2);
+struct recording_mining_struct{
+    GHashTable *hashtable;
+    gint64* recording_table;                // N*(min_support/4+1) array, N is number of entries, extra one is for label
+    gint8 recording_table_row_len;          // (min_support/4+1)
+    gint8 mining_table_row_len;             // (max_support/4+1)
+    gint64 num_of_rows_in_recording_table;
+    gint64 recording_table_pointer;
+    GArray* mining_table;                   // mining_threshold array, maybe can adaptively increase
+    gint num_of_entry_available_for_mining;
+};
 
 
-struct_cache* MIMIR_init(guint64 size, char data_type, void* params);
 
 
-void training_node_destroyer(gpointer data);
-void prefetch_node_destroyer(gpointer data);
-void prefetch_array_node_destroyer(gpointer data);
+
+extern gboolean MIMIR_check_element(struct_cache* MIMIR, cache_line* cp);
+extern gboolean MIMIR_add_element(struct_cache* MIMIR, cache_line* cp);
+
+extern void     __MIMIR_update_element(struct_cache* MIMIR, cache_line* cp);
+extern void     __MIMIR_insert_element(struct_cache* MIMIR, cache_line* cp);
+extern void     __MIMIR_evict_element(struct_cache* MIMIR, cache_line* cp);
+// extern void*    __MIMIR__evict_with_return(struct_cache* MIMIR, cache_line* cp);
 
 
-void
-prefetch_hashmap_count_length (gpointer key, gpointer value, gpointer user_data); 
+
+extern void     MIMIR_destroy(struct_cache* MIMIR);
+extern void     MIMIR_destroy_unique(struct_cache* MIMIR);
+
+extern void     __MIMIR_mining(struct_cache* MIMIR);
+extern void     __MIMIR_aging(struct_cache* MIMIR);
+extern void     mimir_add_to_prefetch_table(struct_cache* MIMIR, gpointer gp1, gpointer gp2);
 
 
-extern  void MIMIR_remove_element(struct_cache* cache, void* data_to_remove);
-extern gpointer __MIMIR_evict_element_with_return(struct_cache* MIMIR, cache_line* cp);
+struct_cache*   MIMIR_init(guint64 size, char data_type, void* params);
+
+
+extern void     prefetch_node_destroyer(gpointer data);
+extern void     prefetch_array_node_destroyer(gpointer data);
+
+
+void prefetch_hashmap_count_length (gpointer key, gpointer value, gpointer user_data);
+
+
+extern void MIMIR_remove_element(struct_cache* cache, void* data_to_remove);
 extern guint64 MIMIR_get_size(struct_cache* cache);
 
 

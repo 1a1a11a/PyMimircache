@@ -34,6 +34,7 @@ typedef enum{
     e_test1,
     e_AMP,
     e_LRUPage,
+    e_PG,
 
     
     e_YJC,
@@ -61,10 +62,10 @@ struct cache_core{
     void                (*__insert_element)(struct cache*, cache_line*);
     void                (*__update_element)(struct cache*, cache_line*);
     void                (*__evict_element)(struct cache*, cache_line*);
-    gpointer            (*__evict_element_with_return)(struct cache*, cache_line*);
+    gpointer            (*__evict_with_return)(struct cache*, cache_line*);
     
     // newly added 0912, only works on LRU
-    guint64             (*get_size)(struct cache*);
+    uint64_t            (*get_size)(struct cache*);
     
     
     
@@ -86,24 +87,10 @@ typedef struct cache{
 
 
 
-//#define type core->type;
-//#define size core->size;
-//#define data_type core->data_type;
-//#define hit_count core->hit_count;
-//#define miss_count core->miss_count;
-//#define cache_init_params core->cache_init_params;
-//#define cache_init core->cache_init;
-//#define destroy core->destroy;
-//#define destroy_unique core->destroy_unique;
-//#define add_element core->add_element;
-//#define check_element core->check_element;
 
-
-
-
-struct_cache* cache_init(long long size, char data_type);
-void cache_destroy(struct_cache* cache);
-void cache_destroy_unique(struct_cache* cache); 
+extern struct_cache*    cache_init(long long size, char data_type);
+extern void             cache_destroy(struct_cache* cache);
+extern void             cache_destroy_unique(struct_cache* cache);
 
 
 

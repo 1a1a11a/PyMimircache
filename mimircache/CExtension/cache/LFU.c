@@ -114,7 +114,7 @@ void __LFU_evict_element(struct_cache* cache, cache_line* cp){
 }
 
 
-gpointer __LFU_evict_element_with_return(struct_cache* cache, cache_line* cp){
+gpointer __LFU__evict_with_return(struct_cache* cache, cache_line* cp){
     struct LFU_params* LFU_params = (struct LFU_params*)(cache->cache_params);
     
     pq_node_t* node = (pq_node_t*) pqueue_pop(LFU_params->pq);
@@ -212,7 +212,7 @@ struct_cache* LFU_init(guint64 size, char data_type, void* params){
 }
 
 
-guint64 LFU_get_size(struct_cache* cache){
+uint64_t LFU_get_size(struct_cache* cache){
     struct LFU_params* LFU_params = (struct LFU_params*)(cache->cache_params);
     return (guint64) g_hash_table_size(LFU_params->hashtable);
 }

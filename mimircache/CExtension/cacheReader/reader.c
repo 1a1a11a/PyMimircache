@@ -533,5 +533,7 @@ cache_line* new_cacheline(){
 }
 
 void destroy_cacheline(cache_line* cp){
+    if (cp->content)
+        g_free(cp->content); 
     g_free(cp);
 }

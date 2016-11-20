@@ -663,7 +663,7 @@ void __MIMIR_evict_element(struct_cache* MIMIR, cache_line* cp){
 //    g_hash_table_foreach(MIMIR_params->prefetched_hashtable_mimir, check_prefetched_hashtable, MIMIR_params);
     if (MIMIR_params->output_statistics){
         gpointer gp;
-        gp = MIMIR_params->cache->core->__evict_element_with_return(MIMIR_params->cache, cp);
+        gp = MIMIR_params->cache->core->__evict_with_return(MIMIR_params->cache, cp);
 
         gint type = GPOINTER_TO_INT(g_hash_table_lookup(MIMIR_params->prefetched_hashtable_mimir, gp));
         if (type !=0 && type < MIMIR_params->cycle_time){
@@ -1061,7 +1061,9 @@ void __MIMIR_mining(struct_cache* MIMIR){
             
             gint error = 0;
             for (k=1; k<shorter_length; k++){
-                if ( ABS(GET_NTH_TS(item1, k) - GET_NTH_TS(item2, k)) > MIMIR_params->item_set_size){
+                 if ( ABS(GET_NTH_TS(item1, k) - GET_NTH_TS(item2, k)) > MIMIR_params->item_set_size){
+//                 if ( (GET_NTH_TS(item2, k) < GET_NTH_TS(item1, k)) ||
+//                     (GET_NTH_TS(item2, k) - GET_NTH_TS(item1, k)) > MIMIR_params->item_set_size){
                     error ++;
                     if (error > MIMIR_params->confidence){
                         associated_flag = FALSE;
@@ -1272,14 +1274,6 @@ void __MIMIR_aging(struct_cache* MIMIR){
 }
 
 
-//void training_node_destroyer(gpointer data){
-//    GList* list_node = (GList*)data;
-//    struct training_data_node *data_node = (struct training_data_node*) (list_node->data);
-//    g_free(data_node->array);
-//    g_free(data_node->item_p);
-//    g_free(data_node);
-//    g_list_free_1(list_node);
-//}
 
 void prefetch_node_destroyer(gpointer data){
 //    struct prefetch_hashtable_valuelist_element *node = (struct prefetch_hashtable_valuelist_element*) data;

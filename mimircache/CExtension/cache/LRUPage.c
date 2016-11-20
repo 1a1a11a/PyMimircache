@@ -59,7 +59,7 @@ void __LRUPage_evict_element(struct_cache* LRUPage, cache_line* cp){
 }
 
 
-gpointer __LRUPage_evict_element_with_return(struct_cache* LRUPage, cache_line* cp){
+void* __LRUPage__evict_with_return(struct_cache* LRUPage, cache_line* cp){
     /** evict one element and return the key of evicted element, 
      needs to free the memory of returned data **/
     
@@ -135,7 +135,7 @@ struct_cache* LRUPage_init(guint64 size, char data_type, void* params){
     cache->core->__insert_element   =       __LRUPage_insert_element;
     cache->core->__update_element   =       __LRUPage_update_element;
     cache->core->__evict_element    =       __LRUPage_evict_element;
-    cache->core->__evict_element_with_return = __LRUPage_evict_element_with_return; 
+    cache->core->__evict_with_return = __LRUPage__evict_with_return; 
     cache->core->get_size           =       LRUPage_get_size;
     cache->core->cache_init_params  =       NULL;
 

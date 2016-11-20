@@ -64,32 +64,33 @@ struct AMP_init_params{
 
 
 
-extern struct AMP_page* __AMP_insert_element_int(struct_cache* AMP, gint64 block);
-extern void __AMP_insert_element(struct_cache* AMP, cache_line* cp);
+extern gboolean     AMP_check_element_int(struct_cache* cache, gint64 block);
+extern gboolean     AMP_check_element(struct_cache* cache, cache_line* cp);
 
-extern  gboolean AMP_check_element_int(struct_cache* cache, gint64 block);
-extern  gboolean AMP_check_element(struct_cache* cache, cache_line* cp);
+extern gboolean     AMP_add_element(struct_cache* cache, cache_line* cp);
+extern gboolean     AMP_add_element_no_eviction(struct_cache* cache, cache_line* cp);
 
 extern struct AMP_page* __AMP_update_element_int(struct_cache* AMP, gint64 block);
-extern void __AMP_update_element(struct_cache* AMP, cache_line* cp);
+extern void         __AMP_update_element(struct_cache* AMP, cache_line* cp);
 
-extern  void __AMP_evict_element(struct_cache* AMP, cache_line* cp);
-extern gpointer __AMP_evict_element_with_return(struct_cache* AMP, cache_line* cp);
-
-extern  gboolean AMP_add_element(struct_cache* cache, cache_line* cp);
-extern  gboolean AMP_add_element_no_eviction(struct_cache* cache, cache_line* cp);
+extern struct AMP_page* __AMP_insert_element_int(struct_cache* AMP, gint64 block);
+extern void         __AMP_insert_element(struct_cache* AMP, cache_line* cp);
 
 
-extern  void AMP_destroy(struct_cache* cache);
-extern  void AMP_destroy_unique(struct_cache* cache);
+extern void         __AMP_evict_element(struct_cache* AMP, cache_line* cp);
+extern void*        __AMP__evict_with_return(struct_cache* AMP, cache_line* cp);
 
 
-struct_cache* AMP_init(guint64 size, char data_type, void* params);
+
+extern void         AMP_destroy(struct_cache* cache);
+extern void         AMP_destroy_unique(struct_cache* cache);
 
 
-extern  void AMP_remove_element(struct_cache* cache, void* data_to_remove);
-extern gpointer __AMP_evict_element_with_return(struct_cache* AMP, cache_line* cp);
-extern guint64 AMP_get_size(struct_cache* cache);
+struct_cache*       AMP_init(guint64 size, char data_type, void* params);
+
+
+extern void         AMP_remove_element(struct_cache* cache, void* data_to_remove);
+extern uint64_t     AMP_get_size(struct_cache* cache);
 
 
 

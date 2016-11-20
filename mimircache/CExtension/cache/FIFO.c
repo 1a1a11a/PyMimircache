@@ -47,7 +47,7 @@ void __fifo_evict_element(struct_cache* fifo, cache_line* cp){
     g_hash_table_remove(fifo_params->hashtable, (gconstpointer)data);
 }
 
-gpointer __fifo_evict_element_with_return(struct_cache* fifo, cache_line* cp){
+gpointer __fifo__evict_with_return(struct_cache* fifo, cache_line* cp){
     struct FIFO_params* fifo_params = (struct FIFO_params*)(fifo->cache_params);
     gpointer data = g_queue_pop_head(fifo_params->list);
     gpointer gp;
@@ -108,17 +108,17 @@ struct_cache* fifo_init(guint64 size, char data_type, void* params){
     cache->cache_params = g_new0(struct FIFO_params, 1);
     struct FIFO_params* fifo_params = (struct FIFO_params*)(cache->cache_params);
     
-    cache->core->type = e_FIFO;
-    cache->core->cache_init = fifo_init;
-    cache->core->destroy = fifo_destroy;
-    cache->core->destroy_unique = fifo_destroy_unique;
-    cache->core->add_element = fifo_add_element;
-    cache->core->check_element = fifo_check_element;
-    cache->core->__evict_element = __fifo_evict_element;
-    cache->core->__insert_element = __fifo_insert_element;
-    cache->core->__update_element = __fifo_update_element;
-    cache->core->__evict_element_with_return = __fifo_evict_element_with_return; 
-    cache->core->get_size = fifo_get_size;
+    cache->core->type                       =       e_FIFO;
+    cache->core->cache_init                 =       fifo_init;
+    cache->core->destroy                    =       fifo_destroy;
+    cache->core->destroy_unique             =       fifo_destroy_unique;
+    cache->core->add_element                =       fifo_add_element;
+    cache->core->check_element              =       fifo_check_element;
+    cache->core->__evict_element            =       __fifo_evict_element;
+    cache->core->__insert_element           =       __fifo_insert_element;
+    cache->core->__update_element           =       __fifo_update_element;
+    cache->core->__evict_with_return       =       __fifo__evict_with_return;
+    cache->core->get_size                   =       fifo_get_size; 
     
     cache->core->cache_init_params = NULL;
 
@@ -138,7 +138,7 @@ struct_cache* fifo_init(guint64 size, char data_type, void* params){
 }
 
 
-guint64 fifo_get_size(struct_cache *cache){
+uint64_t fifo_get_size(struct_cache *cache){
     struct FIFO_params* fifo_params = (struct FIFO_params*)(cache->cache_params);
     return g_hash_table_size(fifo_params->hashtable);
 }

@@ -85,7 +85,6 @@ void __LRU_evict_element(struct_cache* LRU, cache_line* cp){
                 printf("no error at %lu: %lu, %lu\n", cp->ts, *(guint64*)(data), *(guint64*)(g_queue_peek_tail(LRU_params->list)));
             gpointer data_oracle = g_hash_table_lookup(LRU_params->hashtable, (gpointer)&((guint64* )LRU->core->oracle)[cp->ts]);
             g_queue_delete_link(LRU_params->list, (GList*)data_oracle);
-//            g_queue_remove(LRU_params->list, ((GList*) data_oracle)->data);
             g_hash_table_remove(LRU_params->hashtable, (gpointer)&((guint64*)LRU->core->oracle)[cp->ts]);
         }
         else{
@@ -121,7 +120,7 @@ void __LRU_evict_element(struct_cache* LRU, cache_line* cp){
 }
 
 
-gpointer __LRU_evict_element_with_return(struct_cache* LRU, cache_line* cp){
+gpointer __LRU__evict_with_return(struct_cache* LRU, cache_line* cp){
     /** evict one element and return the evicted element, needs to free the memory of returned data **/
     
     struct LRU_params* LRU_params = (struct LRU_params*)(LRU->cache_params);
@@ -198,7 +197,7 @@ struct_cache* LRU_init(guint64 size, char data_type, void* params){
     cache->core->__insert_element = __LRU_insert_element;
     cache->core->__update_element = __LRU_update_element;
     cache->core->__evict_element  = __LRU_evict_element;
-    cache->core->__evict_element_with_return = __LRU_evict_element_with_return; 
+    cache->core->__evict_with_return = __LRU__evict_with_return; 
     cache->core->get_size = LRU_get_size; 
     cache->core->cache_init_params = NULL;
 
@@ -223,22 +222,12 @@ struct_cache* LRU_init(guint64 size, char data_type, void* params){
  void LRU_remove_element(struct_cache* cache, void* data_to_remove){
     struct LRU_params* LRU_params = (struct LRU_params*)(cache->cache_params);
     
-//    if (cp->type == 'l'){
-        gpointer data = g_hash_table_lookup(LRU_params->hashtable, data_to_remove);
-        g_queue_delete_link(LRU_params->list, (GList*) data);
-        g_hash_table_remove(LRU_params->hashtable, data_to_remove);
-//    }
-//    else{
-//        if (strcmp((gchar*)data, ((gchar**)(LRU->core->oracle))[cp->ts]) != 0)
-//            LRU->core->evict_err ++;
-//        gpointer data_oracle = g_hash_table_lookup(LRU_params->hashtable, (gpointer)((gchar**)LRU->core->oracle)[cp->ts]);
-//        g_hash_table_remove(LRU_params->hashtable, (gpointer)((gchar**)LRU->core->oracle)[cp->ts]);
-//        g_queue_remove(LRU_params->list, ((GList*) data_oracle)->data);
-//    }
-
+    gpointer data = g_hash_table_lookup(LRU_params->hashtable, data_to_remove);
+    g_queue_delete_link(LRU_params->list, (GList*) data);
+    g_hash_table_remove(LRU_params->hashtable, data_to_remove);
 }
 
-guint64 LRU_get_size(struct_cache* cache){
+uint64_t LRU_get_size(struct_cache* cache){
     struct LRU_params* LRU_params = (struct LRU_params*)(cache->cache_params);
     return (guint64) g_hash_table_size(LRU_params->hashtable);
 }
