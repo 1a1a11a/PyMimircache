@@ -73,6 +73,7 @@ void read_one_element(READER* reader, cache_line* c){
      and store it in the pre-allocated cache_line c, current given 
      size for the element(label) is 128 bytes(cache_line_label_size).
      */
+    c->ts ++; 
     switch (reader->type) {
         case 'c':
             csv_read_one_element(reader, c);
@@ -90,7 +91,6 @@ void read_one_element(READER* reader, cache_line* c){
             else {
                 if (strlen(c->item)==2 && c->item[0] == LINE_ENDING && c->item[1] == '\0')
                     return read_one_element(reader, c);
-                c->ts ++;
             }
             if (reader->data_type == 'l'){
                 int64_t n = atoll(c->item);
@@ -100,7 +100,6 @@ void read_one_element(READER* reader, cache_line* c){
         case 'v':
             vscsi_read(reader, c);
             *(int64_t*) (c->item_p) = *(int64_t*)(c->item_p) + 1;
-            c->ts ++;
             break;
         default:
             printf("cannot recognize reader type, it can only be c(csv), p(plain text), "

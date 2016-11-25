@@ -39,6 +39,7 @@
 #include "cache.h"
 #include "const.h"
 #include "AMP.h" 
+#include "PG.h" 
 
 
 struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyObject* cache_params, long begin);

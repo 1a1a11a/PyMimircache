@@ -520,6 +520,7 @@ static inline void __MIMIR_prefetch(struct_cache* MIMIR, cache_line* cp){
         gpointer old_cp_gp = cp->item_p;
         int i;
         for (i=1; i<MIMIR_params->prefetch_list_size+1; i++){
+            // begin from 1 because index 0 is the label of originated request
             if (MIMIR_params->prefetch_table_array[dim1][dim2+i] == 0)
                 break;
             if (cp->type == 'l')
@@ -534,7 +535,6 @@ static inline void __MIMIR_prefetch(struct_cache* MIMIR, cache_line* cp){
             if (MIMIR_params->cache->core->check_element(MIMIR_params->cache, cp)){
                 continue;
             }
-            
             MIMIR_params->cache->core->__insert_element(MIMIR_params->cache, cp);
             while (MIMIR_params->cache->core->get_size(MIMIR_params->cache) > MIMIR_params->cache->core->size)
                 // use this because we need to record stat when evicting 
@@ -552,7 +552,6 @@ static inline void __MIMIR_prefetch(struct_cache* MIMIR, cache_line* cp){
                 else
                     item_p = (gpointer)g_strdup((gchar*)(cp->item_p));
 
-//                g_hash_table_add(MIMIR_params->prefetched_hashtable_mimir, item_p);
                 g_hash_table_insert(MIMIR_params->prefetched_hashtable_mimir, item_p, GINT_TO_POINTER(1));
             }
         }
@@ -569,8 +568,6 @@ static inline void __MIMIR_prefetch(struct_cache* MIMIR, cache_line* cp){
         gpointer old_gp = cp->item_p;
         gint64 next = *(gint64*) (cp->item_p) + 1;
         cp->item_p = &next;
-//        if (MIMIR_params->output_statistics)
-//            MIMIR_params->num_of_check += 1;
         
 //        next ++;
         if (MIMIR_params->cache->core->check_element(MIMIR_params->cache, cp)){
@@ -727,7 +724,6 @@ gboolean MIMIR_add_element(struct_cache* MIMIR, cache_line* cp){
 //        if (MIMIR_params->ts - MIMIR_params->last_train_time > MIMIR_params->training_period){
 //        if (g_hash_table_size(MIMIR_params->hashtable_for_training) >= MIMIR_params->training_period){
 
-    
     MIMIR_params->ts ++;
     if (MIMIR_params->cache->core->type == e_AMP){
         gboolean result = MIMIR_check_element(MIMIR, cp);

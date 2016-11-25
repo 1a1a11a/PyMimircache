@@ -91,6 +91,8 @@ def _init_cache_alg_mapping():
     cache_alg_mapping['ms1'] = "MS1"
     cache_alg_mapping['ms2'] = "MS2"
 
+    cache_alg_mapping['pg'] = "PG"
+
 
 def cache_name_to_class(name):
     cache_class = None

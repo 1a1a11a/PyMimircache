@@ -1,7 +1,8 @@
 
 
 #define cache_line_label_size 1024
-#define FILE_LOC_STR_SIZE 1024 
+#define CACHE_LINE_LABEL_SIZE 1024
+#define FILE_LOC_STR_SIZE 1024
 
 #define KNRM  "\x1B[0m"
 #define KRED  "\x1B[31m"

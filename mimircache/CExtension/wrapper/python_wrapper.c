@@ -80,6 +80,23 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
 #endif 
         
     }
+    else if (strcmp(algorithm, "PG") == 0){
+        PG_init_params_t *init_params = g_new(PG_init_params_t, 1);
+        init_params->lookahead          = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "lookahead"));
+        init_params->block_size         = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "block_size"));
+        init_params->max_meta_data      = (double) PyFloat_AsDouble(PyDict_GetItemString(cache_params, "max_metadata_size"));
+        init_params->prefetch_threshold = (double) PyFloat_AsDouble(PyDict_GetItemString(cache_params, "prefetch_threshold"));
+        
+        PyObject * temp_bytes = PyUnicode_AsEncodedString(PyDict_GetItemString(cache_params, "cache_type"), "utf-8", "strict"); // Owned reference
+        if (temp_bytes != NULL) {
+            init_params->cache_type = g_strdup( PyBytes_AS_STRING(temp_bytes) ); // Borrowed pointer
+            Py_DECREF(temp_bytes);
+        }
+#ifdef DEBUG
+        printf("PG lookahead %d, max_meta_data %lf, prefetch_threshold %lf, cache type %s\n", init_params->lookahead, init_params->max_meta_data, init_params->prefetch_threshold, init_params->cache_type);
+#endif
+        cache = PG_init(cache_size, data_type, (void*)init_params);
+    }
     else if (strcmp(algorithm, "AMP") == 0){
         gint threshold = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "pthreshold"));
         gint K = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "K"));
@@ -134,17 +151,6 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
         }
         if (strcmp(cache_type, "AMP") == 0)
             AMP_pthreshold = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "AMP_pthreshold"));
-        
-        
-//        temp_bytes = PyUnicode_AsEncodedString(PyDict_GetItemString(cache_params, "mining_period_type"), "utf-8", "strict"); // Owned reference
-//        if (temp_bytes != NULL) {
-//            mining_period_type = PyBytes_AS_STRING(temp_bytes); // Borrowed pointer
-//            Py_DECREF(temp_bytes);
-//        }
-//        if (strcmp(mining_period_type, "unknown") == 0){
-//            printf("please provide mining_period_type\n");
-//            exit(1);
-//        }
         
         
 #ifdef DEBUG
