@@ -89,6 +89,13 @@ class LRUProfiler:
         return hit_count
 
     def get_hit_rate(self, **kwargs):
+        """
+
+        :param kwargs:
+        :return: a numpy array of CACHE_SIZE+3, 0~CACHE_SIZE corresponds to hit rate of size 0~CACHE_SIZE,
+         size 0 should always be 0, CACHE_SIZE+1 is out of range, CACHE_SIZE+2 is cold miss,
+         so total is CACHE_SIZE+3 buckets
+        """
         kargs = {}
         if 'cache_size' not in kwargs:
             kargs['cache_size'] = self.cache_size

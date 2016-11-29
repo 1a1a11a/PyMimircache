@@ -35,7 +35,7 @@ static inline void csv_cb1(void *s, size_t len, void *data){
         cache_line* cp = reader->cache_line_pointer;
         cp->size = (size_t) atoi((char*) s);
     }
-    else if (reader->current_column_counter == reader->size_column){
+    else if (reader->current_column_counter == reader->traceID_column){
         cache_line* cp = reader->cache_line_pointer;
         cp->traceID = (unsigned char) *((char*) s);
     }

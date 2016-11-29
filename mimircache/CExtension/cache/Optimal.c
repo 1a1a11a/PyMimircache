@@ -99,11 +99,11 @@ void __optimal_evict_element(struct_cache* optimal, cache_line* cp){
     if (optimal->core->cache_debug_level == 1){
         // save eviction
         if (cp->type == 'l'){
-            ((guint64*)(optimal->core->eviction_array))[cp->ts-1] = *(guint64*)(node->item);
+            ((guint64*)(optimal->core->eviction_array))[optimal_params->ts] = *(guint64*)(node->item);
         }
         else{
             gchar* key = g_strdup((gchar*)(node->item));
-            ((gchar**)(optimal->core->eviction_array))[cp->ts-1] = key;
+            ((gchar**)(optimal->core->eviction_array))[optimal_params->ts] = key;
         }
     }
     
@@ -130,7 +130,7 @@ void* __optimal_evict_with_return(struct_cache* optimal, cache_line* cp){
 }
 
 
-guint64 optimal_get_size(struct_cache* cache){
+uint64_t optimal_get_size(struct_cache* cache){
     struct optimal_params* optimal_params = (struct optimal_params*)(cache->cache_params);
     return (guint64) g_hash_table_size(optimal_params->hashtable);
 }
@@ -249,7 +249,6 @@ struct_cache* optimal_init(guint64 size, char data_type, void* params){
             exit(1);
         }
         GSList* list_move = list;
-    
     
         gint dist = (GPOINTER_TO_INT(list_move->data));
         g_array_append_val(array, dist);

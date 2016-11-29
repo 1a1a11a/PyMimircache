@@ -73,7 +73,7 @@ void read_one_element(READER* reader, cache_line* c){
      and store it in the pre-allocated cache_line c, current given 
      size for the element(label) is 128 bytes(cache_line_label_size).
      */
-    c->ts ++; 
+    c->ts ++;
     switch (reader->type) {
         case 'c':
             csv_read_one_element(reader, c);

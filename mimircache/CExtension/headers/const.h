@@ -28,3 +28,5 @@
 //#ifndef DEBUG
 //#define DEBUG(stat) ;
 //#endif 
+
+#define SANITY_CHECK

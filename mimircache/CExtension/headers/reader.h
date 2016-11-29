@@ -55,6 +55,7 @@ typedef struct{
             gint label_column;
             gint op_column;
             gint size_column;
+            gint traceID_column; 
             gint current_column_counter;
             
             void* cache_line_pointer;
@@ -93,7 +94,7 @@ typedef struct{
     gpointer item_p;
     char item[cache_line_label_size];
     char type;                              /* type of content can be either guint64(l) or char*(c) */
-    guint64 ts;                             /* virtual timestamp */
+    guint64 ts;                             /* deprecated, should not use, virtual timestamp */ 
     size_t size;
     int op;
     guint64 real_time;

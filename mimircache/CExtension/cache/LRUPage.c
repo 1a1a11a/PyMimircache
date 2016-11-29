@@ -135,7 +135,7 @@ struct_cache* LRUPage_init(guint64 size, char data_type, void* params){
     cache->core->__insert_element   =       __LRUPage_insert_element;
     cache->core->__update_element   =       __LRUPage_update_element;
     cache->core->__evict_element    =       __LRUPage_evict_element;
-    cache->core->__evict_with_return = __LRUPage__evict_with_return; 
+    cache->core->__evict_with_return=       __LRUPage__evict_with_return;
     cache->core->get_size           =       LRUPage_get_size;
     cache->core->cache_init_params  =       NULL;
 
@@ -170,7 +170,7 @@ void LRUPage_remove_element(struct_cache* cache, void* data_to_remove){
     g_hash_table_remove(LRUPage_params->hashtable, data_to_remove);
 }
 
-guint64 LRUPage_get_size(struct_cache* cache){
+uint64_t LRUPage_get_size(struct_cache* cache){
     struct LRUPage_params* LRUPage_params = (struct LRUPage_params*)(cache->cache_params);
     return (guint64) g_hash_table_size(LRUPage_params->hashtable);
 }

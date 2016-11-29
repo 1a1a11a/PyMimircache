@@ -56,7 +56,7 @@ gint64* eviction_stat(READER* reader_in, struct_cache* cache, evict_stat_type st
     if (reader_in->total_num == -1)
         get_num_of_cache_lines(reader_in);
     
-    if (reader_in->type == 'v')
+    if (reader_in->data_type == 'l')
         cache->core->eviction_array = g_new0(guint64, reader_in->total_num);
     else
         cache->core->eviction_array = g_new0(gchar*, reader_in->total_num);
@@ -115,7 +115,7 @@ gint64* get_eviction_freq(READER* reader, struct_cache* optimal, gboolean accumu
     
     // create hashtable for recording frequency
     GHashTable * hash_table;
-    if (reader->type == 'v'){
+    if (reader->data_type == 'l'){
         cp->type = 'l';
         hash_table = g_hash_table_new_full(g_int64_hash, g_int64_equal, \
                                            (GDestroyNotify)simple_g_key_value_destroyer, \

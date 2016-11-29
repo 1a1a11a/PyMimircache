@@ -1,13 +1,10 @@
-
+# coding=utf-8
 
 
 import unittest
-import mimircache.c_cacheReader as c_cacheReader
-import mimircache.c_LRUProfiler as c_LRUProfiler
 from mimircache.cacheReader.csvReader import csvReader
 from mimircache.cacheReader.plainReader import plainReader
 from mimircache.cacheReader.vscsiReader import vscsiReader
-from mimircache.profiler.LRUProfiler import LRUProfiler
 from mimircache.profiler.cGeneralProfiler import cGeneralProfiler
 from mimircache.profiler.generalProfiler import generalProfiler
 

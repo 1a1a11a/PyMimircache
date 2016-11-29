@@ -80,10 +80,13 @@ struct cache_core{
 };
 
 
-typedef struct cache{
+struct cache{
     struct cache_core *core;
     void* cache_params;
-}struct_cache;
+};
+
+typedef struct cache struct_cache;
+typedef struct cache cache_t;
 
 
 

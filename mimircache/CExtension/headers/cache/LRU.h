@@ -18,6 +18,7 @@
 struct LRU_params{
     GHashTable *hashtable;
     GQueue *list;
+    gint64 ts; 
 };
 
 

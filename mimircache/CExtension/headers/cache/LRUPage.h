@@ -54,7 +54,7 @@ struct_cache* LRUPage_init(guint64 size, char data_type, void* params);
 
 
 extern void LRUPage_remove_element(struct_cache* cache, void* data_to_remove);
-extern guint64 LRUPage_get_size(struct_cache* cache);
+extern uint64_t LRUPage_get_size(struct_cache* cache);
 extern void destroy_LRUPage_t(gpointer data);
 
 

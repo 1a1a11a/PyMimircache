@@ -100,7 +100,7 @@ static inline gint process_one_element_last_access(cache_line* cp, GHashTable* h
         // not first time access
         guint64 old_ts = *(guint64*)gp;
         ret = (gint) (ts - old_ts);
-        *(guint64*)gp = cp->ts;
+        *(guint64*)gp = ts;
     }
     return ret;
 }

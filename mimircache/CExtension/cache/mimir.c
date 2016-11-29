@@ -14,7 +14,7 @@
 
 
 //#define PROFILING 1
-#define SANITY_CHECK 1
+//#define SANITY_CHECK 1
 
 
 
@@ -82,9 +82,6 @@ void check_prefetched_hashtable (gpointer key, gpointer value, gpointer user_dat
 //    (*counter) += data_node->length;
 //}
 
-void mprintHashTable(gpointer key, gpointer value, gpointer userdata){
-    printf("key %lu, array length %u\n", *(guint64*)key, ((GPtrArray*)value)->len);
-}
 
 void print_mining_table(struct_cache* MIMIR){
     struct MIMIR_params* MIMIR_params = (struct MIMIR_params*)(MIMIR->cache_params);

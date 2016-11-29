@@ -442,6 +442,55 @@ static PyObject* generalProfiler_get_partition(PyObject* self, PyObject* args, P
 
 
 
+static PyObject* generalProfiler_get_partition_hit_rate(PyObject* self, PyObject* args, PyObject* keywds)
+{
+    PyObject* po;
+    READER* reader;
+    int num_of_threads = 4;
+    long cache_size;
+    int bin_size = -1;
+    char* algorithm;
+    struct_cache* cache;
+    PyObject* cache_params;
+    
+    static char *kwlist[] = {"reader", "algorithm", "cache_size", "bin_size", "cache_params", "num_of_threads", NULL};
+    
+    // parse arguments
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osli|Oi", kwlist, &po, &algorithm, &cache_size, &bin_size, &cache_params, &num_of_threads)) {
+        printf("parsing argument failed in generalProfiler_get_partition_hit_rate\n");
+        return NULL;
+    }
+    
+    
+    if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
+        return NULL;
+    }
+    
+    // build cache
+    cache = build_cache(reader, cache_size, algorithm, cache_params, 0);
+    
+    // get hit rate
+    return_res** results = profiler_partition(reader, cache, num_of_threads, bin_size);
+    
+    // create numpy array
+    guint num_of_bins = ceil(cache_size/bin_size)+1;
+    npy_intp dims[1] = { num_of_bins };
+    PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    guint i;
+    *(double*)PyArray_GETPTR1((PyArrayObject*)ret_array, 0) = 0;
+    for(i=0; i<num_of_bins; i++){
+        *(double*)PyArray_GETPTR1((PyArrayObject*)ret_array, i) = results[i]->hit_rate;
+        g_free(results[i]);
+    }
+    
+    g_free(results);
+    cache->core->destroy(cache);
+    return ret_array;
+}
+
+
+
+
 
 
 
@@ -464,6 +513,8 @@ static PyMethodDef c_generalProfiler_funcs[] = {
         METH_VARARGS | METH_KEYWORDS, "get hit rate and prefetching efficiency"},
     {"get_partition", (PyCFunction)generalProfiler_get_partition,
         METH_VARARGS | METH_KEYWORDS, "get partition results with given alg"},
+    {"get_partition_hit_rate", (PyCFunction)generalProfiler_get_partition_hit_rate,
+        METH_VARARGS | METH_KEYWORDS, "get partition hit rate numpy array"},
     
     
     {NULL, NULL, 0, NULL}

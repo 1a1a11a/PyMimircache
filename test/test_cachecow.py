@@ -1,14 +1,6 @@
 
 
 import unittest
-import mimircache.c_cacheReader as c_cacheReader
-import mimircache.c_LRUProfiler as c_LRUProfiler
-from mimircache.cacheReader.csvReader import csvReader
-from mimircache.cacheReader.plainReader import plainReader
-from mimircache.cacheReader.vscsiReader import vscsiReader
-from mimircache.profiler.LRUProfiler import LRUProfiler
-from mimircache.profiler.cGeneralProfiler import cGeneralProfiler
-from mimircache.profiler.generalProfiler import generalProfiler
 from mimircache import cachecow
 
 DAT_FOLDER = "../data/"
@@ -27,10 +19,9 @@ class cachecowTest(unittest.TestCase):
         c = cachecow()
         # c.open('../data/trace.txt')
         c.csv("{}/trace.csv".format(DAT_FOLDER), init_params={"header" :True, 'label_column' :4, 'real_time_column':1})
-        # c.vscsi('{}/trace.vscsi'.format(DAT_FOLDER)
+        # c.vscsi('{}/trace.vscsi'.format(DAT_FOLDER))
 
         p = c.profiler("LRU")
-        p = LRUProfiler(c.reader)
         hr = p.get_hit_rate()
         self.assertAlmostEqual(hr[2000], 0.172851974146)
 

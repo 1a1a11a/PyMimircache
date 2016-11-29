@@ -40,6 +40,7 @@ struct multithreading_params_generalProfiler{
     GMutex mtx;             // prevent simultaneous write to progress
     guint64* progress;
 };
+typedef struct multithreading_params_generalProfiler mt_param_gp_t;
 
 struct HR_PE{
     guint64 real_cache_size[80];
