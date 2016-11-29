@@ -59,7 +59,7 @@ void __YJC_insert_element(struct_cache* YJC, cache_line* cp){
     
     gpointer evicted_data = NULL;
     if (LRU_get_size(YJC_params->LRU) > YJC_params->LRU_size)
-        evicted_data = __LRU_evict_element_with_return(YJC_params->LRU, cp);
+        evicted_data = __LRU__evict_with_return(YJC_params->LRU, cp);
 
     if (evicted_data){
         if (g_hash_table_contains(YJC_params->clustering_hashtable, evicted_data)){
@@ -352,7 +352,7 @@ void __YJC_update_element(struct_cache* cache, cache_line* cp){
 //        printf("after LRU remove, check element existence: %d\n", LRU_check_element(YJC_params->LRU, cp)); 
         __LFU_insert_element(YJC_params->LFU, cp);
         if (LFU_get_size(YJC_params->LFU) > YJC_params->LFU_size)
-            evicted_data = __LFU_evict_element_with_return(YJC_params->LFU, cp);
+            evicted_data = __LFU__evict_with_return(YJC_params->LFU, cp);
     }
     else if (LRU_check_element(YJC_params->prefetch, cp)){
         LRU_remove_element(YJC_params->prefetch, cp->item_p);
@@ -361,7 +361,7 @@ void __YJC_update_element(struct_cache* cache, cache_line* cp){
         
         // CHECK WHETHER NEEDS EVICTION
         if (LRU_get_size(YJC_params->LRU) > YJC_params->LRU_size)
-            evicted_data = __LRU_evict_element_with_return(YJC_params->LRU, cp);
+            evicted_data = __LRU__evict_with_return(YJC_params->LRU, cp);
     }
     else{
         // already in LFU segment, just increase priority
