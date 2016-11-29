@@ -261,7 +261,7 @@ void __MS2_evict_element(struct_cache* MS2, cache_line* cp){
     struct MS2_params* MS2_params = (struct MS2_params*)(MS2->cache_params);
     if (MS2_params->output_statistics){
         gpointer gp;
-        gp = MS2_params->cache->core->__evict_element_with_return(MS2_params->cache, cp);
+        gp = MS2_params->cache->core->__evict_with_return(MS2_params->cache, cp);
         g_hash_table_remove(MS2_params->prefetched_hashtable_MS2, gp);
         g_hash_table_remove(MS2_params->prefetched_hashtable_sequential, gp);
         g_free(gp);

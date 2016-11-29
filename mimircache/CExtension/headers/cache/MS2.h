@@ -133,7 +133,7 @@ struct_cache* MS2_init(guint64 size, char data_type, void* params);
 
 
 extern  void MS2_remove_element(struct_cache* cache, void* data_to_remove);
-extern gpointer __MS2_evict_element_with_return(struct_cache* MS2, cache_line* cp);
+extern gpointer __MS2__evict_with_return(struct_cache* MS2, cache_line* cp);
 extern guint64 MS2_get_size(struct_cache* cache);
 extern void MS2_training_node_destroyer(gpointer data);
 
