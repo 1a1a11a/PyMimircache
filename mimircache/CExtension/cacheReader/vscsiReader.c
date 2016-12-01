@@ -37,7 +37,7 @@ int vscsi_setup(char *filename, READER* reader)
 		return -1;
 	}
 
-	if ( (memT = (mmap (NULL, st.st_size, PROT_READ, MAP_PRIVATE, f, 0))) == MAP_FAILED)
+    if ( (memT = (mmap (NULL, st.st_size, PROT_READ, MAP_PRIVATE, f, 0))) == MAP_FAILED)
 	{
 		close (f);
 		fprintf (stderr, "Unable to allocate %llu bytes of memory\n", (unsigned long long) st.st_size);

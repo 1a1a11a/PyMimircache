@@ -33,6 +33,10 @@ void free_partition_t(partition_t *partition){
     g_free(partition);
 }
 
+static void
+printHashTable (gpointer key, gpointer value, gpointer user_data){
+    printf("key %s, value %p\n", key, value);
+}
 
 
 /*********************** partition related function *************************/
@@ -92,6 +96,9 @@ partition_t* get_partition(READER* reader, struct cache* cache, uint8_t n_partit
                 g_array_append_val(partitions->partition_history[i], percent);
             }
         }
+//        printf("cp->ts %ld, current %s\n", cp->ts, cp->item_p);
+//        g_hash_table_foreach( ((struct optimal_params*)cache->cache_params)->hashtable, printHashTable, NULL);
+        
         if (partitions->partition_history[0]->len == 1)
             partitions->jump_over_count = counter;
         
@@ -240,7 +247,8 @@ static void profiler_partition_thread(gpointer data, gpointer user_data){
                            hit_count + miss_count - partition->jump_over_count,
                            partition->partition_history[i]->len);
                 else
-                    cache[i]->core->size = (long)(bin_size * order *
+                    // the reason of 0.5 + is because default cast is to truncate
+                    cache[i]->core->size = (long)(0.5 + bin_size * order *
                                                   g_array_index(partition->partition_history[i], double,
                                                                 hit_count + miss_count - partition->jump_over_count));
         }

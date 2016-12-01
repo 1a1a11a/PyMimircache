@@ -311,7 +311,7 @@ void reset_reader(READER* reader){
 }
 
 
-void reader_set_read_pos(READER* reader, float pos){
+void reader_set_read_pos(READER* reader, double pos){
     /* jump to given postion, like 1/3, or 1/2 and so on
      * 
      */

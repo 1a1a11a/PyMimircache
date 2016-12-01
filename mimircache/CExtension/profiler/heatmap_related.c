@@ -53,6 +53,7 @@ GSList* get_last_access_dist_seq(READER* reader, void (*funcPtr)(READER*, cache_
         fprintf(stderr, "unknown function pointer received in heatmap: get_last_access_dist_seq\n");
         exit(1);
     }
+
     while (cp->valid){
         dist = process_one_element_last_access(cp, hash_table, ts);
         list = g_slist_prepend(list, GINT_TO_POINTER(dist));

@@ -22,7 +22,7 @@
 
 /***************************** helping functions ********************************/
  
-void
+static void
 printHashTable (gpointer key, gpointer value, gpointer user_data){
     printf("key %lu, value %p\n", *(guint64*)key, value);
 }

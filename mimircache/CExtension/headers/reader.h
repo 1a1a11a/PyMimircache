@@ -122,7 +122,7 @@ void read_one_op(READER* reader, void* op);
 guint64 read_one_request_size(READER* reader);
 
 
-void reader_set_read_pos(READER* reader, float pos);
+void reader_set_read_pos(READER* reader, double pos);
 guint64 get_num_of_cache_lines(READER* reader);
 void reset_reader(READER* reader);
 int close_reader(READER* reader);

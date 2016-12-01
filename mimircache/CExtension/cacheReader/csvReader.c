@@ -22,7 +22,7 @@ static inline void csv_cb1(void *s, size_t len, void *data){
         strncpy(cp->item, (char*)s, len);
         cp->item[len] = 0;
         reader->already_got_cache_line = TRUE;
-        (cp->ts) ++;
+//        (cp->ts) ++;          this line is removed because ts++ is done in reader.c 
     }
     else if (reader->current_column_counter == reader->real_time_column){
         cache_line* cp = reader->cache_line_pointer;
