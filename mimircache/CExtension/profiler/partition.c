@@ -35,7 +35,7 @@ void free_partition_t(partition_t *partition){
 
 static void
 printHashTable (gpointer key, gpointer value, gpointer user_data){
-    printf("key %s, value %p\n", key, value);
+    printf("key %s, value %p\n", (char*)key, value);
 }
 
 
@@ -103,7 +103,7 @@ partition_t* get_partition(READER* reader, struct cache* cache, uint8_t n_partit
             partitions->jump_over_count = counter;
         
         if (get_size(cache) > cache_size)
-            fprintf(stderr, "ERROR current size %llu, given size %ld\n", get_size(cache), cache_size);
+            fprintf(stderr, "ERROR current size %lu, given size %ld\n", (unsigned long)get_size(cache), cache_size);
 
         read_one_element(reader, cp);
         counter ++;
@@ -242,15 +242,17 @@ static void profiler_partition_thread(gpointer data, gpointer user_data){
         // now adjust each partition cache size
         if ((gint64)(hit_count + miss_count - partition->jump_over_count) >= 0){
             for(i=0; i<n_partition; i++)
-                if ((gint64)(hit_count + miss_count - partition->jump_over_count) >= partition->partition_history[i]->len)
-                    printf("ERROR size over, jump %llu, current %llu, len %u\n", partition->jump_over_count,
-                           hit_count + miss_count - partition->jump_over_count,
+                if ((gint64)(hit_count + miss_count - partition->jump_over_count)
+                                        >= partition->partition_history[i]->len)
+                    printf("ERROR size over, jump %lu, current %lu, len %u\n",
+                           (unsigned long)partition->jump_over_count,
+                           (unsigned long)(hit_count + miss_count - partition->jump_over_count),
                            partition->partition_history[i]->len);
                 else
                     // the reason of 0.5 + is because default cast is to truncate
                     cache[i]->core->size = (long)(0.5 + bin_size * order *
                                                   g_array_index(partition->partition_history[i], double,
-                                                                hit_count + miss_count - partition->jump_over_count));
+                                                    hit_count + miss_count - partition->jump_over_count));
         }
         
         
@@ -267,18 +269,22 @@ static void profiler_partition_thread(gpointer data, gpointer user_data){
         // sanity check
         for(i=0; i<n_partition; i++)
             if (get_size(cache[i]) != partition->current_partition[i])
-                fprintf(stderr, "Sanity check failed, i %d, ERROR size %llu, partition %llu\n", i, get_size(cache[i]), partition->current_partition[i]);
+                fprintf(stderr, "Sanity check failed, i %d, ERROR size %lu, "
+                        "partition %lu\n", i, (unsigned long)get_size(cache[i]),
+                        (unsigned long)partition->current_partition[i]);
         
         if (hit_count + miss_count == partition->jump_over_count){
             for(i=0; i<n_partition; i++)
                 if (get_size(cache[i]) != cache[i]->core->size &&
                     get_size(cache[i]) != cache[i]->core->size - 1){
                     // the second condition is possible because of the resize
-                    fprintf(stderr, "Sanity check failed, cache size full, but partition not consistent %d %d\n",
+                    fprintf(stderr, "Sanity check failed, cache size full, "
+                            "but partition not consistent %d %d\n",
                             get_size(cache[i]) != cache[i]->core->size,
                             partition->current_partition[i] != cache[i]->core->size);
-                    fprintf(stderr, "i %d, get size %llu, given size %ld, partition %llu\n",
-                            i, get_size(cache[i]), cache[i]->core->size, partition->current_partition[i]);
+                    fprintf(stderr, "i %d, get size %lu, given size %ld, partition %lu\n",
+                            i, (unsigned long)get_size(cache[i]), cache[i]->core->size,
+                            (unsigned long)partition->current_partition[i]);
                 }
         }
 #endif

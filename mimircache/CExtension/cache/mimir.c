@@ -13,9 +13,10 @@
 #include <stdlib.h>
 
 
-//#define PROFILING 1
-//#define SANITY_CHECK 1
-
+/* Mithril prefetching 
+ * current version only records at cache miss, 
+ * alternatively, we can also prefetch at eviction, or both 
+ */
 
 
 static inline void __MIMIR_record_entry_min_support_1(struct_cache* MIMIR, cache_line* cp);
@@ -184,6 +185,7 @@ static inline void __MIMIR_record_entry(struct_cache* MIMIR, cache_line* cp){
         !g_hash_table_contains(r_m_struct->hashtable, cp->item_p))
         return;
 
+    /* only record when it is not in the cache, even though it is in the recording/mining table */ 
     if (MIMIR_params->cache->core->check_element(MIMIR_params->cache, cp))
         return;
     
@@ -684,7 +686,7 @@ void __MIMIR_evict_element(struct_cache* MIMIR, cache_line* cp){
 //            }
             gpointer old_gp = cp->item_p;
             cp->item_p = gp;
-            __MIMIR_record_entry(MIMIR, cp);
+//            __MIMIR_record_entry(MIMIR, cp);
             cp->item_p = old_gp;
             g_hash_table_remove(MIMIR_params->prefetched_hashtable_mimir, gp);
             g_hash_table_remove(MIMIR_params->prefetched_hashtable_sequential, gp);

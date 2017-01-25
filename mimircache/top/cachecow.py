@@ -13,14 +13,20 @@ class cachecow:
 
     def open(self, file_path, data_type='c'):
         # assert os.path.exists(file_path), "data file does not exist"
+        if self.reader:
+            self.reader.close()
         self.reader = plainReader(file_path, data_type=data_type)
         return self.reader
 
     def csv(self, file_path, init_params, data_type='c'):
+        if self.reader:
+            self.reader.close()
         self.reader = csvReader(file_path, data_type=data_type, init_params=init_params)
         return self.reader
 
     def vscsi(self, file_path, data_type='v'):
+        if self.reader:
+            self.reader.close()
         self.reader = vscsiReader(file_path, data_type=data_type)
         return self.reader
 
@@ -279,12 +285,15 @@ class cachecow:
             num_of_threads=kwargs['num_of_threads']
 
         label = algorithm_list
+        threshold = 0.98
+
         if 'label' in kwargs:
             label = kwargs['label']
-
+        if 'autosize_threshold' in kwargs:
+            threshold = kwargs['autosize_threshold']
 
         if auto_size:
-            cache_size = LRUProfiler(self.reader).plotHRC(auto_resize=True, threshhold=0.98, no_save=True)
+            cache_size = LRUProfiler(self.reader).plotHRC(auto_resize=True, threshold=threshold, no_save=True)
         if bin_size == -1:
             bin_size = cache_size // DEFAULT_BIN_NUM_PROFILER +1
         for i in range(len(algorithm_list)):
@@ -305,7 +314,7 @@ class cachecow:
             else:
                 plt.plot(hr[:-2], label=label[i])
 
-        plt.legend(loc="lower right")
+        plt.legend(loc="best")
         plt.xlabel(plot_dict['xlabel'])
         plt.ylabel(plot_dict['ylabel'])
         plt.title(plot_dict['title'], fontsize=18, color='black')
@@ -328,10 +337,16 @@ class cachecow:
             label = algorithm_list
         else:
             label = kwargs['label']
+
+        threshold = 0.98
+        if 'autosize_threshold' in kwargs:
+            threshold = kwargs['autosize_threshold']
+
         ymin = 1
 
+
         if auto_size:
-            cache_size = LRUProfiler(self.reader).plotMRC(auto_resize=True, threshhold=0.98, no_save=True)
+            cache_size = LRUProfiler(self.reader).plotMRC(auto_resize=True, threshold=threshold, no_save=True)
         if bin_size == -1:
             bin_size = cache_size // DEFAULT_BIN_NUM_PROFILER +1
         for i in range(len(algorithm_list)):
@@ -357,7 +372,7 @@ class cachecow:
 
         plt.ylim(ymin=ymin)
         plt.semilogy()
-        plt.legend(loc="upper right")
+        plt.legend(loc="best")
         plt.xlabel(plot_dict['xlabel'])
         plt.ylabel(plot_dict['ylabel'])
         plt.title(plot_dict['title'], fontsize=18, color='black')

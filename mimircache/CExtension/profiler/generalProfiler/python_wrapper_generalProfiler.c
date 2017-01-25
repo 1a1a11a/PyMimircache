@@ -366,7 +366,7 @@ static PyObject* generalProfiler_get_hrpe(PyObject* self, PyObject* args, PyObje
 #endif
     
     // create numpy array
-    guint num_of_bins = 21;
+    guint num_of_bins = 18;
     npy_intp dims[1] = { num_of_bins*4 };
     PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
     guint64 i;

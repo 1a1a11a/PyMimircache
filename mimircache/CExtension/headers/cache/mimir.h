@@ -20,9 +20,9 @@
 typedef gint64 TS_REPRESENTATION;
 
 
-#define MINING_THRESHOLD  4096                      // when there are MINING_THRESHOLD entries longer than min_support, mining
+#define MINING_THRESHOLD  5120                      // when there are MINING_THRESHOLD entries longer than min_support, mining
 #define PREFETCH_TABLE_SHARD_SIZE 2000
-#define RECORDING_TABLE_MAXIMAL 0.01
+#define RECORDING_TABLE_MAXIMAL 0.02
 
 
 

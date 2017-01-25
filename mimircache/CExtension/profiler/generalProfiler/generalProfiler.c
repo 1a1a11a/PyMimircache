@@ -10,7 +10,8 @@
 #include "LRU.h"
 #include "python_wrapper.h"
 #include "LRU_dataAware.h"
-#include "AMP.h"
+#include "AMP.h" 
+#include "PG.h"
 
 
 
@@ -21,8 +22,8 @@
 struct HR_PE* get_HR_PE(READER* reader_in, guint64 size){
     
     int i;
-    int AMP_n = 1, mimir_n1 = 12, mimir_n2 = 0;
-    int n = AMP_n + mimir_n1 + mimir_n2 + 1;
+    int AMP_n = 1, mimir_n1 = 8, mimir_n2 = 8, PG_n = 1;
+    int n = AMP_n + mimir_n1 + mimir_n2 + + PG_n + 1;
     
     
     // initialization
@@ -39,7 +40,8 @@ struct HR_PE* get_HR_PE(READER* reader_in, guint64 size){
     hrpe_params->caches = g_new0(struct_cache*, n);
     
     hrpe_params->caches[0] = LRU_init(size, reader_in->data_type, NULL);
-
+    
+    
     struct AMP_init_params** AMP_initp = g_new0(struct AMP_init_params*, AMP_n);
     for (i=0; i<AMP_n; i++){
         AMP_initp[i] = g_new0(struct AMP_init_params, 1);
@@ -49,12 +51,22 @@ struct HR_PE* get_HR_PE(READER* reader_in, guint64 size){
         AMP_initp[i]->p_threshold = (int)(256/pow(2, i+1));
         hrpe_params->caches[i+1] = AMP_init(size, reader_in->data_type, AMP_initp[i]);
     }
+
+    PG_init_params_t *PG_initp = g_new0(PG_init_params_t, 1);
+    PG_initp->block_size = 64*1024;
+    PG_initp->cache_type = "LRU";
+    PG_initp->lookahead = 20;
+    PG_initp->max_meta_data = 0.1;
+    PG_initp->prefetch_threshold = 0.05;
+    
+    hrpe_params->caches[1+AMP_n] = PG_init(size, reader_in->data_type, PG_initp); 
+
     
     struct MIMIR_init_params** mimir_initp = g_new0(struct MIMIR_init_params*, mimir_n1 + mimir_n2);
     for (i=0; i<mimir_n1+mimir_n2; i++){
         mimir_initp[i] = g_new0(struct MIMIR_init_params, 1);
         mimir_initp[i]->block_size = 64 * 1024;
-        mimir_initp[i]->cache_type = "AMP";
+        mimir_initp[i]->cache_type = "LRU";
 //        mimir_initp[i]->max_support = 20;
 //        mimir_initp[i]->min_support = 2;
         mimir_initp[i]->confidence = 0;
@@ -63,15 +75,15 @@ struct HR_PE* get_HR_PE(READER* reader_in, guint64 size){
         mimir_initp[i]->prefetch_list_size = 2;
         mimir_initp[i]->max_metadata_size = 0.10;
         mimir_initp[i]->training_period_type = 'v';
-        mimir_initp[i]->sequential_type = 2;
-        mimir_initp[i]->sequential_K = 1;
+        mimir_initp[i]->sequential_type = 0;
+        mimir_initp[i]->sequential_K = 0;
         mimir_initp[i]->cycle_time = 2;
         mimir_initp[i]->AMP_pthreshold = 256;
     }
     
     
     mimir_initp[0]->min_support = 1;
-    mimir_initp[0]->max_support = 8;
+    mimir_initp[0]->max_support = 4;
 
     mimir_initp[1]->min_support = 2;
     mimir_initp[1]->max_support = 8;
@@ -94,17 +106,55 @@ struct HR_PE* get_HR_PE(READER* reader_in, guint64 size){
     mimir_initp[7]->min_support = 8;
     mimir_initp[7]->max_support = 20;
 
-    mimir_initp[8]->min_support = 9;
-    mimir_initp[8]->max_support = 20;
 
-    mimir_initp[9]->min_support = 10;
-    mimir_initp[9]->max_support = 20;
+    
+    mimir_initp[8]->min_support = 1;
+    mimir_initp[8]->max_support = 4;
+    mimir_initp[8]->cache_type = "AMP";
+    mimir_initp[8]->sequential_type = 2;
+    mimir_initp[8]->sequential_K = 1;
 
-    mimir_initp[10]->min_support = 12;
-    mimir_initp[10]->max_support = 24;
+    mimir_initp[9]->min_support = 2;
+    mimir_initp[9]->max_support = 8;
+    mimir_initp[9]->cache_type = "AMP";
+    mimir_initp[9]->sequential_type = 2;
+    mimir_initp[9]->sequential_K = 1;
 
-    mimir_initp[11]->min_support = 14;
-    mimir_initp[11]->max_support = 28;
+    mimir_initp[10]->min_support = 3;
+    mimir_initp[10]->max_support = 12;
+    mimir_initp[10]->cache_type = "AMP";
+    mimir_initp[10]->sequential_type = 2;
+    mimir_initp[10]->sequential_K = 1;
+
+    mimir_initp[11]->min_support = 4;
+    mimir_initp[11]->max_support = 16;
+    mimir_initp[11]->cache_type = "AMP";
+    mimir_initp[11]->sequential_type = 2;
+    mimir_initp[11]->sequential_K = 1;
+
+    mimir_initp[12]->min_support = 5;
+    mimir_initp[12]->max_support = 20;
+    mimir_initp[12]->cache_type = "AMP";
+    mimir_initp[12]->sequential_type = 2;
+    mimir_initp[12]->sequential_K = 1;
+
+    mimir_initp[13]->min_support = 6;
+    mimir_initp[13]->max_support = 20;
+    mimir_initp[13]->cache_type = "AMP";
+    mimir_initp[13]->sequential_type = 2;
+    mimir_initp[13]->sequential_K = 1;
+
+    mimir_initp[14]->min_support = 7;
+    mimir_initp[14]->max_support = 20;
+    mimir_initp[14]->cache_type = "AMP";
+    mimir_initp[14]->sequential_type = 2;
+    mimir_initp[14]->sequential_K = 1;
+
+    mimir_initp[15]->min_support = 8;
+    mimir_initp[15]->max_support = 20;
+    mimir_initp[15]->cache_type = "AMP";
+    mimir_initp[15]->sequential_type = 2;
+    mimir_initp[15]->sequential_K = 1;
 
    
     /**
@@ -129,216 +179,13 @@ struct HR_PE* get_HR_PE(READER* reader_in, guint64 size){
     mimir_initp[12]->sequential_K = 1;
     mimir_initp[12]->AMP_pthreshold = 256;
 
-    mimir_initp[13]->min_support = 4;
-    mimir_initp[13]->max_support = 16;
-    mimir_initp[13]->cache_type = "AMP";
-    mimir_initp[13]->sequential_type = 2;
-    mimir_initp[13]->sequential_K = 1;
-    mimir_initp[13]->AMP_pthreshold = 256;
 
-    mimir_initp[14]->min_support = 5;
-    mimir_initp[14]->max_support = 20;
-    mimir_initp[14]->cache_type = "AMP";
-    mimir_initp[14]->sequential_type = 2;
-    mimir_initp[14]->sequential_K = 1;
-    mimir_initp[14]->AMP_pthreshold = 256;
-
-    mimir_initp[15]->min_support = 6;
-    mimir_initp[15]->max_support = 20;
-    mimir_initp[15]->cache_type = "AMP";
-    mimir_initp[15]->sequential_type = 2;
-    mimir_initp[15]->sequential_K = 1;
-    mimir_initp[15]->AMP_pthreshold = 256;
-
-
-    
-    mimir_initp[16]->min_support = 3;
-    mimir_initp[16]->max_support = 12;
-    mimir_initp[16]->cache_type = "AMP";
-    mimir_initp[16]->sequential_type = 2;
-    mimir_initp[16]->sequential_K = 2;
-    mimir_initp[16]->AMP_pthreshold = 128;
-
-    mimir_initp[17]->min_support = 4;
-    mimir_initp[17]->max_support = 16;
-    mimir_initp[17]->cache_type = "AMP";
-    mimir_initp[17]->sequential_type = 2;
-    mimir_initp[17]->sequential_K = 2;
-    mimir_initp[17]->AMP_pthreshold = 128;
-
-    mimir_initp[18]->min_support = 5;
-    mimir_initp[18]->max_support = 20;
-    mimir_initp[18]->cache_type = "AMP";
-    mimir_initp[18]->sequential_type = 2;
-    mimir_initp[18]->sequential_K = 2;
-    mimir_initp[18]->AMP_pthreshold = 128;
-
-    mimir_initp[19]->min_support = 6;
-    mimir_initp[19]->max_support = 20;
-    mimir_initp[19]->cache_type = "AMP";
-    mimir_initp[19]->sequential_type = 2;
-    mimir_initp[19]->sequential_K = 2;
-    mimir_initp[19]->AMP_pthreshold = 128;
-
-    
-    
-    mimir_initp[20]->min_support = 3;
-    mimir_initp[20]->max_support = 12;
-    mimir_initp[20]->cache_type = "AMP";
-    mimir_initp[20]->sequential_type = 2;
-    mimir_initp[20]->sequential_K = 3;
-    mimir_initp[20]->AMP_pthreshold = 64;
-
-    mimir_initp[21]->min_support = 4;
-    mimir_initp[21]->max_support = 16;
-    mimir_initp[21]->cache_type = "AMP";
-    mimir_initp[21]->sequential_type = 2;
-    mimir_initp[21]->sequential_K = 3;
-    mimir_initp[21]->AMP_pthreshold = 64;
-
-    mimir_initp[22]->min_support = 5;
-    mimir_initp[22]->max_support = 20;
-    mimir_initp[22]->cache_type = "AMP";
-    mimir_initp[22]->sequential_type = 2;
-    mimir_initp[22]->sequential_K = 3;
-    mimir_initp[22]->AMP_pthreshold = 64;
-
-    mimir_initp[23]->min_support = 6;
-    mimir_initp[23]->max_support = 20;
-    mimir_initp[23]->cache_type = "AMP";
-    mimir_initp[23]->sequential_type = 2;
-    mimir_initp[23]->sequential_K = 3;
-    mimir_initp[23]->AMP_pthreshold = 64;
-
-    
-    
-    mimir_initp[24]->min_support = 3;
-    mimir_initp[24]->max_support = 12;
-    mimir_initp[24]->cache_type = "AMP";
-    mimir_initp[24]->sequential_type = 2;
-    mimir_initp[24]->sequential_K = 4;
-    mimir_initp[24]->AMP_pthreshold = 32;
-    
-    mimir_initp[25]->min_support = 4;
-    mimir_initp[25]->max_support = 16;
-    mimir_initp[25]->cache_type = "AMP";
-    mimir_initp[25]->sequential_type = 2;
-    mimir_initp[25]->sequential_K = 4;
-    mimir_initp[25]->AMP_pthreshold = 32;
-
-    mimir_initp[26]->min_support = 5;
-    mimir_initp[26]->max_support = 20;
-    mimir_initp[26]->cache_type = "AMP";
-    mimir_initp[26]->sequential_type = 2;
-    mimir_initp[26]->sequential_K = 4;
-    mimir_initp[26]->AMP_pthreshold = 32;
-
-    mimir_initp[27]->min_support = 6;
-    mimir_initp[27]->max_support = 20;
-    mimir_initp[27]->cache_type = "AMP";
-    mimir_initp[27]->sequential_type = 2;
-    mimir_initp[27]->sequential_K = 4;
-    mimir_initp[27]->AMP_pthreshold = 32;
-
-    
-    
-    mimir_initp[28]->min_support = 3;
-    mimir_initp[28]->max_support = 12;
-    mimir_initp[28]->cache_type = "AMP";
-    mimir_initp[28]->sequential_type = 2;
-    mimir_initp[28]->sequential_K = 5;
-    mimir_initp[28]->AMP_pthreshold = 16;
-
-    mimir_initp[29]->min_support = 4;
-    mimir_initp[29]->max_support = 16;
-    mimir_initp[29]->cache_type = "AMP";
-    mimir_initp[29]->sequential_type = 2;
-    mimir_initp[29]->sequential_K = 5;
-    mimir_initp[29]->AMP_pthreshold = 16;
-
-    mimir_initp[30]->min_support = 5;
-    mimir_initp[30]->max_support = 20;
-    mimir_initp[30]->cache_type = "AMP";
-    mimir_initp[30]->sequential_type = 2;
-    mimir_initp[30]->sequential_K = 5;
-    mimir_initp[30]->AMP_pthreshold = 16;
-
-    
-    
-    mimir_initp[31]->min_support = 3;
-    mimir_initp[31]->max_support = 12;
-    mimir_initp[31]->cache_type = "AMP";
-    mimir_initp[31]->sequential_type = 2;
-    mimir_initp[31]->sequential_K = 6;
-    mimir_initp[31]->AMP_pthreshold = 8;
-
-    mimir_initp[32]->min_support = 5;
-    mimir_initp[32]->max_support = 20;
-    mimir_initp[32]->cache_type = "AMP";
-    mimir_initp[32]->sequential_type = 2;
-    mimir_initp[32]->sequential_K = 6;
-    mimir_initp[32]->AMP_pthreshold = 8;
-
-    mimir_initp[33]->min_support = 7;
-    mimir_initp[33]->max_support = 20;
-    mimir_initp[33]->cache_type = "AMP";
-    mimir_initp[33]->sequential_type = 2;
-    mimir_initp[33]->sequential_K = 6;
-    mimir_initp[33]->AMP_pthreshold = 8;
-
-    
-    
-    mimir_initp[34]->min_support = 3;
-    mimir_initp[34]->max_support = 12;
-    mimir_initp[34]->cache_type = "AMP";
-    mimir_initp[34]->sequential_type = 2;
-    mimir_initp[34]->sequential_K = 7;
-    mimir_initp[34]->AMP_pthreshold = 4;
-    
-    mimir_initp[35]->min_support = 5;
-    mimir_initp[35]->max_support = 20;
-    mimir_initp[35]->cache_type = "AMP";
-    mimir_initp[35]->sequential_type = 2;
-    mimir_initp[35]->sequential_K = 7;
-    mimir_initp[35]->AMP_pthreshold = 4;
-
-    mimir_initp[36]->min_support = 7;
-    mimir_initp[36]->max_support = 20;
-    mimir_initp[36]->cache_type = "AMP";
-    mimir_initp[36]->sequential_type = 2;
-    mimir_initp[36]->sequential_K = 7;
-    mimir_initp[36]->AMP_pthreshold = 4;
-
-    
-    
-    mimir_initp[37]->min_support = 3;
-    mimir_initp[37]->max_support = 12;
-    mimir_initp[37]->cache_type = "AMP";
-    mimir_initp[37]->sequential_type = 2;
-    mimir_initp[37]->sequential_K = 8;
-    mimir_initp[37]->AMP_pthreshold = 2;
-    
-    mimir_initp[38]->min_support = 5;
-    mimir_initp[38]->max_support = 20;
-    mimir_initp[38]->cache_type = "AMP";
-    mimir_initp[38]->sequential_type = 2;
-    mimir_initp[38]->sequential_K = 8;
-    mimir_initp[38]->AMP_pthreshold = 2;
-
-    mimir_initp[39]->min_support = 7;
-    mimir_initp[39]->max_support = 20;
-    mimir_initp[39]->cache_type = "AMP";
-    mimir_initp[39]->sequential_type = 2;
-    mimir_initp[39]->sequential_K = 8;
-    mimir_initp[39]->AMP_pthreshold = 2;
-
-   
     **/
     
     
     
     for (i=0; i<mimir_n1+mimir_n2; i++)
-        hrpe_params->caches[i+AMP_n+1] = MIMIR_init(size, reader_in->data_type, mimir_initp[i]);
+        hrpe_params->caches[i+AMP_n+PG_n+1] = MIMIR_init(size, reader_in->data_type, mimir_initp[i]);
     
     
     // build the thread pool
@@ -360,8 +207,10 @@ struct HR_PE* get_HR_PE(READER* reader_in, guint64 size){
     LRU_destroy(hrpe_params->caches[0]);
     for (i=0; i<AMP_n; i++)
         AMP_destroy(hrpe_params->caches[1+i]);
+    for (i=0; i<PG_n; i++)
+        PG_destroy(hrpe_params->caches[i+AMP_n+1]);
     for (i=0; i<mimir_n1+mimir_n2; i++)
-        MIMIR_destroy(hrpe_params->caches[i+1+AMP_n]);
+        MIMIR_destroy(hrpe_params->caches[i+1+AMP_n+PG_n]);
     
     g_free(hrpe_params);
     // needs to free result later
@@ -425,12 +274,21 @@ void get_HR_PE_thread(gpointer data, gpointer user_data){
         }
         hrpe->prefetch[order] = prefetch;
     }
+    
     if (cache->core->type == e_AMP){
         gint64 prefetch = ((struct AMP_params*)(cache->cache_params))->num_of_prefetch;
         gint64 hit = ((struct AMP_params*)(cache->cache_params))->num_of_hit;
         hrpe->PE[order] = (double)hit/prefetch;
         hrpe->prefetch[order] = prefetch;
     }
+    
+    if (cache->core->type == e_PG){
+        gint64 prefetch = ((PG_params_t*)(cache->cache_params))->num_of_prefetch;
+        gint64 hit = ((PG_params_t*)(cache->cache_params))->num_of_hit;
+        hrpe->PE[order] = (double)hit/prefetch;
+        hrpe->prefetch[order] = prefetch;
+    }
+    
     
     // clean up
     g_free(cp);
@@ -530,6 +388,12 @@ static void profiler_thread(gpointer data, gpointer user_data){
 //               ((struct test1_params*)(cache->cache_params))->num_of_check,
 //               prefech, hit, (double)hit/prefech);
 //    }
+    
+    if (cache->core->type == e_PG){
+        PG_params_t *PG_params = (PG_params_t*)(cache->cache_params);
+        printf("cache size %llu, real size %ld, hit rate %lf, prefetch %lu, hit %lu, precision %lf\n", PG_params->init_size, PG_params->cache->core->size, (double)hit_count/(hit_count+miss_count), PG_params->num_of_prefetch, PG_params->num_of_hit, (double)(PG_params->num_of_hit)/(PG_params->num_of_prefetch));
+    }
+
     if (cache->core->type == e_AMP){
         gint64 prefech = ((struct AMP_params*)(cache->cache_params))->num_of_prefetch;
         gint64 hit = ((struct AMP_params*)(cache->cache_params))->num_of_hit;
@@ -549,7 +413,7 @@ static void profiler_thread(gpointer data, gpointer user_data){
         fclose(reader_thread->file);
     if (reader_thread->type == 'c'){
         csv_free(reader_thread->csv_parser);
-        g_free(reader_thread->csv_parser); 
+        g_free(reader_thread->csv_parser);
     }
     g_free(reader_thread);
     cache->core->destroy_unique(cache);
