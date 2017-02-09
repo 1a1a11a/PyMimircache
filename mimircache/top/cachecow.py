@@ -13,19 +13,37 @@ class cachecow:
         self.cacheclass_mapping = {}
 
     def open(self, file_path, data_type='c'):
-        # assert os.path.exists(file_path), "data file does not exist"
+        """
+        open a plain text file, which contains a label each line
+        :param file_path:
+        :param data_type: can be either 'c' for string or 'l' for number (like block IO)
+        :return:
+        """
         if self.reader:
             self.reader.close()
         self.reader = plainReader(file_path, data_type=data_type)
         return self.reader
 
     def csv(self, file_path, init_params, data_type='c'):
+        """
+        open a csv file
+        :param file_path:
+        :param init_params: params related to csv file, see csvReader for detail
+        :param data_type: can be either 'c' for string or 'l' for number (like block IO)
+        :return:
+        """
         if self.reader:
             self.reader.close()
         self.reader = csvReader(file_path, data_type=data_type, init_params=init_params)
         return self.reader
 
-    def vscsi(self, file_path, data_type='v'):
+    def vscsi(self, file_path, data_type='l'):
+        """
+        open vscsi trace file
+        :param file_path:
+        :param data_type: can be either 'c' for string or 'l' for number (like block IO)
+        :return:
+        """
         if self.reader:
             self.reader.close()
         self.reader = vscsiReader(file_path, data_type=data_type)
@@ -36,9 +54,24 @@ class cachecow:
         self.cache_size = size
 
     def num_of_request(self):
+        """
+        return the number of requests in the trace
+        :return:
+        """
         return self.reader.get_num_of_total_requests()
 
+    def num_of_unique_request(self):
+        """
+        return the number of unique requests in the trace
+        :return:
+        """
+        return self.reader.get_num_of_unique_requests()
+
     def reset(self):
+        """
+        reset reader to the beginning of the trace
+        :return:
+        """
         self.reader.reset()
 
     def _profiler_pre_check(self, **kwargs):
@@ -197,18 +230,9 @@ class cachecow:
                                     text=(x1, y1, text))
                 cHm.set_plot_params('y', 'virtual_time', xydict=xydict1, label='end time (virtual)', fixed_range=(-1, 1))
 
-            # print(xydict2.shape)
-            # print(xydict1.shape)
             np.seterr(divide='ignore', invalid='ignore')
-            # print(xydict2 - xydict1)
-            # print(xydict1)
-            # print((xydict2 - xydict1) / xydict1)
 
             plot_dict = (xydict2 - xydict1) / xydict1
-
-            # masked_array = np.ma.array((xydict2 - xydict1) / xydict1, mask=np.isnan((xydict2 - xydict1) / xydict1))
-            # print(masked_array)
-            # print(plot_dict)
             cHm.draw_heatmap(plot_dict, figname=figname)
 
     def profiler(self, algorithm, cache_params=None, cache_size=-1, **kwargs):
@@ -236,13 +260,16 @@ class cachecow:
 
             if isinstance(algorithm, str):
                 if algorithm.lower() in c_available_cache:
-                    profiler = cGeneralProfiler(reader, cache_alg_mapping[algorithm.lower()], cache_size, bin_size,
+                    profiler = cGeneralProfiler(reader, cache_alg_mapping[algorithm.lower()],
+                                                cache_size, bin_size,
                                                 cache_params, num_of_threads)
                 else:
-                    profiler = generalProfiler(reader, self.cacheclass_mapping[algorithm.lower()], cache_size, bin_size,
+                    profiler = generalProfiler(reader, self.cacheclass_mapping[algorithm.lower()],
+                                               cache_size, bin_size,
                                                cache_params, num_of_threads)
             else:
-                profiler = generalProfiler(reader, algorithm, cache_size, bin_size, cache_params, num_of_threads)
+                profiler = generalProfiler(reader, algorithm, cache_size, bin_size,
+                                           cache_params, num_of_threads)
 
         return profiler
 
@@ -261,15 +288,31 @@ class cachecow:
         # if self.reader:
         #     self.reader.close()
 
-    def twoDPlot(self, mode, time_interval, plot_type, **kwargs):
+    def twoDPlot(self, plot_type, **kwargs):
+        """
+        two dimensional plots
+        :param plot_type:
+        :param kwargs:
+        :return:
+        """
         if "figname" in kwargs:
             figname = kwargs['figname']
         else:
             figname = plot_type + ".png"
+
         if plot_type == 'cold_miss':
-            cold_miss_2d(self.reader, mode, time_interval, figname=figname)
+            assert "mode" in kwargs, "you need to provide mode(r/v) for plotting cold_miss2d"
+            assert "time_interval" in kwargs, "you need to provide time_interval for plotting cold_miss2d"
+            cold_miss_2d(self.reader, kwargs['mode'], kwargs['time_interval'], figname=figname)
+
         elif plot_type == 'request_num':
-            request_num_2d(self.reader, mode, time_interval, figname=figname)
+            assert "mode" in kwargs, "you need to provide mode(r/v) for plotting request_num2d"
+            assert "time_interval" in kwargs, "you need to provide time_interval for plotting request_num2d"
+            request_num_2d(self.reader, kwargs['mode'], kwargs['time_interval'], figname=figname)
+
+        elif plot_type == 'mapping':
+            nameMapping_2d(self.reader, kwargs.get('ratio', 0.1), figname=figname)
+
         else:
             print("currently don't support your specified plot_type: " + str(plot_type))
 

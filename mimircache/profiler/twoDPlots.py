@@ -100,11 +100,11 @@ def draw2d(l, **kwargs):
     plt.clf()
 
 
-def blockRenamePlot(reader, partial_ratio=0.1, figname=None):
+def nameMapping_2d(reader, partial_ratio=0.1, figname=None):
     """
     rename all the IDs for items in the trace for visualization of trace
     :param reader:
-    :param partial_ratio:
+    :param partial_ratio: take fitst partial_ratio of trace for zooming in
     :param figname:
     :return:
     """
