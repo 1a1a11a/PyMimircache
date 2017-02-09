@@ -1,3 +1,4 @@
+# coding=utf-8
 import string
 import mimircache.c_cacheReader as c_cacheReader
 from mimircache.cacheReader.abstractReader import cacheReaderAbstract

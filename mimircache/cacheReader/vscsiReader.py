@@ -1,3 +1,4 @@
+# coding=utf-8
 import os
 from ctypes import *
 import logging
@@ -65,7 +66,7 @@ class vscsiReader(cacheReaderAbstract):
     def __next__(self):  # Python 3
         super().__next__()
         element = c_cacheReader.read_one_element(self.cReader)
-        if element!=None:
+        if element is not None:
             return element
         else:
             raise StopIteration

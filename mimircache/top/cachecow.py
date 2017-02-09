@@ -1,3 +1,4 @@
+# coding=utf-8
 from mimircache.profiler.generalProfiler import generalProfiler
 from mimircache.profiler.heatmap import heatmap
 from mimircache.profiler.cGeneralProfiler import cGeneralProfiler
@@ -68,7 +69,7 @@ class cachecow:
         else:
             reader = self.reader
 
-        assert reader!=None, "you didn't provide a reader nor data (data file and data type)"
+        assert reader is not None, "you didn't provide a reader nor data (data file and data type)"
         self.reader = reader
 
         return reader, num_of_threads
@@ -77,8 +78,13 @@ class cachecow:
                 algorithm="LRU", cache_params=None, cache_size=-1, **kwargs):
         """
 
+        :param cache_size:
+        :param cache_params:
+        :param algorithm:
+        :param num_of_pixels:
+        :param time_interval:
+        :param plot_type:
         :param mode:
-        :param interval:
         :param kwargs: algorithm:
         :return:
         """
@@ -110,10 +116,14 @@ class cachecow:
                              algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs):
         """
         alg2 - alg1
-        :param alg1:
-        :param alg2:
+        :param cache_size:
+        :param cache_params2:
+        :param cache_params1:
+        :param algorithm2:
+        :param num_of_pixels:
+        :param time_interval:
+        :param algorithm1:
         :param mode:
-        :param interval:
         :param plot_type:
         :param kwargs:
         :return:
@@ -204,7 +214,9 @@ class cachecow:
     def profiler(self, algorithm, cache_params=None, cache_size=-1, **kwargs):
         """
         profiler
-        :param cache_class:
+        :param cache_size:
+        :param cache_params:
+        :param algorithm:
         :param kwargs:
         :return:
         """

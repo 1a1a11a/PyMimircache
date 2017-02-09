@@ -1,3 +1,4 @@
+# coding=utf-8
 import logging
 import os
 
@@ -19,6 +20,7 @@ class cHeatmap:
     def gen_breakpoints(self, reader, mode, time_interval=-1, num_of_pixels=-1):
         """
 
+        :param num_of_pixels:
         :param reader:
         :param mode:
         :param time_interval:
@@ -112,9 +114,12 @@ class cHeatmap:
                 cache_params=None, **kwargs):
         """
 
+        :param cache_params:
+        :param num_of_pixels:
+        :param time_interval:
+        :param algorithm:
         :param plot_type:
         :param mode:
-        :param interval:
         :param reader:
         :param kwargs: include num_of_threads, figname
         :return:
@@ -277,9 +282,14 @@ class cHeatmap:
                              cache_params1=None, cache_params2=None, **kwargs):
         """
 
+        :param time_interval:
+        :param num_of_pixels:
+        :param algorithm2:
+        :param cache_params1:
+        :param cache_params2:
+        :param algorithm1:
         :param plot_type:
         :param mode:
-        :param interval:
         :param reader:
         :param kwargs: include num_of_process, figname
         :return:

@@ -359,13 +359,14 @@ static inline void __MIMIR_record_entry(struct_cache* MIMIR, cache_line* cp){
                     // this is important as we don't clear the content of array after mining
                     memset(array_ele + r_m_struct->recording_table_row_len, 0,
                            sizeof(TS_REPRESENTATION) * (r_m_struct->mining_table_row_len - r_m_struct->recording_table_row_len));
+#ifdef SANITY_CHECK
                     if (r_m_struct->mining_table->len >= MIMIR_params->mining_threshold){
                         // if this happens, array will re-malloc, which will make the hashtable key not reliable when data_type is l
                         printf("ERROR mining table length reaches limit, but does not mining, entry %d, len %u, threshold %d\n",
                                r_m_struct->num_of_entry_available_for_mining, r_m_struct->mining_table->len, MIMIR_params->mining_threshold);
                         exit(1);
                     }
-                    
+#endif
                     g_array_append_val(r_m_struct->mining_table, array_ele);
                     r_m_struct->num_of_entry_available_for_mining ++;
                     
@@ -614,35 +615,16 @@ gboolean MIMIR_check_element(struct_cache* MIMIR, cache_line* cp){
     }
     
     gboolean result = MIMIR_params->cache->core->check_element(MIMIR_params->cache, cp);
-    
+//    if (result)
+//        fprintf(stderr, "%lu\n", *(guint64*)(cp->item_p));
+
     __MIMIR_record_entry(MIMIR, cp);
 
-    // new 0918 change1, record last
-    // check whether this is a frequent item, if so, don't insert
-//    if (g_hash_table_contains(MIMIR_params->hashset_frequentItem, cp->item_p))
-//        return result;
-
-//    if (cp->type == 'l'){
-//        if (MIMIR_params->last == NULL)
-//            MIMIR_params->last = MIMIR_params->last_request_storage;
-//        else
-//            mimir_add_to_prefetch_table(MIMIR, MIMIR_params->last, cp->item_p);
-//        
-//        *(guint64*)(MIMIR_params->last) = *(guint64*)(cp->item_p);
-//    }
-//    else{
-//        if (MIMIR_params->last == NULL)
-//            MIMIR_params->last = MIMIR_params->last_request_storage;
-//        else
-//            mimir_add_to_prefetch_table(MIMIR, MIMIR_params->last, cp->item_p);
-//        
-//        strncpy(MIMIR_params->last_request_storage, cp->item_p, CACHE_LINE_LABEL_SIZE2);
-//    }
     
-    // sanity check
+#ifdef SANITY_CHECK
     if (MIMIR_params->cache->core->check_element(MIMIR_params->cache, cp) != result)
         fprintf(stderr, "ERROR: not same2 %d, %d ************************\n", result, MIMIR_params->cache->core->check_element(MIMIR_params->cache, cp));
-    
+#endif 
 
     return result;
 }
@@ -1127,12 +1109,14 @@ void mimir_add_to_prefetch_table(struct_cache* MIMIR, gpointer gp1, gpointer gp2
         if (MIMIR->core->data_type == 'l'){
             for (i=1; i<MIMIR_params->prefetch_list_size+1; i++){
                 // if this element is already in the array, then don't need add again
-//                if (*(guint64*)(g_ptr_array_index(pArray, i)) == *(guint64*)(gp2)){
                 // ATTENTION: the following assumes a 64 bit platform
+#ifdef SANITY_CHECK
                 if (MIMIR_params->prefetch_table_array[dim1][dim2] != *(gint64*)(gp1)){
-                    fprintf(stderr, "ERROR prefetch table pos wrong %ld %ld, dim %d %d\n", *(gint64*)gp1, MIMIR_params->prefetch_table_array[dim1][dim2], dim1, dim2);
+                    fprintf(stderr, "ERROR prefetch table pos wrong %ld %ld, dim %d %d\n",
+                            *(gint64*)gp1, MIMIR_params->prefetch_table_array[dim1][dim2], dim1, dim2);
                     exit(1);
                 }
+#endif
                 if ((MIMIR_params->prefetch_table_array[dim1][dim2+i]) == 0)
                     break;
                 if ((MIMIR_params->prefetch_table_array[dim1][dim2+i]) == *(gint64*)(gp2))
@@ -1228,10 +1212,12 @@ void mimir_add_to_prefetch_table(struct_cache* MIMIR, gpointer gp1, gpointer gp2
         }
 
 #ifdef SANITY_CHECK
-//         sanity check, make sure gp1 is not in prefetch_hashtable
+        //make sure gp1 is not in prefetch_hashtable
         if (g_hash_table_contains(MIMIR_params->prefetch_hashtable, gp1)){
             gpointer gp = g_hash_table_lookup(MIMIR_params->prefetch_hashtable, gp1);
-            printf("ERROR datatype %c, contains %ld %s, value %d, %d\n", MIMIR->core->data_type, *(gint64*)gp1, (char*)gp1, GPOINTER_TO_INT(gp), prefetch_table_index);
+            printf("ERROR datatype %c, contains %ld %s, value %d, %d\n",
+                   MIMIR->core->data_type, *(gint64*)gp1,
+                   (char*)gp1, GPOINTER_TO_INT(gp), prefetch_table_index);
         }
 #endif
         
@@ -1242,7 +1228,8 @@ void mimir_add_to_prefetch_table(struct_cache* MIMIR, gpointer gp1, gpointer gp2
         // check current shard is full or not
         if ( (MIMIR_params->current_prefetch_table_pointer +1) % PREFETCH_TABLE_SHARD_SIZE == 0){
             /* need to allocate a new shard for prefetch table */
-            if (MIMIR_params->current_metadata_size + PREFETCH_TABLE_SHARD_SIZE * (MIMIR_params->prefetch_list_size * 8 +8 + 4)
+            if (MIMIR_params->current_metadata_size +
+                    PREFETCH_TABLE_SHARD_SIZE * (MIMIR_params->prefetch_list_size * 8 +8 + 4)
                             < MIMIR_params->max_metadata_size){
                 MIMIR_params->prefetch_table_array[dim1+1] = g_new0(gint64, PREFETCH_TABLE_SHARD_SIZE *
                                                                     (MIMIR_params->prefetch_list_size + 1));

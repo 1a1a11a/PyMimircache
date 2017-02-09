@@ -1,3 +1,4 @@
+# coding=utf-8
 import abc
 import os
 from multiprocessing import Lock

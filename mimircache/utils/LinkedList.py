@@ -1,3 +1,4 @@
+# coding=utf-8
 class LinkedListNode:
     def __init__(self):
         self.content = None

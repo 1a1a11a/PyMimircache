@@ -1,4 +1,4 @@
-
+# coding=utf-8
 from mimircache.top.cachecow import cachecow
 
 import mimircache.c_cacheReader as c_cacheReader

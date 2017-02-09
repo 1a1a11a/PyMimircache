@@ -1,3 +1,4 @@
+# coding=utf-8
 from pylab import *
 from numpy import outer
 

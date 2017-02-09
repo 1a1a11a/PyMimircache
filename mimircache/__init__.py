@@ -1,9 +1,12 @@
+# coding=utf-8
+
 """ mimircache a cache trace analysis platform.
 
 .. moduleauthor:: Juncheng Yang <peter.waynechina@gmail.com>, Ymir Vigfusson
 
 """
 
+import os, sys
 import matplotlib
 matplotlib.use('Agg')
 
@@ -11,6 +14,11 @@ matplotlib.use('Agg')
 # warnings.filterwarnings("ignore")
 
 # import logging
+
+
+CWD = os.getcwd()
+
+sys.path.extend([CWD, CWD[:CWD.rfind('/')]])
 
 
 from mimircache.cache.LRU import LRU as LRU

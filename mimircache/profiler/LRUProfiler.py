@@ -1,3 +1,4 @@
+# coding=utf-8
 import os
 import logging
 import mimircache.c_LRUProfiler as c_LRUProfiler
@@ -66,10 +67,7 @@ class LRUProfiler:
         pass
 
     def _kwargs_parse(self, **kwargs):
-        kargs = {}
-        kargs['begin'] = 0
-        kargs['end'] = -1
-        kargs['cache_size'] = -1
+        kargs = {'begin': 0, 'end': -1, 'cache_size': -1}
 
         if 'begin' in kwargs:
             kargs['begin'] = kwargs['begin']
@@ -123,14 +121,14 @@ class LRUProfiler:
         frd = c_LRUProfiler.get_future_reuse_dist(self.reader.cReader, **kargs)
         return frd
 
-    def plotMRC(self, figname="MRC.png", auto_resize=False, threshhold=0.98, **kwargs):
+    def plotMRC(self, figname="MRC.png", auto_resize=False, threshold=0.98, **kwargs):
         EXTENTION_LENGTH = 1024
         MRC = self.get_miss_rate(**kwargs)
         try:
             stop_point = len(MRC) - 2
             if self.cache_size == -1 and 'cache_size' not in kwargs and auto_resize:
                 for i in range(len(MRC) - 3, 0, -1):
-                    if MRC[i] >= MRC[-3] / threshhold:
+                    if MRC[i] >= MRC[-3] / threshold:
                         stop_point = i
                         break
                 if stop_point + EXTENTION_LENGTH < len(MRC) - 2:
@@ -156,14 +154,14 @@ class LRUProfiler:
             print("the plotting function is not wrong, is this a headless server?")
             print(e)
 
-    def plotHRC(self, figname="HRC.png", auto_resize=False, threshhold=0.98, **kwargs):
+    def plotHRC(self, figname="HRC.png", auto_resize=False, threshold=0.98, **kwargs):
         EXTENTION_LENGTH = 1024
         HRC = self.get_hit_rate(**kwargs)
         try:
             stop_point = len(HRC) - 2
             if self.cache_size == -1 and 'cache_size' not in kwargs and auto_resize:
                 for i in range(len(HRC) - 3, 0, -1):
-                    if HRC[i] <= HRC[-3] * threshhold:
+                    if HRC[i] <= HRC[-3] * threshold:
                         stop_point = i
                         break
                 if stop_point + EXTENTION_LENGTH < len(HRC) - 2:
@@ -192,7 +190,7 @@ class LRUProfiler:
             print(e)
 
     def __del__(self):
-        if (os.path.exists('temp.dat')):
+        if os.path.exists('temp.dat'):
             os.remove('temp.dat')
 
 
@@ -300,4 +298,4 @@ if __name__ == "__main__":
     #     print(f)
     #     p._test()
     # p.run_with_specified_lines(10000, 20000)
-    # p.plotHRC(autosize=True, autosize_threshhold=0.00001)
+    # p.plotHRC(autosize=True, autosize_threshold=0.00001)

@@ -1,4 +1,4 @@
-
+# coding=utf-8
 
 from mimircache import *
 from math import ceil, log2

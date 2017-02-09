@@ -1,3 +1,4 @@
+# coding=utf-8
 """ this module is used for all cache replacement algorithms in python excluding LRU(LRU also works, but slow compared to
     using pardaProfiler),
 """

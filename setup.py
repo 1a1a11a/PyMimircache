@@ -1,3 +1,4 @@
+# coding=utf-8
 # from distutils.core import setup, Extension
 from setuptools import find_packages, setup, Extension
 from glob import glob

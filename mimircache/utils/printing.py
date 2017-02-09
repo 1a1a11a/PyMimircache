@@ -1,3 +1,4 @@
+# coding=utf-8
 import sys
 
 RED = '\033[91m'

@@ -1,3 +1,4 @@
+# coding=utf-8
 """
 this module provides the heatmap ploting engine, it supports both virtual time (fixed number of trace requests) and
 real time, under both modes, it support using multiprocessing to do the plotting
@@ -170,6 +171,11 @@ class heatmap:
         """
             calculate the data for plotting heatmap
 
+        :param time_interval:
+        :param num_of_pixels:
+        :param algorithm:
+        :param cache_params:
+        :param num_of_threads:
         :param mode: mode can be either virtual time(v) or real time(r)
         :param reader: for reading the trace file
         :param plot_type: the type of heatmap to generate, possible choices are:
@@ -389,9 +395,12 @@ class heatmap:
                 algorithm="LRU", cache_params=None, **kwargs):
         """
 
+        :param time_interval:
+        :param num_of_pixels:
+        :param algorithm:
+        :param cache_params:
         :param plot_type:
         :param mode:
-        :param interval:
         :param reader:
         :param kwargs: include num_of_threads, figname
         :return:
