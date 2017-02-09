@@ -1,10 +1,29 @@
+# coding=utf-8
+"""
+this module plots all the two dimensional figures, currently including:
+    request number plot
+    cold miss plot
+    name mapping plot(mapping block to a LBA) for visulization of scan and so on
+"""
+
+
 import matplotlib.ticker as ticker
 from matplotlib import pyplot as plt
 from mimircache.utils.printing import *
 from mimircache.profiler.cHeatmap import cHeatmap
+import os
+import numpy as np
 
 
 def request_num_2d(reader, mode, time_interval, figname="request_num.png"):
+    """
+    plot the number of requests per time_interval vs time
+    :param reader:
+    :param mode: either 'r' or 'v' for real time(wall-clock time) or virtual time(reference time)
+    :param time_interval:
+    :param figname:
+    :return:
+    """
     assert mode == 'r' or mode == 'v', "currently only support mode r and v, what mode are you using?"
     break_points = cHeatmap().gen_breakpoints(reader, mode, time_interval)
 
@@ -18,6 +37,14 @@ def request_num_2d(reader, mode, time_interval, figname="request_num.png"):
 
 
 def cold_miss_2d(reader, mode, time_interval, figname="cold_miss2d.png"):
+    """
+    plot the number of cold miss per time_interval
+    :param reader:
+    :param mode: either 'r' or 'v' for real time(wall-clock time) or virtual time(reference time)
+    :param time_interval:
+    :param figname:
+    :return:
+    """
     assert mode == 'r' or mode == 'v', "currently only support mode r and v, what mode are you using?"
     break_points = cHeatmap().gen_breakpoints(reader, mode, time_interval)
 
@@ -40,6 +67,12 @@ def cold_miss_2d(reader, mode, time_interval, figname="cold_miss2d.png"):
 
 
 def draw2d(l, **kwargs):
+    """
+    given a list l, plot it
+    :param l:
+    :param kwargs:
+    :return:
+    """
     if 'figname' in kwargs:
         filename = kwargs['figname']
     else:
@@ -67,3 +100,59 @@ def draw2d(l, **kwargs):
     plt.clf()
 
 
+def blockRenamePlot(reader, partial_ratio=0.1, figname=None):
+    """
+    rename all the IDs for items in the trace for visualization of trace
+    :param reader:
+    :param partial_ratio:
+    :param figname:
+    :return:
+    """
+    # initialization
+    SCATTER_POINT_LIMIT = 10000
+    mapping_counter = 0
+    num_of_requests = reader.get_num_of_total_requests()
+    num_of_partial = int(num_of_requests * partial_ratio)
+    name_mapping = {}
+
+    list_overall = []
+    list_partial = []
+
+    # the two ratio below is used for sampling
+    adjust_ratio_overall = max(num_of_requests // SCATTER_POINT_LIMIT, 1)
+    adjust_ratio_partial = max(num_of_requests * partial_ratio // SCATTER_POINT_LIMIT, 1)
+
+    # name mapping
+    for n, e in enumerate(reader):
+        if e not in name_mapping:
+            name_mapping[e] = mapping_counter
+            mapping_counter += 1
+        if n % adjust_ratio_overall == 0:
+            list_overall.append(name_mapping[e])
+        if n < num_of_partial and n % adjust_ratio_partial == 0:
+            list_partial.append(name_mapping[e])
+
+    # plotting
+    plt.scatter(np.linspace(0, 100, len(list_overall)), list_overall)
+    plt.title("mapped block versus time(overall)")
+    plt.ylabel("mapped LBA")
+    plt.xlabel("virtual time/%")
+    if figname is None:
+        figname = os.path.basename(reader.fileloc) + '_overall.png'
+    else:
+        pos = figname.rfind('.')
+        figname = figname[:pos] + '_overall' + figname[pos+1:]
+    plt.savefig(figname)
+
+    plt.clf()
+    plt.scatter(np.linspace(0, 100, len(list_partial)), list_partial)
+    plt.title("renamed block versus time(part)")
+    plt.ylabel("renamed block number")
+    plt.xlabel("virtual time/%")
+    if figname is None:
+        figname = os.path.basename(reader.fileloc) + '_partial.png'
+    else:
+        pos = figname.rfind('.')
+        figname = figname[:pos] + '_partial' + figname[pos+1:]
+    plt.savefig(figname)
+    plt.clf()
