@@ -1,7 +1,7 @@
-.. _API:
+# coding=utf-8.. _API:
 
 API
-============ 
+===
 
 
 If you want to know more mimircache and even advanced usage, please check this section.

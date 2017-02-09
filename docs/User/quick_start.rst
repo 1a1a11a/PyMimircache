@@ -1,4 +1,4 @@
-.. _quick_start:
+# coding=utf-8.. _quick_start:
 
 Quick Start
 ===========
@@ -40,7 +40,7 @@ Get Profiler/Do Profiling
 Before we calculate/plot something, let's make one thing clear, the calculation and plotting is carried out by something called profiler, so we need to obtain a profiler first.
 
 Profiling with LRU
-^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^
 
 First, let's try LRU(least recently used), we need to get a profiler:
     >>> profiler_LRU = c.profiler('LRU')

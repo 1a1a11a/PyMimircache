@@ -1,4 +1,4 @@
-.. _introduction:
+# coding=utf-8.. _introduction:
 
 Introduction
 ============ 

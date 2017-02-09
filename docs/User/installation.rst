@@ -1,4 +1,4 @@
-.. _installation:
+# coding=utf-8.. _installation:
 
 Installation
 ============
@@ -9,7 +9,7 @@ This part of the documentation covers the installation of mimircache. Mimircache
 **pkg-config, glib, scipy, numpy, matplotlib**
 
 General Installation(Pip)
---------------------------
+-------------------------
 First Step: Install C Library
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The first step is to use any package management software to install pkg-config and glib.
@@ -35,7 +35,7 @@ Install From Source
 This is an alternative method, only use this one when you can't install using the methods above, or you want to try the newest feature of mimircache, notice that, it might have bugs in newest version, we highly recommend you to use the stable version from pip3.
 
 Install All Dependencies
-^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^
 Installing all dependencies is the same as the one described above.
 
 Get the Source Code
@@ -53,10 +53,10 @@ Once you have a copy of the source, you can install it into your site-packages e
 
 
 Special Instructions for Installing on Ubuntu
-------------------------------------------------
+---------------------------------------------
 
 First Step: Install Python3, pip and all dependencies
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. note::
     If you are using Ubuntu 14 and above, you can `jump to here <Ubuntu 14 start here_>`_
 
@@ -82,7 +82,7 @@ Now install python3, python3-pip and all dependencies::
 $ sudo apt-get install python3 python3-pip python3-matplotlib pkg-config libglib2.0-dev
 
 Second Step: Install mimircache
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ::
 
 $ sudo pip3 install mimircache

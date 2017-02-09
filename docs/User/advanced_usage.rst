@@ -1,7 +1,7 @@
-.. _advanced_usages:
+# coding=utf-8.. _advanced_usages:
 
 Advanced Usages
-================
+===============
 
 mimircache and its components
 -----------------------------
