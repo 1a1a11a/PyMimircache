@@ -30,7 +30,7 @@ typedef enum{
     e_Random,
     e_ARC,
     e_SLRU,
-    eLRFU,
+    e_LRFU,
     
     e_AMP,
     e_LRUPage,
@@ -70,7 +70,7 @@ struct cache_core{
     
     int                 cache_debug_level;  // 0 not debug, 1: prepare oracle, 2: compare to oracle
     void*               oracle;
-    void*               eviction_array;           // Optimal Eviction Array, either guint64* or char**
+    void*               eviction_array;     // Optimal Eviction Array, either guint64* or char**
     guint64             eviction_array_len;
     guint64             evict_err;      // used for counting
     struct              break_point* bp; // break points, same as the one in reader, just one more pointer
