@@ -21,7 +21,7 @@ struct LRU_params{
     gint64 ts; 
 };
 
-
+typedef struct LRU_params LRU_params_t; 
 
 
 

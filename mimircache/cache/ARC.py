@@ -1,3 +1,4 @@
+# coding=utf-8
 from collections import defaultdict
 
 from mimircache.cache.abstractCache import cache
@@ -91,11 +92,11 @@ class ARC(cache):
             self.linkedList2.moveNodeToTail(node)
 
     def _insertElement(self, element):
-        '''
+        """
         the given element is not in the cache, now insert it into cache
         :param element:
         :return: evicted element or None
-        '''
+        """
         return_content = None
         if self.linkedList1.size + self.linkedList2.size >= self.cache_size:
             # needs to evict one element, depend on ghost list to decide evict from part1 or part2

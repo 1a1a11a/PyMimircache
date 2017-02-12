@@ -6,8 +6,8 @@
 //  Copyright © 2016 Juncheng. All rights reserved.
 //
 
-#ifndef cache_h
-#define cache_h
+#ifndef CACHE_H
+#define CACHE_H
 
 #include <stdio.h>
 #include <glib.h>
@@ -28,20 +28,20 @@ typedef enum{
     e_LRU_K,
     e_MRU,
     e_Random,
-    e_LRU_LFU,
-    e_LRU_dataAware,
-    e_ML,
-    e_test1,
+    e_ARC,
+    e_SLRU,
+    eLRFU,
+    
     e_AMP,
     e_LRUPage,
     e_PG,
 
-    
+    e_LRU_LFU,
+    e_LRU_dataAware,
+    e_ML,
     e_YJC,
+
     e_mimir,
-    e_MS1,
-    e_MS2
-    
 }cache_type;
 
 
@@ -63,9 +63,8 @@ struct cache_core{
     void                (*__update_element)(struct cache*, cache_line*);
     void                (*__evict_element)(struct cache*, cache_line*);
     gpointer            (*__evict_with_return)(struct cache*, cache_line*);
-    
-    // newly added 0912, only works on LRU
     uint64_t            (*get_size)(struct cache*);
+    void                (*remove_element)(struct cache*, void*);
     
     
     

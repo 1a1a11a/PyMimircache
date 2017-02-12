@@ -17,59 +17,41 @@
 
 
 
-/** priority queue structs and def
- */
 
-
-
-
-/* changed to make node with small priority on the top */
-static  int
-cmp_pri(pqueue_pri_t next, pqueue_pri_t curr)
-{
+/********************* priority queue structs and def ***********************/
+static int cmp_pri(pqueue_pri_t next, pqueue_pri_t curr){
+    /* the one with smallest priority is poped out first */
     return (next > curr);
 }
 
 
-static  pqueue_pri_t
-get_pri(void *a)
-{
+static pqueue_pri_t get_pri(void *a){
     return ((pq_node_t *) a)->pri;
 }
 
 
-static  void
-set_pri(void *a, pqueue_pri_t pri)
-{
+static void
+set_pri(void *a, pqueue_pri_t pri){
     ((pq_node_t *) a)->pri = pri;
 }
 
 
-static  size_t
-get_pos(void *a)
-{
+static size_t get_pos(void *a){
     return ((pq_node_t *) a)->pos;
 }
 
 
-static  void
-set_pos(void *a, size_t pos)
-{
+static void set_pos(void *a, size_t pos){
     ((pq_node_t *) a)->pos = pos;
 }
 
 
-//static void print_GQ(gpointer data, gpointer user_data){
-//    printf("%lu\t", *(guint64*)data);
-//}
 
 
-
-
-
+/********************************** LRU-K ***********************************/
 /* Jason: try to reuse the key from ghost_hashtable for better memory efficiency */
 
- void __LRU_K_insert_element(struct_cache* LRU_K, cache_line* cp){
+void __LRU_K_insert_element(struct_cache* LRU_K, cache_line* cp){
     /** update request is done at checking element, 
      * now insert request into cache_hashtable and pq 
      *
@@ -100,7 +82,7 @@ set_pos(void *a, size_t pos)
 }
 
 
- gboolean LRU_K_check_element(struct_cache* cache, cache_line* cp){
+gboolean LRU_K_check_element(struct_cache* cache, cache_line* cp){
     /** check whether request is in the cache_hashtable, 
      * then update ghost_hashtable and pq accordingly, 
      * if in ghost_hashtable, then update it,
@@ -142,7 +124,7 @@ set_pos(void *a, size_t pos)
 }
 
 
- void __LRU_K_update_element(struct_cache* cache, cache_line* cp){
+void __LRU_K_update_element(struct_cache* cache, cache_line* cp){
     /* needs to update pq */
     struct LRU_K_params* LRU_K_params = (struct LRU_K_params*)(cache->cache_params);
 
@@ -163,7 +145,7 @@ set_pos(void *a, size_t pos)
 }
 
 
- void __LRU_K_evict_element(struct_cache* LRU_K){
+void __LRU_K_evict_element(struct_cache* LRU_K){
     /** pop one node from pq, remove it from cache_hashtable 
      **/
     
@@ -176,7 +158,7 @@ set_pos(void *a, size_t pos)
 
 
 
- gboolean LRU_K_add_element(struct_cache* cache, cache_line* cp){
+gboolean LRU_K_add_element(struct_cache* cache, cache_line* cp){
     struct LRU_K_params* LRU_K_params = (struct LRU_K_params*)(cache->cache_params);
     LRU_K_params->ts++;
     if (LRU_K_check_element(cache, cp)){
@@ -235,7 +217,8 @@ struct_cache* LRU_K_init(guint64 size, char data_type, void* params){
     cache->core->cache_init_params = params;
 
     LRU_K_params->ts = 0;
-    LRU_K_params->pq = pqueue_init((size_t)size, cmp_pri, get_pri, set_pri, get_pos, set_pos);
+    LRU_K_params->pq = pqueue_init((size_t)size, cmp_pri, get_pri,
+                                   set_pri, get_pos, set_pos);
     
     int K, maxK;
     K = ((struct LRU_K_init_params*) params)->K;            // because in gqueue, sequence begins with 0

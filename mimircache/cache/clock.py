@@ -1,3 +1,4 @@
+# coding=utf-8
 from mimircache.cache.LRU import LRU
 
 
@@ -75,10 +76,10 @@ class clock(LRU):
         return True
 
     def addElement(self, element):
-        '''
+        """
         :param element: the element in the reference, it can be in the cache, or not
         :return: None
-        '''
+        """
         if self.checkElement(element):
             self._updateElement(element)
             # self.printCacheLine()

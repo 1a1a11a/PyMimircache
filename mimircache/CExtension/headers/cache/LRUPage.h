@@ -7,8 +7,8 @@
 //
 
 /** 
- this module is same as LRU, but associates a page struct with each request in the cache, 
- 
+ this module is same as LRU, 
+ but associates a page struct with each request in the cache 
  **/
 
 

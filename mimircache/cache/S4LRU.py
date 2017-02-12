@@ -1,3 +1,4 @@
+# coding=utf-8
 from mimircache.cache.LRU import LRU
 from mimircache.cache.abstractCache import cache
 

@@ -19,7 +19,7 @@ struct LFU_params{
     GHashTable *hashtable;
     pqueue_t *pq;
 };
-
+typedef struct LFU_params LFU_params_t;
 
 
 

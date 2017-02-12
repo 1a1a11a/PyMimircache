@@ -203,18 +203,18 @@ struct_cache* optimal_init(guint64 size, char data_type, void* params){
     struct optimal_params* optimal_params = g_new0(struct optimal_params, 1);
     cache->cache_params = (void*) optimal_params;
     
-    cache->core->type                   = e_Optimal;
-    cache->core->cache_init             = optimal_init;
-    cache->core->destroy                = optimal_destroy;
-    cache->core->destroy_unique         = optimal_destroy_unique;
-    cache->core->add_element            = optimal_add_element;
-    cache->core->check_element          = optimal_check_element;
+    cache->core->type                   =   e_Optimal;
+    cache->core->cache_init             =   optimal_init;
+    cache->core->destroy                =   optimal_destroy;
+    cache->core->destroy_unique         =   optimal_destroy_unique;
+    cache->core->add_element            =   optimal_add_element;
+    cache->core->check_element          =   optimal_check_element;
     
-    cache->core->__insert_element       = __optimal_insert_element;
-    cache->core->__update_element       = __optimal_update_element;
-    cache->core->__evict_element        = __optimal_evict_element;
-    cache->core->__evict_with_return = __optimal_evict_with_return;
-    cache->core->get_size               = optimal_get_size;
+    cache->core->__insert_element       =   __optimal_insert_element;
+    cache->core->__update_element       =   __optimal_update_element;
+    cache->core->__evict_element        =   __optimal_evict_element;
+    cache->core->__evict_with_return    =   __optimal_evict_with_return;
+    cache->core->get_size               =   optimal_get_size;
 
     
     
@@ -225,23 +225,32 @@ struct_cache* optimal_init(guint64 size, char data_type, void* params){
     
     
     if (data_type == 'l'){
-        optimal_params->hashtable = g_hash_table_new_full(g_int64_hash, g_int64_equal, simple_g_key_value_destroyer, simple_g_key_value_destroyer);
+        optimal_params->hashtable =
+            g_hash_table_new_full(g_int64_hash, g_int64_equal,
+                                  simple_g_key_value_destroyer,
+                                  simple_g_key_value_destroyer);
     }
     
     else if (data_type == 'c'){
-        optimal_params->hashtable = g_hash_table_new_full(g_str_hash, g_str_equal, simple_g_key_value_destroyer, simple_g_key_value_destroyer);
+        optimal_params->hashtable =
+            g_hash_table_new_full(g_str_hash, g_str_equal,
+                                  simple_g_key_value_destroyer,
+                                  simple_g_key_value_destroyer);
     }
     else{
         g_error("does not support given data type: %c\n", data_type);
     }
     
     
-    optimal_params->pq = pqueue_init(size*pq_size_multiplier, cmp_pri, get_pri, set_pri, get_pos, set_pos);
+    optimal_params->pq = pqueue_init(size*pq_size_multiplier, cmp_pri,
+                                     get_pri, set_pri, get_pos, set_pos);
     
     if (((struct optimal_init_params*)params)->next_access == NULL){
         if (reader->total_num == -1)
             get_num_of_cache_lines(reader);
-        optimal_params->next_access = g_array_sized_new (FALSE, FALSE, sizeof (gint), (guint)reader->total_num);
+        optimal_params->next_access = g_array_sized_new (FALSE, FALSE,
+                                                         sizeof (gint),
+                                                         (guint)reader->total_num);
         GArray* array = optimal_params->next_access;
         GSList* list = get_last_access_dist_seq(reader, read_one_element_above);
         if (list == NULL){

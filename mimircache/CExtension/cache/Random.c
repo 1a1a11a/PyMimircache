@@ -112,17 +112,22 @@ struct_cache* Random_init(guint64 size, char data_type, void* params){
     
     
     if (data_type == 'l'){
-        Random_params->hashtable = g_hash_table_new_full(g_int64_hash, g_int64_equal, simple_g_key_value_destroyer, NULL);
+        Random_params->hashtable =
+            g_hash_table_new_full(g_int64_hash, g_int64_equal,
+                                  simple_g_key_value_destroyer, NULL);
     }
     
     else if (data_type == 'c'){
-        Random_params->hashtable = g_hash_table_new_full(g_str_hash, g_str_equal, simple_g_key_value_destroyer, NULL);
+        Random_params->hashtable =
+            g_hash_table_new_full(g_str_hash, g_str_equal,
+                                  simple_g_key_value_destroyer, NULL);
     }
     else{
         g_error("does not support given data type: %c\n", data_type);
     }
     
-    Random_params->array = g_array_sized_new (FALSE, FALSE, sizeof(gpointer), (guint)size);
+    Random_params->array = g_array_sized_new (FALSE, FALSE,
+                                              sizeof(gpointer), (guint)size);
     
     time_t t;
     srand((unsigned) time(&t));
