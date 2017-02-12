@@ -1,3 +1,4 @@
+# coding=utf-8
 """ this module is used for all other cache replacement algorithms excluding LRU(LRU also works, but slow compared to
     using pardaProfiler),
 """
@@ -12,10 +13,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 
 from mimircache.utils.printing import colorfulPrint
-from mimircache.profiler.LRUProfiler import LRUProfiler
 import mimircache.c_generalProfiler as c_generalProfiler
-from mimircache.const import c_available_cache, cache_alg_mapping
-from mimircache.profiler.abstract.abstractProfiler import profilerAbstract
 from mimircache.const import *
 
 
@@ -246,10 +244,6 @@ def run():
 
 if __name__ == "__main__":
     import time
-    # run()
-    # sys.exit(1)
-    # server_plot_all('../data/', threads=8)
-
     DAT = "hm_0.csv"
 
 
@@ -257,72 +251,48 @@ if __name__ == "__main__":
     NUM_OF_THREADS = 8
     CACHE_SIZE = 8000
     BIN_SIZE = int(CACHE_SIZE/ NUM_OF_THREADS / 4) + 1
-    # BIN_SIZE = 1
-    DAT = "w60"         # 82 81 91(train /80)       75~95           # 91
-    DAT = "w106"                    # 83
-    # 94 LRU + Mithril 2    !!!!!!!!!!!!!
 
-    # DAT = "src1_1.csv"      # prn_1.csv "mds_1.csv"       no mds_0
-    # DAT = "prn_1.csv"
-    # DAT = "prxy_1.csv"
-    # DAT = "msr_src2"
+
 
     from mimircache import *
 
-    MIN_SUPPORT = 2
-    if MIN_SUPPORT == 1:
-        MAX_SUPPORT = 4
-    else:
-        MAX_SUPPORT = max(8, 4 * MIN_SUPPORT)
-    CONFIDENCE = 0
-    ITEM_SET_SIZE = 20
-    PREFETCH_LIST_SIZE = 3
-
-    # sys.stdout = open("cG.out", 'w')
-
-    run_type = 2
+    run_type = 1
 
     c = cachecow()
     # c.vscsi("../data/traces/{}_vscsi1.vscsitrace".format(DAT))
     if run_type ==1:
-        # c.vscsi("../data/trace.vscsi")
+        c.vscsi("../data/trace.vscsi")
         # c.open("/home/jason/ALL_DATA/cloudphysics_txt_64K/{}.txt".format(DAT), data_type='l')         # 99 104 105
         # c.open("/disk/cloudphysics_txt_64K/{}.txt".format(DAT), data_type='l')         # 99 104 105
         #                                                                            # no 102 103 106
 
         # c.vscsi("../data/traces/w38_vscsi1.vscsitrace")
-        c.open("../data/trace.txt", data_type='l')
-    # c.csv("MSR/"+DAT, init_params={"real_time_column": 0, "label_column": 4})
-    # c.csv("/scratch/jason/MSR/{}".format(DAT), init_params={"real_time_column": 0, "label_column": 4})
+        # c.open("../data/trace.txt", data_type='l')
 
     if run_type == 2:
-        # c.csv("/scratch/jason/wiki.part.csv.sort", init_params={"label_column": 2})
-        # c.open("../data/trace.txt")
-        c.open("/home/jason/setget.all.2")
+        # c.csv("/run/shm/wiki.1000000", init_params={"label_column": 2})
+        c.open("/home/jason/ALL_DATA/redis/86400-sec-redis-ephemeral-cmds.anonymized.log.extract.get.clean")
+        # c.open("/home/jason/setget.all.2")
 
-    # c.csv("/home/jason/raw_data/raw_data/sd", init_params={"label_column": 6})
-    # c.csv("../data/trace.csv", init_params={"real_time_column": 1, "label_column": 4})
-    # c.vscsi("../data/traces/w100_vscsi1.vscsitrace")
     n = c.num_of_request()
     nu = c.reader.get_num_of_unique_requests()
     print("total " + str(n) + ", unique " + str(nu))
-    CACHE_SIZE = nu // 2000
+    CACHE_SIZE = nu // 200
     # CACHE_SIZE = 201
     BIN_SIZE = CACHE_SIZE//NUM_OF_THREADS+10
-    BIN_SIZE = CACHE_SIZE-1
+    # BIN_SIZE = CACHE_SIZE-1
     # TRAINING_PERIOD = n // 80
     TRAINING_PERIOD = 6000
-    figname = "MRC_{}_{}_{}_{}_{}_{}_{}.png".format("trace", MAX_SUPPORT, MIN_SUPPORT, CONFIDENCE, ITEM_SET_SIZE,
-                                                       TRAINING_PERIOD, PREFETCH_LIST_SIZE)
+    figname = "HRC_wiki.png"
     c.reader.reset()
     t1 = time.time()
 
     if run_type == 1:
-        c.plotHRCs(["LRU", "AMP", "mimir"], # , "FIFO", "mimir"], #, "Optimal"], # ""test1"],  #, "Optimal"],
+        c.plotHRCs(["LRU", "AMP", "mimir", "PG", "Optimal"], # , "FIFO", "mimir"], #, "Optimal"], # ""test1"],  #, "Optimal"],
                    cache_params=[None, {"K":3, "pthreshold":256},
                                   {
-                                    "max_support": 25,
-                                    "min_support": 2,
+                                    "max_support": 12,
+                                    "min_support": 3,
                                     "confidence": 0,
                                     "item_set_size": 20,
                                     "prefetch_list_size": 2,
@@ -333,26 +303,51 @@ if __name__ == "__main__":
                                     "sequential_K":2,
                                     "cycle_time":2,
                                     "AMP_pthreshold":256,
-                                   }],
+                                   },
+                                 {
+                                     "lookahead": 2,
+                                     "cache_type": "LRU",
+                                     "max_metadata_size": 0.1,
+                                     "prefetch_threshold": 0.2,
+                                     "block_size": 64*1024,
+                                 }, None
+                                 ],
                    cache_size=CACHE_SIZE, bin_size=BIN_SIZE, auto_size=False, num_of_threads=NUM_OF_THREADS,
                    figname=figname)
     elif run_type == 2:
-        c.plotHRCs(["LRU", "mimir"],  # , "FIFO", "mimir"], #, "Optimal"], # ""test1"],  #, "Optimal"],
+        c.plotHRCs(["LRU", "mimir", "FIFO", "mimir", "Optimal"], # ""test1"],  #, "Optimal"],
                    cache_params=[None, # {"APT":4, "read_size":1},
                                  {
-                                     "max_support": 20,
-                                     "min_support":6,
+                                     "max_support": 12,
+                                     "min_support":4,
                                      "confidence": 0,
-                                     "item_set_size": 80,
+                                     "item_set_size": 2000,
                                      "prefetch_list_size": 2,
                                      "cache_type": "LRU",
+                                     "sequential_type": 0,
+                                     "max_metadata_size": 0.1,
+                                     "block_size": 64 * 1024,
+                                     "sequential_K": 0,
+                                     "cycle_time": 2,
+                                     "AMP_pthreshold":256
+                                 },
+                                 None,
+                                 {
+                                     "max_support": 12,
+                                     "min_support": 4,
+                                     "confidence": 0,
+                                     "item_set_size": 2000,
+                                     "prefetch_list_size": 2,
+                                     "cache_type": "FIFO",
                                      "sequential_type": 0,
                                      "max_metadata_size": 0.2,
                                      "block_size": 64 * 1024,
                                      "sequential_K": 0,
                                      "cycle_time": 2,
-                                     "AMP_pthreshold":256
-                                 }],
+                                     "AMP_pthreshold": 256
+                                 },
+                                    None
+                                 ],
                    cache_size=CACHE_SIZE, bin_size=BIN_SIZE, auto_size=False, num_of_threads=NUM_OF_THREADS,
                    figname=figname)
     print("{} s".format(time.time() - t1))
@@ -436,5 +431,7 @@ if __name__ == "__main__":
     # plt.title('Hit Rate Curve', fontsize=18, color='black')
     # plt.savefig(figname, dpi=600)
     # colorfulPrint("red", "plot is saved at the same directory")
+
+
 
 

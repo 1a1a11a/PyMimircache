@@ -1,3 +1,4 @@
+# coding=utf-8
 from mimircache.cache.abstractCache import cache
 from mimircache.utils.LinkedList import LinkedList
 

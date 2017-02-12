@@ -190,18 +190,19 @@ struct_cache* LRU_init(guint64 size, char data_type, void* params){
     cache->cache_params = g_new0(struct LRU_params, 1);
     struct LRU_params* LRU_params = (struct LRU_params*)(cache->cache_params);
     
-    cache->core->type = e_LRU;
-    cache->core->cache_init = LRU_init;
-    cache->core->destroy = LRU_destroy;
-    cache->core->destroy_unique = LRU_destroy_unique;
-    cache->core->add_element = LRU_add_element;
-    cache->core->check_element = LRU_check_element;
-    cache->core->__insert_element = __LRU_insert_element;
-    cache->core->__update_element = __LRU_update_element;
-    cache->core->__evict_element  = __LRU_evict_element;
-    cache->core->__evict_with_return = __LRU__evict_with_return; 
-    cache->core->get_size = LRU_get_size; 
-    cache->core->cache_init_params = NULL;
+    cache->core->type                   =   e_LRU;
+    cache->core->cache_init             =   LRU_init;
+    cache->core->destroy                =   LRU_destroy;
+    cache->core->destroy_unique         =   LRU_destroy_unique;
+    cache->core->add_element            =   LRU_add_element;
+    cache->core->check_element          =   LRU_check_element;
+    cache->core->__insert_element       =   __LRU_insert_element;
+    cache->core->__update_element       =   __LRU_update_element;
+    cache->core->__evict_element        =   __LRU_evict_element;
+    cache->core->__evict_with_return    =   __LRU__evict_with_return;
+    cache->core->get_size               =   LRU_get_size;
+    cache->core->remove_element         =   LRU_remove_element; 
+    cache->core->cache_init_params      =   NULL;
 
     if (data_type == 'l'){
         LRU_params->hashtable = g_hash_table_new_full(g_int64_hash, g_int64_equal, simple_g_key_value_destroyer, NULL);

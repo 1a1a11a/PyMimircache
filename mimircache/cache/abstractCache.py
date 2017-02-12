@@ -1,3 +1,4 @@
+# coding=utf-8
 """
 .. module:: useful_1
    :platform: Unix, Windows
@@ -60,10 +61,6 @@ class cache:
         :return: -1 if not in cache, otherwise old rank (if there is) or 1
         """
         raise NotImplementedError("add_element class is not implemented")
-
-    @abc.abstractmethod
-    def _printCacheLine(self):
-        return
 
     def __contains__(self, item):
         return self.checkElement(item)
