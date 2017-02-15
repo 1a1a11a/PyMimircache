@@ -26,7 +26,7 @@
 #include "LRU_LFU.h" 
 #include "LRU_dataAware.h" 
 #include "ARC.h" 
-#include "LRFU.h" 
+//#include "LRFU.h" 
 #include "SLRU.h"
 
 #include "YJC.h"
