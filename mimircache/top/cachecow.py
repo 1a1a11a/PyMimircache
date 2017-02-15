@@ -300,10 +300,17 @@ class cachecow:
         else:
             figname = plot_type + ".png"
 
-        if plot_type == 'cold_miss':
+        if plot_type == 'cold_miss' or plot_type == "cold_miss_count":
+            if plot_type == 'cold_miss':
+                print("please use cold_miss_count, cold_miss is deprecated")
             assert "mode" in kwargs, "you need to provide mode(r/v) for plotting cold_miss2d"
             assert "time_interval" in kwargs, "you need to provide time_interval for plotting cold_miss2d"
-            cold_miss_2d(self.reader, kwargs['mode'], kwargs['time_interval'], figname=figname)
+            cold_miss_count_2d(self.reader, kwargs['mode'], kwargs['time_interval'], figname=figname)
+
+        elif plot_type == 'cold_miss_ratio':
+            assert "mode" in kwargs, "you need to provide mode(r/v) for plotting cold_miss2d"
+            assert "time_interval" in kwargs, "you need to provide time_interval for plotting cold_miss2d"
+            cold_miss_ratio_2d(self.reader, kwargs['mode'], kwargs['time_interval'], figname=figname)
 
         elif plot_type == 'request_num':
             assert "mode" in kwargs, "you need to provide mode(r/v) for plotting request_num2d"
