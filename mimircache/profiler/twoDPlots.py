@@ -138,11 +138,11 @@ def nameMapping_2d(reader, partial_ratio=0.1, figname=None):
     plt.ylabel("mapped LBA")
     plt.xlabel("virtual time/%")
     if figname is None:
-        figname = os.path.basename(reader.fileloc) + '_overall.png'
+        new_figname = os.path.basename(reader.fileloc) + '_overall.png'
     else:
         pos = figname.rfind('.')
-        figname = figname[:pos] + '_overall' + figname[pos+1:]
-    plt.savefig(figname)
+        new_figname = figname[:pos] + '_overall' + figname[pos:]
+    plt.savefig(new_figname)
 
     plt.clf()
     plt.scatter(np.linspace(0, 100, len(list_partial)), list_partial)
@@ -150,9 +150,9 @@ def nameMapping_2d(reader, partial_ratio=0.1, figname=None):
     plt.ylabel("renamed block number")
     plt.xlabel("virtual time/%")
     if figname is None:
-        figname = os.path.basename(reader.fileloc) + '_partial.png'
+        new_figname = os.path.basename(reader.fileloc) + '_partial.png'
     else:
         pos = figname.rfind('.')
-        figname = figname[:pos] + '_partial' + figname[pos+1:]
-    plt.savefig(figname)
+        new_figname = figname[:pos] + '_partial' + figname[pos:]
+    plt.savefig(new_figname)
     plt.clf()
