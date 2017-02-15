@@ -25,9 +25,14 @@
 #include "Random.h"
 #include "LRU_LFU.h" 
 #include "LRU_dataAware.h" 
+#include "ARC.h" 
+#include "LRFU.h" 
+#include "SLRU.h"
 
 #include "YJC.h"
 #include "mimir.h" 
+#include "AMP.h"
+#include "PG.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,11 +41,14 @@
 #include "glib_related.h"
 #include "cache.h"
 #include "const.h"
-#include "AMP.h" 
-#include "PG.h" 
 
 
-struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyObject* cache_params, long begin);
+
+struct_cache* build_cache(READER* reader,
+                          long cache_size,
+                          char* algorithm,
+                          PyObject* cache_params,
+                          long begin);
 
 
 

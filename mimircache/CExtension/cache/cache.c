@@ -21,10 +21,10 @@ void cache_destroy(struct_cache* cache){
     /* cache->core->cache_init_params is on the stack default, 
      if it is on the heap, needs to be freed manually
      */
-    if (cache->core->cache_init_params){
-        g_free(cache->core->cache_init_params);
-        cache->core->cache_init_params = NULL;
-    }
+//    if (cache->core->cache_init_params){
+//        g_free(cache->core->cache_init_params);
+//        cache->core->cache_init_params = NULL;
+//    }
     
     // This should not be freed, because it points to other's eviction_array, which should be freed only by others
 //    if (cache->core->oracle){
@@ -77,6 +77,6 @@ struct_cache* cache_init(long long size, char data_type){
     return cache;
 }
 
-guint64 get_current_size(struct_cache* cache){
-    return 0;
-}
+//guint64 get_current_size(struct_cache* cache){
+//    return 0;
+//}

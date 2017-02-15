@@ -121,7 +121,9 @@ void __LRU_evict_element(struct_cache* LRU, cache_line* cp){
 
 
 gpointer __LRU__evict_with_return(struct_cache* LRU, cache_line* cp){
-    /** evict one element and return the evicted element, needs to free the memory of returned data **/
+    /** evict one element and return the evicted element, 
+     * needs to free the memory of returned data 
+     */
     
     struct LRU_params* LRU_params = (struct LRU_params*)(LRU->cache_params);
     
@@ -152,7 +154,7 @@ gboolean LRU_add_element(struct_cache* cache, cache_line* cp){
     }
     else{
         __LRU_insert_element(cache, cp);
-        if ( (long)g_hash_table_size( LRU_params->hashtable) > cache->core->size)
+        if ((long)g_hash_table_size(LRU_params->hashtable) > cache->core->size)
             __LRU_evict_element(cache, cp);
         LRU_params->ts ++;
         return FALSE;
@@ -222,10 +224,14 @@ struct_cache* LRU_init(guint64 size, char data_type, void* params){
 
 
 
- void LRU_remove_element(struct_cache* cache, void* data_to_remove){
+void LRU_remove_element(struct_cache* cache, void* data_to_remove){
     struct LRU_params* LRU_params = (struct LRU_params*)(cache->cache_params);
     
     gpointer data = g_hash_table_lookup(LRU_params->hashtable, data_to_remove);
+    if (!data){
+        fprintf(stderr, "LRU_remove_element: data to remove is not in the cache\n");
+        exit(1);
+    }
     g_queue_delete_link(LRU_params->list, (GList*) data);
     g_hash_table_remove(LRU_params->hashtable, data_to_remove);
 }

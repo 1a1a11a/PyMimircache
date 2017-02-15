@@ -18,7 +18,7 @@
 struct LRU_params{
     GHashTable *hashtable;
     GQueue *list;
-    gint64 ts; 
+    gint64 ts;              // this only works when add_element is called 
 };
 
 typedef struct LRU_params LRU_params_t; 

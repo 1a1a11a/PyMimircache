@@ -208,17 +208,17 @@ struct_cache* LRU_K_init(guint64 size, char data_type, void* params){
     cache->cache_params = g_new0(struct LRU_K_params, 1);
     struct LRU_K_params* LRU_K_params = (struct LRU_K_params*)(cache->cache_params);
     
-    cache->core->type = e_LRU_K;
-    cache->core->cache_init = LRU_K_init;
-    cache->core->destroy = LRU_K_destroy;
-    cache->core->destroy_unique = LRU_K_destroy_unique;
-    cache->core->add_element = LRU_K_add_element;
-    cache->core->check_element = LRU_K_check_element;
-    cache->core->cache_init_params = params;
+    cache->core->type               =       e_LRU_K;
+    cache->core->cache_init         =       LRU_K_init;
+    cache->core->destroy            =       LRU_K_destroy;
+    cache->core->destroy_unique     =       LRU_K_destroy_unique;
+    cache->core->add_element        =       LRU_K_add_element;
+    cache->core->check_element      =       LRU_K_check_element;
+    cache->core->cache_init_params  =       params;
 
-    LRU_K_params->ts = 0;
-    LRU_K_params->pq = pqueue_init((size_t)size, cmp_pri, get_pri,
-                                   set_pri, get_pos, set_pos);
+    LRU_K_params->ts   =    0;
+    LRU_K_params->pq   =    pqueue_init((size_t)size, cmp_pri, get_pri,
+                                            set_pri, get_pos, set_pos);
     
     int K, maxK;
     K = ((struct LRU_K_init_params*) params)->K;            // because in gqueue, sequence begins with 0

@@ -52,6 +52,29 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
         init_params->maxK = 2;
         cache = LRU_K_init(cache_size, data_type, (void*)init_params);
     }
+    else if (strcmp(algorithm, "ARC") == 0){
+        ARC_init_params_t *init_params = g_new(ARC_init_params_t, 1);
+        if (PyDict_Contains(cache_params, PyUnicode_FromString("ghost_list_factor")))
+            init_params->ghost_list_factor = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "ghost_list_factor"));
+        else
+            init_params->ghost_list_factor = 10;
+        cache = ARC_init(cache_size, data_type, (void*)init_params);
+    }
+    else if (strcmp(algorithm, "LRFU") == 0){
+        struct LRU_K_init_params *init_params = g_new(struct LRU_K_init_params, 1);
+        init_params->K = 2;
+        init_params->maxK = 2;
+        cache = ARC_init(cache_size, data_type, (void*)init_params);
+    }
+    else if (strcmp(algorithm, "SLRU") == 0){
+        SLRU_init_params_t *init_params = g_new(struct SLRU_init_params, 1);
+        if (PyDict_Contains(cache_params, PyUnicode_FromString("N")))
+            init_params->N_segments = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "N"));
+        else
+            init_params->N_segments = 2;
+        cache = SLRU_init(cache_size, data_type, (void*)init_params);
+    }
+
     else if (strcmp(algorithm, "LRU_K") == 0){
 //        printf("check dict\n");
 //        printf("check = %d\n", PyDict_Check(cache_params));

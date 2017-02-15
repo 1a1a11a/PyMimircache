@@ -16,8 +16,26 @@
 
 
 
-/* this module is not reentrant-safe */
+static void
+printHashTable (gpointer key, gpointer value, gpointer user_data){
+    // only works for long data type 
+    struct MIMIR_params* MIMIR_params = user_data;
+    gint prefetch_table_index = GPOINTER_TO_INT(value);
+    gint dim1 = (gint)floor(prefetch_table_index/(double)PREFETCH_TABLE_SHARD_SIZE);
+    gint dim2 = prefetch_table_index % PREFETCH_TABLE_SHARD_SIZE * (MIMIR_params->prefetch_list_size+1);
+    
+    int i;
+    for (i=0; i<3; i++){
+        if (MIMIR_params->prefetch_table_array[dim1][dim2] != *(gint64*)key){
+            fprintf(stderr, "ERROR prefetch table pos wrong %ld %ld, dim %d %d\n",
+                *(gint64*)key, MIMIR_params->prefetch_table_array[dim1][dim2], dim1, dim2);
+            exit(1);
+        }
+        printf("%ld, ", MIMIR_params->prefetch_table_array[dim1][dim2+i]);
+    }
 
+    printf("\n");
+}
 
 struct HR_PE* get_HR_PE(READER* reader_in, guint64 size){
     
@@ -351,12 +369,13 @@ static void profiler_thread(gpointer data, gpointer user_data){
     result[order]->miss_rate = 1 - result[order]->hit_rate;
     
     
-    if (cache->core->type == e_mimir){ // || cache->core->type == e_MS1 || cache->core->type == e_MS2){
+    if (cache->core->type == e_mimir){ 
         struct MIMIR_params* MIMIR_params = (struct MIMIR_params*)(cache->cache_params);
         gint64 prefetch = MIMIR_params->num_of_prefetch_mimir;
         gint64 hit = MIMIR_params->hit_on_prefetch_mimir;
 
-        printf("\ncache size %ld, real size: %ld, hit rate %lf, total check %lu, mimir prefetch %lu, hit %lu, accuracy: %lf, prefetch table size %u\n",
+        printf("\ncache size %ld, real size: %ld, hit rate %lf, total check %lu, "
+               "mimir prefetch %lu, hit %lu, accuracy: %lf, prefetch table size %u\n",
                cache->core->size, MIMIR_params->cache->core->size,
                (double)hit_count/(hit_count+miss_count),
                ((struct MIMIR_params*)(cache->cache_params))->num_of_check,
@@ -372,12 +391,20 @@ static void profiler_thread(gpointer data, gpointer user_data){
         }
         
         if (MIMIR_params->cache->core->type == e_AMP){
-            prefetch = ((struct AMP_params*)(MIMIR_params->cache->cache_params))->num_of_prefetch;
-            hit = ((struct AMP_params*)(MIMIR_params->cache->cache_params))->num_of_hit;
-            printf("AMP cache size %ld, prefetch %lu, hit %lu, accuracy: %lf\n",
-                   MIMIR_params->cache->core->size, prefetch, hit, (double)hit/prefetch); 
+            gint64 prefetch2 = ((struct AMP_params*)(MIMIR_params->cache->cache_params))->num_of_prefetch;
+            gint64 hit2 = ((struct AMP_params*)(MIMIR_params->cache->cache_params))->num_of_hit;
+            printf("Mithril_AMP cache size %ld, prefetch %lu, hit %lu, accuracy: %lf, total prefetch %lu, hit %lu, accuracy: %lf\n",
+                   MIMIR_params->cache->core->size, prefetch2, hit2, (double)hit2/prefetch2,
+                   prefetch+prefetch2, hit+hit2, (double)(hit+hit2)/(prefetch+prefetch2)); 
 
         }
+        
+        // output association
+//        printf("output association\n");
+//        g_hash_table_foreach (MIMIR_params->prefetch_hashtable,
+//                              printHashTable, MIMIR_params);
+        
+        
     }
 //    if (cache->core->type == e_test1){
 //        gint64 prefech = ((struct test1_params*)(cache->cache_params))->num_of_prefetch;
@@ -391,14 +418,14 @@ static void profiler_thread(gpointer data, gpointer user_data){
     
     if (cache->core->type == e_PG){
         PG_params_t *PG_params = (PG_params_t*)(cache->cache_params);
-        printf("cache size %llu, real size %ld, hit rate %lf, prefetch %lu, hit %lu, precision %lf\n", PG_params->init_size, PG_params->cache->core->size, (double)hit_count/(hit_count+miss_count), PG_params->num_of_prefetch, PG_params->num_of_hit, (double)(PG_params->num_of_hit)/(PG_params->num_of_prefetch));
+        printf("\n PG cache size %llu, real size %ld, hit rate %lf, prefetch %lu, hit %lu, precision %lf\n", PG_params->init_size, PG_params->cache->core->size, (double)hit_count/(hit_count+miss_count), PG_params->num_of_prefetch, PG_params->num_of_hit, (double)(PG_params->num_of_hit)/(PG_params->num_of_prefetch));
     }
 
     if (cache->core->type == e_AMP){
         gint64 prefech = ((struct AMP_params*)(cache->cache_params))->num_of_prefetch;
         gint64 hit = ((struct AMP_params*)(cache->cache_params))->num_of_hit;
 
-        printf("\ncache size %ld, hit rate %lf, prefetch %lu, hit %lu, accuracy: %lf\n\n",
+        printf("\nAMP cache size %ld, hit rate %lf, prefetch %lu, hit %lu, accuracy: %lf\n\n",
                cache->core->size, (double)hit_count/(hit_count+miss_count),
                prefech, hit, (double)hit/prefech);
     }

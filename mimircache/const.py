@@ -66,6 +66,7 @@ def _init_cache_alg_mapping():
     cache_alg_mapping['fifo'] = "FIFO"
 
     cache_alg_mapping['arc'] = "ARC"
+    cache_alg_mapping['lrfu'] = "LRFU"
 
     cache_alg_mapping['clock'] = "clock"
 
@@ -86,11 +87,7 @@ def _init_cache_alg_mapping():
     cache_alg_mapping['yjc'] = "YJC"
     cache_alg_mapping['mimir'] = 'mimir'
 
-    cache_alg_mapping['test1'] = "test1"
     cache_alg_mapping['amp'] = "AMP"
-
-    cache_alg_mapping['ms1'] = "MS1"
-    cache_alg_mapping['ms2'] = "MS2"
 
     cache_alg_mapping['pg'] = "PG"
 
