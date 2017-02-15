@@ -29,9 +29,7 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
     }
     else if (strcmp(algorithm, "LRU_LFU") == 0){
         double LRU_percentage = PyFloat_AS_DOUBLE(PyDict_GetItemString(cache_params, "LRU_percentage"));
-#ifdef DEBUG
-    printf("LRU_percentage=%lf\n", LRU_percentage);
-#endif
+        DEBUG_MSG("LRU_percentage=%lf\n", LRU_percentage);
         struct LRU_LFU_init_params *init_params = g_new(struct LRU_LFU_init_params, 1);
         init_params->LRU_percentage = LRU_percentage;
         cache = LRU_LFU_init(cache_size, data_type, (void*)init_params);
@@ -54,7 +52,7 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
     }
     else if (strcmp(algorithm, "ARC") == 0){
         ARC_init_params_t *init_params = g_new(ARC_init_params_t, 1);
-        if (PyDict_Contains(cache_params, PyUnicode_FromString("ghost_list_factor")))
+        if (cache_params!=Py_None && PyDict_Contains(cache_params, PyUnicode_FromString("ghost_list_factor")))
             init_params->ghost_list_factor = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "ghost_list_factor"));
         else
             init_params->ghost_list_factor = 10;
@@ -68,7 +66,7 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
     }
     else if (strcmp(algorithm, "SLRU") == 0){
         SLRU_init_params_t *init_params = g_new(struct SLRU_init_params, 1);
-        if (PyDict_Contains(cache_params, PyUnicode_FromString("N")))
+        if (cache_params!=Py_None && PyDict_Contains(cache_params, PyUnicode_FromString("N")))
             init_params->N_segments = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "N"));
         else
             init_params->N_segments = 2;
@@ -98,9 +96,9 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
         init_params->K = K;
         init_params->maxK = K;
         cache = LRU_K_init(cache_size, data_type, (void*)init_params);
-#ifdef DEBUG
-        printf("cache->K = %d, maxK = %d\n", ((struct LRU_K_params*)(cache->cache_params))->K, ((struct LRU_K_params*)(cache->cache_params))->maxK);
-#endif 
+        DEBUG_MSG("cache->K = %d, maxK = %d\n",
+                  ((struct LRU_K_params*)(cache->cache_params))->K,
+                  ((struct LRU_K_params*)(cache->cache_params))->maxK);
         
     }
     else if (strcmp(algorithm, "PG") == 0){
@@ -115,17 +113,15 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
             init_params->cache_type = g_strdup( PyBytes_AS_STRING(temp_bytes) ); // Borrowed pointer
             Py_DECREF(temp_bytes);
         }
-#ifdef DEBUG
-        printf("PG lookahead %d, max_meta_data %lf, prefetch_threshold %lf, cache type %s\n", init_params->lookahead, init_params->max_meta_data, init_params->prefetch_threshold, init_params->cache_type);
-#endif
+        DEBUG_MSG("PG lookahead %d, max_meta_data %lf, prefetch_threshold %lf, cache type %s\n",
+                  init_params->lookahead, init_params->max_meta_data,
+                  init_params->prefetch_threshold, init_params->cache_type);
         cache = PG_init(cache_size, data_type, (void*)init_params);
     }
     else if (strcmp(algorithm, "AMP") == 0){
         gint threshold = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "pthreshold"));
         gint K = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "K"));
-#ifdef DEBUG
-        printf("AMP K %d, threshold %d\n", K, threshold);
-#endif 
+        DEBUG_MSG("AMP K %d, threshold %d\n", K, threshold);
         struct AMP_init_params *init_params = g_new(struct AMP_init_params, 1);
         init_params->APT            = 4;
         init_params->read_size      = 1;
@@ -136,10 +132,8 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
     else if (strcmp(algorithm, "YJC") == 0){
         double LRU_percentage = PyFloat_AS_DOUBLE(PyDict_GetItemString(cache_params, "LRU_percentage"));
         double LFU_percentage = PyFloat_AS_DOUBLE(PyDict_GetItemString(cache_params, "LFU_percentage"));
-#ifdef DEBUG
-        printf("LRU_percentage=%lf\n", LRU_percentage);
-        printf("LFU_percentage=%lf\n", LFU_percentage);
-#endif
+        DEBUG_MSG("LRU_percentage=%lf\n", LRU_percentage);
+        DEBUG_MSG("LFU_percentage=%lf\n", LFU_percentage);
         struct YJC_init_params *init_params = g_new(struct YJC_init_params, 1);
         init_params->LRU_percentage = LRU_percentage;
         init_params->LFU_percentage = LFU_percentage;
@@ -175,11 +169,8 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
         if (strcmp(cache_type, "AMP") == 0)
             AMP_pthreshold = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "AMP_pthreshold"));
         
-        
-#ifdef DEBUG
-        printf("cache type %s, max support=%d, min support %d, confidence %d, sequential %d\n",
+        DEBUG_MSG("cache type %s, max support=%d, min support %d, confidence %d, sequential %d\n",
                      cache_type, max_support, min_support, confidence, sequential_K);
-#endif
         
         struct MIMIR_init_params *init_params = g_new(struct MIMIR_init_params, 1);
         init_params->max_support            = max_support;

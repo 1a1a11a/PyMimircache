@@ -25,9 +25,6 @@
 #define rd_distribution_CDF                             7
 
 
-//#ifndef DEBUG
-//#define DEBUG(stat) ;
-//#endif 
 
 #define SANITY_CHECK
 
