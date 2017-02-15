@@ -351,7 +351,7 @@ static void profiler_thread(gpointer data, gpointer user_data){
     add_element = cache->core->add_element;
 
     read_one_element(reader_thread, cp);
-    
+
     while (cp->valid && pos<end_pos){
         if (add_element(cache, cp)){
             hit_count ++;
@@ -406,19 +406,15 @@ static void profiler_thread(gpointer data, gpointer user_data){
         
         
     }
-//    if (cache->core->type == e_test1){
-//        gint64 prefech = ((struct test1_params*)(cache->cache_params))->num_of_prefetch;
-//        gint64 hit = ((struct test1_params*)(cache->cache_params))->hit_on_prefetch;
-//        
-//        printf("\ncache size %ld, hit rate %lf, total check %lu, prefetch %lu, hit %lu, accuracy: %lf\n",
-//               cache->core->size, (double)hit_count/(hit_count+miss_count),
-//               ((struct test1_params*)(cache->cache_params))->num_of_check,
-//               prefech, hit, (double)hit/prefech);
-//    }
     
     if (cache->core->type == e_PG){
         PG_params_t *PG_params = (PG_params_t*)(cache->cache_params);
-        printf("\n PG cache size %llu, real size %ld, hit rate %lf, prefetch %lu, hit %lu, precision %lf\n", PG_params->init_size, PG_params->cache->core->size, (double)hit_count/(hit_count+miss_count), PG_params->num_of_prefetch, PG_params->num_of_hit, (double)(PG_params->num_of_hit)/(PG_params->num_of_prefetch));
+        printf("\n PG cache size %llu, real size %ld, hit rate %lf, prefetch %lu, "
+               "hit %lu, precision %lf\n", PG_params->init_size,
+               PG_params->cache->core->size,
+               (double)hit_count/(hit_count+miss_count),
+               PG_params->num_of_prefetch, PG_params->num_of_hit,
+               (double)(PG_params->num_of_hit)/(PG_params->num_of_prefetch));
     }
 
     if (cache->core->type == e_AMP){

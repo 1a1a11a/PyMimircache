@@ -30,3 +30,9 @@
 //#endif 
 
 #define SANITY_CHECK
+
+#if defined(__DEBUG__) || defined(_DEBUG)
+#define DEBUG_MSG(...) fprintf(stderr, __VA_ARGS__)
+#else
+#define DEBUG_MSG(...) do { } while (0)
+#endif

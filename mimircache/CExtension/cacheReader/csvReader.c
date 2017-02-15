@@ -105,22 +105,28 @@ void csv_setup_Reader(char* file_loc, READER* reader, csvReader_init_params* ini
     reader->label_column = init_params->label_column;
     reader->already_got_cache_line = FALSE;
     reader->reader_end = FALSE;
-    reader->has_header = init_params->has_header;
     
-    if (init_params->delimiter)
+    
+    /* if we setup something here, then we must setup in the reset_reader func */
+    if (init_params->delimiter){
         csv_set_delim(reader->csv_parser, init_params->delimiter);
+        reader->delim = init_params->delimiter;
+    }
     
     if (init_params->has_header){
         char *line = NULL;
         size_t len;
         len = getline(&line, &len, reader->csv_file);
         free(line);
+        reader->has_header = init_params->has_header;
     }
         
-#ifdef DEBUG
-    (printf("after initialization, current_column %d, label_column: %d, real_time_column %d, size_column: %d\n", reader->current_column_counter, reader->label_column, reader->real_time_column, reader->size_column));
-#endif
 
+    DEBUG_MSG("after initialization, current_column %d, label_column: %d, real_time_column %d, size_column: %d\n",
+              reader->current_column_counter, reader->label_column, reader->real_time_column, reader->size_column);
+    DEBUG_MSG("input delimiter %d(%c), current delimiter %d(%c)\n",
+           init_params->delimiter, init_params->delimiter,
+              reader->csv_parser->delim_char, reader->csv_parser->delim_char);
 }
 
 

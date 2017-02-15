@@ -48,7 +48,8 @@ typedef struct{
         };
         struct{
             FILE *csv_file;
-            gboolean has_header; 
+            gboolean has_header;
+            unsigned char delim;
             struct csv_parser *csv_parser;
             
             gint real_time_column;          /* column number begins from 0 */

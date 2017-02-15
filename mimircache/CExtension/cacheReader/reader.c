@@ -292,7 +292,9 @@ void reset_reader(READER* reader){
                 free(line);
                 line = NULL;
             }
-            reader->reader_end = FALSE; 
+            if (reader->delim)
+                csv_set_delim(reader->csv_parser, reader->delim); 
+            reader->reader_end = FALSE;
             break;
         case 'p':
             fseek(reader->file, 0L, SEEK_SET);
@@ -398,13 +400,13 @@ READER* copy_reader(READER* reader_in){
     memcpy(reader, reader_in, sizeof(READER));
     
     if (reader->type == 'v')
-//        reader->offset = 0;
         reader->offset = reader_in->offset;
     else if (reader->type == 'c'){
         reader->csv_file = fopen(reader->file_loc, "rb");
         fseek(reader->csv_file, ftell(reader_in->csv_file), SEEK_SET);
         reader->csv_parser = g_new0(struct csv_parser, 1);
         csv_init(reader->csv_parser, CSV_APPEND_NULL);
+        memcpy(reader->csv_parser, reader_in->csv_parser, sizeof(struct csv_parser));
 //        if (reader->has_header){
 //            char *line=NULL;
 //            size_t len;
