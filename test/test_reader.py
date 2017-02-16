@@ -57,6 +57,11 @@ class cReaderTest(unittest.TestCase):
         self.assertEqual(int(first_request), 42932745)
         c_cacheReader.close_reader(reader)
 
+    def test_context_manager(self):
+        with vscsiReader("{}/trace.vscsi".format(DAT_FOLDER)) as reader:
+            self.assertEqual(reader.get_num_of_total_requests(), 113872)
+
+
 
 class readerTest(unittest.TestCase):
     def test_reader_v(self):

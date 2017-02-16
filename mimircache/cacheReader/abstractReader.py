@@ -66,6 +66,14 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
 
         return self.num_of_line
 
+    def __enter__(self):
+        return self
+
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+
 
     @abc.abstractclassmethod
     def read_one_element(self):
