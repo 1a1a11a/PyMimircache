@@ -78,10 +78,6 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
     @abc.abstractclassmethod
     def read_one_element(self):
         pass
-        # self.counter += 1
-        # if (self.counter % 1000 == 0):
-        #     print('read in ' + str(self.counter) + ' records')
-        # raise NotImplementedError
 
     def close(self):
         try:
@@ -95,9 +91,6 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
     @abc.abstractclassmethod
     def __next__(self):  # Python 3
         self.counter += 1
-        # if (self.counter % 100000 == 0):
-        #     print('read in ' + str(self.counter) + ' records')
-        # raise NotImplementedError
 
     # @atexit.register
     def __del__(self):
