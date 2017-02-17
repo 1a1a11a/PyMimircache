@@ -135,8 +135,6 @@ class cachecow:
             else:
                 hm = heatmap()
 
-        print(hm)
-        print(kwargs)
         hm.heatmap(reader, mode, plot_type,
                    time_interval=time_interval,
                    num_of_pixels=num_of_pixels,

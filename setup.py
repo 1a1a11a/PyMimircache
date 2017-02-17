@@ -17,7 +17,7 @@ from _version import __version__
 # --------------------- Initialization ------------------------------
 
 extensions = []
-extra_compile_args = []
+extra_compile_args = ["-O3"]
 extra_link_args = ["-lm"]
 numpy_headers = []
 

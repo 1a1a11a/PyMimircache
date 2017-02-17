@@ -28,7 +28,9 @@
  */
 
 
-static PyObject* generalProfiler_get_hit_rate(PyObject* self, PyObject* args, PyObject* keywds)
+static PyObject* generalProfiler_get_hit_rate(PyObject* self,
+                                              PyObject* args,
+                                              PyObject* keywds)
 {
     PyObject* po;
     READER* reader;
@@ -40,10 +42,13 @@ static PyObject* generalProfiler_get_hit_rate(PyObject* self, PyObject* args, Py
     PyObject* cache_params;
     
     long begin=0, end=-1;
-    static char *kwlist[] = {"reader", "algorithm", "cache_size", "bin_size", "cache_params", "num_of_threads", "begin", "end", NULL};
+    static char *kwlist[] = {"reader", "algorithm", "cache_size", "bin_size",
+        "cache_params", "num_of_threads", "begin", "end", NULL};
     
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osli|Oill", kwlist, &po, &algorithm, &cache_size, &bin_size, &cache_params, &num_of_threads, &begin, &end)) {
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osli|Oill", kwlist, &po,
+                                     &algorithm, &cache_size, &bin_size,
+                                     &cache_params, &num_of_threads, &begin, &end)) {
         printf("parsing argument failed in generalProfiler_get_hit_rate\n");
         return NULL;
     }
@@ -51,9 +56,7 @@ static PyObject* generalProfiler_get_hit_rate(PyObject* self, PyObject* args, Py
     if(begin == -1)
         begin = 0;
         
-#ifdef DEBUG
-    printf("bin size: %d, threads: %d\n", bin_size, num_of_threads);
-#endif 
+    DEBUG_MSG("bin size: %d, threads: %d\n", bin_size, num_of_threads);
     
     if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
@@ -63,13 +66,10 @@ static PyObject* generalProfiler_get_hit_rate(PyObject* self, PyObject* args, Py
     cache = build_cache(reader, cache_size, algorithm, cache_params, begin);
     
     // get hit rate
-#ifdef DEBUG
-    printf("before profiling\n");
-#endif
-    return_res** results = profiler(reader, cache, num_of_threads, bin_size, (gint64)begin, (gint64)end);
-#ifdef DEBUG
-    printf("after profiling\n");
-#endif
+    DEBUG_MSG("before profiling\n");
+    return_res** results = profiler(reader, cache, num_of_threads, bin_size,
+                                    (gint64)begin, (gint64)end);
+    DEBUG_MSG("after profiling\n");
     
     // create numpy array 
     guint num_of_bins = ceil(cache_size/bin_size)+1;
@@ -97,7 +97,9 @@ static PyObject* generalProfiler_get_hit_rate(PyObject* self, PyObject* args, Py
 
 
 
-static PyObject* generalProfiler_get_hit_count(PyObject* self, PyObject* args, PyObject* keywds)
+static PyObject* generalProfiler_get_hit_count(PyObject* self,
+                                               PyObject* args,
+                                               PyObject* keywds)
 {
     PyObject* po;
     READER* reader;
@@ -109,10 +111,13 @@ static PyObject* generalProfiler_get_hit_count(PyObject* self, PyObject* args, P
     PyObject* cache_params=NULL;
     
     long begin=0, end=-1;
-    static char *kwlist[] = {"reader", "algorithm", "cache_size", "bin_size", "cache_params", "num_of_threads", "begin", "end", NULL};
+    static char *kwlist[] = {"reader", "algorithm", "cache_size", "bin_size",
+        "cache_params", "num_of_threads", "begin", "end", NULL};
     
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osli|Oill", kwlist, &po, &algorithm, &cache_size, &bin_size, &cache_params, &num_of_threads, &begin, &end)) {
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osli|Oill", kwlist, &po,
+                                     &algorithm, &cache_size, &bin_size,
+                                     &cache_params, &num_of_threads, &begin, &end)) {
         printf("parsing argument failed in generalProfiler_get_hit_rate\n");
         return NULL;
     }
@@ -120,9 +125,7 @@ static PyObject* generalProfiler_get_hit_count(PyObject* self, PyObject* args, P
     if(begin == -1)
         begin = 0;
     
-#ifdef DEBUG
-    printf("bin size: %d, threads: %d\n", bin_size, num_of_threads);
-#endif
+    DEBUG_MSG("bin size: %d, threads: %d\n", bin_size, num_of_threads);
     
     if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
@@ -133,13 +136,10 @@ static PyObject* generalProfiler_get_hit_count(PyObject* self, PyObject* args, P
     
     
     // get hit rate
-#ifdef DEBUG
-    printf("before profiling\n");
-#endif
-    return_res** results = profiler(reader, cache, num_of_threads, bin_size, (gint64)begin, (gint64)end);
-#ifdef DEBUG
-    printf("after profiling\n");
-#endif
+    DEBUG_MSG("before profiling\n");
+    return_res** results = profiler(reader, cache, num_of_threads, bin_size,
+                                    (gint64)begin, (gint64)end);
+    DEBUG_MSG("after profiling\n");
     
     // create numpy array
     guint num_of_bins = ceil(cache_size/bin_size)+1;
@@ -149,7 +149,6 @@ static PyObject* generalProfiler_get_hit_count(PyObject* self, PyObject* args, P
     *(long long *)PyArray_GETPTR1((PyArrayObject*)ret_array, 0) = 0;
     for(i=0; i<num_of_bins; i++){
         *(long long *)PyArray_GETPTR1((PyArrayObject*)ret_array, i) = results[i]->hit_count;
-//        printf("hit count %lu: %lld\n", i, results[i]->hit_count);
         g_free(results[i]);
     }
     
@@ -160,7 +159,9 @@ static PyObject* generalProfiler_get_hit_count(PyObject* self, PyObject* args, P
 }
 
 
-static PyObject* generalProfiler_get_miss_rate(PyObject* self, PyObject* args, PyObject* keywds)
+static PyObject* generalProfiler_get_miss_rate(PyObject* self,
+                                               PyObject* args,
+                                               PyObject* keywds)
 {
     PyObject* po;
     READER* reader;
@@ -172,10 +173,13 @@ static PyObject* generalProfiler_get_miss_rate(PyObject* self, PyObject* args, P
     PyObject* cache_params=NULL;
     
     long begin=0, end=-1;
-    static char *kwlist[] = {"reader", "algorithm", "cache_size", "bin_size", "cache_params", "num_of_threads", "begin", "end", NULL};
+    static char *kwlist[] = {"reader", "algorithm", "cache_size", "bin_size",
+        "cache_params", "num_of_threads", "begin", "end", NULL};
     
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osli|Oill", kwlist, &po, &algorithm, &cache_size, &bin_size, &cache_params, &num_of_threads, &begin, &end)) {
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osli|Oill", kwlist, &po,
+                                     &algorithm, &cache_size, &bin_size,
+                                     &cache_params, &num_of_threads, &begin, &end)) {
         printf("parsing argument failed in generalProfiler_get_hit_rate\n");
         return NULL;
     }
@@ -183,9 +187,7 @@ static PyObject* generalProfiler_get_miss_rate(PyObject* self, PyObject* args, P
     if(begin == -1)
         begin = 0;
     
-#ifdef DEBUG
-    printf("bin size: %d, threads: %d\n", bin_size, num_of_threads);
-#endif
+    DEBUG_MSG("bin size: %d, threads: %d\n", bin_size, num_of_threads);
     
     if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
@@ -196,13 +198,10 @@ static PyObject* generalProfiler_get_miss_rate(PyObject* self, PyObject* args, P
 
     
     // get hit rate
-#ifdef DEBUG
-    printf("before profiling\n");
-#endif
-    return_res** results = profiler(reader, cache, num_of_threads, bin_size, (gint64)begin, (gint64)end);
-#ifdef DEBUG
-    printf("after profiling\n");
-#endif
+    DEBUG_MSG("before profiling\n");
+    return_res** results = profiler(reader, cache, num_of_threads, bin_size,
+                                    (gint64)begin, (gint64)end);
+    DEBUG_MSG("after profiling\n");
     
     // create numpy array
     guint num_of_bins = ceil(cache_size/bin_size)+1;
@@ -222,7 +221,9 @@ static PyObject* generalProfiler_get_miss_rate(PyObject* self, PyObject* args, P
 }
 
 
-static PyObject* generalProfiler_get_evict_err_rate(PyObject* self, PyObject* args, PyObject* keywds)
+static PyObject* generalProfiler_get_evict_err_rate(PyObject* self,
+                                                    PyObject* args,
+                                                    PyObject* keywds)
 {
     PyObject* po;
     READER* reader;
@@ -233,11 +234,14 @@ static PyObject* generalProfiler_get_evict_err_rate(PyObject* self, PyObject* ar
     struct_cache* cache;
     PyObject* cache_params;
     
-    static char *kwlist[] = {"reader", "mode", "time_interval", "cache_size", "algorithm", "cache_params", NULL};
+    static char *kwlist[] = {"reader", "mode", "time_interval", "cache_size",
+        "algorithm", "cache_params", NULL};
     
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Oslls|O", kwlist, &po, &mode, &time_interval, &cache_size, &algorithm, &cache_params)) {
-        printf("parsing argument failed in generalProfiler_get_hit_rate\n");
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Oslls|O", kwlist, &po,
+                                     &mode, &time_interval, &cache_size,
+                                     &algorithm, &cache_params)) {
+        fprintf(stderr, "parsing argument failed in generalProfiler_get_hit_rate\n");
         return NULL;
     }
     
@@ -268,7 +272,9 @@ static PyObject* generalProfiler_get_evict_err_rate(PyObject* self, PyObject* ar
 
 
 
-static PyObject* generalProfiler_get_hit_rate_with_prefetch(PyObject* self, PyObject* args, PyObject* keywds)
+static PyObject* generalProfiler_get_hit_rate_with_prefetch(PyObject* self,
+                                                            PyObject* args,
+                                                            PyObject* keywds)
 {
     PyObject* po;
     READER* reader;
@@ -280,20 +286,22 @@ static PyObject* generalProfiler_get_hit_rate_with_prefetch(PyObject* self, PyOb
     PyObject* cache_params;
     
     long begin=0, end=-1;
-    static char *kwlist[] = {"reader", "algorithm", "cache_size", "bin_size", "cache_params", "num_of_threads", "begin", "end", NULL};
+    static char *kwlist[] = {"reader", "algorithm", "cache_size", "bin_size",
+        "cache_params", "num_of_threads", "begin", "end", NULL};
     
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osli|Oill", kwlist, &po, &algorithm, &cache_size, &bin_size, &cache_params, &num_of_threads, &begin, &end)) {
-        printf("parsing argument failed in generalProfiler_get_hit_rate\n");
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osli|Oill", kwlist, &po,
+                                     &algorithm, &cache_size, &bin_size,
+                                     &cache_params, &num_of_threads, &begin, &end)) {
+        fprintf(stderr, "parsing argument failed in generalProfiler_get_hit_rate\n");
         return NULL;
     }
     
     if(begin == -1)
         begin = 0;
     
-#ifdef DEBUG
-    printf("get_hit_rate_with_prefetch, bin size: %d, threads: %d\n", bin_size, num_of_threads);
-#endif
+    DEBUG_MSG("get_hit_rate_with_prefetch, bin size: %d, threads: %d\n",
+              bin_size, num_of_threads);
     
     if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
@@ -303,13 +311,11 @@ static PyObject* generalProfiler_get_hit_rate_with_prefetch(PyObject* self, PyOb
     cache = build_cache(reader, cache_size, algorithm, cache_params, begin);
     
     // get hit rate
-#ifdef DEBUG
-    printf("before profiling\n");
-#endif
-    return_res** results = profiler_with_prefetch(reader, cache, num_of_threads, bin_size, "prefetchFile", (gint64)begin, (gint64)end);
-#ifdef DEBUG
-    printf("after profiling\n");
-#endif 
+    DEBUG_MSG("before profiling\n");
+    return_res** results = profiler_with_prefetch(reader, cache, num_of_threads,
+                                                  bin_size, "prefetchFile",
+                                                  (gint64)begin, (gint64)end);
+    DEBUG_MSG("after profiling\n");
     
     // create numpy array
     guint num_of_bins = ceil(cache_size/bin_size)+1;
@@ -338,7 +344,9 @@ static PyObject* generalProfiler_get_hit_rate_with_prefetch(PyObject* self, PyOb
 
 
 
-static PyObject* generalProfiler_get_hrpe(PyObject* self, PyObject* args, PyObject* keywds)
+static PyObject* generalProfiler_get_hrpe(PyObject* self,
+                                          PyObject* args,
+                                          PyObject* keywds)
 {
     PyObject* po;
     READER* reader;
@@ -347,7 +355,7 @@ static PyObject* generalProfiler_get_hrpe(PyObject* self, PyObject* args, PyObje
     
     // parse arguments
     if (!PyArg_ParseTupleAndKeywords(args, keywds, "Ol", kwlist, &po, &cache_size)) {
-        printf("parsing argument failed in generalProfiler_get_hit_rate\n");
+        fprintf(stderr, "parsing argument failed in generalProfiler_get_hit_rate\n");
         return NULL;
     }
 
@@ -357,13 +365,9 @@ static PyObject* generalProfiler_get_hrpe(PyObject* self, PyObject* args, PyObje
     
     
     // get hrpe
-#ifdef DEBUG
-    printf("before profiling\n");
-#endif
+    DEBUG_MSG("before profiling\n");
     struct HR_PE* hrpe = get_HR_PE(reader, cache_size);
-#ifdef DEBUG
-    printf("after profiling\n");
-#endif
+    DEBUG_MSG("after profiling\n");
     
     // create numpy array
     guint num_of_bins = 18;
@@ -376,15 +380,15 @@ static PyObject* generalProfiler_get_hrpe(PyObject* self, PyObject* args, PyObje
         *(double *)PyArray_GETPTR1((PyArrayObject*)ret_array, i*4+2) = hrpe->HR[i];
         *(double *)PyArray_GETPTR1((PyArrayObject*)ret_array, i*4+3) = hrpe->PE[i];
     }
-    
-    
     g_free(hrpe);
     return ret_array;
 }
 
 
 
-static PyObject* generalProfiler_get_partition(PyObject* self, PyObject* args, PyObject* keywds)
+static PyObject* generalProfiler_get_partition(PyObject* self,
+                                               PyObject* args,
+                                               PyObject* keywds)
 {
     PyObject* po;
     READER* reader;
@@ -394,11 +398,14 @@ static PyObject* generalProfiler_get_partition(PyObject* self, PyObject* args, P
     struct_cache* cache;
     PyObject* cache_params=NULL;
     
-    static char *kwlist[] = {"reader", "algorithm", "cache_size", "n_partitions", "cache_params", NULL};
+    static char *kwlist[] = {"reader", "algorithm", "cache_size",
+        "n_partitions", "cache_params", NULL};
     
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osli|O", kwlist, &po, &algorithm, &cache_size, &n_partitions, &cache_params)) {
-        printf("parsing argument failed in generalProfiler_get_hit_rate\n");
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osli|O", kwlist, &po,
+                                     &algorithm, &cache_size, &n_partitions,
+                                     &cache_params)) {
+        fprintf(stderr, "parsing argument failed in generalProfiler_get_hit_rate\n");
         return NULL;
     }
 
@@ -412,13 +419,9 @@ static PyObject* generalProfiler_get_partition(PyObject* self, PyObject* args, P
     
     
     // get partition
-#ifdef DEBUG
-    printf("partitions %i, %ld before getting partition\n", n_partitions, cache_size);
-#endif
+    DEBUG_MSG("partitions %i, %ld before getting partition\n", n_partitions, cache_size);
     partition_t* partitions = get_partition(reader, cache, n_partitions);
-#ifdef DEBUG
-    printf("after getting partition\n");
-#endif
+    DEBUG_MSG("after getting partition\n");
     
     // create numpy array
     npy_intp dims[2] = { n_partitions, partitions->partition_history[0]->len };
@@ -442,7 +445,9 @@ static PyObject* generalProfiler_get_partition(PyObject* self, PyObject* args, P
 
 
 
-static PyObject* generalProfiler_get_partition_hit_rate(PyObject* self, PyObject* args, PyObject* keywds)
+static PyObject* generalProfiler_get_partition_hit_rate(PyObject* self,
+                                                        PyObject* args,
+                                                        PyObject* keywds)
 {
     PyObject* po;
     READER* reader;
@@ -453,11 +458,14 @@ static PyObject* generalProfiler_get_partition_hit_rate(PyObject* self, PyObject
     struct_cache* cache;
     PyObject* cache_params;
     
-    static char *kwlist[] = {"reader", "algorithm", "cache_size", "bin_size", "cache_params", "num_of_threads", NULL};
+    static char *kwlist[] = {"reader", "algorithm", "cache_size", "bin_size",
+        "cache_params", "num_of_threads", NULL};
     
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osli|Oi", kwlist, &po, &algorithm, &cache_size, &bin_size, &cache_params, &num_of_threads)) {
-        printf("parsing argument failed in generalProfiler_get_partition_hit_rate\n");
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osli|Oi", kwlist, &po,
+                                     &algorithm, &cache_size, &bin_size,
+                                     &cache_params, &num_of_threads)) {
+        fprintf(stderr, "parsing argument failed in generalProfiler_get_partition_hit_rate\n");
         return NULL;
     }
     

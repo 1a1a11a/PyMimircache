@@ -566,9 +566,7 @@ static PyObject* heatmap_get_break_points(PyObject* self, PyObject* args, PyObje
     }
     if (time_interval == -1 && num_of_pixels == -1)
         num_of_pixels = 200;
-#ifdef DEBUG
-    printf("get break points, time interval %ld, num_of_pixels %ld\n", time_interval, num_of_pixels);
-#endif
+    DEBUG_MSG("get break points, time interval %ld, num_of_pixels %ld\n", time_interval, num_of_pixels);
     
     GArray* breakpoints;
     if (mode[0] == 'r')

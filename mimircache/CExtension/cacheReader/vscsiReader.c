@@ -94,19 +94,3 @@ vscsi_version_t test_vscsi_version(void *trace)
 }
 
 
-
-
-
-// int main(int argc, char** argv){
-// 	void ** mem = NULL; 
-// 	int ver; 
-// 	int delta; 
-// 	int num_of_rec; 
-// 	setup(argv[1], mem, &ver, &delta, &num_of_rec);
-// 	int i;
-// 	void* mem_original = *mem;
-// 	for (i=0;i<10;i++)
-// 		printf("%ld\n", read_trace(mem, &ver, &delta));
-// 	finish(mem_original, (delta)*(num_of_rec));
-// 	return 0;
-// }

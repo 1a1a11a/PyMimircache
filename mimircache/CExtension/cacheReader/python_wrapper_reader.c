@@ -97,13 +97,10 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
         Py_DECREF(py_delimiter);
         Py_DECREF(py_traceID);
 
-#ifdef DEBUG
         if (((csvReader_init_params*)init_params)->has_header)
-            printf("csv data has header\n");
+            DEBUG_MSG("csv data has header\n");
         
-        printf("delimiter %c\n", ((csvReader_init_params*)init_params)->delimiter);
-#endif
-        
+        DEBUG_MSG("delimiter %c\n", ((csvReader_init_params*)init_params)->delimiter);
     }
     
     READER* reader = setup_reader(file_loc, *file_type, *data_type, init_params);
