@@ -1,4 +1,4 @@
-# coding=utf-8.. _API:
+.. _API:
 
 API
 ===

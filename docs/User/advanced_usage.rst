@@ -1,4 +1,4 @@
-# coding=utf-8.. _advanced_usages:
+.. _advanced_usages:
 
 Advanced Usages
 ===============

@@ -1,4 +1,4 @@
-# coding=utf-8.. _algorithms:
+.. _algorithms:
 
 Algorithms
 ==========

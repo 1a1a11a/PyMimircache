@@ -1,4 +1,4 @@
-# coding=utf-8.. _quick_start:
+.. _quick_start:
 
 Quick Start
 ===========
