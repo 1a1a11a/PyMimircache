@@ -14,10 +14,11 @@ class traceBinaryWriter:
         if self.ofile is None:
             self.ofile = open(ofilename, 'wb')
         self.fmt = fmt
+        self.structIns = struct.Struct(self.fmt)
 
 
     def write(self, value):
-        b = struct.pack(self.fmt, *value)
+        b = self.structIns.pack(*value)
         self.ofile.write(b)
 
 

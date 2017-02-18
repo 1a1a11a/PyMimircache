@@ -15,12 +15,13 @@ class traceBinaryReader:
         if self.infile is None:
             self.infile = open(infilename, 'rb')
         self.fmt = fmt
+        self.structIns = struct.Struct(self.fmt)
 
 
     def read(self):
         b = self.infile.read(struct.calcsize(self.fmt))
         if len(b):
-            return struct.unpack(self.fmt, b)
+            return self.structIns.unpack(b)
         else:
             return None
 
