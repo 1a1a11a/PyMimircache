@@ -120,6 +120,11 @@ def draw2d(l, **kwargs):
         plt.gca().yaxis.set_major_formatter(kwargs['yticks'])
     if 'title' in kwargs:
         plt.title(kwargs['title'])
+    if 'logX' in kwargs:
+        plt.gca().set_xscale("log")
+    if 'logY' in kwargs:
+        plt.gca().set_yscale("log")
+
     plt.xlim((0, len(l)+1))
 
     plt.savefig(filename, dpi=600)

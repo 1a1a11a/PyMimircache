@@ -170,7 +170,7 @@ static PyObject* reader_read_time_request(PyObject* self, PyObject* args)
     }
     
     if (reader->type == 'p'){
-        printf("plain reader does not support get real time stamp\n");
+        fprintf(stderr, "plain reader does not support get real time stamp\n");
         exit(1);
     }
     else if (reader->type == 'c')
@@ -178,21 +178,21 @@ static PyObject* reader_read_time_request(PyObject* self, PyObject* args)
     else if (reader->type == 'v')
         c->type = 'l';
     else{
-        printf("reader type not recognized: %c\n", reader->type);
+        fprintf(stderr, "reader type not recognized: %c\n", reader->type);
         exit(1);
     }
     
     read_one_element(reader, c);
     if (c->valid){
         if (c->type == 'c'){
-            PyObject* ret = Py_BuildValue("is", (long)c->real_time, (char*)(c->item_p));
+            PyObject* ret = Py_BuildValue("Ks", (unsigned long long)(c->real_time), (char*)(c->item_p));
             destroy_cacheline(c);
             return ret;
         }
         else if (c->type == 'l'){
             guint64 item = *((guint64*)c->item_p);
             destroy_cacheline(c);
-            return Py_BuildValue("ll", (long)c->real_time, item);
+            return Py_BuildValue("Kl", (unsigned long long)(c->real_time), item);
         }
         else
             Py_RETURN_NONE;

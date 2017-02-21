@@ -17,12 +17,6 @@ class vscsiReader(cacheReaderAbstract):
         self.get_num_of_total_requests()
 
 
-    # def get_first_line(self):
-    #     self.reset()
-    #     return next(self.lines())
-
-
-
     def reset(self):
         if self.cReader:
             c_cacheReader.reset_reader(self.cReader)

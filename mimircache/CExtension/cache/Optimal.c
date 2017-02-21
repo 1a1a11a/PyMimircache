@@ -197,7 +197,7 @@ gboolean optimal_add_element(struct_cache* cache, cache_line* cp){
 
 
 struct_cache* optimal_init(guint64 size, char data_type, void* params){
-#define pq_size_multiplier 10       // ??? WHY 
+#define pq_size_multiplier 10       // ??? WHY
     struct_cache* cache = cache_init(size, data_type);
     
     struct optimal_params* optimal_params = g_new0(struct optimal_params, 1);
@@ -254,7 +254,7 @@ struct_cache* optimal_init(guint64 size, char data_type, void* params){
         GArray* array = optimal_params->next_access;
         GSList* list = get_last_access_dist_seq(reader, read_one_element_above);
         if (list == NULL){
-            printf("error getting last access distance in optimal_init\n");
+            fprintf(stderr, "error getting last access distance in optimal_init\n");
             exit(1);
         }
         GSList* list_move = list;

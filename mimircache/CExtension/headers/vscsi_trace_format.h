@@ -93,30 +93,24 @@ static inline bool test_version(vscsi_version_t *test_buf,
 
 
 static inline int vscsi_read_ver1(READER* reader, cache_line* c){
-    int i;
-    for (i=0; i<1; i++){
-        trace_v1_record_t *record = (trace_v1_record_t *)(reader->p + reader->offset);
-        c->real_time = record->ts;
-        c->size = record->len;
-        c->op = record->cmd;
-        *((guint64*)(c->item_p)) = record->lbn;
-       (reader->offset) += reader->record_size;
-    }
-    return i;
+    trace_v1_record_t *record = (trace_v1_record_t *)(reader->p + reader->offset);
+    c->real_time = record->ts;
+    c->size = record->len;
+    c->op = record->cmd;
+    *((guint64*)(c->item_p)) = record->lbn;
+    (reader->offset) += reader->record_size;
+    return 1;
 }
 
 
 static inline int vscsi_read_ver2(READER* reader, cache_line* c){
-    int i;
-    for (i=0; i<1; i++){
-        trace_v2_record_t *record = (trace_v2_record_t *)(reader->p + reader->offset);
-        c->real_time = record->ts;
-        c->size = record->len;
-        c->op = record->cmd;
-        *((guint64*)(c->item_p)) = record->lbn;
-        (reader->offset) += reader->record_size;
-    }
-    return i;
+    trace_v2_record_t *record = (trace_v2_record_t *)(reader->p + reader->offset);
+    c->real_time = record->ts;
+    c->size = record->len;
+    c->op = record->cmd;
+    *((guint64*)(c->item_p)) = record->lbn;
+    (reader->offset) += reader->record_size;
+    return 1; 
 }
 
 static inline int vscsi_read(READER* reader, cache_line* c){
