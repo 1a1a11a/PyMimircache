@@ -2,6 +2,8 @@
 
 import os
 from mimircache import vscsiReader
+from mimircache.cacheReader.binaryReader import traceBinaryReader
+from mimircache.cacheReader.binaryWriter import traceBinaryWriter
 
 
 
@@ -110,6 +112,12 @@ def trace_mixer(reader1, reader2, mix_mode, output="mixTrace.csv", *args, **kwar
 
 
 def splitTraceWithTime(dat, timeInterval=24*3600*10**6):
+    """
+    split trace according to timeInterval, save trace as plainText
+    :param dat:
+    :param timeInterval:
+    :return:
+    """
     FOLDER_NAME = "{}".format(dat[dat.rfind('/')+1 : dat.find("_")])
     if not os.path.exists(FOLDER_NAME):
         os.makedirs(FOLDER_NAME)
@@ -136,8 +144,34 @@ def splitTraceWithTime(dat, timeInterval=24*3600*10**6):
 
     ofile.close()
 
+
+def extract_part_trace(reader, writer, range):
+    """
+    extract range from reader and save to writer
+    :param reader:
+    :param writer:
+    :param range:
+    :return:
+    """
+    assert len(range) == 2, "range must be in the form of (min, max)"
+    maxLine = range[1]
+    if maxLine == -1:
+        maxLine = len(reader)
+
+    line_count = 0
+    # reader.jumpN(range[0])
+    for line in reader:
+        line_count += 1
+        if line_count-1 < range[0]:     # -1 because we add 1 before checking
+            continue
+        if line_count-1 >= maxLine:
+            break
+        writer.write(line)
+
+
+
+
 if __name__ == "__main__":
-    import sys
     # vReaderToPReader(sys.argv[1], sys.argv[2])
     # reader = vscsiReader("../data/traces/w38_vscsi1.vscsitrace")
     # reader1 = vscsiReader("../data/trace.vscsi")
@@ -146,4 +180,9 @@ if __name__ == "__main__":
     # trace_mixer(reader1, reader2, mix_mode="round_robin", round_robin_n=2)
     # trace_mixer(reader1, reader2, mix_mode="real_time")
     # splitTrace(reader, 2, "w38Split")
-    splitTraceWithTime("/var/dept/scratch/jyan254/cache/mimircache/data/traces/w65_vscsi1.vscsitrace")
+    # splitTraceWithTime("/var/dept/scratch/jyan254/cache/mimircache/data/traces/w65_vscsi1.vscsitrace")
+    with traceBinaryReader("../data/trace.vscsi", "<3I2H2Q") as reader:
+        with traceBinaryWriter("test.vscsi", "<3I2H2Q") as writer:
+            extract_part_trace(reader, writer, (1, -1))
+    with traceBinaryReader("../utils/test.vscsi", "<3I2H2Q") as r:
+        print(len(r))

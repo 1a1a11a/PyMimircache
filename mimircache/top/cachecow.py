@@ -123,6 +123,7 @@ class cachecow:
         """
 
         reader, num_of_threads = self._profiler_pre_check(**kwargs)
+        assert cache_size < self.num_of_request(), "you cannot specify cache size larger than trace length"
 
         l = ["avg_rd_start_time_end_time", "hit_rate_start_time_cache_size"]
 
@@ -164,6 +165,7 @@ class cachecow:
             figname = kwargs['figname']
 
         assert cache_size != -1, "you didn't provide size for cache"
+        assert cache_size < self.num_of_request(), "you cannot specify cache size larger than trace length"
 
         reader, num_of_threads = self._profiler_pre_check(**kwargs)
 
@@ -253,6 +255,7 @@ class cachecow:
             profiler = LRUProfiler(reader, cache_size)
         else:
             assert cache_size != -1, "you didn't provide size for cache"
+            assert cache_size < self.num_of_request(), "you cannot specify cache size larger than trace length"
             if 'bin_size' in kwargs:
                 bin_size = kwargs['bin_size']
 
@@ -354,6 +357,9 @@ class cachecow:
 
         if auto_size:
             cache_size = LRUProfiler(self.reader).plotHRC(auto_resize=True, threshold=threshold, no_save=True)
+        else:
+            assert cache_size < self.num_of_request(), "you cannot specify cache size larger than trace length"
+
         if bin_size == -1:
             bin_size = cache_size // DEFAULT_BIN_NUM_PROFILER +1
         for i in range(len(algorithm_list)):
@@ -373,6 +379,7 @@ class cachecow:
                 plt.plot([i*bin_size for i in range(len(hr))], hr, label=label[i])
             else:
                 plt.plot(hr[:-2], label=label[i])
+            print("{} done".format(alg))
 
         plt.legend(loc="best")
         plt.xlabel(plot_dict['xlabel'])
@@ -407,6 +414,9 @@ class cachecow:
 
         if auto_size:
             cache_size = LRUProfiler(self.reader).plotMRC(auto_resize=True, threshold=threshold, no_save=True)
+        else:
+            assert cache_size < self.num_of_request(), "you cannot specify cache size larger than trace length"
+            
         if bin_size == -1:
             bin_size = cache_size // DEFAULT_BIN_NUM_PROFILER +1
         for i in range(len(algorithm_list)):

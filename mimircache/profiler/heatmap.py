@@ -497,7 +497,7 @@ if __name__ == "__main__":
     t1 = time.time()
     localtest()
     # server_plot_all()
-    # cold_miss_2d('v', 100)
+    # cold_miss_count_2d('v', 100)
     t2 = time.time()
     print(t2 - t1)
 

@@ -1,17 +1,21 @@
 # coding=utf-8
 import string
-import mimircache.c_cacheReader as c_cacheReader
+from mimircache.const import CExtensionMode
+if CExtensionMode:
+    import mimircache.c_cacheReader as c_cacheReader
 from mimircache.cacheReader.abstractReader import cacheReaderAbstract
 
 
 class csvReader(cacheReaderAbstract):
     def __init__(self, file_loc, data_type='c', init_params=None, open_c_reader=True):
         super(csvReader, self).__init__(file_loc, data_type)
-        self.trace_file = open(file_loc, 'r', encoding='utf-8', errors='ignore')
-
-        self.init_params = init_params
+        assert init_params is not None, "please provide init_param for csvReader"
         assert "label_column" in init_params, "please provide label_column for csv reader"
+
+        self.trace_file = open(file_loc, 'r', encoding='utf-8', errors='ignore')
+        self.init_params = init_params
         self.label_column = init_params['label_column']
+        self.time_column = init_params.get("real_time_column", -1)
         self.counter = 0
 
         self.header_bool = init_params.get('header')
@@ -26,7 +30,6 @@ class csvReader(cacheReaderAbstract):
 
         if open_c_reader:
             self.cReader = c_cacheReader.setup_reader(file_loc, 'c', data_type=data_type, init_params=init_params)
-        print("initialized")
 
     def read_one_element(self):
         super().read_one_element()
@@ -57,6 +60,19 @@ class csvReader(cacheReaderAbstract):
             line = self.trace_file.readline()
             yield line_split
 
+    def read_time_request(self):
+        """
+        return real_time information for the request in the form of (time, request)
+        :return:
+        """
+        super().read_one_element()
+        line = self.trace_file.readline()
+        if line:
+            line = line.split(self.delimiter)
+            return ( float(line[self.time_column].strip()), line[self.label_column].strip())
+        else:
+            return None
+
 
     def __next__(self):  # Python 3
         super().__next__()
@@ -69,38 +85,3 @@ class csvReader(cacheReaderAbstract):
     def __repr__(self):
         return "csv cache reader {}, specified column: {}, column begins from 0".format(self.file_loc, self.label_column)
 
-
-
-
-if __name__ == "__main__":
-    reader = csvReader('../data/trace2.csv', {"label_column":4, 'size_column':3, 'header':True, 'delimiter':','})
-    # for i in range(10):
-    #     print(c_cacheReader.read_one_element(reader.cReader))
-    # c_cacheReader.reset_reader(reader.cReader)
-    # for i in range(10):
-    #     print(c_cacheReader.read_one_element(reader.cReader))
-
-    e = c_cacheReader.read_one_element(reader.cReader)
-    while e:
-        print(e)
-        e = c_cacheReader.read_one_element(reader.cReader)
-
-    for i in range(100000000):
-        x = i*i
-        if i % 10000000==0:
-            print(i)
-
-        # usage one: for reading all elements
-    # for i in reader:
-    #     print(i)
-
-    # for i in reader.lines_dict():
-    #     print(i['op'])
-
-        # usage two: best for reading one element each time
-        # s = reader.read_one_element()
-        # # s2 = next(reader)
-        # while (s):
-        #     print(s)
-        #     s = reader.read_one_element()
-        # s2 = next(reader)

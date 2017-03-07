@@ -30,29 +30,12 @@ class LRUProfiler:
     all = ["get_hit_count", "get_hit_rate", "get_miss_rate", "get_reuse_distance",
            "plotMRC", "plotHRC", "get_best_cache_sizes"]
 
-    def prepare_file_remove_one(self):
-        """
-        this function will prepare the file, meanwhile remove the request that appear only once
-        :return:
-        """
-        self.num_of_lines = 0
-        logging.debug("changing file format")
-        seen_dict = {}
-        for e in self.reader:
-            seen_dict[e] = seen_dict.get(e, 0) + 1
-        self.reader.reset()
-        print(len(seen_dict))
-        with open('temp.dat', 'w') as ofile:
-            j = self.reader.read_one_element()
-            while j is not None:
-                self.num_of_lines += 1
-                if seen_dict[j] > 1:
-                    ofile.write(str(j) + '\n')
-                j = self.reader.read_one_element()
-        self.reader = plainReader('temp.dat')
-        print(self.num_of_lines)
 
     def prepare_file(self):
+        """
+        convert dat into plainText
+        :return:
+        """
         self.num_of_lines = 0
         with open('temp.dat', 'w') as ofile:
             i = self.reader.read_one_element()

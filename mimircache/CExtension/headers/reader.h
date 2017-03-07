@@ -25,6 +25,20 @@
 
 
 #define LINE_ENDING '\n'
+#define BINARY_FMT_MAX_LEN 32 
+
+
+// trace type 
+#define CSV 'c' 
+#define PLAIN 'p' 
+#define VSCSI 'v' 
+#define BINARY 'b'  
+
+
+
+// data type
+#define DT_NUMBER 'l'
+#define DT_STRING 'c'
 
 
 
@@ -39,13 +53,16 @@ struct break_point{
 typedef struct{
     union {
         FILE* file;
+
+        size_t record_size;
         struct{
             void* p;                        /* pointer to memory location, the begin position,
                                              *   this should not change after initilization */
             guint64 offset;                 /* the position the reader pointer currently at */
-            size_t record_size;             /*   the size of one record, used to locate the memory
-                                             *   location of next element */
+//            size_t record_size;             /*   the size of one record, used to locate the memory
+//                                             *   location of next element */
         };
+        // csv reader
         struct{
             FILE *csv_file;
             gboolean has_header;
@@ -64,8 +81,21 @@ typedef struct{
             gboolean reader_end; 
             
         };
+        // binary reader
+        struct{
+//            guint record_size;            // the size of one record
+            char fmt[BINARY_FMT_MAX_LEN];                    // the format of binary reader, using python struct format
+            
+
+            gint real_time_pos;          /* position begins from 0 */
+            gint label_pos;
+            gint size_pos;
+            gint current_pos;
+
+        
+        };
     };
-    char type;                              /* possible types: c(csv), v(vscsi), p(plain text)  */
+    char type;                              /* possible types: c(csv), v(vscsi), p(plain text), b(binaryReader)  */
     char data_type;                         /* possible types: l(gint64), c(char*) */
     long long total_num;
     guint64 ts;                             /* current timestamp, record current line, even if some

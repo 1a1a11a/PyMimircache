@@ -40,6 +40,9 @@ typedef enum{
     e_LRU_dataAware,
     e_ML,
     e_YJC,
+    
+    e_SLRUML,
+    e_Score, 
 
     e_mimir,
 }cache_type;

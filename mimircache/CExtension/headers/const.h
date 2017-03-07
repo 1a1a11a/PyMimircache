@@ -26,7 +26,7 @@
 
 
 
-#define SANITY_CHECK
+#define SANITY_CHECK 1
 
 #if defined(__DEBUG__) || defined(_DEBUG)
 #define DEBUG_MSG(...) fprintf(stderr, __VA_ARGS__)

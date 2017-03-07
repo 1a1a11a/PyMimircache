@@ -16,4 +16,6 @@ AMP = True
 PG  = True
 LRU_LFU = True
 LRU_dataAware = True
+SLRUML = True
+ScoreML = True
 

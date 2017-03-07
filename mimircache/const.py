@@ -1,6 +1,6 @@
 # coding=utf-8
 import configparser
-import os
+import os, sys
 
 from mimircache.cache.ARC import ARC
 from mimircache.cache.FIFO import FIFO
@@ -11,9 +11,19 @@ from mimircache.cache.Random import Random
 from mimircache.cache.S4LRU import S4LRU
 from mimircache.cache.SLRU import SLRU
 from mimircache.cache.clock import clock
+
+CExtensionMode = True
+try:
+    import mimircache.c_cacheReader
+except:
+    CExtensionMode = False
+    print("C extension import failed, which will hurt performance by 10*", file=sys.stderr)
+
+
 from mimircache.cacheReader.csvReader import csvReader
 from mimircache.cacheReader.plainReader import plainReader
 from mimircache.cacheReader.vscsiReader import vscsiReader
+
 
 # global c_available_cache
 c_available_cache = []
@@ -74,6 +84,8 @@ def _init_cache_alg_mapping():
 
     cache_alg_mapping['slru'] = "SLRU"
     cache_alg_mapping['s4lru'] = "S4LRU"
+    cache_alg_mapping['slruml'] = "SLRUML"
+    cache_alg_mapping['scoreml'] = "ScoreML"
 
     cache_alg_mapping['lfu_rr'] = "LFU_RR"
     cache_alg_mapping['lfu_mru'] = "LFU_MRU"

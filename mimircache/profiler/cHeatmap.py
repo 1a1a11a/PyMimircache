@@ -269,7 +269,7 @@ class cHeatmap:
 
             else:
                 raise RuntimeError(
-                    "Cannot recognize this plot type, please check documentation, yoru input is %s" % mode)
+                    "Cannot recognize this plot type, please check documentation, yoru input is {}".format(plot_type))
 
         else:
             raise RuntimeError("Cannot recognize this mode, it can only be either real time(r) or virtual time(v), "

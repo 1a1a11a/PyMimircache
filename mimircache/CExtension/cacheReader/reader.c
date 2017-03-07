@@ -20,7 +20,7 @@
 READER* setup_reader(char* file_loc, char file_type, char data_type, void* setup_params){
     /* setup the reader struct for reading trace
      file_type: c: csv, v: vscsi, p: plain text
-     data_type: i: int, s: string
+     data_type: l: gint64, c: string
      Return value: a pointer to READER struct, the returned reader
      needs to be explicitly closed by calling close_reader */
     

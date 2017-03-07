@@ -62,15 +62,3 @@ class traceBinaryReader:
 
     def __len__(self):
         return os.path.getsize(self.infilename)//struct.calcsize(self.fmt)
-
-
-if __name__ == "__main__":
-    with traceBinaryReader("../utils/test.vscsi", "<3I2H2Q") as r:
-        count = 0
-        line = r.read()
-        print(line)
-        while line:
-            count += 1
-            line = r.read()
-        print(len(r))
-    print(count)
