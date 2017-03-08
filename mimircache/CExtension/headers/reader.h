@@ -53,15 +53,12 @@ struct break_point{
 typedef struct{
     union {
         FILE* file;
-
-        size_t record_size;
-        struct{
-            void* p;                        /* pointer to memory location, the begin position,
-                                             *   this should not change after initilization */
-            guint64 offset;                 /* the position the reader pointer currently at */
-//            size_t record_size;             /*   the size of one record, used to locate the memory
-//                                             *   location of next element */
-        };
+        // vscsi REader
+//        struct{
+//            void* p;                        /* pointer to memory location, the begin position,
+//                                             *   this should not change after initilization */
+//            guint64 offset;                 /* the position the reader pointer currently at */
+//        };
         // csv reader
         struct{
             FILE *csv_file;
@@ -81,22 +78,25 @@ typedef struct{
             gboolean reader_end; 
             
         };
-        // binary reader
+        // binary reader and vscsi reader
         struct{
-//            guint record_size;            // the size of one record
-            char fmt[BINARY_FMT_MAX_LEN];                    // the format of binary reader, using python struct format
-            
-
-            gint real_time_pos;          /* position begins from 0 */
+            char fmt[BINARY_FMT_MAX_LEN];  /* the format of binary reader, 
+                                            * using python struct format */
+            gint real_time_pos;            /* position begins from 0 */
             gint label_pos;
             gint size_pos;
             gint current_pos;
-
-        
+            
+            void* p;
+            guint64 offset;
         };
     };
     char type;                              /* possible types: c(csv), v(vscsi), p(plain text), b(binaryReader)  */
     char data_type;                         /* possible types: l(gint64), c(char*) */
+    size_t record_size;                     /* the size of one record, used to
+                                             * locate the memory location of next element,
+                                             * used in vscsiReaser and binaryReader */
+                                             
     long long total_num;
     guint64 ts;                             /* current timestamp, record current line, even if some
                                              * lines are not processed(skipped) */
