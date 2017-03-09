@@ -1,14 +1,20 @@
-
+//
+//  heatmap.c
+//  mimircache 
+//
+//  Created by Juncheng on 5/24/16.
+//  Copyright © 2016 Juncheng. All rights reserved.
+//
 
 #include "heatmap.h" 
 
 
-draw_dict* heatmap_LRU(READER* reader, struct_cache* cache, char mode, int plot_type, int num_of_threads);
-draw_dict* heatmap_nonLRU(READER* reader, struct_cache* cache, char mode, int plot_type, int num_of_threads);
-draw_dict* heatmap_hit_rate_start_time_end_time(READER* reader, struct_cache* cache, char mode, int plot_type, int num_of_threads);
+draw_dict* heatmap_LRU(reader_t* reader, struct_cache* cache, char mode, int plot_type, int num_of_threads);
+draw_dict* heatmap_nonLRU(reader_t* reader, struct_cache* cache, char mode, int plot_type, int num_of_threads);
+draw_dict* heatmap_hit_rate_start_time_end_time(reader_t* reader, struct_cache* cache, char mode, int plot_type, int num_of_threads);
 
 
-draw_dict* heatmap(READER* reader, struct_cache* cache, char mode, gint64 time_interval, gint64 num_of_pixels, int plot_type, int num_of_threads){
+draw_dict* heatmap(reader_t* reader, struct_cache* cache, char mode, gint64 time_interval, gint64 num_of_pixels, int plot_type, int num_of_threads){
 
     DEBUG_MSG("before break points\n");
     
@@ -33,19 +39,19 @@ draw_dict* heatmap(READER* reader, struct_cache* cache, char mode, gint64 time_i
 }
 
 
-draw_dict* heatmap_LRU(READER* reader, struct_cache* cache, char mode, int plot_type, int num_of_threads){
+draw_dict* heatmap_LRU(reader_t* reader, struct_cache* cache, char mode, int plot_type, int num_of_threads){
 
     get_reuse_dist_seq(reader, 0, -1);
         
     if (plot_type == hit_rate_start_time_end_time){
         GSList* last_access_gslist = get_last_access_dist_seq(reader, read_one_element);
-        reader->last_access = g_new(gint, reader->total_num);
+        reader->sdata->last_access = g_new(gint, reader->base->total_num);
         GSList* sl_node = last_access_gslist;
-        guint64 counter = reader->total_num-1;
-        reader->last_access[counter--] = GPOINTER_TO_INT(sl_node->data);
+        guint64 counter = reader->base->total_num-1;
+        reader->sdata->last_access[counter--] = GPOINTER_TO_INT(sl_node->data);
         while(sl_node->next){
             sl_node = sl_node->next;
-            reader->last_access[counter--] = GPOINTER_TO_INT(sl_node->data);
+            reader->sdata->last_access[counter--] = GPOINTER_TO_INT(sl_node->data);
         }
         g_slist_free(last_access_gslist);
         return heatmap_hit_rate_start_time_end_time(reader, cache, mode, plot_type, num_of_threads);
@@ -77,14 +83,14 @@ draw_dict* heatmap_LRU(READER* reader, struct_cache* cache, char mode, int plot_
         return heatmap_rd_distribution(reader, mode, num_of_threads, 1);
     }
     else if (plot_type == future_rd_distribution){
-        g_free(reader->reuse_dist);
-        reader->reuse_dist = get_future_reuse_dist(reader, 0, -1);
+        g_free(reader->sdata->reuse_dist);
+        reader->sdata->reuse_dist = get_future_reuse_dist(reader, 0, -1);
         
         draw_dict* dd = heatmap_rd_distribution(reader, mode, num_of_threads, 0);
         
-        reader->max_reuse_dist = 0;
-        g_free(reader->reuse_dist);
-        reader->reuse_dist = NULL;
+        reader->sdata->max_reuse_dist = 0;
+        g_free(reader->sdata->reuse_dist);
+        reader->sdata->reuse_dist = NULL;
         
         return dd;
     }
@@ -102,7 +108,7 @@ draw_dict* heatmap_LRU(READER* reader, struct_cache* cache, char mode, int plot_
 }
 
 
-draw_dict* heatmap_nonLRU(READER* reader, struct_cache* cache, char mode, int plot_type, int num_of_threads){
+draw_dict* heatmap_nonLRU(reader_t* reader, struct_cache* cache, char mode, int plot_type, int num_of_threads){
     if (plot_type == hit_rate_start_time_end_time){
         return heatmap_hit_rate_start_time_end_time(reader, cache, mode, plot_type, num_of_threads);
     }
@@ -158,13 +164,13 @@ draw_dict* heatmap_nonLRU(READER* reader, struct_cache* cache, char mode, int pl
 
 
 
-draw_dict* heatmap_hit_rate_start_time_end_time(READER* reader, struct_cache* cache, char mode, int plot_type, int num_of_threads){
+draw_dict* heatmap_hit_rate_start_time_end_time(reader_t* reader, struct_cache* cache, char mode, int plot_type, int num_of_threads){
 
     guint i;
     guint64 progress = 0;
     
     GArray* break_points;
-    break_points = reader->break_points->array;
+    break_points = reader->sdata->break_points->array;
     
 
     // create draw_dict storage
@@ -219,25 +225,25 @@ draw_dict* heatmap_hit_rate_start_time_end_time(READER* reader, struct_cache* ca
 }
     
 
-draw_dict* heatmap_rd_distribution(READER* reader, char mode, int num_of_threads, int CDF){
+draw_dict* heatmap_rd_distribution(reader_t* reader, char mode, int num_of_threads, int CDF){
     /* this one, the result is in the log form */
     
     guint i;
     guint64 progress = 0;
     
     GArray* break_points;
-    break_points = reader->break_points->array;
+    break_points = reader->sdata->break_points->array;
     
     // this is used to make sure length of x and y are approximate same, not different by too much
-    double log_base = get_log_base(reader->max_reuse_dist, break_points->len);
-    reader->log_base = log_base;
+    double log_base = get_log_base(reader->sdata->max_reuse_dist, break_points->len);
+    reader->udata->log_base = log_base;
     
     // create draw_dict storage
     draw_dict* dd = g_new(draw_dict, 1);
     dd->xlength = break_points->len - 1;
     
     // the last one is used for store cold miss; rd=0 and rd=1 are combined at first bin (index=0) 
-    dd->ylength = (long) ceil(log(reader->max_reuse_dist)/log(log_base));
+    dd->ylength = (long) ceil(log(reader->sdata->max_reuse_dist)/log(log_base));
     dd->matrix = g_new(double*, break_points->len);
     for (i=0; i<dd->xlength; i++)
         dd->matrix[i] = g_new0(double, dd->ylength);
@@ -288,7 +294,7 @@ draw_dict* heatmap_rd_distribution(READER* reader, char mode, int num_of_threads
 
 
 
-draw_dict* differential_heatmap(READER* reader, struct_cache* cache1, struct_cache* cache2, char mode, gint64 time_interval, gint64 num_of_pixels, int plot_type, int num_of_threads){
+draw_dict* differential_heatmap(reader_t* reader, struct_cache* cache1, struct_cache* cache2, char mode, gint64 time_interval, gint64 num_of_pixels, int plot_type, int num_of_threads){
     
     if (mode == 'v')
         gen_breakpoints_virtualtime(reader, time_interval, num_of_pixels);

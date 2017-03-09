@@ -28,6 +28,8 @@
 #include "ARC.h" 
 //#include "LRFU.h" 
 #include "SLRU.h"
+#include "SLRUML.h" 
+#include "Score.h" 
 
 #include "YJC.h"
 #include "mimir.h" 
@@ -44,7 +46,7 @@
 
 
 
-struct_cache* build_cache(READER* reader,
+struct_cache* build_cache(reader_t* reader,
                           long cache_size,
                           char* algorithm,
                           PyObject* cache_params,

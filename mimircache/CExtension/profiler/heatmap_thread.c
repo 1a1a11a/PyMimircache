@@ -1,4 +1,10 @@
-
+//
+//  heatmap_thread.c
+//  mimircache  
+//
+//  Created by Juncheng on 5/24/16.
+//  Copyright © 2016 Juncheng. All rights reserved.
+//
 
 #include "heatmap.h"
 
@@ -6,7 +12,7 @@
 void heatmap_nonLRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer user_data){
     guint64 i, j, hit_count, miss_count;
     struct multithreading_params_heatmap* params = (struct multithreading_params_heatmap*) user_data;
-    READER* reader_thread = copy_reader(params->reader);
+    reader_t* reader_thread = clone_reader(params->reader);
     GArray* break_points = params->break_points;
     guint64* progress = params->progress;
     draw_dict* dd = params->dd;
@@ -48,9 +54,12 @@ void heatmap_nonLRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer 
     (*progress) ++ ;
     g_mutex_unlock(&(params->mtx));
     g_free(cp);
-    if (reader_thread->type != 'v')
-        fclose(reader_thread->file);
-    g_free(reader_thread);
+    
+    
+    close_reader_unique(reader_thread);
+//    if (reader_thread->type != 'v')
+//        fclose(reader_thread->file);
+//    g_free(reader_thread);
     cache->core->destroy_unique(cache);
 }
 
@@ -59,13 +68,13 @@ void heatmap_LRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer use
 
     guint64 i, j, hit_count, miss_count;
     struct multithreading_params_heatmap* params = (struct multithreading_params_heatmap*) user_data;
-    READER* reader_thread = copy_reader(params->reader);
+    reader_t* reader_thread = clone_reader(params->reader);
     GArray* break_points = params->break_points;
     guint64* progress = params->progress;
     draw_dict* dd = params->dd;
     guint64 cache_size = (guint64)params->cache->core->size;
-    gint* last_access = reader_thread->last_access;
-    gint64* reuse_dist = reader_thread->reuse_dist;
+    gint* last_access = reader_thread->sdata->last_access;
+    gint64* reuse_dist = reader_thread->sdata->reuse_dist;
     
     int order = GPOINTER_TO_INT(data)-1;
     guint64 real_start = g_array_index(break_points, guint64, order);
@@ -94,9 +103,11 @@ void heatmap_LRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer use
     g_mutex_lock(&(params->mtx));
     (*progress) ++ ;
     g_mutex_unlock(&(params->mtx));
-    if (reader_thread->type != 'v')
-        fclose(reader_thread->file);
-    g_free(reader_thread);
+//    if (reader_thread->type != 'v')
+//        fclose(reader_thread->file);
+//    g_free(reader_thread);
+    close_reader_unique(reader_thread);
+
 }
 
 
@@ -107,7 +118,7 @@ void heatmap_rd_distribution_thread(gpointer data, gpointer user_data){
     GArray* break_points = params->break_points;
     guint64* progress = params->progress;
     draw_dict* dd = params->dd;
-    gint64* reuse_dist = params->reader->reuse_dist;
+    gint64* reuse_dist = params->reader->sdata->reuse_dist;
     double log_base = params->log_base;
     
     guint64 order = (guint64)GPOINTER_TO_INT(data)-1;
@@ -136,7 +147,7 @@ void heatmap_rd_distribution_CDF_thread(gpointer data, gpointer user_data){
     GArray* break_points = params->break_points;
     guint64* progress = params->progress;
     draw_dict* dd = params->dd;
-    gint64* reuse_dist = params->reader->reuse_dist;
+    gint64* reuse_dist = params->reader->sdata->reuse_dist;
     double log_base = params->log_base;
     
     guint64 order = (guint64)GPOINTER_TO_INT(data)-1;

@@ -6,10 +6,14 @@
 
 
 
-struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyObject* cache_params, long begin){
+struct_cache* build_cache(reader_t* reader,
+                          long cache_size,
+                          char* algorithm,
+                          PyObject* cache_params,
+                          long begin){
 
     struct_cache *cache;
-    char data_type = reader->data_type;
+    char data_type = reader->base->data_type;
     
     if (strcmp(algorithm, "FIFO") == 0){
         cache = fifo_init(cache_size, data_type, NULL);
@@ -72,6 +76,38 @@ struct_cache* build_cache(READER* reader, long cache_size, char* algorithm, PyOb
             init_params->N_segments = 2;
         cache = SLRU_init(cache_size, data_type, (void*)init_params);
     }
+    
+    else if (strcmp(algorithm, "SLRUML") == 0){
+        SLRUML_init_params_t *init_params = g_new0(SLRUML_init_params_t, 1);
+        PyObject * temp_bytes = PyUnicode_AsEncodedString(PyDict_GetItemString(cache_params, "hint_loc"), "utf-8", "strict"); // Owned reference
+        if (temp_bytes != NULL) {
+            strcpy(init_params->hint_loc, PyBytes_AS_STRING(temp_bytes) ); // Borrowed pointer
+            Py_DECREF(temp_bytes);
+            DEBUG_MSG("SLRUML hint_loc %s\n", init_params->hint_loc);
+        }
+        else{
+            strcpy(init_params->hint_loc, "hint");
+        }
+
+        init_params->N_segments = 5;
+        cache = SLRUML_init(cache_size, data_type, init_params);
+    }
+
+    else if (strcmp(algorithm, "ScoreML") == 0){
+        Score_init_params_t *init_params = g_new0(Score_init_params_t, 1);
+        PyObject * temp_bytes = PyUnicode_AsEncodedString(PyDict_GetItemString(cache_params, "hint_loc"), "utf-8", "strict"); // Owned reference
+        if (temp_bytes != NULL) {
+            strcpy(init_params->hint_loc, PyBytes_AS_STRING(temp_bytes) ); // Borrowed pointer
+            Py_DECREF(temp_bytes);
+            DEBUG_MSG("ScoreML hint_loc %s\n", init_params->hint_loc);
+        }
+        else{
+            strcpy(init_params->hint_loc, "hint");
+        }
+        
+        cache = Score_init(cache_size, data_type, init_params);
+    }
+
 
     else if (strcmp(algorithm, "LRU_K") == 0){
 //        printf("check dict\n");

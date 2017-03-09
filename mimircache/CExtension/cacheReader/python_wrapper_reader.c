@@ -30,7 +30,8 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
     static char *kwlist[] = {"file_loc", "file_type", "data_type", "init_params", NULL};
     
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "ss|sO", kwlist, &file_loc, &file_type, &data_type, &py_init_params)) {
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "ss|sO", kwlist, &file_loc,
+                                     &file_type, &data_type, &py_init_params)){
         printf("parsing argument failed in setup reader\n");
         return NULL;
     }
@@ -40,7 +41,9 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
     if (file_type[0] == 'c'){
         init_params = (void*) new_csvReader_init_params(-1, -1, -1, -1, FALSE, ',', -1);
         /* if it is csv file, we need extra init parameters */
-        PyObject *py_label, *py_size, *py_op, *py_real_time, *py_header, *py_delimiter, *py_traceID;
+        PyObject *py_label, *py_size, *py_op, *py_real_time,
+                    *py_header, *py_delimiter, *py_traceID;
+        
         py_label = PyUnicode_FromString("label_column");
         py_size = PyUnicode_FromString("size_column");
         py_op = PyUnicode_FromString("op_column");
@@ -52,7 +55,6 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
         if (PyDict_Contains(py_init_params, py_label)){
             ((csvReader_init_params*)init_params)->label_column =
                                     (gint)PyLong_AsLong(PyDict_GetItemString(py_init_params, "label_column"));
-            // release the PyObject?? 
         }
         
         
@@ -103,7 +105,7 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
         DEBUG_MSG("delimiter %c\n", ((csvReader_init_params*)init_params)->delimiter);
     }
     
-    READER* reader = setup_reader(file_loc, *file_type, *data_type, init_params);
+    reader_t* reader = setup_reader(file_loc, *file_type, *data_type, init_params);
 
     if (init_params != NULL){
         g_free(init_params);
@@ -114,7 +116,7 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
 
 static PyObject* reader_read_one_element(PyObject* self, PyObject* args)
 {
-    READER* reader;
+    reader_t* reader;
     PyObject* po; 
     cache_line* c = new_cacheline();
     
@@ -122,16 +124,16 @@ static PyObject* reader_read_one_element(PyObject* self, PyObject* args)
     if (!PyArg_ParseTuple(args, "O", &po)) {
         return NULL;
     }
-    if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
+    if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
     } 
 
-    if (reader->type == 'p' || reader->type == 'c')
+    if (reader->base->type == 'p' || reader->base->type == 'c')
         c->type = 'c';
-    else if (reader->type == 'v')
+    else if (reader->base->type == 'v')
         c->type = 'l';
     else{
-        printf("reader type not recognized: %c\n", reader->type);
+        ERROR("reader type not recognized: %c\n", reader->base->type);
         exit(1);
     }
 
@@ -157,7 +159,7 @@ static PyObject* reader_read_one_element(PyObject* self, PyObject* args)
 
 static PyObject* reader_read_time_request(PyObject* self, PyObject* args)
 {
-    READER* reader;
+    reader_t* reader;
     PyObject* po;
     cache_line* c = new_cacheline();
     
@@ -165,20 +167,20 @@ static PyObject* reader_read_time_request(PyObject* self, PyObject* args)
     if (!PyArg_ParseTuple(args, "O", &po)) {
         return NULL;
     }
-    if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
+    if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
     }
     
-    if (reader->type == 'p'){
+    if (reader->base->type == 'p'){
         fprintf(stderr, "plain reader does not support get real time stamp\n");
         exit(1);
     }
-    else if (reader->type == 'c')
+    else if (reader->base->type == 'c')
         c->type = 'c';
-    else if (reader->type == 'v')
+    else if (reader->base->type == 'v')
         c->type = 'l';
     else{
-        fprintf(stderr, "reader type not recognized: %c\n", reader->type);
+        fprintf(stderr, "reader type not recognized: %c\n", reader->base->type);
         exit(1);
     }
     
@@ -203,7 +205,7 @@ static PyObject* reader_read_time_request(PyObject* self, PyObject* args)
 
 static PyObject* reader_read_one_request_full_info(PyObject* self, PyObject* args)
 {
-    READER* reader;
+    reader_t* reader;
     PyObject* po;
     cache_line* c = new_cacheline();
     
@@ -211,20 +213,20 @@ static PyObject* reader_read_one_request_full_info(PyObject* self, PyObject* arg
     if (!PyArg_ParseTuple(args, "O", &po)) {
         return NULL;
     }
-    if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
+    if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
     }
     
-    if (reader->type == 'p'){
+    if (reader->base->type == 'p'){
         fprintf(stderr, "plain reader does not support get full info\n");
         exit(1);
     }
-    else if (reader->type == 'c')
+    else if (reader->base->type == 'c')
         c->type = 'c';
-    else if (reader->type == 'v')
+    else if (reader->base->type == 'v')
         c->type = 'l';
     else{
-        fprintf(stderr, "reader type not recognized: %c\n", reader->type);
+        fprintf(stderr, "reader type not recognized: %c\n", reader->base->type);
         exit(1);
     }
     
@@ -254,14 +256,14 @@ static PyObject* reader_read_one_request_full_info(PyObject* self, PyObject* arg
 
 static PyObject* reader_reset_reader(PyObject* self, PyObject* args)
 {
-    READER* reader;
+    reader_t* reader;
     PyObject* po; 
     
     // parse arguments
     if (!PyArg_ParseTuple(args, "O", &po)) {
         return NULL;
     }
-    if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
+    if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
     } 
 
@@ -277,23 +279,12 @@ static PyObject* reader_reset_reader(PyObject* self, PyObject* args)
     this module can be further wrapped as a python object 
     Juncheng Yang 2016.5.27 
 
-
-
-static PyObject* reader_skip_N_elements(PyObject* self)
-{
-    return Py_BuildValue("s", "Hello, Python extensions!!");
-}
-
-
-
-
-
 */
 
 
 static PyObject* reader_reader_set_read_pos(PyObject* self, PyObject* args)
 {
-    READER* reader;
+    reader_t* reader;
     PyObject* po;
     float pos;
     
@@ -301,7 +292,7 @@ static PyObject* reader_reader_set_read_pos(PyObject* self, PyObject* args)
     if (!PyArg_ParseTuple(args, "Of", &po, &pos)) {
         return NULL;
     }
-    if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
+    if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
     }
     
@@ -312,14 +303,14 @@ static PyObject* reader_reader_set_read_pos(PyObject* self, PyObject* args)
 
 static PyObject* reader_get_num_of_cache_lines(PyObject* self, PyObject* args)
 {   
-    READER* reader;
+    reader_t* reader;
     PyObject* po; 
     
     // parse arguments
     if (!PyArg_ParseTuple(args, "O", &po)) {
         return NULL;
     }
-    if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
+    if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
     } 
 
@@ -329,20 +320,40 @@ static PyObject* reader_get_num_of_cache_lines(PyObject* self, PyObject* args)
 
 static PyObject* reader_close_reader(PyObject* self, PyObject* args)
 {
-    READER* reader;
+    reader_t* reader;
     PyObject* po;
     
     // parse arguments
     if (!PyArg_ParseTuple(args, "O", &po)) {
         return NULL;
     }
-    if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
+    if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
     }    
 
     int result = close_reader(reader);    
 
     return Py_BuildValue("i", result);
+}
+
+
+static PyObject* reader_skip_N_requests(PyObject* self, PyObject* args)
+{
+    reader_t* reader;
+    PyObject* po;
+    guint64 N;
+    
+    // parse arguments
+    if (!PyArg_ParseTuple(args, "OI", &po, &N)) {
+        return NULL;
+    }
+    if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
+        return NULL;
+    }
+    
+    skip_N_elements(reader, N);
+    
+    Py_RETURN_NONE;
 }
 
 
@@ -361,10 +372,15 @@ static PyMethodDef c_cacheReader_funcs[] = {
     {"set_read_pos", (PyCFunction)reader_reader_set_read_pos,
         METH_VARARGS, "set the next reading position of reader,\
         accept arguments like 0.5, 0.3 ..."},
+    {"skip_N_requests", (PyCFunction)reader_skip_N_requests,
+        METH_VARARGS, "skip next N requests"},
     {"read_time_request", (PyCFunction)reader_read_time_request,
-        METH_VARARGS, "read one element with its real time from reader in the form of tuple (real time, request)"},
+        METH_VARARGS, "read one element with its real time from reader "
+        "in the form of tuple (real time, request)"},
     {"read_one_request_full_info", (PyCFunction)reader_read_one_request_full_info,
-        METH_VARARGS, "read one element with its real time and size from reader in the form of tuple (real time, request, size)"},
+        METH_VARARGS, "read one element with its real time and size from reader"
+        " in the form of tuple (real time, request, size)"},
+    
     {NULL}
 };
 

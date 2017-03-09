@@ -1,4 +1,10 @@
-
+//
+//  eviction_stat.c
+//  mimircache
+//
+//  Created by Juncheng on 5/24/16.
+//  Copyright © 2016 Juncheng. All rights reserved.
+//
 
 #include "eviction_stat.h" 
 
@@ -10,14 +16,14 @@
 #include "LRU.h"
 
 
-static gint64* get_eviction_reuse_dist(READER* reader, struct_cache* optimal);
-static gint64* get_eviction_freq(READER* reader, struct_cache* optimal, gboolean accumulative);
+static gint64* get_eviction_reuse_dist(reader_t* reader, struct_cache* optimal);
+static gint64* get_eviction_freq(reader_t* reader, struct_cache* optimal, gboolean accumulative);
 //static gdouble* get_eviction_relative_freq(READER* reader, struct_cache* optimal);
 static inline sTree* process_one_element_eviction_reuse_dist(cache_line* cp, sTree* splay_tree, GHashTable* hash_table, guint64 ts, gint64* reuse_dist, gpointer evicted);
 
 
 
-static void traverse_trace(READER* reader, struct_cache* cache){
+static void traverse_trace(reader_t* reader, struct_cache* cache){
     /** this function traverse the trace file, add each request to cache, just like a cache simulation 
      *
      **/
@@ -45,21 +51,21 @@ static void traverse_trace(READER* reader, struct_cache* cache){
 
 
 
-gint64* eviction_stat(READER* reader_in, struct_cache* cache, evict_stat_type stat_type){
+gint64* eviction_stat(reader_t* reader_in, struct_cache* cache, evict_stat_type stat_type){
     /** this function first traverse the trace file to generate a list of evicted requests,
      ** then again traverse the trace file to obtain the statistics of evicted requests 
      **/ 
     
     // get cache eviction list
     cache->core->cache_debug_level = 1;
-    cache->core->eviction_array_len = reader_in->total_num; 
-    if (reader_in->total_num == -1)
+    cache->core->eviction_array_len = reader_in->base->total_num;
+    if (reader_in->base->total_num == -1)
         get_num_of_cache_lines(reader_in);
     
-    if (reader_in->data_type == 'l')
-        cache->core->eviction_array = g_new0(guint64, reader_in->total_num);
+    if (reader_in->base->data_type == 'l')
+        cache->core->eviction_array = g_new0(guint64, reader_in->base->total_num);
     else
-        cache->core->eviction_array = g_new0(gchar*, reader_in->total_num);
+        cache->core->eviction_array = g_new0(gchar*, reader_in->base->total_num);
     
     traverse_trace(reader_in, cache);
     // done get eviction list
@@ -78,13 +84,13 @@ gint64* eviction_stat(READER* reader_in, struct_cache* cache, evict_stat_type st
         return NULL;
     }
     else{
-        printf("unsupported stat type\n");
+        ERROR("unsupported stat type\n");
         exit(1);
     }
 }
 
 
-gdouble* eviction_stat_over_time(READER* reader_in, char mode, guint64 time_interval, guint64 cache_size, char* stat_type){
+gdouble* eviction_stat_over_time(reader_t* reader_in, char mode, guint64 time_interval, guint64 cache_size, char* stat_type){
 
     if (mode == 'r')
         gen_breakpoints_realtime(reader_in, time_interval, -1);
@@ -97,7 +103,7 @@ gdouble* eviction_stat_over_time(READER* reader_in, char mode, guint64 time_inte
 }
 
 
-gint64* get_eviction_freq(READER* reader, struct_cache* optimal, gboolean accumulative){
+gint64* get_eviction_freq(reader_t* reader, struct_cache* optimal, gboolean accumulative){
     /** if insert then evict, its freq should be 1,
         in other words, the smallest freq should be 1, 
         if there is no eviction at ts, then it is -1.
@@ -107,7 +113,7 @@ gint64* get_eviction_freq(READER* reader, struct_cache* optimal, gboolean accumu
     
     gpointer eviction_array = optimal->core->eviction_array;
     
-    gint64 * freq_array = g_new0(gint64, reader->total_num);
+    gint64 * freq_array = g_new0(gint64, reader->base->total_num);
     
     
     // create cache line struct and initialization
@@ -115,7 +121,7 @@ gint64* get_eviction_freq(READER* reader, struct_cache* optimal, gboolean accumu
     
     // create hashtable for recording frequency
     GHashTable * hash_table;
-    if (reader->data_type == 'l'){
+    if (reader->base->data_type == 'l'){
         cp->type = 'l';
         hash_table = g_hash_table_new_full(g_int64_hash, g_int64_equal, \
                                            (GDestroyNotify)simple_g_key_value_destroyer, \
@@ -194,7 +200,7 @@ gint64* get_eviction_freq(READER* reader, struct_cache* optimal, gboolean accumu
 
 
 
-static gint64* get_eviction_reuse_dist(READER* reader, struct_cache* optimal){
+static gint64* get_eviction_reuse_dist(reader_t* reader, struct_cache* optimal){
     /*
      * TODO: might be better to split return result, in case the hit rate array is too large
      * Is there a better way to do this? this will cause huge amount memory
@@ -206,7 +212,7 @@ static gint64* get_eviction_reuse_dist(READER* reader, struct_cache* optimal){
     
     gpointer eviction_array = optimal->core->eviction_array;
     
-    gint64 * reuse_dist_array = g_new0(gint64, reader->total_num);
+    gint64 * reuse_dist_array = g_new0(gint64, reader->base->total_num);
     
     
     // create cache lize struct and initializa
@@ -214,7 +220,7 @@ static gint64* get_eviction_reuse_dist(READER* reader, struct_cache* optimal){
     
     // create hashtable
     GHashTable * hash_table;
-    if (reader->type == 'v'){
+    if (reader->base->type == 'v'){
         cp->type = 'l';
         hash_table = g_hash_table_new_full(g_int64_hash, g_int64_equal, \
                                            (GDestroyNotify)simple_g_key_value_destroyer, \

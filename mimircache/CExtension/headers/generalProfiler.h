@@ -30,7 +30,7 @@ typedef struct{
 
 
 struct multithreading_params_generalProfiler{
-    READER* reader;
+    reader_t* reader;
     guint64 begin_pos;
     guint64 end_pos;
     struct cache* cache;
@@ -50,18 +50,17 @@ struct HR_PE{
 };
 
 struct HR_PE_params{
-    READER* reader;
+    reader_t* reader;
     struct HR_PE* hrpe;
     struct_cache** caches;
 };
 
-struct HR_PE* get_HR_PE(READER* reader_in, guint64 size); 
+struct HR_PE* get_HR_PE(reader_t* reader_in, guint64 size);
 void get_HR_PE_thread(gpointer data, gpointer user_data);
 
-return_res** profiler(READER* reader_in, struct cache* cache_in, int num_of_threads_in, int bin_size_in, gint64 begin_pos, gint64 end_pos);
-return_res** profiler_with_prefetch(READER* reader_in, struct_cache* cache_in, int num_of_threads_in, int bin_size_in, char* prefetch_file_loc, gint64 begin_pos, gint64 end_pos);
+return_res** profiler(reader_t* reader_in, struct cache* cache_in, int num_of_threads_in, int bin_size_in, gint64 begin_pos, gint64 end_pos);
 
-gdouble* LRU_evict_err_statistics(READER* reader_in, struct_cache* cache_in, guint64 time_interval);
+gdouble* LRU_evict_err_statistics(reader_t* reader_in, struct_cache* cache_in, guint64 time_interval);
 
 
 #endif /* generalProfiler_h */

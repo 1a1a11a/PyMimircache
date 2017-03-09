@@ -234,9 +234,9 @@ static inline GList* PG_get_prefetch(struct_cache* PG, cache_line* cp){
     return list;
 }
 
-static void printHashTable (gpointer key, gpointer value, gpointer user_data){
-    printf("key %s, value %p\n", key, value);
-}
+//static void printHashTable (gpointer key, gpointer value, gpointer user_data){
+//    printf("key %s, value %p\n", (char*)key, value);
+//}
 
 
 

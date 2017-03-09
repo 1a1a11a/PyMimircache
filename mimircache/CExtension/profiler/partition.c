@@ -1,4 +1,10 @@
-
+//
+//  partition.c
+//  mimircache 
+//
+//  Created by Juncheng on 11/19/16.
+//  Copyright © 2016 Juncheng. All rights reserved.
+//
 
 #include "generalProfiler.h" 
 #include "partition.h"
@@ -40,7 +46,7 @@ printHashTable (gpointer key, gpointer value, gpointer user_data){
 
 
 /*********************** partition related function *************************/
-partition_t* get_partition(READER* reader, struct cache* cache, uint8_t n_partitions){
+partition_t* get_partition(reader_t* reader, struct cache* cache, uint8_t n_partitions){
     /** this function currently only works under my mixed trace, 
      which is either plainText or csv, and each label has the first letter indicating its source 
      **/
@@ -49,7 +55,7 @@ partition_t* get_partition(READER* reader, struct cache* cache, uint8_t n_partit
     
     // create cache line struct and initialization
     cache_line* cp      =       new_cacheline();
-    cp->type            =       reader->data_type;
+    cp->type            =       reader->base->data_type;
     
  
     gboolean  (*check_element) (struct cache*, cache_line*)     =   cache->core->check_element;
@@ -181,7 +187,7 @@ static void profiler_partition_thread(gpointer data, gpointer user_data){
     guint bin_size = params->bin_size;
     
     return_res** result = params->result;
-    READER* reader_thread = copy_reader(params->reader);
+    reader_t* reader_thread = clone_reader(params->reader);
     
     
     // create cache line struct and initialization
@@ -195,7 +201,7 @@ static void profiler_partition_thread(gpointer data, gpointer user_data){
     struct optimal_init_params* init_params = g_new0(struct optimal_init_params, 1);
     init_params->reader = reader_thread;
     init_params->ts = 0;
-    struct_cache* optimal = optimal_init(bin_size*order, reader_thread->data_type, (void*)init_params);
+    struct_cache* optimal = optimal_init(bin_size*order, reader_thread->base->data_type, (void*)init_params);
 
     struct_cache** cache = g_new0(struct_cache*, n_partition);
     partition_t* partition = get_partition(reader_thread, optimal, n_partition);
@@ -310,13 +316,17 @@ static void profiler_partition_thread(gpointer data, gpointer user_data){
     g_mutex_unlock(&(params->mtx));
     
     g_free(cp);
-    if (reader_thread->type != 'v')
-        fclose(reader_thread->file);
-    if (reader_thread->type == 'c'){
-        csv_free(reader_thread->csv_parser);
-        g_free(reader_thread->csv_parser);
-    }
-    g_free(reader_thread);
+    
+    
+    close_reader_unique(reader_thread); 
+//    if (reader_thread->type != 'v')
+//        fclose(reader_thread->file);
+//    if (reader_thread->type == 'c'){
+//        csv_free(reader_thread->csv_parser);
+//        g_free(reader_thread->csv_parser);
+//    }
+//    g_free(reader_thread);
+    
     for (i=0; i<n_partition; i++)
         cache[i]->core->destroy_unique(cache[i]);
     free_partition_t(partition);
@@ -324,7 +334,7 @@ static void profiler_partition_thread(gpointer data, gpointer user_data){
 
 
 
-return_res** profiler_partition(READER* reader_in, struct_cache* cache_in, int num_of_threads_in, int bin_size_in){
+return_res** profiler_partition(reader_t* reader_in, struct_cache* cache_in, int num_of_threads_in, int bin_size_in){
     /**
      if profiling from the very beginning, then set begin_pos=0,
      if porfiling till the end of trace, then set end_pos=-1 or the length of trace+1;

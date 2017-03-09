@@ -9,10 +9,8 @@
 #ifndef csvReader_h
 #define csvReader_h
 
-#include <glib.h> 
 #include "reader.h"
 #include "libcsv.h"
-#include <errno.h>
 
 
 typedef struct{
@@ -23,14 +21,38 @@ typedef struct{
     gboolean has_header;
     unsigned char delimiter;
     gint traceID_column;
-}csvReader_init_params;
+}csvReader_init_params; 
 
 
-csvReader_init_params* new_csvReader_init_params(gint label_column, gint op_column, gint real_time_column, gint size_column, gboolean has_header, unsigned char delimiter, gint traceID_column);
+typedef struct{
+    gboolean has_header;
+    unsigned char delim;
+    struct csv_parser *csv_parser;
+    
+    gint real_time_column;          /* column number begins from 0 */
+    gint label_column;
+    gint op_column;
+    gint size_column;
+    gint traceID_column;
+    gint current_column_counter;
+    
+    void* cache_line_pointer;
+    gboolean already_got_cache_line;
+    gboolean reader_end;
 
-void csv_setup_Reader(char* file_loc, READER* reader, csvReader_init_params* init_params);
-void csv_read_one_element(READER* reader, cache_line* c);
-int csv_go_back_one_line(READER* reader);
+}csv_params_t;
+
+
+csvReader_init_params* new_csvReader_init_params(gint, gint, gint, gint,
+                                                 gboolean, unsigned char, gint);
+
+void csv_setup_Reader(char*, reader_t*, csvReader_init_params*);
+void csv_read_one_element(reader_t*, cache_line*);
+int csv_go_back_one_line(reader_t*);
+
+guint64 csv_skip_N_elements(reader_t* reader, guint64 N);
+void csv_reset_reader(reader_t* reader); 
+void csv_set_no_eof(reader_t* reader);
 
 
 

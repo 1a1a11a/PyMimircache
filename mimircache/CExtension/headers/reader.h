@@ -10,7 +10,7 @@
 #define reader_h
 
 #include <stdio.h>
-#include <stdlib.h> 
+#include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/uio.h>
@@ -18,21 +18,24 @@
 #include <glib.h>
 #include <stdint.h>
 #include <sys/mman.h>
-#include <sys/stat.h> 
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <errno.h>
+
 
 #include "const.h"
 #include "libcsv.h"
 
 
 #define LINE_ENDING '\n'
-#define BINARY_FMT_MAX_LEN 32 
+#define BINARY_FMT_MAX_LEN 32
 
 
-// trace type 
-#define CSV 'c' 
-#define PLAIN 'p' 
-#define VSCSI 'v' 
-#define BINARY 'b'  
+// trace type
+#define CSV 'c'
+#define PLAIN 'p'
+#define VSCSI 'v'
+#define BINARY 'b'
 
 
 
@@ -42,122 +45,144 @@
 
 
 
-struct break_point{
+typedef struct break_point{
     GArray* array;
     char mode;
     guint64 time_interval;
-};
-
-
-
-typedef struct{
-    union {
-        FILE* file;
-        // vscsi REader
-//        struct{
-//            void* p;                        /* pointer to memory location, the begin position,
-//                                             *   this should not change after initilization */
-//            guint64 offset;                 /* the position the reader pointer currently at */
-//        };
-        // csv reader
-        struct{
-            FILE *csv_file;
-            gboolean has_header;
-            unsigned char delim;
-            struct csv_parser *csv_parser;
-            
-            gint real_time_column;          /* column number begins from 0 */
-            gint label_column;
-            gint op_column;
-            gint size_column;
-            gint traceID_column; 
-            gint current_column_counter;
-            
-            void* cache_line_pointer;
-            gboolean already_got_cache_line;
-            gboolean reader_end; 
-            
-        };
-        // binary reader and vscsi reader
-        struct{
-            char fmt[BINARY_FMT_MAX_LEN];  /* the format of binary reader, 
-                                            * using python struct format */
-            gint real_time_pos;            /* position begins from 0 */
-            gint label_pos;
-            gint size_pos;
-            gint current_pos;
-            
-            void* p;
-            guint64 offset;
-        };
-    };
-    char type;                              /* possible types: c(csv), v(vscsi), p(plain text), b(binaryReader)  */
-    char data_type;                         /* possible types: l(gint64), c(char*) */
-    size_t record_size;                     /* the size of one record, used to
-                                             * locate the memory location of next element,
-                                             * used in vscsiReaser and binaryReader */
-                                             
-    long long total_num;
-    guint64 ts;                             /* current timestamp, record current line, even if some
-                                             * lines are not processed(skipped) */
-    char file_loc[FILE_LOC_STR_SIZE];
-    struct break_point* break_points;
-    gint64* reuse_dist;
-    gint* last_access;
-    guint64 max_reuse_dist;
-    GQueue * best_LRU_cache_size;
-    double log_base;
-    double* hit_rate;
-    union{
-        struct{
-            int vscsi_ver;                  /* version */
-        };
-    };
-    int ver;
-    
-    
-} READER;
-
-
+}break_point_t;
 
 
 typedef struct{
     gpointer item_p;
     char item[cache_line_label_size];
     char type;                              /* type of content can be either guint64(l) or char*(c) */
-    guint64 ts;                             /* deprecated, should not use, virtual timestamp */ 
+    guint64 ts;                             /* deprecated, should not use, virtual timestamp */
     size_t size;
     int op;
     guint64 real_time;
     gboolean valid;
+    
     unsigned char traceID;                           /* this is for mixed trace */
-    void *content;                                   /* the content of page */ 
+    void *content;                                   /* the content of page/request */
     guint size_of_content;                           /* the size of mem area content points to */
+    
+    
 }cache_line;
 
 
+// declare reader struct 
+struct reader;
+
+typedef struct reader_base{
+    
+    char type;                              /* possible types: c(csv), v(vscsi),
+                                             * p(plain text), b(binaryReader)  */
+    char data_type;                         /* possible types: l(guint64), c(char*) */
+    
+    FILE* file;
+    char file_loc[FILE_LOC_STR_SIZE];
+    void* init_params;
+    
+    void* mapped_file;                      /* mmap the file, this should not change during runtime
+                                             * offset in the file is changed using offset */
+    guint64 offset;
+    size_t record_size;                     /* the size of one record, used to
+                                             * locate the memory location of next element,
+                                             * used in vscsiReaser and binaryReader */
+    
+    gint64 total_num;                       /* number of records */
+//    guint64 ref_num;                        /* current reference number, virtual timestamp,
+//                                             * in other words, it is the order of current request
+//                                             * in the trace */
+    
+    
+    gint ver;
+    
+    void* params;                           /* currently not used */
+    
+    
+//    void    (*read_one_element)(struct reader*, cache_line*);
+//    
+//    guint64 (*skip_N_elements)(struct reader*, guint64);
+//    
+//    int     (*go_back_one_line)(struct reader*);
+//    
+//    int     (*go_back_two_lines)(struct reader*);
+//    
+//    void    (*read_one_element_above)(struct reader*, cache_line*);
+//    
+//    void    (*reader_set_read_pos)(struct reader*, double);
+//    
+//    guint64 (*get_num_of_cache_lines)(struct reader*);
+//    
+//    void    (*reset_reader)(struct reader*);
+//    
+//    int     (*close_reader)(struct reader*);
+//
+//    int     (*close_reader_unique)(struct reader*);
+//    
+//    struct reader* (*clone_reader)(struct reader*);
+//    
+//    void    (*set_no_eof)(struct reader*); 
+    
+    
+} reader_base_t;
+
+
+typedef struct reader_data_unique{
+
+    double* hit_rate;
+    double log_base;
+
+}reader_data_unique_t;
+
+
+typedef struct reader_data_share{
+    break_point_t *break_points;
+    gint64* reuse_dist;
+    gint64 max_reuse_dist;
+    gint* last_access;
+    
+}reader_data_share_t;
+
+
+
+//typedef struct reader_base reader_base_t;
+typedef struct reader{
+    struct reader_base* base;
+    struct reader_data_unique* udata;
+    struct reader_data_share* sdata; 
+    void* reader_params;
+}reader_t;
 
 
 
 
-READER* setup_reader(char* file_loc, char file_type, char data_type, void* setup_params);
-void read_one_element(READER* reader, cache_line* c);
-long skip_N_elements(READER* reader, long long N);
-int go_back_one_line(READER* reader);
-int go_back_two_lines(READER* reader);
-void read_one_element_above(READER* reader, cache_line* c);
-
-int read_one_request_all_info(READER* reader, void* storage);
-guint64 read_one_timestamp(READER* reader);
-void read_one_op(READER* reader, void* op);
-guint64 read_one_request_size(READER* reader);
 
 
-void reader_set_read_pos(READER* reader, double pos);
-guint64 get_num_of_cache_lines(READER* reader);
-void reset_reader(READER* reader);
-int close_reader(READER* reader);
-READER* copy_reader(READER* reader);
+
+
+
+reader_t* setup_reader(char* file_loc, char file_type, char data_type, void* setup_params);
+void read_one_element(reader_t* reader, cache_line* c);
+guint64 skip_N_elements(reader_t* reader, guint64 N);
+int go_back_one_line(reader_t* reader);
+int go_back_two_lines(reader_t* reader);
+void read_one_element_above(reader_t* reader, cache_line* c);
+
+int read_one_request_all_info(reader_t* reader, void* storage);
+guint64 read_one_timestamp(reader_t* reader);
+void read_one_op(reader_t* reader, void* op);
+guint64 read_one_request_size(reader_t* reader);
+
+
+void reader_set_read_pos(reader_t* reader, double pos);
+guint64 get_num_of_cache_lines(reader_t* reader);
+void reset_reader(reader_t* reader);
+int close_reader(reader_t* reader);
+int close_reader_unique(reader_t* reader);
+reader_t* clone_reader(reader_t* reader);
+void set_no_eof(reader_t* reader);
 
 
 cache_line* new_cacheline(void);

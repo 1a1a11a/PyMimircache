@@ -1,9 +1,20 @@
+//
+//  heatmat_related.c
+//  mimircache
+//
+//  Created by Juncheng on 5/24/16.
+//  Copyright © 2016 Juncheng. All rights reserved.
+//
+
+
+
 #include "heatmap.h"
+#include "csvReader.h"
 
 static inline gint process_one_element_last_access(cache_line* cp, GHashTable* hash_table, guint64 ts);
 
 
-GSList* get_last_access_dist_seq(READER* reader, void (*funcPtr)(READER*, cache_line*)){
+GSList* get_last_access_dist_seq(reader_t* reader, void (*funcPtr)(reader_t*, cache_line*)){
     /*
     !!!!!! the list returned from this function is in reversed order!!!!!!
     */
@@ -14,25 +25,28 @@ GSList* get_last_access_dist_seq(READER* reader, void (*funcPtr)(READER*, cache_
 
     GSList* list= NULL; 
 
-    if (reader->total_num == -1)
+    if (reader->base->total_num == -1)
         get_num_of_cache_lines(reader);
 
     // create cache lize struct and initialization
     cache_line* cp = new_cacheline();
+    cp->type = reader->base->data_type;
 
     // create hashtable
     GHashTable * hash_table; 
-    if (reader->type == 'v'){
-        cp->type = 'l'; 
+    if (cp->type == 'l'){
         hash_table = g_hash_table_new_full(g_int64_hash, g_int64_equal, \
                                             (GDestroyNotify)simple_g_key_value_destroyer, \
                                             (GDestroyNotify)simple_g_key_value_destroyer);
     }
-    else{
-        cp->type = 'c';
+    else if (cp->type == 'c'){
         hash_table = g_hash_table_new_full(g_str_hash, g_str_equal, \
                                             (GDestroyNotify)simple_g_key_value_destroyer, \
                                             (GDestroyNotify)simple_g_key_value_destroyer);
+    }
+    else{
+        ERROR("unknown data type: %c\n", cp->type);
+        exit(1);
     }
     
     guint64 ts = 0;
@@ -46,8 +60,7 @@ GSList* get_last_access_dist_seq(READER* reader, void (*funcPtr)(READER*, cache_
         if (go_back_one_line(reader)!=0)
             fprintf(stderr, "error when going back one line\n");
         read_one_element(reader, cp);
-        if (reader->type == 'c')
-            reader->reader_end = FALSE;
+        set_no_eof(reader);        
     }
     else{
         fprintf(stderr, "unknown function pointer received in heatmap: get_last_access_dist_seq\n");
@@ -60,8 +73,10 @@ GSList* get_last_access_dist_seq(READER* reader, void (*funcPtr)(READER*, cache_
         funcPtr(reader, cp);
         ts++;
     }
-    if (reader->type == 'c' && reader->has_header){
-        list = g_slist_remove(list, list->data);
+    if (reader->base->type == 'c'){
+        csv_params_t *params = reader->reader_params;
+        if (params->has_header)
+            list = g_slist_remove(list, list->data);
     }
 
 
@@ -71,8 +86,6 @@ GSList* get_last_access_dist_seq(READER* reader, void (*funcPtr)(READER*, cache_
     reset_reader(reader);
     return list;
 }
-
-
 
 
 static inline gint process_one_element_last_access(cache_line* cp, GHashTable* hash_table, guint64 ts){
@@ -107,29 +120,30 @@ static inline gint process_one_element_last_access(cache_line* cp, GHashTable* h
 }
 
 
-GArray* gen_breakpoints_virtualtime(READER* reader, gint64 time_interval, gint64 num_of_piexls){
+GArray* gen_breakpoints_virtualtime(reader_t* reader, gint64 time_interval, gint64 num_of_piexls){
     /* 
      return a GArray of break points, including the last break points
      */
     
-    if (reader->total_num == -1)
+    if (reader->base->total_num == -1)
         get_num_of_cache_lines(reader);
     
-    if (reader->break_points){
-        if (reader->break_points->mode == 'v' && reader->break_points->time_interval == time_interval)
-            return reader->break_points->array;
+    if (reader->sdata->break_points){
+        if (reader->sdata->break_points->mode == 'v' &&
+            reader->sdata->break_points->time_interval == time_interval)
+            return reader->sdata->break_points->array;
         else{
-            g_array_free(reader->break_points->array, TRUE);
-            free(reader->break_points);
+            g_array_free(reader->sdata->break_points->array, TRUE);
+            free(reader->sdata->break_points);
         }
     }
     
     guint i;
     gint array_size = (gint) num_of_piexls;
     if (array_size==-1)
-        array_size = (gint) ceil( reader->total_num/time_interval + 1); 
+        array_size = (gint) ceil( reader->base->total_num/time_interval + 1);
     else
-        time_interval = (gint) ceil( reader->total_num/num_of_piexls + 1);
+        time_interval = (gint) ceil( reader->base->total_num/num_of_piexls + 1);
 //    array_size ++ ;
     
     GArray* break_points = g_array_sized_new(FALSE, FALSE, sizeof(guint64), array_size);
@@ -137,7 +151,7 @@ GArray* gen_breakpoints_virtualtime(READER* reader, gint64 time_interval, gint64
         guint64 value = i * time_interval;
         g_array_append_val(break_points, value);
     }
-    g_array_append_val(break_points, reader->total_num);
+    g_array_append_val(break_points, reader->base->total_num);
     
     
     if (break_points->len > 10000)
@@ -150,40 +164,43 @@ GArray* gen_breakpoints_virtualtime(READER* reader, gint64 time_interval, gint64
     bp->mode = 'v';
     bp->time_interval = time_interval;
     bp->array = break_points;
-    reader->break_points = bp;
+    reader->sdata->break_points = bp;
 
     reset_reader(reader);
     return break_points;
 }
 
 
-GArray* gen_breakpoints_realtime(READER* reader, gint64 time_interval, gint64 num_of_piexls){
+GArray* gen_breakpoints_realtime(reader_t* reader, gint64 time_interval, gint64 num_of_piexls){
     /*
      currently this only works for vscsi reader !!!
      return a GArray of break points, including the last break points
      */
-    if (reader->type != 'v' && reader->type != 'c'){
-        printf("gen_breakpoints_realtime currently only support vscsi reader and some csv reader, you provide %c reader, program exit\n", reader->type);
+    if (reader->base->type != 'v' && reader->base->type != 'c'){
+        printf("gen_breakpoints_realtime currently only support vscsi reader and "
+               "some csv reader, you provide %c reader, program exit\n", reader->base->type);
         exit(1);
     }
-    if (reader->type == 'c')
-        if (reader->real_time_column == -1){
+    if (reader->base->type == 'c'){
+        csv_params_t* params = reader->reader_params;
+        if (params->real_time_column == -1){
             printf("gen_breakpoints_realtime needs you to provide real_time_column parameter, program exit\n");
             exit(1);
         }
+    }
 
     
-    if (reader->total_num == -1)
+    if (reader->base->total_num == -1)
         get_num_of_cache_lines(reader);
     
     
-    if (reader->break_points){
-        if (reader->break_points->mode == 'r' && reader->break_points->time_interval == time_interval ){
-            return reader->break_points->array;
+    if (reader->sdata->break_points){
+        if (reader->sdata->break_points->mode == 'r' && reader->sdata->break_points->time_interval == time_interval ){
+            return reader->sdata->break_points->array;
         }
         else{
-            g_array_free(reader->break_points->array, TRUE);
-            free(reader->break_points);
+            g_array_free(reader->sdata->break_points->array, TRUE);
+            free(reader->sdata->break_points);
         }
     }
     
@@ -218,68 +235,36 @@ GArray* gen_breakpoints_realtime(READER* reader, gint64 time_interval, gint64 nu
         read_one_element(reader, cp);
         num++;
     }
-    if ((long long)g_array_index(break_points, guint64, break_points->len-1) != reader->total_num)
-        g_array_append_val(break_points, reader->total_num);
+    if ((long long)g_array_index(break_points, guint64, break_points->len-1) != reader->base->total_num)
+        g_array_append_val(break_points, reader->base->total_num);
     
     
     
     
     
-    if (break_points->len > 10000)
-        fprintf(stderr, "%snumber of pixels in one dimension is larger than 10000, exact size: %d, it may take a very long time, if you didn't intend to do it, please try with a larger time stamp\n", KRED, break_points->len);
-    else if (break_points->len < 20)
-        fprintf(stderr, "%snumber of pixels in one dimension is smaller than 20, exact size: %d, each pixel will be very large, if you didn't intend to do this, please try with a smaller time stamp\n", KRED, break_points->len);
+    if (break_points->len > 10000){
+        ERROR("%snumber of pixels in one dimension is larger than 10000, "
+              "exact size: %d, it may take a very long time, if you didn't "
+              "intend to do it, please try with a larger time stamp\n",
+              KRED, break_points->len);
+    }
+    else if (break_points->len < 20){
+        ERROR("%snumber of pixels in one dimension is smaller than 20, "
+              "exact size: %d, each pixel will be very large, if you didn't "
+              "intend to do this, please try with a smaller time stamp\n",
+              KRED, break_points->len);
+    }
     
     struct break_point* bp = g_new(struct break_point, 1);
     bp->mode = 'r';
     bp->time_interval = time_interval;
     bp->array = break_points;
-    reader->break_points = bp;
+    reader->sdata->break_points = bp;
     
     // clean up
     g_free(cp);
     reset_reader(reader);
     return break_points;
 }
-
-
-//
-//#include "reader.h"
-//#include "FIFO.h"
-//#include "Optimal.h"
-//
-//int main(int argc, char* argv[]){
-//# define CACHESIZE 2000
-//# define BIN_SIZE 200
-//    int i;
-//
-//    printf("test_begin!\n");
-//
-//    READER* reader = setup_reader(argv[1], 'v');
-//
-////    struct_cache* cache = fifo_init(CACHESIZE, 'v', NULL);
-//
-////    struct optimal_init_params init_params = {.reader=reader, .next_access=NULL};
-////
-////    struct_cache* cache = optimal_init(CACHESIZE, 'v', (void*)&init_params);
-//
-//
-//
-//    printf("after initialization, begin profiling\n");
-//    
-//    GArray* break_points = gen_breakpoints_realtime(reader, 1000000000);
-//    for (i=0; i<break_points->len; i++)
-//        printf("%lu\n", g_array_index(break_points, guint64, i));
-////    g_array_free(break_points, TRUE);
-//    
-//    break_points = gen_breakpoints_realtime(reader, 1000000000);
-//    for (i=0; i<break_points->len; i++)
-//        printf("%lu\n", g_array_index(break_points, guint64, i));
-//    
-//    close_reader(reader);
-//    printf("test_finished!\n");
-//    return 0;
-//}
-
 
 

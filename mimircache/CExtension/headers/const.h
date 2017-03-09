@@ -37,17 +37,17 @@
 // #define INFO(...) fprintf(stderr, __FILE__, __LINE__, __func__, __VA_ARGS__)
 
 #define INFO(msg) \
-    fprintf(stderr, "info: %s:%d:%s: ", __FILE__, __LINE__, __func__); \
+    fprintf(stderr, "INFO: %s:%d:%s: ", __FILE__, __LINE__, __func__); \
     fprintf(stderr, "%s", msg);
 
-#define WARNING(msg) \
-fprintf(stderr, "warning: %s:%d:%s: ", __FILE__, __LINE__, __func__); \
-fprintf(stderr, "%s", msg);
+#define WARNING(...) \
+fprintf(stderr, "WARNING: %s:%d:%s: ", __FILE__, __LINE__, __func__); \
+fprintf(stderr, __VA_ARGS__);
 
-#define ERROR(msg) \
-fprintf(stderr, "error: %s:%d:%s: ", __FILE__, __LINE__, __func__); \
-fprintf(stderr, "%s", msg);
+#define ERROR(...) \
+fprintf(stderr, "ERROR: %s:%d:%s: ", __FILE__, __LINE__, __func__); \
+fprintf(stderr,  __VA_ARGS__);
 
 #define DEBUG(msg) \
-fprintf(stderr, "debug: %s:%d:%s: ", __FILE__, __LINE__, __func__); \
+fprintf(stderr, "DEBUG: %s:%d:%s: ", __FILE__, __LINE__, __func__); \
 fprintf(stderr, "%s", msg);

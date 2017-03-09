@@ -220,7 +220,7 @@ struct_cache* optimal_init(guint64 size, char data_type, void* params){
     
     optimal_params->ts = ((struct optimal_init_params*)params)->ts;
 
-    READER* reader = ((struct optimal_init_params*)params)->reader;
+    reader_t* reader = ((struct optimal_init_params*)params)->reader;
     optimal_params->reader = reader;
     
     
@@ -238,7 +238,7 @@ struct_cache* optimal_init(guint64 size, char data_type, void* params){
                                   simple_g_key_value_destroyer);
     }
     else{
-        g_error("does not support given data type: %c\n", data_type);
+        ERROR("does not support given data type: %c\n", data_type);
     }
     
     
@@ -246,15 +246,15 @@ struct_cache* optimal_init(guint64 size, char data_type, void* params){
                                      get_pri, set_pri, get_pos, set_pos);
     
     if (((struct optimal_init_params*)params)->next_access == NULL){
-        if (reader->total_num == -1)
+        if (reader->base->total_num == -1)
             get_num_of_cache_lines(reader);
         optimal_params->next_access = g_array_sized_new (FALSE, FALSE,
                                                          sizeof (gint),
-                                                         (guint)reader->total_num);
+                                                         (guint)reader->base->total_num);
         GArray* array = optimal_params->next_access;
         GSList* list = get_last_access_dist_seq(reader, read_one_element_above);
         if (list == NULL){
-            fprintf(stderr, "error getting last access distance in optimal_init\n");
+            ERROR("error getting last access distance in optimal_init\n");
             exit(1);
         }
         GSList* list_move = list;

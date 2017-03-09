@@ -25,7 +25,7 @@
 static PyObject* eviction_stat_get_stat(PyObject* self, PyObject* args, PyObject* keywds)
 {   
     PyObject *po, *cache_params=NULL;
-    READER* reader;
+    reader_t* reader;
     long cache_size;
     char *algorithm, *stat_type_s;
     struct_cache* cache;
@@ -37,7 +37,7 @@ static PyObject* eviction_stat_get_stat(PyObject* self, PyObject* args, PyObject
         // currently specifying begin and ending position is not supported 
         return NULL;
     }
-    if (!(reader = (READER*) PyCapsule_GetPointer(po, NULL))) {
+    if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
     }
 
@@ -64,7 +64,7 @@ static PyObject* eviction_stat_get_stat(PyObject* self, PyObject* args, PyObject
     gint64* evicetion_stat_array = eviction_stat(reader, cache, stat_type);
 
     // create numpy array
-    long long size = reader->total_num;
+    long long size = reader->base->total_num;
 
     npy_intp dims[1] = { size };
     PyObject* ret_array;
@@ -73,7 +73,7 @@ static PyObject* eviction_stat_get_stat(PyObject* self, PyObject* args, PyObject
         ret_array = PyArray_SimpleNew(1, dims, NPY_LONGLONG);
         long long* array = (long long*) PyArray_GETPTR1((PyArrayObject *)ret_array, 0);
         int i;
-        for (i=0; i<reader->total_num; i++)
+        for (i=0; i<reader->base->total_num; i++)
             array[i] = evicetion_stat_array[i];
 //    }
 //    else{

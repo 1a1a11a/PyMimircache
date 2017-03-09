@@ -23,12 +23,12 @@ struct optimal_params{
     pqueue_t *pq;
     GArray* next_access;
     guint64 ts;       // virtual time stamp
-    READER* reader;
+    reader_t* reader;
 };
 
 
 struct optimal_init_params{
-    READER* reader;
+    reader_t* reader;
     GArray* next_access;
     guint64 ts;
 };

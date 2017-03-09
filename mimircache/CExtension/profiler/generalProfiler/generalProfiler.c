@@ -1,3 +1,11 @@
+//
+//  generalProfiler.c
+//  generalProfiler
+//
+//  Created by Juncheng on 5/24/16.
+//  Copyright © 2016 Juncheng. All rights reserved.
+//
+
 
 
 #include "generalProfiler.h" 
@@ -12,32 +20,33 @@
 #include "LRU_dataAware.h"
 #include "AMP.h" 
 #include "PG.h"
+#include "SLRUML.h"
 
 
 
 
-static void
-printHashTable (gpointer key, gpointer value, gpointer user_data){
-    // only works for long data type 
-    struct MIMIR_params* MIMIR_params = user_data;
-    gint prefetch_table_index = GPOINTER_TO_INT(value);
-    gint dim1 = (gint)floor(prefetch_table_index/(double)PREFETCH_TABLE_SHARD_SIZE);
-    gint dim2 = prefetch_table_index % PREFETCH_TABLE_SHARD_SIZE * (MIMIR_params->prefetch_list_size+1);
-    
-    int i;
-    for (i=0; i<3; i++){
-        if (MIMIR_params->prefetch_table_array[dim1][dim2] != *(gint64*)key){
-            fprintf(stderr, "ERROR prefetch table pos wrong %ld %ld, dim %d %d\n",
-                *(gint64*)key, MIMIR_params->prefetch_table_array[dim1][dim2], dim1, dim2);
-            exit(1);
-        }
-        printf("%ld, ", MIMIR_params->prefetch_table_array[dim1][dim2+i]);
-    }
+//static void
+//printHashTable (gpointer key, gpointer value, gpointer user_data){
+//    // only works for long data type 
+//    struct MIMIR_params* MIMIR_params = user_data;
+//    gint prefetch_table_index = GPOINTER_TO_INT(value);
+//    gint dim1 = (gint)floor(prefetch_table_index/(double)PREFETCH_TABLE_SHARD_SIZE);
+//    gint dim2 = prefetch_table_index % PREFETCH_TABLE_SHARD_SIZE * (MIMIR_params->prefetch_list_size+1);
+//    
+//    int i;
+//    for (i=0; i<3; i++){
+//        if (MIMIR_params->prefetch_table_array[dim1][dim2] != *(gint64*)key){
+//            fprintf(stderr, "ERROR prefetch table pos wrong %ld %ld, dim %d %d\n",
+//                *(gint64*)key, MIMIR_params->prefetch_table_array[dim1][dim2], dim1, dim2);
+//            exit(1);
+//        }
+//        printf("%ld, ", MIMIR_params->prefetch_table_array[dim1][dim2+i]);
+//    }
+//
+//    printf("\n");
+//}
 
-    printf("\n");
-}
-
-struct HR_PE* get_HR_PE(READER* reader_in, guint64 size){
+struct HR_PE* get_HR_PE(reader_t* reader_in, guint64 size){
     
     int i;
     int AMP_n = 1, mimir_n1 = 8, mimir_n2 = 8, PG_n = 1;
@@ -57,7 +66,7 @@ struct HR_PE* get_HR_PE(READER* reader_in, guint64 size){
     hrpe_params->reader = reader_in;
     hrpe_params->caches = g_new0(struct_cache*, n);
     
-    hrpe_params->caches[0] = LRU_init(size, reader_in->data_type, NULL);
+    hrpe_params->caches[0] = LRU_init(size, reader_in->base->data_type, NULL);
     
     
     struct AMP_init_params** AMP_initp = g_new0(struct AMP_init_params*, AMP_n);
@@ -67,7 +76,7 @@ struct HR_PE* get_HR_PE(READER* reader_in, guint64 size){
         AMP_initp[i]->read_size = 1;
         AMP_initp[i]->K = i+1;
         AMP_initp[i]->p_threshold = (int)(256/pow(2, i+1));
-        hrpe_params->caches[i+1] = AMP_init(size, reader_in->data_type, AMP_initp[i]);
+        hrpe_params->caches[i+1] = AMP_init(size, reader_in->base->data_type, AMP_initp[i]);
     }
 
     PG_init_params_t *PG_initp = g_new0(PG_init_params_t, 1);
@@ -77,7 +86,7 @@ struct HR_PE* get_HR_PE(READER* reader_in, guint64 size){
     PG_initp->max_meta_data = 0.1;
     PG_initp->prefetch_threshold = 0.05;
     
-    hrpe_params->caches[1+AMP_n] = PG_init(size, reader_in->data_type, PG_initp); 
+    hrpe_params->caches[1+AMP_n] = PG_init(size, reader_in->base->data_type, PG_initp); 
 
     
     struct MIMIR_init_params** mimir_initp = g_new0(struct MIMIR_init_params*, mimir_n1 + mimir_n2);
@@ -203,7 +212,7 @@ struct HR_PE* get_HR_PE(READER* reader_in, guint64 size){
     
     
     for (i=0; i<mimir_n1+mimir_n2; i++)
-        hrpe_params->caches[i+AMP_n+PG_n+1] = MIMIR_init(size, reader_in->data_type, mimir_initp[i]);
+        hrpe_params->caches[i+AMP_n+PG_n+1] = MIMIR_init(size, reader_in->base->data_type, mimir_initp[i]);
     
     
     // build the thread pool
@@ -236,18 +245,18 @@ struct HR_PE* get_HR_PE(READER* reader_in, guint64 size){
 }
 
 void get_HR_PE_thread(gpointer data, gpointer user_data){
-    int order = (int) data - 1;
+    int order = GPOINTER_TO_INT(data) - 1;
     struct HR_PE_params* hrpe_params = (struct HR_PE_params*)user_data;
     
     
     struct_cache* cache = (hrpe_params->caches[order]);
     struct HR_PE* hrpe = hrpe_params->hrpe;
-    READER* reader = hrpe_params->reader;
-    READER* reader_thread = copy_reader(reader);
+    reader_t* reader = hrpe_params->reader;
+    reader_t* reader_thread = clone_reader(reader);
 
     // create cache line struct and initialization
     cache_line* cp = new_cacheline();
-    cp->type = reader->data_type;
+    cp->type = reader->base->data_type;
 
     
     
@@ -256,6 +265,7 @@ void get_HR_PE_thread(gpointer data, gpointer user_data){
     add_element = cache->core->add_element;
     
     read_one_element(reader_thread, cp);
+    
     
     while (cp->valid){
         if (add_element(cache, cp)){
@@ -310,9 +320,10 @@ void get_HR_PE_thread(gpointer data, gpointer user_data){
     
     // clean up
     g_free(cp);
-    if (reader_thread->type != 'v')
-        fclose(reader_thread->file);
-    g_free(reader_thread);
+    close_reader_unique(reader_thread);
+//    if (reader_thread->base->type != 'v')
+//        fclose(reader_thread->base->file);
+//    g_free(reader_thread);
 //    cache->core->destroy_unique(cache);
 }
 
@@ -336,10 +347,10 @@ static void profiler_thread(gpointer data, gpointer user_data){
                                                           params->cache->core->cache_init_params);        
     return_res** result = params->result;
         
-    READER* reader_thread = copy_reader(params->reader);
+    reader_t* reader_thread = clone_reader(params->reader);
     
     if (begin_pos!=0 && begin_pos!=-1)
-        skip_N_elements(reader_thread, begin_pos); 
+        skip_N_elements(reader_thread, begin_pos);
     
     
     // create cache line struct and initialization
@@ -351,7 +362,7 @@ static void profiler_thread(gpointer data, gpointer user_data){
     add_element = cache->core->add_element;
 
     read_one_element(reader_thread, cp);
-
+    
     while (cp->valid && pos<end_pos){
         if (add_element(cache, cp)){
             hit_count ++;
@@ -360,6 +371,7 @@ static void profiler_thread(gpointer data, gpointer user_data){
             miss_count ++;
         pos++;
         read_one_element(reader_thread, cp);
+//        printf("read %lu\n", *(guint64*)(cp->item_p));
     }
     
     result[order]->hit_count = (long long) hit_count;
@@ -367,7 +379,7 @@ static void profiler_thread(gpointer data, gpointer user_data){
     result[order]->total_count = hit_count + miss_count;
     result[order]->hit_rate = (double) hit_count / (hit_count + miss_count);
     result[order]->miss_rate = 1 - result[order]->hit_rate;
-    
+
     
     if (cache->core->type == e_mimir){ 
         struct MIMIR_params* MIMIR_params = (struct MIMIR_params*)(cache->cache_params);
@@ -409,8 +421,8 @@ static void profiler_thread(gpointer data, gpointer user_data){
     
     if (cache->core->type == e_PG){
         PG_params_t *PG_params = (PG_params_t*)(cache->cache_params);
-        printf("\n PG cache size %llu, real size %ld, hit rate %lf, prefetch %lu, "
-               "hit %lu, precision %lf\n", PG_params->init_size,
+        printf("\n PG cache size %lu, real size %ld, hit rate %lf, prefetch %lu, "
+               "hit %lu, precision %lf\n", (unsigned long)PG_params->init_size,
                PG_params->cache->core->size,
                (double)hit_count/(hit_count+miss_count),
                PG_params->num_of_prefetch, PG_params->num_of_hit,
@@ -425,6 +437,13 @@ static void profiler_thread(gpointer data, gpointer user_data){
                cache->core->size, (double)hit_count/(hit_count+miss_count),
                prefech, hit, (double)hit/prefech);
     }
+    
+//    if (cache->core->type == e_SLRUML){
+//        int i;
+//        for (i=0; i<((SLRUML_params_t*)(cache->cache_params))->N_segments; i++)
+//            printf("LRU %d size %llu\n", i, ((SLRUML_params_t*)(cache->cache_params))->current_sizes[i] );
+//        printf("\n"); 
+//    }
 
     // clean up
     g_mutex_lock(&(params->mtx));
@@ -432,20 +451,22 @@ static void profiler_thread(gpointer data, gpointer user_data){
     g_mutex_unlock(&(params->mtx));
 
     g_free(cp);
-    if (reader_thread->type != 'v')
-        fclose(reader_thread->file);
-    if (reader_thread->type == 'c'){
-        csv_free(reader_thread->csv_parser);
-        g_free(reader_thread->csv_parser);
-    }
-    g_free(reader_thread);
+//    if (reader_thread->base->type != 'v')
+//        fclose(reader_thread->base->file);
+//    if (reader_thread->base->type == 'c'){
+//        csv_free(reader_thread->csv_parser);
+//        g_free(reader_thread->csv_parser);
+//    }
+//    g_free(reader_thread);
+    
+    
+    close_reader_unique(reader_thread);
     cache->core->destroy_unique(cache);
-
 }
 
     
     
-return_res** profiler(READER* reader_in, struct_cache* cache_in, int num_of_threads_in, int bin_size_in, gint64 begin_pos, gint64 end_pos){
+return_res** profiler(reader_t* reader_in, struct_cache* cache_in, int num_of_threads_in, int bin_size_in, gint64 begin_pos, gint64 end_pos){
     /**
      if profiling from the very beginning, then set begin_pos=0, 
      if porfiling till the end of trace, then set end_pos=-1 or the length of trace+1; 
@@ -467,7 +488,7 @@ return_res** profiler(READER* reader_in, struct_cache* cache_in, int num_of_thre
     long num_of_bins = ceil(cache_in->core->size/bin_size)+1;
     
     if (end_pos==-1)
-        if (reader_in->total_num == -1)
+        if (reader_in->base->total_num == -1)
             end_pos = get_num_of_cache_lines(reader_in);
     
     // create the result storage area and caches of varying sizes
@@ -523,7 +544,7 @@ return_res** profiler(READER* reader_in, struct_cache* cache_in, int num_of_thre
 }
 
 
-static void traverse_trace(READER* reader, struct_cache* cache){
+static void traverse_trace(reader_t* reader, struct_cache* cache){
     
     // create cache lize struct and initialization
     cache_line* cp = new_cacheline();
@@ -545,10 +566,10 @@ static void traverse_trace(READER* reader, struct_cache* cache){
 }
 
 
-static void get_evict_err(READER* reader, struct_cache* cache){
+static void get_evict_err(reader_t* reader, struct_cache* cache){
     
     cache->core->bp_pos = 1;
-    cache->core->evict_err_array = g_new0(gdouble, reader->break_points->array->len-1);
+    cache->core->evict_err_array = g_new0(gdouble, reader->sdata->break_points->array->len-1);
 
     // create cache lize struct and initialization
     cache_line* cp = new_cacheline();
@@ -573,10 +594,10 @@ static void get_evict_err(READER* reader, struct_cache* cache){
 
 
 
-gdouble* LRU_evict_err_statistics(READER* reader_in, struct_cache* cache_in, guint64 time_interval){
+gdouble* LRU_evict_err_statistics(reader_t* reader_in, struct_cache* cache_in, guint64 time_interval){
     
     gen_breakpoints_realtime(reader_in, time_interval, -1);
-    cache_in->core->bp = reader_in->break_points;
+    cache_in->core->bp = reader_in->sdata->break_points;
     cache_in->core->cache_debug_level = 2;
     
     
@@ -591,16 +612,16 @@ gdouble* LRU_evict_err_statistics(READER* reader_in, struct_cache* cache_in, gui
         exit(1);
     }
     optimal->core->cache_debug_level = 1;
-    optimal->core->eviction_array_len = reader_in->total_num;
-    optimal->core->bp = reader_in->break_points;
+    optimal->core->eviction_array_len = reader_in->base->total_num;
+    optimal->core->bp = reader_in->sdata->break_points;
     
-    if (reader_in->total_num == -1)
+    if (reader_in->base->total_num == -1)
         get_num_of_cache_lines(reader_in);
     
-    if (reader_in->type == 'v')
-        optimal->core->eviction_array = g_new0(guint64, reader_in->total_num);
+    if (reader_in->base->type == 'v')
+        optimal->core->eviction_array = g_new0(guint64, reader_in->base->total_num);
     else
-        optimal->core->eviction_array = g_new0(gchar*, reader_in->total_num);
+        optimal->core->eviction_array = g_new0(gchar*, reader_in->base->total_num);
     
     // get oracle
     traverse_trace(reader_in, optimal);
@@ -610,244 +631,10 @@ gdouble* LRU_evict_err_statistics(READER* reader_in, struct_cache* cache_in, gui
     
     get_evict_err(reader_in, cache_in);
     
-    
-        
     optimal_destroy(optimal);
     
     
     return cache_in->core->evict_err_array;
 }
-
-
-static void profiler_with_prefetch_thread(gpointer data, gpointer user_data){
-    struct multithreading_params_generalProfiler* params = (struct multithreading_params_generalProfiler*) user_data;
-    
-    int order = GPOINTER_TO_UINT(data);
-    guint64 begin_pos = params->begin_pos;
-    guint64 end_pos = params->end_pos;
-    guint64 pos = begin_pos;
-    guint bin_size = params->bin_size;
-    GHashTable *prefetch_hashtable = params->prefetch_hashtable;
-    
-    struct_cache* cache = params->cache->core->cache_init(bin_size * order,
-                                                          params->cache->core->data_type,
-                                                          params->cache->core->cache_init_params);
-    return_res** result = params->result;
-    
-    READER* reader_thread = copy_reader(params->reader);
-    
-    skip_N_elements(reader_thread, begin_pos);
-    
-    
-    // create cache lize struct and initialization
-    cache_line* cp = new_cacheline();
-    cp->type = params->cache->core->data_type;
-    
-    guint64 hit_count=0, miss_count=0;
-    gboolean (*add_element)(struct cache*, cache_line* cp);
-    add_element = cache->core->add_element;
-    
-    read_one_element(reader_thread, cp);
-    while (cp->valid && pos<end_pos){
-        if (add_element(cache, cp)){
-            hit_count ++;
-        }
-        else
-            miss_count ++;
-        pos++;
-        
-//        // FOR VSCSI AND FETCH BLOCK_NUM + 8
-//        *(guint64*)(cp->item_p) = *(guint64*)(cp->item_p) + 8;
-//        add_element(cache, cp);
-//
-        
-        
-        // begin prefetch elements
-        GSList *slist = g_hash_table_lookup(prefetch_hashtable, cp->item_p);
-        while (slist != NULL){
-            if (cp->type == 'l')
-                *((guint64*) cp->item_p) = *((guint64*)slist->data);
-            else
-                strcpy((char*)(cp->item_p), (char*)(slist->data));
-            add_element(cache, cp);
-            slist = slist->next;
-        }
-        
-        read_one_element(reader_thread, cp);
-    }
-    
-    
-    result[order]->hit_count = hit_count;
-    result[order]->miss_count = miss_count;
-    result[order]->total_count = hit_count + miss_count;
-    result[order]->hit_rate = (double) hit_count / (hit_count + miss_count);
-    result[order]->miss_rate = 1 - result[order]->hit_rate;
-    
-    
-    // clean up
-    g_mutex_lock(&(params->mtx));
-    (*(params->progress)) ++ ;
-    g_mutex_unlock(&(params->mtx));
-    
-    g_free(cp);
-    if (reader_thread->type != 'v')
-        fclose(reader_thread->file);
-    g_free(reader_thread);
-    cache->core->destroy_unique(cache);
-    
-}
-
-
-
-return_res** profiler_with_prefetch(READER* reader_in, struct_cache* cache_in, int num_of_threads_in, int bin_size_in, char* prefetch_file_loc, gint64 begin_pos, gint64 end_pos){
-    /**
-     if profiling from the very beginning, then set begin_pos=0,
-     if porfiling till the end of trace, then set end_pos=-1 or the length of trace+1;
-     return results do not include size 0
-     **/
-    
-    long i;
-    guint64 progress = 0;
-    
-    if (end_pos<=begin_pos && end_pos!=-1){
-        printf("end pos <= beigin pos in general profiler, please check\n");
-        exit(1);
-    }
-    
-    
-    // initialization
-    int num_of_threads = num_of_threads_in;
-    int bin_size = bin_size_in;
-    
-    long num_of_bins = ceil(cache_in->core->size/bin_size)+1;
-    
-    if (end_pos==-1)
-        if (reader_in->total_num == -1)
-            end_pos = get_num_of_cache_lines(reader_in);
-    
-    // create the result storage area and caches of varying sizes
-    return_res** result = g_new(return_res*, num_of_bins);
-    
-    for (i=0; i<num_of_bins; i++){
-        result[i] = g_new0(return_res, 1);
-        result[i]->cache_size = bin_size * (i);
-    }
-    result[0]->miss_rate = 1;
-    
-    // build prefetch hashtable
-    /** each line in the input file is tab seperated,
-     *  the first is treated as key, the rest are values
-     **/
-
-    GHashTable *prefetch_hashtable;
-    if (cache_in->core->data_type == 'l'){
-        prefetch_hashtable = g_hash_table_new_full(g_int64_hash, g_int64_equal, simple_g_key_value_destroyer, g_slist_destroyer);
-        FILE* file = fopen(prefetch_file_loc, "r");
-        char buf[1024*1024];
-        char *token;
-        GSList* list = NULL;
-        gint64 req;
-        gint64 *key = NULL;
-        while (fgets(buf, 1024*1024, file) != 0){
-            list = NULL;
-            key = NULL;
-//            printf("line: %s\n", buf);
-            token = strtok(buf, "\t");
-            while (token!=NULL){
-                req = (gint64)(atol(token));
-//                printf("parsed: %ld\t", req);
-//            sscanf(token, "%lu", &k);
-                if (key == NULL){
-                    key = (gpointer)g_new(gint64, 1);
-                    *key = req;
-                }
-                else{
-                    gint64* value = (gpointer)g_new(gint64, 1);
-                    *value = req;
-
-                    list = g_slist_prepend(list, (gpointer)value);
-                }
-                token = strtok(NULL, "\t");
-            }
-//            printf("\n");
-            g_hash_table_insert(prefetch_hashtable, key, list);
-        }
-        
-    }
-    else{
-        prefetch_hashtable = g_hash_table_new_full(g_str_hash, g_str_equal, simple_g_key_value_destroyer, g_slist_destroyer);
-
-        
-        FILE* file = fopen(prefetch_file_loc, "r");
-        char buf[1024*1024];
-        char *token;
-        GSList* list = NULL;
-//        gint64 req;
-        gchar *key = NULL, *value = NULL;
-        while (fgets(buf, 1024*1024, file) != 0){
-            list = NULL;
-            key = NULL;
-            token = strtok(buf, "\t");
-            while (token!=NULL){
-                if (key == NULL){
-                    key = g_strdup(token);
-                }
-                else{
-                    value = g_strdup(token);
-                    list = g_slist_prepend(list, (gpointer)value);
-                }
-                token = strtok(NULL, "\t");
-            }
-            g_hash_table_insert(prefetch_hashtable, key, list);
-        }
-
-    }
-    
-
-    
-    
-    // build parameters and send to thread pool
-    struct multithreading_params_generalProfiler* params = g_new(struct multithreading_params_generalProfiler, 1);
-    params->reader = reader_in;
-    params->cache = cache_in;
-    params->result = result;
-    params->bin_size = (guint) bin_size;
-    params->begin_pos = begin_pos;
-    params->end_pos = end_pos;
-    params->prefetch_hashtable = prefetch_hashtable;
-    params->progress = &progress;
-    g_mutex_init(&(params->mtx));
-    
-    // build the thread pool
-    GThreadPool * gthread_pool = g_thread_pool_new ( (GFunc) profiler_with_prefetch_thread, (gpointer)params, num_of_threads, TRUE, NULL);
-    if (gthread_pool == NULL)
-        g_error("cannot create thread pool in general profiler\n");
-    
-    
-    for (i=1; i<num_of_bins; i++){
-        if ( g_thread_pool_push (gthread_pool, GUINT_TO_POINTER(i), NULL) == FALSE)
-            g_error("cannot push data into thread in generalprofiler\n");
-    }
-    
-    while (progress < (guint64)num_of_bins-1){
-        printf("%.2f%%\n", ((double)progress) / (num_of_bins-1) * 100);
-        sleep(1);
-        printf("\033[A\033[2K\r");
-    }
-    
-    g_thread_pool_free (gthread_pool, FALSE, TRUE);
-    
-    // change hit count, now it is accumulated hit_count, change to real hit_count
-    for (i=num_of_bins-1; i>=1; i--)
-        result[i]->hit_count -= result[i-1]->hit_count;
-    
-    // clean up
-    g_mutex_clear(&(params->mtx));
-    g_free(params);
-    // needs to free result later
-    
-    return result;
-}
-
 
 
