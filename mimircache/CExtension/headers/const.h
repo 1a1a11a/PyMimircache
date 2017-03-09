@@ -27,6 +27,9 @@
 
 
 #define SANITY_CHECK 1
+#define ML
+#undef ML 
+
 
 #if defined(__DEBUG__) || defined(_DEBUG)
 #define DEBUG_MSG(...) fprintf(stderr, __VA_ARGS__)
@@ -36,9 +39,9 @@
 
 // #define INFO(...) fprintf(stderr, __FILE__, __LINE__, __func__, __VA_ARGS__)
 
-#define INFO(msg) \
+#define INFO(...) \
     fprintf(stderr, "INFO: %s:%d:%s: ", __FILE__, __LINE__, __func__); \
-    fprintf(stderr, "%s", msg);
+    fprintf(stderr, __VA_ARGS__);
 
 #define WARNING(...) \
 fprintf(stderr, "WARNING: %s:%d:%s: ", __FILE__, __LINE__, __func__); \
@@ -48,6 +51,6 @@ fprintf(stderr, __VA_ARGS__);
 fprintf(stderr, "ERROR: %s:%d:%s: ", __FILE__, __LINE__, __func__); \
 fprintf(stderr,  __VA_ARGS__);
 
-#define DEBUG(msg) \
+#define DEBUG(...) \
 fprintf(stderr, "DEBUG: %s:%d:%s: ", __FILE__, __LINE__, __func__); \
-fprintf(stderr, "%s", msg);
+fprintf(stderr, __VA_ARGS__);

@@ -1,3 +1,10 @@
+//
+//  python_wrapper.c
+//  python_wrapper
+//
+//  Created by Juncheng on 5/24/16.
+//  Copyright © 2016 Juncheng. All rights reserved.
+//
 
 
 
@@ -76,7 +83,8 @@ struct_cache* build_cache(reader_t* reader,
             init_params->N_segments = 2;
         cache = SLRU_init(cache_size, data_type, (void*)init_params);
     }
-    
+
+#ifdef ML
     else if (strcmp(algorithm, "SLRUML") == 0){
         SLRUML_init_params_t *init_params = g_new0(SLRUML_init_params_t, 1);
         PyObject * temp_bytes = PyUnicode_AsEncodedString(PyDict_GetItemString(cache_params, "hint_loc"), "utf-8", "strict"); // Owned reference
@@ -107,7 +115,7 @@ struct_cache* build_cache(reader_t* reader,
         
         cache = Score_init(cache_size, data_type, init_params);
     }
-
+#endif 
 
     else if (strcmp(algorithm, "LRU_K") == 0){
 //        printf("check dict\n");
