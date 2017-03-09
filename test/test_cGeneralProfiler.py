@@ -52,7 +52,7 @@ class cGeneralProfilerTest(unittest.TestCase):
         mr = p.get_miss_rate()
         self.assertAlmostEqual(mr[-1], 0.83065193891525269)
 
-        reader = csvReader("{}/trace.csv".format(DAT_FOLDER), init_params={"header":True, 'label_column':4, 'delimiter':','})
+        reader = csvReader("{}/trace.csv".format(DAT_FOLDER), init_params={"header":True, 'label_column':5, 'delimiter':','})
         p = cGeneralProfiler(reader, "FIFO", cache_size=2000, num_of_threads=8)
 
         hc = p.get_hit_count()
@@ -94,7 +94,7 @@ class cGeneralProfilerTest(unittest.TestCase):
         self.assertAlmostEqual(mr[-1], 0.71893000602722168)
 
 
-        reader = csvReader("{}/trace.csv".format(DAT_FOLDER), init_params={"header":True, 'label_column':4, 'delimiter':','})
+        reader = csvReader("{}/trace.csv".format(DAT_FOLDER), init_params={"header":True, 'label_column':5, 'delimiter':','})
         p = cGeneralProfiler(reader, "Optimal", cache_size=2000, num_of_threads=8)
 
         hr = p.get_hit_rate()
@@ -137,7 +137,7 @@ class cGeneralProfilerTest(unittest.TestCase):
         self.assertAlmostEqual(mr[-1], 0.83455109596252441)
 
 
-        reader = csvReader("{}/trace.csv".format(DAT_FOLDER), init_params={"header":True, 'label_column':4, 'delimiter':','})
+        reader = csvReader("{}/trace.csv".format(DAT_FOLDER), init_params={"header":True, 'label_column':5, 'delimiter':','})
         p = cGeneralProfiler(reader, "LRU_2", cache_size=2000, num_of_threads=8)
 
         hr = p.get_hit_rate()

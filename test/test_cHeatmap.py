@@ -22,7 +22,7 @@ if not os.path.exists(DAT_FOLDER):
 
 
 class cHeatmapTest(unittest.TestCase):
-    def test1(self):
+    def t2est1(self):
         reader = vscsiReader("{}/trace.vscsi".format(DAT_FOLDER))
         cH = cHeatmap()
         bpr = cH.gen_breakpoints(reader, 'r', time_interval=1000000)
@@ -48,7 +48,7 @@ class cHeatmapTest(unittest.TestCase):
                                 cache_params2=None, num_of_threads=8)
 
 
-    def test2(self):
+    def t2est2(self):
         reader = plainReader("{}/trace.txt".format(DAT_FOLDER))
         cH = cHeatmap()
         bpv = cH.gen_breakpoints(reader, 'v', time_interval=1000)
@@ -72,7 +72,7 @@ class cHeatmapTest(unittest.TestCase):
 
 
     def test3(self):
-        reader = csvReader("{}/trace.csv".format(DAT_FOLDER), init_params={"header":True, "label_column":4})
+        reader = csvReader("{}/trace.csv".format(DAT_FOLDER), init_params={"header":True, "label_column":5})
         cH = cHeatmap()
         bpv = cH.gen_breakpoints(reader, 'v', time_interval=1000)
         self.assertEqual(bpv[10], 10000)
@@ -95,7 +95,8 @@ class cHeatmapTest(unittest.TestCase):
 
 
     def test4(self):
-        reader = csvReader("{}/trace.csv".format(DAT_FOLDER), init_params={"header":True, "label_column":4, 'real_time_column':1})
+        reader = csvReader("{}/trace.csv".format(DAT_FOLDER),
+                           init_params={"header":True, "label_column":5, 'real_time_column':2})
         cH = cHeatmap()
         bpr = cH.gen_breakpoints(reader, 'r', time_interval=1000000)
         self.assertEqual(bpr[10], 53)

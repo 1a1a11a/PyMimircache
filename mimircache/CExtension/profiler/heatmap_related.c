@@ -154,11 +154,18 @@ GArray* gen_breakpoints_virtualtime(reader_t* reader, gint64 time_interval, gint
     g_array_append_val(break_points, reader->base->total_num);
     
     
-    if (break_points->len > 10000)
-        fprintf(stderr, "%snumber of pixels in one dimension is larger than 10000, exact size: %d, it may take a very long time, if you didn't intend to do it, please try with a larger time stamp\n", KRED, break_points->len);
-    else if (break_points->len < 20)
-        fprintf(stderr, "%snumber of pixels in one dimension is smaller than 20, exact size: %d, each pixel will be very large, if you didn't intend to do this, please try with a smaller time stamp\n", KRED, break_points->len);
-    
+    if (break_points->len > 10000){
+        WARNING("%snumber of pixels in one dimension is larger than 10000, "
+                "exact size: %d, it may take a very long time, if you didn't "
+                "intend to do it, please try with a larger time stamp\n",
+                KRED, break_points->len);
+    }
+    else if (break_points->len < 20){
+        WARNING("%snumber of pixels in one dimension is smaller than 20, "
+                "exact size: %d, each pixel will be very large, if you didn't "
+                "intend to do this, please try with a smaller time stamp\n",
+                KRED, break_points->len);
+    }
     
     struct break_point* bp = g_new(struct break_point, 1);
     bp->mode = 'v';
@@ -235,21 +242,18 @@ GArray* gen_breakpoints_realtime(reader_t* reader, gint64 time_interval, gint64 
         read_one_element(reader, cp);
         num++;
     }
-    if ((long long)g_array_index(break_points, guint64, break_points->len-1) != reader->base->total_num)
+    if ((gint64)g_array_index(break_points, guint64, break_points->len-1) != reader->base->total_num)
         g_array_append_val(break_points, reader->base->total_num);
     
     
-    
-    
-    
     if (break_points->len > 10000){
-        ERROR("%snumber of pixels in one dimension is larger than 10000, "
+        WARNING("%snumber of pixels in one dimension is larger than 10000, "
               "exact size: %d, it may take a very long time, if you didn't "
               "intend to do it, please try with a larger time stamp\n",
               KRED, break_points->len);
     }
     else if (break_points->len < 20){
-        ERROR("%snumber of pixels in one dimension is smaller than 20, "
+        WARNING("%snumber of pixels in one dimension is smaller than 20, "
               "exact size: %d, each pixel will be very large, if you didn't "
               "intend to do this, please try with a smaller time stamp\n",
               KRED, break_points->len);

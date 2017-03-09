@@ -16,13 +16,9 @@ class csvReader(cacheReaderAbstract):
         self.init_params = init_params
         self.label_column = init_params['label_column']
         self.time_column = init_params.get("real_time_column", -1)
-        self.counter = 0
 
-        self.header_bool = init_params.get('header')
-        if 'delimiter' in init_params:
-            self.delimiter = init_params.get('delimiter')
-        else:
-            self.delimiter = ','
+        self.header_bool = init_params.get('header', False)
+        self.delimiter = init_params.get('delimiter', ',')
 
         if self.header_bool:
             self.headers = [i.strip(string.whitespace) for i in self.trace_file.readline().split(self.delimiter)]
@@ -35,7 +31,7 @@ class csvReader(cacheReaderAbstract):
         super().read_one_element()
         line = self.trace_file.readline()
         if line:
-            return line.split(self.delimiter)[self.label_column].strip()
+            return line.split(self.delimiter)[self.label_column -1 ].strip()
         else:
             return None
 
@@ -69,7 +65,7 @@ class csvReader(cacheReaderAbstract):
         line = self.trace_file.readline()
         if line:
             line = line.split(self.delimiter)
-            return ( float(line[self.time_column].strip()), line[self.label_column].strip())
+            return float(line[self.time_column - 1].strip()), line[self.label_column - 1].strip()
         else:
             return None
 
@@ -78,7 +74,7 @@ class csvReader(cacheReaderAbstract):
         super().__next__()
         element = self.trace_file.readline().strip()
         if element:
-            return element.split(self.delimiter)[self.label_column].strip()
+            return element.split(self.delimiter)[self.label_column - 1].strip()
         else:
             raise StopIteration
 

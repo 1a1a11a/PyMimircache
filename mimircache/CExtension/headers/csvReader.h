@@ -29,7 +29,7 @@ typedef struct{
     unsigned char delim;
     struct csv_parser *csv_parser;
     
-    gint real_time_column;          /* column number begins from 0 */
+    gint real_time_column;          /* column number begins from 1 */
     gint label_column;
     gint op_column;
     gint size_column;

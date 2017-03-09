@@ -55,8 +55,8 @@ reader_t* setup_reader(char* file_loc, char file_type, char data_type, void* set
     
     
     if (strlen(file_loc) > FILE_LOC_STR_SIZE-1){
-        fprintf(stderr, "file name/path is too long(>%d), please make it short\n",
-                FILE_LOC_STR_SIZE);
+        ERROR("file name/path is too long(>%d), "
+                "please use a shorter name\n", FILE_LOC_STR_SIZE);
         exit(1);
     }
     else{

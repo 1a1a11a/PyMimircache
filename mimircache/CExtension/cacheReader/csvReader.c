@@ -46,7 +46,7 @@ static inline void csv_cb2(int c, void *data){
     
     reader_t* reader = (reader_t*)data;
     csv_params_t *params = reader->reader_params;
-    params->current_column_counter = 0;
+    params->current_column_counter = 1;
     
     /* move the following code to csv_cb1 after detecting label, 
      * because putting here will cause a bug when there is no new line at the 
@@ -99,7 +99,7 @@ void csv_setup_Reader(char* file_loc, reader_t* reader, csvReader_init_params* i
     }
         
     reader->base->type = 'c';         /* csv  */
-    params->current_column_counter = 0;
+    params->current_column_counter = 1;
     params->op_column = init_params->op_column;
     params->real_time_column = init_params->real_time_column;
     params->size_column = init_params->size_column;
@@ -121,13 +121,6 @@ void csv_setup_Reader(char* file_loc, reader_t* reader, csvReader_init_params* i
         free(line);
         params->has_header = init_params->has_header;
     }
-        
-
-    DEBUG_MSG("after initialization, current_column %d, label_column: %d, real_time_column %d, size_column: %d\n",
-              reader->current_column_counter, reader->label_column, reader->real_time_column, reader->size_column);
-    DEBUG_MSG("input delimiter %d(%c), current delimiter %d(%c)\n",
-           init_params->delimiter, init_params->delimiter,
-              reader->csv_parser->delim_char, reader->csv_parser->delim_char);
 }
 
 
