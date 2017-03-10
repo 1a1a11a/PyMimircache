@@ -1,8 +1,14 @@
 # coding=utf-8
+"""
+ARC algorithm, this algorithm has been modified on 02/14/2017, but not tested, may contain bugs
+"""
+
 from collections import defaultdict
 
 from mimircache.cache.abstractCache import cache
 from mimircache.utils.LinkedList import LinkedList
+
+
 
 
 class ARC(cache):
@@ -18,6 +24,7 @@ class ARC(cache):
         self.p = p
         if ghostlist_size == -1:
             self.ghostlist_size = self.cache_size
+        self.inserted_element = None    # used to record the element just inserted
 
         # dict/list2 is for referenced more than once
         self.linkedList1 = LinkedList()
@@ -61,17 +68,10 @@ class ARC(cache):
             # move to part2
             # get the node and remove from part1, size of part1 reduced by 1
             node = self.cacheDict1[element]
-            # print("before remove")
-            # for i in self.linkedList1:
-            #     print(i.content, end='\t')
-            # print("")
+
             if node == self.lru_list_head_p1:
                 self.lru_list_head_p1 = self.lru_list_head_p1.next
             self.linkedList1.removeNode(node)
-            # print("after remove")
-            # for i in self.linkedList1:
-            #     print(i.content, end='\t')
-            # print("")
 
             del self.cacheDict1[element]
 
@@ -107,6 +107,7 @@ class ARC(cache):
         self.cacheDict1[element] = node
         if not self.lru_list_head_p1:
             self.lru_list_head_p1 = node
+        self.inserted_element = element
         return return_content
 
     def _printCacheLine(self):
@@ -124,7 +125,8 @@ class ARC(cache):
                 print(i.content)
         print(' ')
 
-    def _evictOneElement(self, element):
+
+    def _evictOneElement(self):
         """
         evict one element from the cache line into ghost list, then check ghost list,
         if oversize, then evict one from ghost list
@@ -132,7 +134,8 @@ class ARC(cache):
         :return: content of element evicted into ghost list
         """
         return_content = None
-        if element in self.cacheDict1_ghost and len(self.cacheDict2) > 0:
+
+        if self.inserted_element and self.inserted_element in self.cacheDict1_ghost and len(self.cacheDict2) > 0:
             # evict one from part2 LRU, add into ghost list
             return_content = content = self.lru_list_head_p2.content
             del self.cacheDict2[content]
@@ -149,7 +152,7 @@ class ARC(cache):
                 assert (self.linkedList2.size - len(self.cacheDict2)) == self.ghostlist_size
 
 
-        elif element in self.cacheDict2_ghost and len(self.cacheDict1) > 0:
+        elif self.inserted_element and self.inserted_element in self.cacheDict2_ghost and len(self.cacheDict1) > 0:
             # evict one from part1 LRU, add into ghost list
             return_content = content = self.lru_list_head_p1.content
             del self.cacheDict1[content]

@@ -79,5 +79,5 @@ class csvReader(cacheReaderAbstract):
             raise StopIteration
 
     def __repr__(self):
-        return "csv cache reader {}, specified column: {}, column begins from 0".format(self.file_loc, self.label_column)
+        return "csv cache reader {}, key column: {}, column begins from 1".format(self.file_loc, self.label_column)
 

@@ -5,60 +5,84 @@ read a binary format trace
 """
 
 import io, os, struct
+import mimircache.c_cacheReader as c_cacheReader
+from mimircache.cacheReader.abstractReader import cacheReaderAbstract
 
 
-class traceBinaryReader:
-    def __init__(self, infilename, fmt):
-        self.infilename = infilename
-        self.infile = None
-        assert os.path.exists(infilename), "provided data file does not exist"
-        if self.infile is None:
-            self.infile = open(infilename, 'rb')
-        self.fmt = fmt
+class binaryReader(cacheReaderAbstract):
+    def __init__(self, file_loc, init_params, data_type='c', open_c_reader=True):
+        super(binaryReader, self).__init__(file_loc, 'c')
+        self.file_loc = file_loc
+        assert os.path.exists(file_loc), "provided data file does not exist"
+        assert 'fmt' in init_params, "please provide format string(fmt) in init_params"
+        assert "label" in init_params, "please specify the order of label, beginning from 1"
+        self.fmt = init_params['fmt']
+        self.label_column = init_params['label']
+        self.time_column = init_params.get("real_time", -1)
+        self.trace_file = open(file_loc, 'rb')
         self.structIns = struct.Struct(self.fmt)
+        self.record_size = struct.calcsize(self.fmt)
+        self.data_type = data_type
+        self.init_params = init_params
+
+        if open_c_reader:
+            # the data type here is not real data type, it will auto correct in C
+            self.cReader = c_cacheReader.setup_reader(file_loc, 'b', data_type=self.data_type,
+                                                      init_params=init_params)
 
 
-    def read(self):
-        b = self.infile.read(struct.calcsize(self.fmt))
+
+    def read_one_element(self):
+        super().read_one_element()
+        b = self.trace_file.read(self.record_size)
         if len(b):
-            return self.structIns.unpack(b)
+            ret = self.structIns.unpack(b)[self.label_column -1]
+            if self.data_type == 'l':
+                return int(ret)
+            else:
+                return ret
         else:
             return None
 
-    def reset(self):
-        self.infile.seek(0, io.SEEK_SET)
+
+    def lines(self):
+        b = self.trace_file.read(self.record_size)
+        while len(b):
+            ret = self.structIns.unpack(b)
+            b = self.trace_file.read(self.record_size)
+            yield ret
+
+
+    def read_time_request(self):
+        """
+        return real_time information for the request in the form of (time, request)
+        :return:
+        """
+        assert self.time_column!=-1, "you need to provide time in order to use this function"
+        super().read_one_element()
+        b = self.trace_file.read(self.record_size)
+        if len(b):
+            ret = self.structIns.unpack(b)
+            if self.data_type == 'l':
+                return float(ret[self.time_column - 1]), int(ret[self.label_column - 1])
+            else:
+                return float(ret[self.time_column - 1]), ret[self.label_column - 1]
+        else:
+            return None
+
 
     def jumpN(self, n):
         """
         jump N records from current position
         :return:
         """
-        self.infile.seek(struct.calcsize(self.fmt) * n, io.SEEK_CUR)
+        self.trace_file.seek(struct.calcsize(self.fmt) * n, io.SEEK_CUR)
 
-    def close(self):
-        if self.infile:
-            self.infile.close()
-
-    def __del__(self):
-        self.close()
-
-    def __enter__(self):
-        if self.infile is None:
-            self.infile = open(self.infilename, 'rb')
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
-
-    def __iter__(self):
-        return self
 
     def __next__(self):
-        v = self.read()
+        super().__next__()
+        v = self.read_one_element()
         if v:
             return v
         else:
             raise StopIteration
-
-    def __len__(self):
-        return os.path.getsize(self.infilename)//struct.calcsize(self.fmt)

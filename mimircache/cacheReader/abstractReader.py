@@ -81,12 +81,14 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
 
     def close(self):
         try:
-            # pass
-            self.trace_file.close()
+            if self.trace_file:
+                self.trace_file.close()
+                self.trace_file = None
             if self.cReader:
                 c_cacheReader.close_reader(self.cReader)
-        except:
-            pass
+                self.cReader = None
+        except Exception as e:
+            print(e)
 
     @abc.abstractclassmethod
     def __next__(self):  # Python 3

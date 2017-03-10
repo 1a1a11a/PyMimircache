@@ -20,7 +20,7 @@ class clock(LRU):
         node = self.cacheDict[element]
         node.id = 1
 
-    def _insertElement(self, element):
+    def _insertElement(self, element, evict=True):
         """
         the given element is not in the cache, now insert it into cache
         :param element:

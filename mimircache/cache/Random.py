@@ -1,11 +1,10 @@
 # coding=utf-8
 """
-this version is more efficient than Randomv0, which uses punching hole method, but _evictElement is not callable
+this version is more efficient than Randomv0 which uses punching hole method, but _evictElement is not callable
 any more
 """
 
 import random
-
 from mimircache.cache.abstractCache import cache
 
 

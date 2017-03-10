@@ -1,3 +1,4 @@
+# coding=utf-8
 """
 this version punches hole on the cache_line_list,
 which is not efficient(5% loss compared to the other version of Random),
