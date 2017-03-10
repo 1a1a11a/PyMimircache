@@ -2,7 +2,7 @@
 
 import os
 from mimircache import vscsiReader
-from mimircache.cacheReader.binaryReader import traceBinaryReader
+from mimircache.cacheReader.binaryReader import binaryReader
 from mimircache.cacheReader.binaryWriter import traceBinaryWriter
 
 
@@ -181,8 +181,9 @@ if __name__ == "__main__":
     # trace_mixer(reader1, reader2, mix_mode="real_time")
     # splitTrace(reader, 2, "w38Split")
     # splitTraceWithTime("/var/dept/scratch/jyan254/cache/mimircache/data/traces/w65_vscsi1.vscsitrace")
-    with traceBinaryReader("../data/trace.vscsi", "<3I2H2Q") as reader:
+    with binaryReader("../data/trace.vscsi", "<3I2H2Q") as reader:
         with traceBinaryWriter("test.vscsi", "<3I2H2Q") as writer:
             extract_part_trace(reader, writer, (1, -1))
-    with traceBinaryReader("../utils/test.vscsi", "<3I2H2Q") as r:
+    with binaryReader("../utils/test.vscsi", "<3I2H2Q") as r:
         print(len(r))
+

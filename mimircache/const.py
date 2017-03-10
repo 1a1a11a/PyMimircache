@@ -23,6 +23,7 @@ except:
 from mimircache.cacheReader.csvReader import csvReader
 from mimircache.cacheReader.plainReader import plainReader
 from mimircache.cacheReader.vscsiReader import vscsiReader
+from mimircache.cacheReader.binaryReader import binaryReader
 
 
 # global c_available_cache

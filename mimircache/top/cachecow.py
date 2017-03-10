@@ -7,6 +7,7 @@ from mimircache.profiler.twoDPlots import *
 from mimircache.profiler.evictionStat import *
 from mimircache.utils.prepPlotParams import *
 
+
 class cachecow:
     def __init__(self, **kwargs):
         self.reader = None
@@ -35,6 +36,19 @@ class cachecow:
         if self.reader:
             self.reader.close()
         self.reader = csvReader(file_path, data_type=data_type, init_params=init_params)
+        return self.reader
+
+    def binary(self, file_path, init_params, data_type='l'):
+        """
+        open a binary file
+        :param file_path:
+        :param init_params: params related to csv file, see csvReader for detail
+        :param data_type: can be either 'c' for string or 'l' for number (like block IO)
+        :return:
+        """
+        if self.reader:
+            self.reader.close()
+        self.reader = binaryReader(file_path, data_type=data_type, init_params=init_params)
         return self.reader
 
     def vscsi(self, file_path, data_type='l'):
@@ -288,6 +302,10 @@ class cachecow:
         pass
         # if self.reader:
         #     self.reader.close()
+
+    def close(self):
+        if self.reader:
+            self.reader.close()
 
     def twoDPlot(self, plot_type, **kwargs):
         """

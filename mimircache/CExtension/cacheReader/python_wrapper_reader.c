@@ -7,9 +7,10 @@
 //
 
 #include <Python.h>
+#include "const.h"
 #include "reader.h"
 #include "csvReader.h"
-#include "const.h"
+#include "binaryReader.h"
 
 
 /* TODO: 
@@ -39,71 +40,97 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
         data_type = "l"; 
 
     if (file_type[0] == 'c'){
+        if (!PyDict_Check(py_init_params)){
+            ERROR("input init_params is not a valid python dictionary\n");
+            exit(-1); 
+        }
+        
         init_params = (void*) new_csvReader_init_params(-1, -1, -1, -1, FALSE, ',', -1);
         /* if it is csv file, we need extra init parameters */
         PyObject *py_label, *py_size, *py_op, *py_real_time,
                     *py_header, *py_delimiter, *py_traceID;
+        csvReader_init_params* csv_init_params = init_params;
         
-        py_label = PyUnicode_FromString("label_column");
-        py_size = PyUnicode_FromString("size_column");
-        py_op = PyUnicode_FromString("op_column");
-        py_real_time = PyUnicode_FromString("real_time_column");
-        py_header = PyUnicode_FromString("header");
-        py_delimiter = PyUnicode_FromString("delimiter");
-        py_traceID = PyUnicode_FromString("traceID_column");
-        
-        if (PyDict_Contains(py_init_params, py_label)){
-            ((csvReader_init_params*)init_params)->label_column =
-                                    (gint)PyLong_AsLong(PyDict_GetItemString(py_init_params, "label_column"));
+        if ( (py_label = PyDict_GetItemString(py_init_params, "label_column")) != NULL){
+            csv_init_params->label_column = (gint)PyLong_AsLong(py_label);
         }
         
-        
-        if (PyDict_Contains(py_init_params, py_size)){
-            ((csvReader_init_params*)init_params)->size_column =
-                                    (gint)PyLong_AsLong(PyDict_GetItemString(py_init_params, "size_column"));
+        if ( (py_size = PyDict_GetItemString(py_init_params, "size_column")) != NULL) {
+            csv_init_params->size_column = (gint)PyLong_AsLong(py_size);
         }
         
-        
-        if (PyDict_Contains(py_init_params, py_op)){
-            ((csvReader_init_params*)init_params)->op_column =
-                                    (gint)PyLong_AsLong(PyDict_GetItemString(py_init_params, "op_column"));
+        if ( (py_op = PyDict_GetItemString(py_init_params, "op_column")) != NULL) {
+            csv_init_params->op_column = (gint)PyLong_AsLong(py_op);
         }
         
-            
-        if (PyDict_Contains(py_init_params, py_real_time)){
-            ((csvReader_init_params*)init_params)->real_time_column =
-                                    (gint)PyLong_AsLong(PyDict_GetItemString(py_init_params, "real_time_column"));
+        if ( (py_real_time = PyDict_GetItemString(py_init_params, "real_time_column")) != NULL) {
+            csv_init_params->real_time_column = (gint)PyLong_AsLong(py_real_time);
         }
         
-        if (PyDict_Contains(py_init_params, py_header)){
-            ((csvReader_init_params*)init_params)->has_header =
-            PyObject_IsTrue(PyDict_GetItemString(py_init_params, "header"));
+        if ( (py_header = PyDict_GetItemString(py_init_params, "header")) != NULL) {
+            csv_init_params->has_header = PyObject_IsTrue(py_header);
         }
         
-        if (PyDict_Contains(py_init_params, py_delimiter)){
-            ((csvReader_init_params*)init_params)->delimiter =
-            *((unsigned char*)PyUnicode_AsUTF8(PyDict_GetItemString(py_init_params, "delimiter")));
+        if ( (py_delimiter = PyDict_GetItemString(py_init_params, "delimiter")) != NULL) {
+            csv_init_params->size_column = *((unsigned char*)PyUnicode_AsUTF8(py_delimiter));
         }
-
-        if (PyDict_Contains(py_init_params, py_traceID)){
-            ((csvReader_init_params*)init_params)->traceID_column =
-                                    (gint)PyLong_AsLong(PyDict_GetItemString(py_init_params, "traceID_column"));
-        }
-
         
-        Py_DECREF(py_label);
-        Py_DECREF(py_size);
-        Py_DECREF(py_op);
-        Py_DECREF(py_real_time);
-        Py_DECREF(py_header);
-        Py_DECREF(py_delimiter);
-        Py_DECREF(py_traceID);
+        if ( (py_traceID = PyDict_GetItemString(py_init_params, "traceID_column")) != NULL) {
+            csv_init_params->traceID_column = (gint)PyLong_AsLong(py_traceID);
+        }
+        
 
         if (((csvReader_init_params*)init_params)->has_header)
             DEBUG_MSG("csv data has header\n");
         
         DEBUG_MSG("delimiter %c\n", ((csvReader_init_params*)init_params)->delimiter);
     }
+    
+    
+    else if (file_type[0] == 'b'){
+        if (!PyDict_Check(py_init_params)){
+            ERROR("input init_params is not a valid python dictionary\n");
+            exit(-1);
+        }
+        
+        init_params = g_new0(binary_init_params_t, 1);
+        binary_init_params_t *bin_init_params = init_params;
+        PyObject *py_label, *py_size, *py_op, *py_real_time, *py_fmt;
+        
+        if ( (py_label = PyDict_GetItemString(py_init_params, "label")) != NULL){
+            bin_init_params->label_pos = (gint)PyLong_AsLong(py_label);
+        }
+        
+        if ( (py_size = PyDict_GetItemString(py_init_params, "size")) != NULL) {
+            bin_init_params->size_pos = (gint)PyLong_AsLong(py_size);
+        }
+        
+        if ( (py_op = PyDict_GetItemString(py_init_params, "op")) != NULL) {
+            bin_init_params->op_pos = (gint)PyLong_AsLong(py_op);
+        }
+        
+        if ( (py_real_time = PyDict_GetItemString(py_init_params, "real_time")) != NULL) {
+            bin_init_params->real_time_pos = (gint)PyLong_AsLong(py_real_time);
+        }
+
+        
+        py_fmt = PyDict_GetItemString(py_init_params, "fmt");
+        if (!PyUnicode_Check(py_fmt)){
+            ERROR("passed format string is not unicode \n");
+            exit(1);
+        }
+        if (PyUnicode_READY(py_fmt) != 0){
+            ERROR("failed get fmt unicode ready\n");
+            exit(1); 
+        }
+            
+        Py_UCS1* py_ucs1 = PyUnicode_1BYTE_DATA(py_fmt);
+        
+        DEBUG("binary fmt %s\n", py_ucs1);
+        strcpy(bin_init_params->fmt, (char*) py_ucs1);
+        
+    }
+    
     
     reader_t* reader = setup_reader(file_loc, *file_type, *data_type, init_params);
 
@@ -128,14 +155,7 @@ static PyObject* reader_read_one_element(PyObject* self, PyObject* args)
         return NULL;
     } 
 
-    if (reader->base->type == 'p' || reader->base->type == 'c')
-        c->type = 'c';
-    else if (reader->base->type == 'v')
-        c->type = 'l';
-    else{
-        ERROR("reader type not recognized: %c\n", reader->base->type);
-        exit(1);
-    }
+    c->type = reader->base->data_type;
 
     read_one_element(reader, c);
     if (c->valid){
@@ -175,13 +195,8 @@ static PyObject* reader_read_time_request(PyObject* self, PyObject* args)
         fprintf(stderr, "plain reader does not support get real time stamp\n");
         exit(1);
     }
-    else if (reader->base->type == 'c')
-        c->type = 'c';
-    else if (reader->base->type == 'v')
-        c->type = 'l';
     else{
-        fprintf(stderr, "reader type not recognized: %c\n", reader->base->type);
-        exit(1);
+        c->type = reader->base->data_type;
     }
     
     read_one_element(reader, c);
@@ -221,13 +236,8 @@ static PyObject* reader_read_one_request_full_info(PyObject* self, PyObject* arg
         fprintf(stderr, "plain reader does not support get full info\n");
         exit(1);
     }
-    else if (reader->base->type == 'c')
-        c->type = 'c';
-    else if (reader->base->type == 'v')
-        c->type = 'l';
     else{
-        fprintf(stderr, "reader type not recognized: %c\n", reader->base->type);
-        exit(1);
+        c->type = reader->base->data_type;
     }
     
     read_one_element(reader, c);

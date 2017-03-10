@@ -270,7 +270,7 @@ if __name__ == "__main__":
         # c.open("../data/trace.txt", data_type='l')
 
     if run_type == 2:
-        # c.csv("/run/shm/wiki.1000000", init_params={"label_column": 2})
+        # c.csv("/run/shm/wiki.1000000", init_params={"label_column": 3})
         c.open("/home/jason/ALL_DATA/redis/86400-sec-redis-ephemeral-cmds.anonymized.log.extract.get.clean")
         # c.open("/home/jason/setget.all.2")
 
@@ -392,7 +392,7 @@ if __name__ == "__main__":
     #
     # DAT = "w90"
     # # r = vscsiReader("../1a1a11a/prefetch_input_data/{}/xab".format(DAT))
-    # r = csvReader("MSR/xab", init_params={"real_time_column": 0, "label_column": 4})
+    # r = csvReader("MSR/xab", init_params={"real_time_column": 1, "label_column": 5})
     # # r = vscsiReader("/scratch/jason/traces/w38_vscsi1.vscsitrace")
     # cg = cGeneralProfiler(r, 'LRU', CACHE_SIZE, BIN_SIZE, num_of_threads=NUM_OF_THREADS)
     # cg2 = cGeneralProfiler(r, 'test1', CACHE_SIZE, BIN_SIZE, num_of_threads=NUM_OF_THREADS)

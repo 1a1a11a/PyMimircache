@@ -5,6 +5,7 @@ import unittest
 from mimircache.cacheReader.csvReader import csvReader
 from mimircache.cacheReader.plainReader import plainReader
 from mimircache.cacheReader.vscsiReader import vscsiReader
+from mimircache.cacheReader.binaryReader import binaryReader
 from mimircache.profiler.cGeneralProfiler import cGeneralProfiler
 from mimircache.profiler.generalProfiler import generalProfiler
 
@@ -30,19 +31,17 @@ class cGeneralProfilerTest(unittest.TestCase):
         self.assertAlmostEqual(hr[0], 0.0)
         self.assertAlmostEqual(hr[100], hr2[100])
         self.assertAlmostEqual(hr[100], 0.16934804618358612)
-
         hc = p.get_hit_count()
         self.assertEqual(hc[10], 449)
         self.assertEqual(hc[0], 0)
         mr = p.get_miss_rate()
         self.assertAlmostEqual(mr[-1], 0.83065193891525269)
-
         hr = p.get_hit_rate(begin=113852, end=113872, cache_size=5000)
         self.assertAlmostEqual(hr[1], 0.2)
 
+
         reader = plainReader("{}/trace.txt".format(DAT_FOLDER))
         p = cGeneralProfiler(reader, "FIFO", cache_size=2000, num_of_threads=8)
-
         hr = p.get_hit_rate()
         self.assertAlmostEqual(hr[0], 0.0)
         self.assertAlmostEqual(hr[100], 0.16934804618358612)
@@ -52,9 +51,10 @@ class cGeneralProfilerTest(unittest.TestCase):
         mr = p.get_miss_rate()
         self.assertAlmostEqual(mr[-1], 0.83065193891525269)
 
-        reader = csvReader("{}/trace.csv".format(DAT_FOLDER), init_params={"header":True, 'label_column':5, 'delimiter':','})
+
+        reader = csvReader("{}/trace.csv".format(DAT_FOLDER),
+                           init_params={"header":True, 'label_column':5, 'delimiter':','})
         p = cGeneralProfiler(reader, "FIFO", cache_size=2000, num_of_threads=8)
-
         hc = p.get_hit_count()
         self.assertEqual(hc[10], 449)
         self.assertEqual(hc[0], 0)
@@ -63,11 +63,25 @@ class cGeneralProfilerTest(unittest.TestCase):
         self.assertAlmostEqual(hr[100], 0.16934804618358612)
         mr = p.get_miss_rate()
         self.assertAlmostEqual(mr[-1], 0.83065193891525269)
+
+
+        reader = binaryReader("{}/trace.vscsi".format(DAT_FOLDER),
+                              init_params={"label":6, "real_time":7, "fmt": "<3I2H2Q"})
+        p = cGeneralProfiler(reader, "FIFO", cache_size=2000, num_of_threads=8)
+        hc = p.get_hit_count()
+        self.assertEqual(hc[10], 449)
+        self.assertEqual(hc[0], 0)
+        hr = p.get_hit_rate()
+        self.assertAlmostEqual(hr[0], 0.0)
+        self.assertAlmostEqual(hr[100], 0.16934804618358612)
+        mr = p.get_miss_rate()
+        self.assertAlmostEqual(mr[-1], 0.83065193891525269)
+
+
 
     def test_Optimal(self):
         reader = vscsiReader("{}/trace.vscsi".format(DAT_FOLDER))
         p = cGeneralProfiler(reader, "Optimal", cache_size=2000)
-
         hr = p.get_hit_rate()
         self.assertAlmostEqual(hr[0], 0.0)
         self.assertAlmostEqual(hr[100], 0.28106996417045593)
@@ -76,14 +90,12 @@ class cGeneralProfilerTest(unittest.TestCase):
         self.assertEqual(hc[0], 0)
         mr = p.get_miss_rate()
         self.assertAlmostEqual(mr[-1], 0.71893000602722168)
-
         hr = p.get_hit_rate(begin=113852, end=113872, cache_size=5000)
         self.assertAlmostEqual(hr[1], 0.2)
 
 
         reader = plainReader("{}/trace.txt".format(DAT_FOLDER))
         p = cGeneralProfiler(reader, "Optimal", cache_size=2000, num_of_threads=8)
-
         hr = p.get_hit_rate()
         self.assertAlmostEqual(hr[0], 0.0)
         self.assertAlmostEqual(hr[100], 0.28106996417045593)
@@ -94,9 +106,22 @@ class cGeneralProfilerTest(unittest.TestCase):
         self.assertAlmostEqual(mr[-1], 0.71893000602722168)
 
 
-        reader = csvReader("{}/trace.csv".format(DAT_FOLDER), init_params={"header":True, 'label_column':5, 'delimiter':','})
+        reader = csvReader("{}/trace.csv".format(DAT_FOLDER),
+                           init_params={"header":True, 'label_column':5, 'delimiter':','})
         p = cGeneralProfiler(reader, "Optimal", cache_size=2000, num_of_threads=8)
+        hr = p.get_hit_rate()
+        self.assertAlmostEqual(hr[0], 0.0)
+        self.assertAlmostEqual(hr[100], 0.28106996417045593)
+        hc = p.get_hit_count()
+        self.assertEqual(hc[10], 180)
+        self.assertEqual(hc[0], 0)
+        mr = p.get_miss_rate()
+        self.assertAlmostEqual(mr[-1], 0.71893000602722168)
 
+
+        reader = binaryReader("{}/trace.vscsi".format(DAT_FOLDER),
+                              init_params={"label":6, "real_time":7, "fmt": "<3I2H2Q"})
+        p = cGeneralProfiler(reader, "Optimal", cache_size=2000, num_of_threads=8)
         hr = p.get_hit_rate()
         self.assertAlmostEqual(hr[0], 0.0)
         self.assertAlmostEqual(hr[100], 0.28106996417045593)

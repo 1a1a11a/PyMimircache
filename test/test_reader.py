@@ -58,18 +58,18 @@ class cReaderTest(unittest.TestCase):
         c_cacheReader.close_reader(reader)
 
 
-    # def test_reader_binary(self):
-    #     reader = c_cacheReader.setup_reader("{}/trace.csv".format(DAT_FOLDER), 'c', data_type='c',
-    #                                         init_params={"header":True, "delimiter":",", "label_column":5, "size_column":4})
-    #     lines = c_cacheReader.get_num_of_lines(reader)
-    #     self.assertEqual(lines, 113872)
-    #     first_request = c_cacheReader.read_one_element(reader)
-    #     self.assertEqual(int(first_request), 42932745 + 1 )
-    #     first_request = None
-    #     c_cacheReader.reset_reader(reader)
-    #     first_request = c_cacheReader.read_one_element(reader)
-    #     self.assertEqual(int(first_request), 42932745 + 1)
-    #     c_cacheReader.close_reader(reader)
+    def test_reader_binary(self):
+        reader = c_cacheReader.setup_reader("{}/trace.vscsi".format(DAT_FOLDER), 'b', data_type='l',
+                                            init_params={"label":6, "real_time":7, "fmt": "<3I2H2Q"})
+        lines = c_cacheReader.get_num_of_lines(reader)
+        self.assertEqual(lines, 113872)
+        first_request = c_cacheReader.read_one_element(reader)
+        self.assertEqual(int(first_request), 42932745)
+
+        c_cacheReader.reset_reader(reader)
+        first_request = c_cacheReader.read_one_element(reader)
+        self.assertEqual(int(first_request), 42932745)
+        c_cacheReader.close_reader(reader)
 
 
     def test_context_manager(self):

@@ -124,9 +124,10 @@ void read_one_element(reader_t* reader, cache_line* c){
             exit(1);
             break;
     }
-    if (reader->base->data_type == 'l' && reader->base->type != 'v'){
+    if (reader->base->data_type == 'l' &&
+        (reader->base->type == 'c' || reader->base->type == 'p')){
         guint64 n = atoll(c->item);
-        *(guint64*) (c->item_p) = n + 1;
+        *(guint64*) (c->item_p) = n; 
     }
 }
 

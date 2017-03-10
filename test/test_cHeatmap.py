@@ -7,6 +7,7 @@ import mimircache.c_LRUProfiler as c_LRUProfiler
 from mimircache.cacheReader.csvReader import csvReader
 from mimircache.cacheReader.plainReader import plainReader
 from mimircache.cacheReader.vscsiReader import vscsiReader
+from mimircache.cacheReader.binaryReader import binaryReader
 from mimircache.profiler.LRUProfiler import LRUProfiler
 from mimircache.profiler.cGeneralProfiler import cGeneralProfiler
 from mimircache.profiler.cHeatmap import cHeatmap
@@ -22,7 +23,7 @@ if not os.path.exists(DAT_FOLDER):
 
 
 class cHeatmapTest(unittest.TestCase):
-    def t2est1(self):
+    def test1(self):
         reader = vscsiReader("{}/trace.vscsi".format(DAT_FOLDER))
         cH = cHeatmap()
         bpr = cH.gen_breakpoints(reader, 'r', time_interval=1000000)
@@ -48,7 +49,7 @@ class cHeatmapTest(unittest.TestCase):
                                 cache_params2=None, num_of_threads=8)
 
 
-    def t2est2(self):
+    def test2(self):
         reader = plainReader("{}/trace.txt".format(DAT_FOLDER))
         cH = cHeatmap()
         bpv = cH.gen_breakpoints(reader, 'v', time_interval=1000)
@@ -121,6 +122,35 @@ class cHeatmapTest(unittest.TestCase):
                                 cache_params1={"K": 2},
                                 cache_params2=None, num_of_threads=8)
 
+
+
+    def test5(self):
+        reader = binaryReader("{}/trace.vscsi".format(DAT_FOLDER),
+                              init_params={"label":6, "real_time":7, "fmt": "<3I2H2Q"})
+
+        cH = cHeatmap()
+        bpr = cH.gen_breakpoints(reader, 'r', time_interval=1000000)
+        self.assertEqual(bpr[10], 53)
+        bpv = cH.gen_breakpoints(reader, 'v', time_interval=1000)
+        self.assertEqual(bpv[10], 10000)
+
+        cH.heatmap(reader, 'r', "hit_rate_start_time_end_time",
+                   num_of_pixels=100, num_of_threads=8, cache_size=2000)
+        cH.heatmap(reader, 'r', "hit_rate_start_time_end_time",
+                   num_of_threads=8, cache_size=2000)
+        cH.heatmap(reader, 'r', "rd_distribution",
+                   num_of_pixels=1000, num_of_threads=8)
+        cH.heatmap(reader, 'r', "future_rd_distribution",
+                   num_of_pixels=1000, num_of_threads=8)
+        cH.heatmap(reader, 'r', "hit_rate_start_time_end_time",
+                   num_of_pixels=100, algorithm="FIFO",
+                   num_of_threads=8, cache_size=2000)
+
+        cH.differential_heatmap(reader, 'r', "hit_rate_start_time_end_time",
+                                time_interval=10000000, cache_size=2000,
+                                algorithm1="LRU_K", algorithm2="Optimal",
+                                cache_params1={"K": 2},
+                                cache_params2=None, num_of_threads=8)
 
 if __name__ == "__main__":
     unittest.main()

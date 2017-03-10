@@ -10,6 +10,7 @@
 
 #include "heatmap.h"
 #include "csvReader.h"
+#include "binaryReader.h"
 
 static inline gint process_one_element_last_access(cache_line* cp, GHashTable* hash_table, guint64 ts);
 
@@ -183,15 +184,23 @@ GArray* gen_breakpoints_realtime(reader_t* reader, gint64 time_interval, gint64 
      currently this only works for vscsi reader !!!
      return a GArray of break points, including the last break points
      */
-    if (reader->base->type != 'v' && reader->base->type != 'c'){
-        printf("gen_breakpoints_realtime currently only support vscsi reader and "
-               "some csv reader, you provide %c reader, program exit\n", reader->base->type);
+    if (reader->base->type == 'p'){
+        printf("gen_breakpoints_realtime currently don't support plain reader, program exit\n");
         exit(1);
     }
     if (reader->base->type == 'c'){
         csv_params_t* params = reader->reader_params;
-        if (params->real_time_column == -1){
-            printf("gen_breakpoints_realtime needs you to provide real_time_column parameter, program exit\n");
+        if (params->real_time_column == -1 || params->real_time_column == 0){
+            ERROR("gen_breakpoints_realtime needs you to provide "
+                  "real_time_column parameter for csv reader\n");
+            exit(1);
+        }
+    }
+    if (reader->base->type == 'b'){
+        binary_params_t* params = reader->reader_params;
+        if (params->real_time_pos == 0){
+            ERROR("gen_breakpoints_realtime needs you to provide "
+                  "real_time parameter for binary reader\n"); 
             exit(1);
         }
     }

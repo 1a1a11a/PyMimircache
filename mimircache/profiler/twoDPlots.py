@@ -192,4 +192,5 @@ def nameMapping_2d(reader, partial_ratio=0.1, figname=None):
         new_figname = figname[:pos] + '_partial' + figname[pos:]
     plt.savefig(new_figname)
     plt.clf()
+    colorfulPrint("red", "plot is saved at the same directory")
     reader.reset()
