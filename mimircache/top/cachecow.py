@@ -387,15 +387,13 @@ class cachecow:
             profiler = self.profiler(alg, cache_param, cache_size,
                                      bin_size=bin_size, num_of_threads=num_of_threads)
             hr = profiler.get_hit_rate()
-            # if alg == "LRU":
-            #     print(hr[cache_size])
             self.reader.reset()
             # plt.xlim(0, cache_size)
             if alg!="LRU":
                 plt.plot([i*bin_size for i in range(len(hr))], hr, label=label[i])
             else:
                 plt.plot(hr[:-2], label=label[i])
-            print("{} done".format(alg))
+            INFO("HRC plotting {} computation finished".format(alg))
 
         plt.legend(loc="best")
         plt.xlabel(plot_dict['xlabel'])
