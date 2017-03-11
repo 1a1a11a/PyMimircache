@@ -16,7 +16,7 @@
 /******************* priority queue structs and def **********************/
 
 static int cmp_pri(pqueue_pri_t next, pqueue_pri_t curr){
-    return (next < curr);
+    return (next.pri1 < curr.pri1);
 }
 
 
@@ -60,9 +60,10 @@ void __optimal_insert_element(struct_cache* optimal, cache_line* cp){
     node->data_type = cp->type;
     node->item = (gpointer)key;
     if ((gint)g_array_index(optimal_params->next_access, gint, optimal_params->ts) == -1)
-        node->pri = G_MAXUINT64;
+        node->pri.pri1 = G_MAXUINT64;
     else
-        node->pri = optimal_params->ts + (gint)g_array_index(optimal_params->next_access, gint, optimal_params->ts);
+        node->pri.pri1 = optimal_params->ts +
+        (gint)g_array_index(optimal_params->next_access, gint, optimal_params->ts);
     pqueue_insert(optimal_params->pq, (void *)node);
     g_hash_table_insert (optimal_params->hashtable, (gpointer)key, (gpointer)node);
 }
@@ -80,14 +81,15 @@ void __optimal_update_element(struct_cache* optimal, cache_line* cp){
     struct optimal_params* optimal_params = (struct optimal_params*)(optimal->cache_params);
     void* node;
     node = (void*) g_hash_table_lookup(optimal_params->hashtable, (gconstpointer)(cp->item_p));
+    pqueue_pri_t pri;
     
     if ((gint) g_array_index(optimal_params->next_access, gint, optimal_params->ts) == -1)
-        pqueue_change_priority(optimal_params->pq, G_MAXUINT64, node);
+        pri.pri1 = G_MAXUINT64;
     else
-        pqueue_change_priority(optimal_params->pq,
-                               optimal_params->ts +
-                               (gint)g_array_index(optimal_params->next_access, gint, optimal_params->ts),
-                               node);
+        pri.pri1 = optimal_params->ts +
+            (gint)g_array_index(optimal_params->next_access, gint, optimal_params->ts);
+
+    pqueue_change_priority(optimal_params->pq, pri, node);    
 }
 
 

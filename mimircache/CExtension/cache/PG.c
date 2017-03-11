@@ -21,7 +21,7 @@
 /******************* priority queue structs and def **********************/
 
 static int cmp_pri(pqueue_pri_t next, pqueue_pri_t curr){
-    return (next < curr);
+    return (next.pri1 < curr.pri1);
 }
 
 
@@ -133,11 +133,13 @@ static inline void __PG_add_to_graph(struct_cache* PG, cache_line* cp){
             pq_node_t *pq_node = (pq_node_t*) g_hash_table_lookup(graphNode->graph, &block);
             if (pq_node){
                 // relation already exists
-                pqueue_change_priority(graphNode->pq, pq_node->pri+1, pq_node);
+                pq_node->pri.pri1 ++;
+                pqueue_change_priority(graphNode->pq, pq_node->pri, pq_node);
 
-                // sanity check
+#ifdef SANITY_CHECK
                 if ( *((gint64*)(pq_node->item)) != block)
-                    printf("ERROR pq node content not equal block\n");
+                    ERROR("pq node content not equal block\n");
+#endif
             }
             else {
                 // there is no probability between current_block->block
@@ -148,7 +150,7 @@ static inline void __PG_add_to_graph(struct_cache* PG, cache_line* cp){
                     pq_node_t *pq_node = g_new0(pq_node_t, 1);
                     pq_node->data_type = 'l';
                     pq_node->item = key;
-                    pq_node->pri = 1;
+                    pq_node->pri.pri1 = 1;
                     pqueue_insert(graphNode->pq, pq_node);
                     g_hash_table_insert(graphNode->graph, key, pq_node); 
                     PG_params->meta_data_size += (8 + 8 * 3);
@@ -165,7 +167,8 @@ static inline void __PG_add_to_graph(struct_cache* PG, cache_line* cp){
             pq_node_t *pq_node = (pq_node_t*) g_hash_table_lookup(graphNode->graph, req);
             if (pq_node){
                 // relation already exists
-                pqueue_change_priority(graphNode->pq, pq_node->pri+1, pq_node);
+                pq_node->pri.pri1 ++;
+                pqueue_change_priority(graphNode->pq, pq_node->pri, pq_node);
                 
                 // sanity check
                 if (strcmp((gchar*)(pq_node->item), req) != 0)
@@ -179,7 +182,7 @@ static inline void __PG_add_to_graph(struct_cache* PG, cache_line* cp){
                     pq_node_t *pq_node = g_new0(pq_node_t, 1);
                     pq_node->data_type = 'c';
                     pq_node->item = key;
-                    pq_node->pri = 1;
+                    pq_node->pri.pri1 = 1;
                     pqueue_insert(graphNode->pq, pq_node);
                     g_hash_table_insert(graphNode->graph, key, pq_node);
                     PG_params->meta_data_size += (8 + 8 * 3);
@@ -212,7 +215,7 @@ static inline GList* PG_get_prefetch(struct_cache* PG, cache_line* cp){
         pq_node_t *pqNode = pqueue_pop(graphNode->pq);
         if (pqNode == NULL)
             break;
-        if ( (double)(pqNode->pri)/(graphNode->total_count) > PG_params->prefetch_threshold ){
+        if ( (double)(pqNode->pri.pri1)/(graphNode->total_count) > PG_params->prefetch_threshold ){
             list = g_list_prepend(list, pqNode->item);
             pq_node_list = g_list_prepend(pq_node_list, pqNode);
         }
@@ -280,11 +283,8 @@ gpointer __PG__evict_with_return(struct_cache* PG, cache_line* cp){
  
 gboolean PG_add_element(struct_cache* PG, cache_line* cp){
     PG_params_t* PG_params = (PG_params_t*)(PG->cache_params);
-//    printf("add %s, graph size %d\n", cp->item_p, g_hash_table_size(PG_params->graph));
     __PG_add_to_graph(PG, cp);
-    
-//    g_hash_table_foreach( ((struct LRU_params*) (PG_params->cache->cache_params))->hashtable, printHashTable, NULL);
-    
+        
     if (g_hash_table_contains(PG_params->prefetched, cp->item_p)){
         PG_params->num_of_hit ++;
         g_hash_table_remove(PG_params->prefetched, cp->item_p);
@@ -416,14 +416,6 @@ struct_cache* PG_init(guint64 size, char data_type, void* params){
         PG_params->cache = LRU_init(size, data_type, NULL);
     else if (strcmp(init_params->cache_type, "FIFO") == 0)
         PG_params->cache = fifo_init(size, data_type, NULL);
-//    else if (strcmp(init_params->cache_type, "AMP") == 0){
-//        struct AMP_init_params *AMP_init_params = g_new0(struct AMP_init_params, 1);
-//        AMP_init_params->APT            = 4;
-//        AMP_init_params->p_threshold    = init_params->AMP_pthreshold;
-//        AMP_init_params->read_size      = 1;
-//        AMP_init_params->K              = init_params->sequential_K;
-//        MIMIR_params->cache = AMP_init(size, data_type, AMP_init_params);
-//    }
     else if (strcmp(init_params->cache_type, "Optimal") == 0){
         struct optimal_init_params *optimal_init_params = g_new(struct optimal_init_params, 1);
         optimal_init_params->reader = NULL;
@@ -461,7 +453,7 @@ struct_cache* PG_init(guint64 size, char data_type, void* params){
             ((char**)(PG_params->past_requests))[i] = g_new0(char, CACHE_LINE_LABEL_SIZE);
     }
     else{
-        g_error("does not support given data type: %c\n", data_type);
+        ERROR("does not support given data type: %c\n", data_type);
     }
     
     

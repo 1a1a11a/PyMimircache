@@ -23,7 +23,7 @@ typedef struct node_pq_LRUProfiler
 
 static inline int
 cmp_pri(pqueue_pri_t next, pqueue_pri_t curr){
-    return (next < curr);
+    return (next.pri1 < curr.pri1);
 }
 
 
@@ -359,10 +359,10 @@ gint64* get_future_reuse_dist(reader_t* reader, gint64 begin, gint64 end){
     while (cp->valid){
         if (reader->base->type == 'c'){
             if (ts==reader->base->total_num)
-//            if (reader->has_header && ts==reader->base->total_num)
                 break;
         }
-        splay_tree = process_one_element(cp, splay_tree, hash_table, ts, &reuse_dist);
+        splay_tree = process_one_element(cp, splay_tree, hash_table,
+                                         ts, &reuse_dist);
         reuse_dist_array[end-begin-1-ts] = reuse_dist;
         if (reuse_dist > (gint64) max_rd)
             max_rd = reuse_dist;
@@ -398,7 +398,7 @@ static inline sTree* process_one_element(cache_line* cp,
         newtree = insert(ts, splay_tree);
         gint64 *value = g_new(gint64, 1);
         if (value == NULL){
-            printf("not enough memory\n");
+            ERROR("not enough memory\n");
             exit(1);
         }
         *value = ts;
@@ -411,7 +411,7 @@ static inline sTree* process_one_element(cache_line* cp,
             g_hash_table_insert(hash_table, (gpointer)(key), (gpointer)value);
         }
         else{
-            printf("unknown cache line content type: %c\n", cp->type);
+            ERROR("unknown cache line content type: %c\n", cp->type);
             exit(1);
         }
         *reuse_dist = -1;

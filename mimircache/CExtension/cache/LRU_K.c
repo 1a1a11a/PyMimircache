@@ -21,7 +21,7 @@
 /********************* priority queue structs and def ***********************/
 static int cmp_pri(pqueue_pri_t next, pqueue_pri_t curr){
     /* the one with smallest priority is poped out first */
-    return (next > curr);
+    return (next.pri1 > curr.pri1);
 }
 
 
@@ -70,10 +70,10 @@ void __LRU_K_insert_element(struct_cache* LRU_K, cache_line* cp){
     
     pqueue_pri_t pri;
     if (queue->length < LRU_K_params->K){
-        pri = INITIAL_TS;
+        pri.pri1 = INITIAL_TS;
     }
     else
-        pri = *(guint64*) g_queue_peek_nth(queue, LRU_K_params->K-1);
+        pri.pri1 = *(guint64*) g_queue_peek_nth(queue, LRU_K_params->K-1);
     
     node->item = key;
     node->pri = pri;
@@ -136,9 +136,9 @@ void __LRU_K_update_element(struct_cache* cache, cache_line* cp){
     
     pqueue_pri_t pri;
     if (queue->length < LRU_K_params->K)
-        pri = INITIAL_TS;
+        pri.pri1 = INITIAL_TS;
     else
-        pri = *(guint64*) g_queue_peek_nth(queue, LRU_K_params->K-1);
+        pri.pri1 = *(guint64*) g_queue_peek_nth(queue, LRU_K_params->K-1);
     
     pqueue_change_priority(LRU_K_params->pq, pri, (void*)node);
     return;

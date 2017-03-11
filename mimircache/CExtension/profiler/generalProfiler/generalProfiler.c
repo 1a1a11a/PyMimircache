@@ -17,7 +17,6 @@
 #include "LRU_K.h"
 #include "LRU.h"
 #include "python_wrapper.h"
-#include "LRU_dataAware.h"
 #include "AMP.h" 
 #include "PG.h"
 //#include "SLRUML.h"

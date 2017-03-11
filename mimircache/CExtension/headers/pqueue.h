@@ -39,7 +39,13 @@
 #define PQUEUE_H
 
 /** priority data type */
-typedef unsigned long long pqueue_pri_t;
+struct pqueue_pri{
+    unsigned long long pri1;
+    unsigned long long pri2;
+};
+typedef struct pqueue_pri pqueue_pri_t;
+//typedef unsigned long long pqueue_pri_t;
+
 
 /** callback functions to get/set/compare the priority of an element */
 typedef pqueue_pri_t (*pqueue_get_pri_f)(void *a);

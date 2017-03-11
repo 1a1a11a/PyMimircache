@@ -16,9 +16,16 @@
 
 #define NPY_NO_DEPRECATED_API 11
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <glib.h>
+
+#include "reader.h"
+#include "glib_related.h"
 #include "const.h"
 
 
+#include "cache.h"
 #include "FIFO.h"
 #include "Optimal.h"
 #include "LRU_K.h"
@@ -26,9 +33,7 @@
 #include "LFU.h" 
 #include "MRU.h"
 #include "Random.h"
-#include "LRU_LFU.h" 
-#include "LRU_dataAware.h" 
-#include "ARC.h" 
+#include "ARC.h"
 #include "SLRU.h"
 
 #ifdef ML
@@ -37,17 +42,10 @@
 #endif
 //#include "LRFU.h"
 
-#include "YJC.h"
 #include "mimir.h" 
 #include "AMP.h"
 #include "PG.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <glib.h>
-#include "reader.h"
-#include "glib_related.h"
-#include "cache.h"
 
 
 

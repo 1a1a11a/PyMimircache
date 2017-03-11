@@ -6,43 +6,53 @@
 //  Copyright © 2016 Juncheng. All rights reserved.
 //
 
+/* this module uses priority queue to order cache lines, 
+ * which is O(logN) at each request, 
+ * but this approach saves some memory compared to the other approach, 
+ * which uses a hashmap and linkedlist and gives O(1) at each request 
+ *
+ * this LFU clear the frequenct of an item after evicting from cache 
+ * when there are more than one items with the smallest freq, the behavior is 
+ * LRU, but can be tuned to MRU, Random or unstable-pq-decided  
+ */ 
 
-#include "cache.h"
-#include "pqueue.h"
+
 #include "LFU.h"
 
 
 
 /********************* priority queue structs and def ***********************/
-static int cmp_pri(pqueue_pri_t next, pqueue_pri_t curr){
+static inline int cmp_pri(pqueue_pri_t next, pqueue_pri_t curr){
     /* the one with smallest priority is poped out first */
-    return (next > curr);
+    if (next.pri1 == curr.pri1)
+        return (next.pri2 > curr.pri2);         // LRU
+    else
+        return (next.pri1 > curr.pri1);
 }
 
 
-static pqueue_pri_t get_pri(void *a){
+static inline pqueue_pri_t get_pri(void *a){
     return ((pq_node_t *) a)->pri;
 }
 
 
-static void
-set_pri(void *a, pqueue_pri_t pri){
+static inline void set_pri(void *a, pqueue_pri_t pri){
     ((pq_node_t *) a)->pri = pri;
 }
 
 
-static size_t get_pos(void *a){
+static inline size_t get_pos(void *a){
     return ((pq_node_t *) a)->pos;
 }
 
 
-static void set_pos(void *a, size_t pos){
+static inline void set_pos(void *a, size_t pos){
     ((pq_node_t *) a)->pos = pos;
 }
 
 /********************************** LFU ************************************/
 void __LFU_insert_element(struct_cache* LFU, cache_line* cp){
-    struct LFU_params* LFU_params = (struct LFU_params*)(LFU->cache_params);
+    LFU_params_t* LFU_params = (LFU_params_t*)(LFU->cache_params);
     
     pq_node_t *node = g_new(pq_node_t, 1);
     gpointer key;
@@ -63,7 +73,8 @@ void __LFU_insert_element(struct_cache* LFU, cache_line* cp){
     /* node priority is set to one for first time,
      * frequency cleared after eviction
      */
-    node->pri = 1;
+    node->pri.pri1 = 1;
+    node->pri.pri2 = cp->ts;
     
     
     pqueue_insert(LFU_params->pq, (void *)node);
@@ -73,30 +84,33 @@ void __LFU_insert_element(struct_cache* LFU, cache_line* cp){
 
 gboolean LFU_check_element(struct_cache* cache, cache_line* cp){
     return g_hash_table_contains(
-                ((struct LFU_params*)(cache->cache_params))->hashtable,
+                ((LFU_params_t*)(cache->cache_params))->hashtable,
                 (gconstpointer)(cp->item_p));
 }
 
 
 void __LFU_update_element(struct_cache* cache, cache_line* cp){
-    struct LFU_params* LFU_params = (struct LFU_params*)(cache->cache_params);
+    LFU_params_t* LFU_params = (LFU_params_t*)(cache->cache_params);
     pq_node_t* node = (pq_node_t*)
                         g_hash_table_lookup(LFU_params->hashtable,
                                             (gconstpointer)(cp->item_p));
-    pqueue_change_priority(LFU_params->pq, node->pri+1, (void*)node);
+    pqueue_pri_t pri;
+    pri.pri1 = node->pri.pri1 + 1;
+    pri.pri2 = cp->ts;
+    pqueue_change_priority(LFU_params->pq, pri, (void*)node);
 }
 
 
 
 void __LFU_evict_element(struct_cache* cache, cache_line* cp){
-    struct LFU_params* LFU_params = (struct LFU_params*)(cache->cache_params);
+    LFU_params_t* LFU_params = (LFU_params_t*)(cache->cache_params);
     pq_node_t* node = (pq_node_t*) pqueue_pop(LFU_params->pq);
     g_hash_table_remove(LFU_params->hashtable, (gconstpointer)(node->item));
 }
 
 
 gpointer __LFU__evict_with_return(struct_cache* cache, cache_line* cp){
-    struct LFU_params* LFU_params = (struct LFU_params*)(cache->cache_params);
+    LFU_params_t* LFU_params = (LFU_params_t*)(cache->cache_params);
     
     pq_node_t* node = (pq_node_t*) pqueue_pop(LFU_params->pq);
     gpointer evicted_key;
@@ -114,7 +128,7 @@ gpointer __LFU__evict_with_return(struct_cache* cache, cache_line* cp){
 
 
 gboolean LFU_add_element(struct_cache* cache, cache_line* cp){
-    struct LFU_params* LFU_params = (struct LFU_params*)(cache->cache_params);
+    LFU_params_t* LFU_params = (LFU_params_t*)(cache->cache_params);
     
     if (LFU_check_element(cache, cp)){
         __LFU_update_element(cache, cp);
@@ -130,7 +144,7 @@ gboolean LFU_add_element(struct_cache* cache, cache_line* cp){
 
 
  void LFU_destroy(struct_cache* cache){
-    struct LFU_params* LFU_params = (struct LFU_params*)(cache->cache_params);
+    LFU_params_t* LFU_params = (LFU_params_t*)(cache->cache_params);
     
     g_hash_table_destroy(LFU_params->hashtable);
     pqueue_free(LFU_params->pq);
@@ -153,7 +167,7 @@ gboolean LFU_add_element(struct_cache* cache, cache_line* cp){
 
 struct_cache* LFU_init(guint64 size, char data_type, void* params){
     struct_cache* cache = cache_init(size, data_type);
-    struct LFU_params* LFU_params = g_new0(struct LFU_params, 1);
+    LFU_params_t* LFU_params = g_new0(LFU_params_t, 1);
     cache->cache_params = (void*) LFU_params;
     
     cache->core->type               =   e_LFU;
@@ -196,12 +210,12 @@ struct_cache* LFU_init(guint64 size, char data_type, void* params){
 
 
 uint64_t LFU_get_size(struct_cache* cache){
-    struct LFU_params* LFU_params = (struct LFU_params*)(cache->cache_params);
+    LFU_params_t* LFU_params = (LFU_params_t*)(cache->cache_params);
     return (guint64) g_hash_table_size(LFU_params->hashtable);
 }
 
 void LFU_remove_element(struct_cache* cache, void* data_to_remove){
-    struct LFU_params* LFU_params = (struct LFU_params*)(cache->cache_params);
+    LFU_params_t* LFU_params = (LFU_params_t*)(cache->cache_params);
     pq_node_t* node = (pq_node_t*)
         g_hash_table_lookup(LFU_params->hashtable,
                             (gconstpointer)data_to_remove);

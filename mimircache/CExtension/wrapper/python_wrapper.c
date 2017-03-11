@@ -26,7 +26,7 @@ struct_cache* build_cache(reader_t* reader,
         cache = fifo_init(cache_size, data_type, NULL);
     }
     else if (strcmp(algorithm, "LRU") == 0){
-        printf("we suggest using LRUProfiler for profiling, it's faster\n");
+        WARNING("we suggest using LRUProfiler for profiling, it's faster\n");
         cache = LRU_init(cache_size, data_type, NULL);
     }
     else if (strcmp(algorithm, "LFU") == 0){
@@ -37,16 +37,6 @@ struct_cache* build_cache(reader_t* reader,
     }
     else if (strcmp(algorithm, "Random") == 0){
         cache = Random_init(cache_size, data_type, NULL);
-    }
-    else if (strcmp(algorithm, "LRU_LFU") == 0){
-        double LRU_percentage = PyFloat_AS_DOUBLE(PyDict_GetItemString(cache_params, "LRU_percentage"));
-        DEBUG_MSG("LRU_percentage=%lf\n", LRU_percentage);
-        struct LRU_LFU_init_params *init_params = g_new(struct LRU_LFU_init_params, 1);
-        init_params->LRU_percentage = LRU_percentage;
-        cache = LRU_LFU_init(cache_size, data_type, (void*)init_params);
-    }
-    else if (strcmp(algorithm, "LRU_dataAware") == 0){
-        cache = LRU_dataAware_init(cache_size, data_type, NULL);
     }
     else if (strcmp(algorithm, "Optimal") == 0){
         struct optimal_init_params *init_params = g_new(struct optimal_init_params, 1);
@@ -172,17 +162,6 @@ struct_cache* build_cache(reader_t* reader,
         init_params->p_threshold    = threshold;
         init_params->K              = K;
         cache = AMP_init(cache_size, data_type, (void*)init_params);
-    }
-    else if (strcmp(algorithm, "YJC") == 0){
-        double LRU_percentage = PyFloat_AS_DOUBLE(PyDict_GetItemString(cache_params, "LRU_percentage"));
-        double LFU_percentage = PyFloat_AS_DOUBLE(PyDict_GetItemString(cache_params, "LFU_percentage"));
-        DEBUG_MSG("LRU_percentage=%lf\n", LRU_percentage);
-        DEBUG_MSG("LFU_percentage=%lf\n", LFU_percentage);
-        struct YJC_init_params *init_params = g_new(struct YJC_init_params, 1);
-        init_params->LRU_percentage = LRU_percentage;
-        init_params->LFU_percentage = LFU_percentage;
-        init_params->clustering_hashtable = NULL;
-        cache = YJC_init(cache_size, data_type, (void*)init_params);
     }
     else if (strcmp(algorithm, "mimir") == 0){
         gint max_support = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "max_support"));
