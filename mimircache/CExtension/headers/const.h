@@ -4,7 +4,7 @@
 #define CACHE_LINE_LABEL_SIZE 1024
 #define FILE_LOC_STR_SIZE 1024
 
-#define KNRM  "\x1B[0m"
+#define KRESET  "\x1B[0m"
 #define KRED  "\x1B[31m"
 #define KGRN  "\x1B[32m"
 #define KYEL  "\x1B[33m"
@@ -41,8 +41,9 @@
 // #define INFO(...) fprintf(stderr, __FILE__, __LINE__, __func__, __VA_ARGS__)
 
 #define INFO(...) \
-    {fprintf(stderr, "INFO: %s:%d:%s: ", __FILE__, __LINE__, __func__); \
-    fprintf(stderr, __VA_ARGS__);}
+    {fprintf(stderr, "INFO: %s%s:%d:%s: ", KYEL, __FILE__, __LINE__, __func__); \
+    fprintf(stderr, __VA_ARGS__); \
+    fprintf(stderr, "%s", KRESET); }
 
 #define WARNING(...) \
     {fprintf(stderr, "WARNING: %s:%d:%s: ", __FILE__, __LINE__, __func__); \

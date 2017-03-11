@@ -72,7 +72,7 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
         }
         
         if ( (py_delimiter = PyDict_GetItemString(py_init_params, "delimiter")) != NULL) {
-            csv_init_params->size_column = *((unsigned char*)PyUnicode_AsUTF8(py_delimiter));
+            csv_init_params->delimiter = *((unsigned char*)PyUnicode_AsUTF8(py_delimiter));
         }
         
         if ( (py_traceID = PyDict_GetItemString(py_init_params, "traceID_column")) != NULL) {
@@ -126,7 +126,7 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
             
         Py_UCS1* py_ucs1 = PyUnicode_1BYTE_DATA(py_fmt);
         
-        DEBUG("binary fmt %s\n", py_ucs1);
+        DEBUG_MSG("binary fmt %s\n", py_ucs1);
         strcpy(bin_init_params->fmt, (char*) py_ucs1);
         
     }

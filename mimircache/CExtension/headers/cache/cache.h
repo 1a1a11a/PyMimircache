@@ -23,6 +23,7 @@
 typedef enum{
     e_LRU,
     e_LFU,
+    e_LFU_fast,
     e_Optimal,
     e_FIFO,
     e_LRU_K,

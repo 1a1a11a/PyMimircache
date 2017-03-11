@@ -137,14 +137,15 @@ void csv_read_one_element(reader_t* reader, cache_line* c){
         c->valid = FALSE;
         return;
     }
-    
     while (!params->already_got_cache_line){
         size = (long) getline(&line, &len, reader->base->file);
         if (size < 0){
             break;
         }
-        if ( (long)csv_parse(params->csv_parser, line, (size_t)size, csv_cb1, csv_cb2, reader) != size) {
-            fprintf(stderr, "Error while parsing file: %s\n", csv_strerror(csv_error(params->csv_parser)));
+        if ( (long)csv_parse(params->csv_parser, line, (size_t)size,
+                             csv_cb1, csv_cb2, reader) != size) {
+            ERROR("Error while parsing file: %s\n",
+                    csv_strerror(csv_error(params->csv_parser)));
         }
         free(line);
         line = NULL;
@@ -159,12 +160,14 @@ void csv_read_one_element(reader_t* reader, cache_line* c){
                     c->valid = FALSE;
             }
             else{
-                fprintf(stderr, "error in csv reader, didn't read in cache request and file not end\n");
+                fprintf(stderr, "error in csv reader, didn't read in "
+                        "cache request and file not end\n");
                 exit(1);
             }
         }
         else{
-            fprintf(stderr, "error in csv reader, read in file, but not cannot parse into cache request\n");
+            fprintf(stderr, "error in csv reader, read in file, but not "
+                    "cannot parse into cache request\n");
             exit(1);
         }
     }
@@ -172,6 +175,10 @@ void csv_read_one_element(reader_t* reader, cache_line* c){
 
 
 guint64 csv_skip_N_elements(reader_t* reader, guint64 N){
+    /* this function skips the next N requests, 
+     * on success, return N, 
+     * on failure, return the number of requests skipped 
+     */
     csv_params_t *params = reader->reader_params;
 
     csv_free(params->csv_parser);
@@ -198,8 +205,11 @@ void csv_reset_reader(reader_t* reader){
     csv_params_t *params = reader->reader_params;
     
     fseek(reader->base->file, 0L, SEEK_SET);
+    
     csv_free(params->csv_parser);
     csv_init(params->csv_parser, CSV_APPEND_NULL);
+    if (params->delim)
+        csv_set_delim(params->csv_parser, params->delim);
     
     if (params->has_header){
         char *line=NULL;
@@ -208,9 +218,7 @@ void csv_reset_reader(reader_t* reader){
         free(line);
         line = NULL;
     }
-    if (params->delim)
-        csv_set_delim(params->csv_parser, params->delim);
-    params->reader_end = FALSE;
+    params->reader_end = FALSE;    
 }
 
 

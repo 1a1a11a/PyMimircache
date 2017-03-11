@@ -18,7 +18,8 @@ class cachecowTest(unittest.TestCase):
         TIME_INTERVAL = 50000000
         c = cachecow()
         # c.open('../data/trace.txt')
-        c.csv("{}/trace.csv".format(DAT_FOLDER), init_params={"header" :True, 'label_column' :5, 'real_time_column':2})
+        c.csv("{}/trace.csv".format(DAT_FOLDER),
+              init_params={"header" :True, 'label_column' :5, 'real_time_column':2})
         # c.vscsi('{}/trace.vscsi'.format(DAT_FOLDER))
 
         p = c.profiler("LRU")
@@ -42,7 +43,7 @@ class cachecowTest(unittest.TestCase):
                                algorithm1="LRU", algorithm2="MRU",
                                cache_params2=None, num_of_threads=8)
 
-        c.twoDPlot("cold_miss", mode='v', time_interval=1000)
+        # c.twoDPlot("cold_miss_count", mode='v', time_interval=1000)
         c.twoDPlot("request_num", mode='v', time_interval=1000)
         c.twoDPlot("mapping")
         c.evictionPlot('r', 10000000, "accumulative_freq", "Optimal", 1000)

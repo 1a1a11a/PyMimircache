@@ -108,8 +108,7 @@ def eviction_stat_reuse_dist_plot(reader, algorithm, cache_size, mode, time_inte
     except:
         pass
     plt.clf()
-    colorfulPrint("red", "figure has been plotted and saved")
-
+    INFO("plot is saved at the same directory")
 
 
 def eviction_stat_freq_plot(reader, algorithm, cache_size, mode, time_interval,
@@ -193,4 +192,4 @@ def eviction_stat_freq_plot(reader, algorithm, cache_size, mode, time_interval,
     except:
         pass
     plt.clf()
-    colorfulPrint("red", "figure has been plotted and saved")
+    INFO("plot is saved at the same directory")

@@ -1,4 +1,10 @@
 # coding=utf-8
+
+"""
+this module offer the upper level API to user
+"""
+
+
 from mimircache.profiler.generalProfiler import generalProfiler
 from mimircache.profiler.heatmap import heatmap
 from mimircache.profiler.cGeneralProfiler import cGeneralProfiler
@@ -11,6 +17,8 @@ from mimircache.utils.prepPlotParams import *
 class cachecow:
     def __init__(self, **kwargs):
         self.reader = None
+        self.num_of_req = -1
+        self.num_of_uniq_req = -1
         self.cacheclass_mapping = {}
 
     def open(self, file_path, data_type='c'):
@@ -72,20 +80,25 @@ class cachecow:
         return the number of requests in the trace
         :return:
         """
-        return self.reader.get_num_of_total_requests()
+        if self.num_of_req == -1:
+            self.num_of_req = self.reader.get_num_of_total_requests()
+        return self.num_of_req
 
     def num_of_unique_request(self):
         """
         return the number of unique requests in the trace
         :return:
         """
-        return self.reader.get_num_of_unique_requests()
+        if self.num_of_uniq_req == -1:
+            self.num_of_uniq_req = self.reader.get_num_of_unique_requests()
+        return self.num_of_uniq_req
 
     def reset(self):
         """
         reset reader to the beginning of the trace
         :return:
         """
+        assert self.reader is not None, "reader is None, cannot reset"
         self.reader.reset()
 
     def _profiler_pre_check(self, **kwargs):
@@ -137,7 +150,8 @@ class cachecow:
         """
 
         reader, num_of_threads = self._profiler_pre_check(**kwargs)
-        assert cache_size < self.num_of_request(), "you cannot specify cache size larger than trace length"
+        assert cache_size <= self.num_of_request(), "you cannot specify cache size({}) " \
+            "larger than trace length({})".format(cache_size, self.num_of_request())
 
         l = ["avg_rd_start_time_end_time", "hit_rate_start_time_cache_size"]
 
@@ -179,7 +193,8 @@ class cachecow:
             figname = kwargs['figname']
 
         assert cache_size != -1, "you didn't provide size for cache"
-        assert cache_size < self.num_of_request(), "you cannot specify cache size larger than trace length"
+        assert cache_size <= self.num_of_request(), "you cannot specify cache size({}) " \
+            "larger than trace length({})".format(cache_size, self.num_of_request())
 
         reader, num_of_threads = self._profiler_pre_check(**kwargs)
 
@@ -269,7 +284,9 @@ class cachecow:
             profiler = LRUProfiler(reader, cache_size)
         else:
             assert cache_size != -1, "you didn't provide size for cache"
-            assert cache_size < self.num_of_request(), "you cannot specify cache size larger than trace length"
+            assert cache_size <= self.num_of_request(), "you cannot specify cache size({}) " \
+                                                       "larger than trace length({})".format(cache_size,
+                                                                                             self.num_of_request())
             if 'bin_size' in kwargs:
                 bin_size = kwargs['bin_size']
 
@@ -287,25 +304,6 @@ class cachecow:
                                            cache_params, num_of_threads)
 
         return profiler
-
-    def __iter__(self):
-        assert self.reader, "you haven't provided a data file"
-        return self.reader
-
-    def next(self):
-        return self.__next__()
-
-    def __next__(self):  # Python 3
-        return self.reader.next()
-
-    def __del__(self):
-        pass
-        # if self.reader:
-        #     self.reader.close()
-
-    def close(self):
-        if self.reader:
-            self.reader.close()
 
     def twoDPlot(self, plot_type, **kwargs):
         """
@@ -405,7 +403,7 @@ class cachecow:
         plt.title(plot_dict['title'], fontsize=18, color='black')
         if not 'no_save' in kwargs or not kwargs['no_save']:
             plt.savefig(plot_dict['figname'], dpi=600)
-        colorfulPrint("red", "plot is saved at the same directory")
+        INFO("plot is saved at the same directory")
         try:
             plt.show()
         except:
@@ -466,9 +464,28 @@ class cachecow:
         plt.title(plot_dict['title'], fontsize=18, color='black')
         if not 'no_save' in kwargs or not kwargs['no_save']:
             plt.savefig(plot_dict['figname'], dpi=600)
-        colorfulPrint("red", "plot is saved at the same directory")
+        INFO("plot is saved at the same directory")
         try:
             plt.show()
         except:
             pass
         plt.clf()
+
+    def __iter__(self):
+        assert self.reader, "you haven't provided a data file"
+        return self.reader
+
+    def next(self):
+        return self.__next__()
+
+    def __next__(self):  # Python 3
+        return self.reader.next()
+
+    def __del__(self):
+        self.close()
+
+    def close(self):
+        if self.reader is not None:
+            self.reader.close()
+            self.reader = None
+

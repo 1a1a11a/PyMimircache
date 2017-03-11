@@ -1,6 +1,5 @@
 # coding=utf-8
 import os
-import logging
 import mimircache.c_LRUProfiler as c_LRUProfiler
 
 from mimircache.const import *
@@ -11,6 +10,9 @@ import matplotlib.pyplot as plt
 from mimircache.utils.printing import *
 
 class LRUProfiler:
+    all = ["get_hit_count", "get_hit_rate", "get_miss_rate", "get_reuse_distance",
+           "plotMRC", "plotHRC", "get_best_cache_sizes"]
+
     def __init__(self, reader, cache_size=-1):
         self.cache_size = cache_size
         self.reader = reader
@@ -26,9 +28,6 @@ class LRUProfiler:
         if need_convert:
             self.prepare_file()
         self.num_of_lines = self.reader.get_num_of_total_requests()
-
-    all = ["get_hit_count", "get_hit_rate", "get_miss_rate", "get_reuse_distance",
-           "plotMRC", "plotHRC", "get_best_cache_sizes"]
 
 
     def prepare_file(self):
@@ -108,16 +107,16 @@ class LRUProfiler:
         EXTENTION_LENGTH = 1024
         MRC = self.get_miss_rate(**kwargs)
         try:
-            stop_point = len(MRC) - 2
+            stop_point = len(MRC) - 3
             if self.cache_size == -1 and 'cache_size' not in kwargs and auto_resize:
                 for i in range(len(MRC) - 3, 0, -1):
                     if MRC[i] >= MRC[-3] / threshold:
                         stop_point = i
                         break
-                if stop_point + EXTENTION_LENGTH < len(MRC) - 2:
+                if stop_point + EXTENTION_LENGTH < len(MRC) - 3:
                     stop_point += EXTENTION_LENGTH
                 else:
-                    stop_point = len(MRC) - 2
+                    stop_point = len(MRC) - 3
 
             plt.plot(MRC[:stop_point])
             plt.xlabel("cache Size")
@@ -125,7 +124,7 @@ class LRUProfiler:
             plt.title('Miss Rate Curve', fontsize=18, color='black')
             if not 'no_save' in kwargs or not kwargs['no_save']:
                 plt.savefig(figname, dpi=600)
-                colorfulPrint("red", "plot is saved at the same directory")
+                INFO("plot is saved at the same directory")
             try:
                 plt.show()
             except:
@@ -134,23 +133,22 @@ class LRUProfiler:
             return stop_point
         except Exception as e:
             plt.savefig(figname)
-            print("the plotting function is not wrong, is this a headless server?")
-            print(e)
+            WARNING("the plotting function is not wrong, is this a headless server? {}".format(e))
 
     def plotHRC(self, figname="HRC.png", auto_resize=False, threshold=0.98, **kwargs):
         EXTENTION_LENGTH = 1024
         HRC = self.get_hit_rate(**kwargs)
         try:
-            stop_point = len(HRC) - 2
+            stop_point = len(HRC) - 3
             if self.cache_size == -1 and 'cache_size' not in kwargs and auto_resize:
                 for i in range(len(HRC) - 3, 0, -1):
                     if HRC[i] <= HRC[-3] * threshold:
                         stop_point = i
                         break
-                if stop_point + EXTENTION_LENGTH < len(HRC) - 2:
+                if stop_point + EXTENTION_LENGTH < len(HRC) - 3:
                     stop_point += EXTENTION_LENGTH
                 else:
-                    stop_point = len(HRC) - 2
+                    stop_point = len(HRC) - 3
             # print(HRC)
             # print("stop: {}, HRC[-3]: {}, ".format(stop_point, HRC[-3]))
             plt.xlim(0, stop_point)
@@ -160,7 +158,7 @@ class LRUProfiler:
             plt.title('Hit Rate Curve', fontsize=18, color='black')
             if not 'no_save' in kwargs or not kwargs['no_save']:
                 plt.savefig(figname, dpi=600)
-                colorfulPrint("red", "plot is saved at the same directory")
+                INFO("plot is saved at the same directory")
             try:
                 plt.show()
             except:
@@ -169,116 +167,10 @@ class LRUProfiler:
             return stop_point
         except Exception as e:
             plt.savefig(figname)
-            print("the plotting function is not wrong, is this a headless server?")
-            print(e)
+            WARNING("the plotting function is not wrong, is this a headless server? {}".format(e))
 
     def __del__(self):
         if os.path.exists('temp.dat'):
             os.remove('temp.dat')
 
 
-    def get_best_cache_sizes(self, num, force_spacing=200, cut_off_divider=20):
-        best_cache_sizes = c_LRUProfiler.get_best_cache_sizes(self.reader.cReader, num, force_spacing, cut_off_divider)
-        return best_cache_sizes
-
-
-def _plot_HRC(filepath):
-    reader = vscsiReader(filepath)
-    print("begin plotting " + filepath)
-    cache_size = max(LRUProfiler(reader, cache_size=-1).get_best_cache_sizes(20, 200, 10))
-    # LRUProfiler(reader, cache_size=cache_size).get_hit_count()
-    # print('after hit count')
-    LRUProfiler(reader, cache_size=int(cache_size * 1.5)).plotHRC(
-        figname='0625_HRC/' + filepath.split('/')[-1] + '_HRC.png')
-    reader.close()
-    print("finish plotting " + filepath)
-
-
-def process_test(a):
-    print("get " + str(a))
-
-
-def _server_plot_all(path, threads):
-    import os
-    from multiprocessing import Pool
-
-    file_list = []
-    for filename in os.listdir(path):
-        if filename.endswith('.vscsitrace'):
-            figname = 'HRC_' + filename + '.png'
-            if os.path.exists('0625_HRC/' + figname):
-                continue
-            else:
-                file_list.append(path + '/' + filename)
-        else:
-            print(filename)
-
-    print(file_list)
-    p = Pool(processes=threads)
-    r = p.imap_unordered(_plot_HRC, file_list)
-    print('after pool')
-    p.close()
-    p.join()
-
-    # for i in file_list:
-    #     _plot_HRC(i)
-
-
-if __name__ == "__main__":
-    # p = pardaProfiler(30000, plainCacheReader("../data/parda.trace"))
-    # p = pardaProfiler(30000, csvCacheReader("../data/trace_CloudPhysics_txt", 4))
-    # p = parda(LRU, 3000000, basicCacheReader("temp.dat"))
-    # p.run(parda_mode.seq, threads=4)
-    # p.get_reuse_distance()
-    import os
-    import time
-
-    # from pympler.tracker import SummaryTracker
-
-    # tracker = SummaryTracker()
-
-    t1 = time.time()
-    # for i in range(6):
-    # reader = vscsiCacheReader("/run/shm/traces/w106_vscsi1.vscsitrace") # ""../data/trace.vscsi")
-    reader = vscsiReader("../data/trace.vscsi")
-    p = LRUProfiler(reader)
-    rd_a = p.get_reuse_distance()
-    print(rd_a)
-
-    hrs = p.get_hit_rate()
-    with open('HR', 'w') as ofile:
-        for hr in hrs:
-            ofile.write("{}\n".format(hr))
-
-    # print(p.get_best_cache_sizes(20, 600, 10))
-
-    # _server_plot_all('/run/shm/traces/', 48)
-
-    t2 = time.time()
-
-    print(t2 - t1)
-
-    # p = LRUProfiler(vscsiCacheReader(" /run/shm/traces/w106_vscsi1.vscsitrace"), 10000)
-    # p.plotHRC()
-
-    # print(len())
-    # count = 0
-    # for i in rd_a:
-    #     if i==0:
-    #         count+=1
-    # print(count)
-
-    # tracker.print_diff()
-
-
-    # p = pardaProfiler(2000, csvCacheReader('../data/mining/mining.dat.original', 1))
-    # p = pardaProfiler(2000, plainCacheReader('../data/mining/mining.dat.original'))
-    # p._test()
-
-
-    # for f in os.listdir('../data/mining/'):
-    #     shutil.copy('../data/mining/' + f, '../data/mining/mining.dat')
-    #     print(f)
-    #     p._test()
-    # p.run_with_specified_lines(10000, 20000)
-    # p.plotHRC(autosize=True, autosize_threshold=0.00001)

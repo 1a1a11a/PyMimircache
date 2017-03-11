@@ -329,7 +329,7 @@ class heatmap:
 
         # plt.show()
         plt.savefig(filename, dpi=600)
-        colorfulPrint("red", "plot is saved at the same directory")
+        INFO("plot is saved at the same directory")
         plt.clf()
 
 

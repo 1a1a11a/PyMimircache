@@ -63,10 +63,14 @@ class binaryReader(cacheReaderAbstract):
         b = self.trace_file.read(self.record_size)
         if len(b):
             ret = self.structIns.unpack(b)
-            if self.data_type == 'l':
-                return float(ret[self.time_column - 1]), int(ret[self.label_column - 1])
-            else:
-                return float(ret[self.time_column - 1]), ret[self.label_column - 1]
+            try:
+                if self.data_type == 'l':
+                    return float(ret[self.time_column - 1]), int(ret[self.label_column - 1])
+                else:
+                    return float(ret[self.time_column - 1]), ret[self.label_column - 1]
+            except Exception as e:
+                print("ERROR reading data: {}, current line: {}".format(e, ret))
+
         else:
             return None
 
@@ -82,7 +86,7 @@ class binaryReader(cacheReaderAbstract):
     def __next__(self):
         super().__next__()
         v = self.read_one_element()
-        if v:
+        if v is not None:
             return v
         else:
             raise StopIteration

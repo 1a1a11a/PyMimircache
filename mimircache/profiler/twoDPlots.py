@@ -132,7 +132,7 @@ def draw2d(l, **kwargs):
         plt.show()
     except:
         pass
-    colorfulPrint("red", "plot is saved at the same directory")
+    INFO("plot is saved at the same directory")
     plt.clf()
 
 
@@ -145,7 +145,7 @@ def nameMapping_2d(reader, partial_ratio=0.1, figname=None):
     :return:
     """
     # initialization
-    SCATTER_POINT_LIMIT = 10000
+    SCATTER_POINT_LIMIT = 6000
     mapping_counter = 0
     num_of_requests = reader.get_num_of_total_requests()
     num_of_partial = int(num_of_requests * partial_ratio)
@@ -192,5 +192,5 @@ def nameMapping_2d(reader, partial_ratio=0.1, figname=None):
         new_figname = figname[:pos] + '_partial' + figname[pos:]
     plt.savefig(new_figname)
     plt.clf()
-    colorfulPrint("red", "plot is saved at the same directory")
+    INFO("plot is saved at the same directory")
     reader.reset()

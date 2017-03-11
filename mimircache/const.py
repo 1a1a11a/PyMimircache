@@ -28,7 +28,7 @@ from mimircache.cacheReader.binaryReader import binaryReader
 
 # global c_available_cache
 c_available_cache = []
-c_available_cacheReader = [plainReader, vscsiReader, csvReader]
+c_available_cacheReader = [plainReader, vscsiReader, csvReader, binaryReader]
 cache_alg_mapping = {}
 BASE_DIR = os.path.dirname(__file__)
 

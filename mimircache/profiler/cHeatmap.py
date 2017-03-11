@@ -1,7 +1,6 @@
 # coding=utf-8
-import logging
-import os
 
+import os
 import matplotlib
 import matplotlib.ticker as ticker
 import mimircache.c_heatmap as c_heatmap
@@ -324,8 +323,6 @@ class cHeatmap:
 
             if plot_type == "hit_rate_start_time_end_time":
                 assert cache_size != -1, "please provide cache_size for plotting hit_rate_start_time_end_time"
-                print("going to plot differential heatmap of hit_rate_start_time_end_time using {} - {} "
-                      "of cache size: {}".format(algorithm2, algorithm1, cache_size))
 
                 xydict = c_heatmap.differential_heatmap(reader.cReader, mode,
                                                         plot_type, cache_size,
@@ -419,144 +416,13 @@ class cHeatmap:
 
             plt.savefig(filename, dpi=600)
             plt.show()
-            colorfulPrint("red", "plot is saved at the same directory")
+            INFO("plot is saved at the same directory")
             plt.clf()
             self.other_plot_kwargs.clear()
         except Exception as e:
-            logging.warning(str(e))
-            plt.pcolormesh(plot_array.T, cmap=cmap)
-            plt.savefig(filename)
-
-
-def server_plot_all(path="../data/cloudphysics/", num_of_threads=48):
-    TIME_INTERVAL = 1000000000
-    PLOT_TYPE = "hit_rate_start_time_end_time"
-    MODE = 'r'
-    folder_name = "0702_Optimal_LRU_"
-    mem_sizes = [int(200 * (i ** 2)) for i in range(1, 20)]
-    # with open('memSize', 'r') as ifile:
-    #     for line in ifile:
-    #         mem_sizes.append(int(line.strip()))
-    # mem_sizes.append()
-
-    for filename in os.listdir(path):
-        print(filename)
-        if filename.endswith('.vscsitrace'):
-            hm = cHeatmap()
-            # mem_size = mem_sizes[int(filename.split('_')[0][1:]) - 1] * 16
-            reader = vscsiReader(path + filename)
-            # TIME_INTERVAL = int(reader.get_num_of_total_requests() / 200)
-            # mem_sizes = LRUProfiler(reader).get_best_cache_sizes(12, 200, 20)
-
-            if os.path.exists(folder_name + "/" + '_'.join(
-                                            [filename, "_LRU_Optimal_", str(mem_sizes[-1]), MODE]) + "_.png"):
-                continue
-
-            # t1 = time.time()
-            # hm.heatmap(reader, MODE, TIME_INTERVAL, "rd_distribution_CDF", num_of_threads=num_of_threads, figname=
-            # "0624/" + '_'.join([filename, "_rd_distribution_CDF", MODE]) + "_.png")
-            # print("time: " + str(time.time() - t1))
-
-            # t1 = time.time()
-            # hm.heatmap(reader, MODE, TIME_INTERVAL, "future_rd_distribution", num_of_threads=num_of_threads,
-            #            figname="0620/" + '_'.join([filename, "_future_rd_distribution_", MODE]) + "_.png")
-            # print("time: " + str(time.time() - t1))
-
-
-            for mem_size in mem_sizes:
-                t1 = time.time()
-                hm.differential_heatmap(reader, MODE, TIME_INTERVAL, PLOT_TYPE, "LRU", "Optimal",
-                                        cache_size=mem_size, # cache_params2={"K": 2},
-                                        num_of_threads=num_of_threads,
-                                        figname=folder_name + "/" + '_'.join(
-                                            [filename, "_LRU_Optimal_", str(mem_size), MODE]) + "_.png")
-                print("cache size: " + str(mem_size) + ", time: " + str(time.time() - t1))
-
-                t1 = time.time()
-                # hm.differential_heatmap(reader, MODE, TIME_INTERVAL, PLOT_TYPE, "LRU", "LRU_K",
-                #                         cache_size=mem_size, cache_params2={"K": 3},
-                #                         num_of_threads=num_of_threads,
-                #                         figname=folder_name + "/"  + '_'.join(
-                #                             [filename, "_LRU_LRU3_", str(mem_size), MODE]) + "_.png")
-                # print("cache size: " + str(mem_size) + ", time: " + str(time.time() - t1))
-                #
-                # t1 = time.time()
-                # hm.differential_heatmap(reader, MODE, TIME_INTERVAL, PLOT_TYPE, "LRU", "LRU_K",
-                #                         cache_size=mem_size, cache_params2={"K": 4},
-                #                         num_of_threads=num_of_threads,
-                #                         figname=folder_name + "/"  + '_'.join(
-                #                             [filename, "_LRU_LRU4_", str(mem_size), MODE]) + "_.png")
-                # print("cache size: " + str(mem_size) + ", time: " + str(time.time() - t1))
-
-            reader.close()
-
-            del hm
-            del reader
-
-
-def localtest():
-    TIME_INTERVAL = 10000000
-    PLOT_TYPE = "hit_rate_start_time_end_time"
-    MODE = 'r'
-    NUM_OF_THREADS = 8
-    CACHE_SIZE = 2000
-
-    reader = vscsiReader('../data/trace.vscsi')
-
-    hm = cHeatmap()
-
-    print('a')
-    hm.heatmap(reader, MODE, TIME_INTERVAL, "rd_distribution", num_of_threads=NUM_OF_THREADS,
-               figname="rd_dist_CDF_relative.png")
-
-    print('b')
-    # hm.heatmap(reader, MODE, TIME_INTERVAL, PLOT_TYPE, cache_size=CACHE_SIZE, num_of_threads=int(NUM_OF_THREADS),
-    #            algorithm="LRU_K", cache_params={'K':20},
-    #            figname=PLOT_TYPE + ".png")
-
-
-    print('c')
-    t1 = time.time()
-    # hm.differential_heatmap(reader, MODE, TIME_INTERVAL, PLOT_TYPE, "LRU", "LRU_K", cache_params2={'K': 3},
-    #                         cache_size=CACHE_SIZE,
-    #                         num_of_threads=NUM_OF_THREADS, figname="heatmap.png")
-    print(time.time() - t1)
-
-
-def checker(xydict):
-    for i in range(len(xydict)):
-        for j in range(len(xydict[0])):
-            if xydict[i][j] > 1 or xydict[i][j] < 0:
-                print("{},{}: {}".format(i, j, xydict[i][j]))
-
-
-if __name__ == "__main__":
-    import time
-
-    t1 = time.time()
-    # server_plot_all(path="/run/shm/traces/")
-    # server_plot_all(path="../../../../disk/traces/", num_of_threads=16)
-    # localtest()
-
-    CACHE_SIZE = 200000
-    BINSIZE = 1
-    TIME_INTERVAL = 1000000000
-    CACHE_TYPE = "YJC"
-    TIME_TYPE = 'r'
-    PLOT_TYPE = "hit_rate_start_time_end_time"
-    NUM_OF_THREADS = 48
-
-    hm = cHeatmap()
-    # reader = vscsiReader('../data/trace.vscsi')
-    reader = vscsiReader('/home/cloudphysics/traces/w38_vscsi1.vscsitrace')
-    # hm.heatmap(reader, TIME_TYPE, TIME_INTERVAL, PLOT_TYPE, CACHE_TYPE,
-    #                         cache_size=CACHE_SIZE, num_of_threads=NUM_OF_THREADS, figname="heatmap.png")
-    hm.differential_heatmap(reader, TIME_TYPE, TIME_INTERVAL, PLOT_TYPE, "YJC", "LRU", cache_params1={'LRU_percentage': 0.2, "LFU_percentage":0.1},
-                            cache_size=CACHE_SIZE, num_of_threads=NUM_OF_THREADS, figname="diff_heatmap.png")
-
-    # print(hm.gen_breakpoints(reader, 'r', 1000000))
-
-    # print(heatmap()._get_breakpoints_realtime(reader, 1000000))
-    # reader = vscsiCacheReader('/home/cloudphysics/traces/w84_vscsi1.vscsitrace')
-
-
+            WARNING("plotting using imshow failed" + str(e))
+            try:
+                plt.pcolormesh(plot_array.T, cmap=cmap)
+                plt.savefig(filename)
+            except Exception as e:
+                WARNING("further plotting using pcolormesh failed" + str(e))

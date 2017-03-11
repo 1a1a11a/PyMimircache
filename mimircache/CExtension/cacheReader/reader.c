@@ -37,21 +37,6 @@ reader_t* setup_reader(char* file_loc, char file_type, char data_type, void* set
     reader->base->total_num = -1;
     reader->base->data_type = data_type;
     reader->base->init_params = NULL;
-//    reader->base->ref_num = 0; 
-//    reader->base->setup_reader = setup_reader;
-//    reader->base->read_one_element = read_one_element;
-//    reader->base->skip_N_elements = skip_N_elements;
-//    reader->base->go_back_one_line = go_back_one_line;
-//    reader->base->go_back_two_lines = go_back_two_lines;
-//    reader->base->read_one_element_above = read_one_element_above;
-//    reader->base->reader_set_read_pos = reader_set_read_pos;
-//    reader->base->get_num_of_cache_lines = get_num_of_cache_lines;
-//    reader->base->reset_reader = reset_reader;
-//    reader->base->close_reader = close_reader;
-//    reader->base->close_reader_unique = close_reader_unique;
-//    reader->base->clone_reader = clone_reader;
-//    reader->base->set_no_eof = set_no_eof;
-    
     
     
     if (strlen(file_loc) > FILE_LOC_STR_SIZE-1){
@@ -71,7 +56,7 @@ reader_t* setup_reader(char* file_loc, char file_type, char data_type, void* set
             reader->base->type = 'p';
             reader->base->file = fopen(file_loc, "r");
             if (reader->base->file == 0){
-                perror("open trace file failed\n");
+                ERROR("open trace file %s failed: %s\n", file_loc, strerror(errno));
                 exit(1);
             }
             break;
@@ -101,7 +86,6 @@ void read_one_element(reader_t* reader, cache_line* c){
             csv_read_one_element(reader, c);
             break;
         case 'p':
-            
             if (fscanf(reader->base->file, "%s", c->item) == EOF)
                 //should change to the following to avoid buffer overflow
                 //              if (fgets(c->item, cache_line_label_size, reader->base->file))
@@ -141,7 +125,8 @@ int go_back_one_line(reader_t* reader){
         case 'p':
             file = reader->base->file;
             int r;
-            gboolean after_empty_lines=FALSE;         // flag for jump over multiple empty lines at the end of file
+            // flag for jump over multiple empty lines at the end of file
+            gboolean after_empty_lines=FALSE;
             if (fseek(file, -2L, SEEK_CUR)!=0)
                 return 1;
             char c = getc(file);
@@ -158,7 +143,8 @@ int go_back_one_line(reader_t* reader){
                 if (( r= fseek(file, -2L, SEEK_CUR)) != 0)
                     return 1;
                 c = getc(file);
-                if (!after_empty_lines && c != LINE_ENDING && c!=' ' && c!='\t' && c!=',' && c!='.')
+                if (!after_empty_lines && c != LINE_ENDING
+                    && c!=' ' && c!='\t' && c!=',' && c!='.')
                     after_empty_lines = TRUE;
             }
             
@@ -300,7 +286,6 @@ guint64 skip_N_elements(reader_t* reader, guint64 N){
 
 void reset_reader(reader_t* reader){
     /* rewind the reader back to beginning */
-    
     switch (reader->base->type) {
         case 'c':
             csv_reset_reader(reader);

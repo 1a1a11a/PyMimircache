@@ -6,6 +6,7 @@ import mimircache.c_cacheReader as c_cacheReader
 from mimircache.cacheReader.csvReader import csvReader
 from mimircache.cacheReader.plainReader import plainReader
 from mimircache.cacheReader.vscsiReader import vscsiReader
+from mimircache.cacheReader.binaryReader import binaryReader
 
 DAT_FOLDER = "../data/"
 import os
@@ -58,7 +59,7 @@ class cReaderTest(unittest.TestCase):
         c_cacheReader.close_reader(reader)
 
 
-    def test_reader_binary(self):
+    def test_creader_binary(self):
         reader = c_cacheReader.setup_reader("{}/trace.vscsi".format(DAT_FOLDER), 'b', data_type='l',
                                             init_params={"label":6, "real_time":7, "fmt": "<3I2H2Q"})
         lines = c_cacheReader.get_num_of_lines(reader)
@@ -70,6 +71,19 @@ class cReaderTest(unittest.TestCase):
         first_request = c_cacheReader.read_one_element(reader)
         self.assertEqual(int(first_request), 42932745)
         c_cacheReader.close_reader(reader)
+
+
+    def test_reader_binary(self):
+        reader = binaryReader("{}/trace.vscsi".format(DAT_FOLDER),
+                                init_params={"label":6, "real_time":7, "fmt": "<3I2H2Q"})
+        lines = 0
+        for _ in reader:
+            lines += 1
+        self.assertEqual(lines, 113872)
+        reader.reset()
+        first_request = reader.read_one_element()
+        self.assertEqual(int(first_request), 42932745)
+
 
 
     def test_context_manager(self):

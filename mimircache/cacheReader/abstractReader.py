@@ -12,12 +12,13 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
     @abc.abstractclassmethod
     def __init__(self, file_loc, data_type='c'):
         self.file_loc = file_loc
-        assert (os.path.exists(file_loc)), "data file does not exist"
-        # self.trace_file = open(file_loc, 'r')
-        self.counter = 0
         self.trace_file = None
         self.cReader = None
+        assert (os.path.exists(file_loc)), "data file does not exist"
+
+        self.counter = 0
         self.num_of_line = -1
+        self.num_of_uniq_req = -1
         self.lock = Lock()
 
     def reset(self):
@@ -52,7 +53,9 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
         return d
 
     def get_num_of_unique_requests(self):
-        return len(self.get_request_num_distribution())
+        if self.num_of_uniq_req == -1:
+            self.num_of_uniq_req = len(self.get_request_num_distribution())
+        return self.num_of_uniq_req
 
     def __iter__(self):
         return self
@@ -61,10 +64,7 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
         return self.__next__()
 
     def __len__(self):
-        if self.num_of_line == -1:
-            print(self.get_num_of_total_requests())
-
-        return self.num_of_line
+        return self.get_num_of_total_requests()
 
     def __enter__(self):
         return self

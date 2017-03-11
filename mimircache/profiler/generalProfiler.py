@@ -187,13 +187,12 @@ class generalProfiler(profilerAbstract):
             plt.ylabel("Miss Rate")
             plt.title('Miss Rate Curve', fontsize=18, color='black')
             plt.savefig(figname, dpi=600)
-            colorfulPrint("red", "plot is saved at the same directory")
+            INFO("plot is saved at the same directory")
             plt.show()
             plt.clf()
         except Exception as e:
             plt.savefig(figname)
-            print("the plotting function is not wrong, is this a headless server?")
-            print(e)
+            WARNING("the plotting function is not wrong, is this a headless server? {}".format(e))
             traceback.print_exc()
 
     def plotHRC(self, figname="HRC.png", **kwargs):
@@ -207,12 +206,11 @@ class generalProfiler(profilerAbstract):
             plt.ylabel("Hit Rate")
             plt.title('Hit Rate Curve', fontsize=18, color='black')
             plt.savefig(figname, dpi=600)
-            colorfulPrint("red", "plot is saved at the same directory")
+            INFO("plot is saved at the same directory")
             plt.show()
             plt.clf()
         except Exception as e:
             plt.savefig(figname)
-            print("the plotting function is not wrong, is this a headless server?")
-            print(e)
+            WARNING("the plotting function is not wrong, is this a headless server? {}".format(e))
 
 

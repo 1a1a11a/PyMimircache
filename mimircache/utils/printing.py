@@ -1,30 +1,30 @@
 # coding=utf-8
 import sys
 
-RED = '\033[91m'
-GREEN = '\033[92m'
-YELLOW = '\033[93m'
-LIGHT_PURPLE = '\033[94m'
-PURPLE = '\033[95m'
-BLUE = '\033[34m'
-END = '\033[0m'
+COLOR_RED = '\033[91m'
+COLOR_GREEN = '\033[92m'
+COLOR_YELLOW = '\033[93m'
+COLOR_LIGHT_PURPLE = '\033[94m'
+COLOR_PURPLE = '\033[95m'
+COLOR_BLUE = '\033[34m'
+COLOR_END = '\033[0m'
 
-fcolor_dict = {'red': RED, 'green': GREEN, 'yellow': YELLOW, 'blue': BLUE, 'purple': PURPLE}
+fcolor_dict = {'red': COLOR_RED, 'green': COLOR_GREEN, 'yellow': COLOR_YELLOW, 'blue': COLOR_BLUE, 'purple': COLOR_PURPLE}
 
 bcolor_dict = {'red': '\033[41m', 'green': '\033[42m', 'yellow': '\033[43m', 'blue': '\033[44m', 'purple': '\033[45m',
                'cyan': '\033[46m', 'white': '\033[47m', 'end': '\033[49m'}
 
 
 def colorfulPrint(color, s):
-    print('{}{}{}'.format(fcolor_dict[color.lower()], s, END))
+    print('{}{}{}'.format(fcolor_dict[color.lower()], s, COLOR_END))
 
 
 def colorfulPrintWithBackground(bcolor, fcolor, s):
-    print('{}{}{}{}'.format(bcolor_dict[bcolor.lower()], fcolor_dict[fcolor.lower()], s, END))
+    print('{}{}{}{}'.format(bcolor_dict[bcolor.lower()], fcolor_dict[fcolor.lower()], s, COLOR_END))
 
 
 # drop it
-def debugPrint(s):
+def DEBUG(s):
     print("{}: {}: {}".format(sys._getframe().f_code.co_name, sys._getframe().f_lineno, s))
 
 
@@ -37,10 +37,20 @@ def printList(l, num_in_one_line=20):
             print("")
             counter = 0
 
+def INFO(s):
+    print('{}{}{}'.format(COLOR_YELLOW, s, COLOR_END))
+
+def WARNING(s):
+    print('{}{}{}'.format(COLOR_PURPLE, s, COLOR_END))
+
+def ERROR(s):
+    print('{}{}{}'.format(COLOR_RED, s, COLOR_END))
+
+
 
 
 if __name__ == "__main__":
     colorfulPrint("purple", "T")
     colorfulPrintWithBackground("yellow", 'blue', 'text')
     print('normal')
-    debugPrint("debug")
+    DEBUG("debug")

@@ -22,10 +22,11 @@ class csvReader(cacheReaderAbstract):
 
         if self.header_bool:
             self.headers = [i.strip(string.whitespace) for i in self.trace_file.readline().split(self.delimiter)]
-            # self.read_one_element()
+            self.read_one_element()
 
         if open_c_reader:
             self.cReader = c_cacheReader.setup_reader(file_loc, 'c', data_type=data_type, init_params=init_params)
+
 
     def read_one_element(self):
         super().read_one_element()
@@ -65,16 +66,20 @@ class csvReader(cacheReaderAbstract):
         line = self.trace_file.readline()
         if line:
             line = line.split(self.delimiter)
-            return float(line[self.time_column - 1].strip()), line[self.label_column - 1].strip()
+            try:
+                return float(line[self.time_column - 1].strip()), line[self.label_column - 1].strip()
+            except Exception as e:
+                print("ERROR reading data: {}, current line: {}".format(e, line))
+
         else:
             return None
 
 
     def __next__(self):  # Python 3
         super().__next__()
-        element = self.trace_file.readline().strip()
-        if element:
-            return element.split(self.delimiter)[self.label_column - 1].strip()
+        element = self.read_one_element()
+        if element is not None:
+            return element
         else:
             raise StopIteration
 
