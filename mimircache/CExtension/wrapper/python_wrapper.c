@@ -32,6 +32,9 @@ struct_cache* build_cache(reader_t* reader,
     else if (strcmp(algorithm, "LFU") == 0){
         cache = LFU_init(cache_size, data_type, NULL);
     }
+    else if (strcmp(algorithm, "LFUFast") == 0){
+        cache = LFU_fast_init(cache_size, data_type, NULL);
+    }
     else if (strcmp(algorithm, "MRU") == 0){
         cache = MRU_init(cache_size, data_type, NULL);
     }

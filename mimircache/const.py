@@ -73,6 +73,8 @@ def _init_cache_alg_mapping():
 
     cache_alg_mapping['lru'] = "LRU"
     cache_alg_mapping['lfu'] = "LFU"
+    cache_alg_mapping['lfu_fast'] = "LFUFast"
+    cache_alg_mapping['lfufast'] = "LFUFast"
 
     cache_alg_mapping['fifo'] = "FIFO"
 
@@ -88,16 +90,9 @@ def _init_cache_alg_mapping():
     cache_alg_mapping['slruml'] = "SLRUML"
     cache_alg_mapping['scoreml'] = "ScoreML"
 
-    cache_alg_mapping['lfu_rr'] = "LFU_RR"
-    cache_alg_mapping['lfu_mru'] = "LFU_MRU"
-
     cache_alg_mapping['lru_k'] = "LRU_K"
     cache_alg_mapping['lru_2'] = "LRU_2"
 
-    cache_alg_mapping['lru_lfu'] = "LRU_LFU"
-
-    cache_alg_mapping['lru_dataaware'] = "LRU_dataAware"
-    cache_alg_mapping['yjc'] = "YJC"
     cache_alg_mapping['mimir'] = 'mimir'
 
     cache_alg_mapping['amp'] = "AMP"

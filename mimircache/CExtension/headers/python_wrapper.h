@@ -31,6 +31,7 @@
 #include "LRU_K.h"
 #include "LRU.h"
 #include "LFU.h" 
+#include "LFUFast.h"
 #include "MRU.h"
 #include "Random.h"
 #include "ARC.h"

@@ -1,5 +1,6 @@
 [C_available_cache]
 LRU = True
+LFUFast = True
 FIFO = True
 Optimal = True
 LRU_K = True
@@ -10,12 +11,9 @@ Random = True
 LRFU = True
 ARC = True
 SLRU = True
-YJC = True
 mimir = True
 AMP = True
 PG  = True
-LRU_LFU = True
-LRU_dataAware = True
 SLRUML = True
 ScoreML = True
 

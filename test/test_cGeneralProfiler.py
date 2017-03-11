@@ -20,7 +20,7 @@ if not os.path.exists(DAT_FOLDER):
 
 
 class cGeneralProfilerTest(unittest.TestCase):
-    def t2est_FIFO(self):
+    def test_FIFO(self):
         reader = vscsiReader("{}/trace.vscsi".format(DAT_FOLDER))
         p = cGeneralProfiler(reader, "FIFO", cache_size=2000, num_of_threads=8)
         p2 = generalProfiler(reader, 'FIFO', cache_size=2000, num_of_threads=8)
@@ -79,7 +79,7 @@ class cGeneralProfilerTest(unittest.TestCase):
 
 
 
-    def t2est_Optimal(self):
+    def test_Optimal(self):
         reader = vscsiReader("{}/trace.vscsi".format(DAT_FOLDER))
         p = cGeneralProfiler(reader, "Optimal", cache_size=2000)
         hr = p.get_hit_rate()
@@ -132,7 +132,7 @@ class cGeneralProfilerTest(unittest.TestCase):
         self.assertAlmostEqual(mr[-1], 0.71893000602722168)
 
 
-    def t2est_LRU_2(self):
+    def test_LRU_2(self):
         reader = vscsiReader("{}/trace.vscsi".format(DAT_FOLDER))
         p = cGeneralProfiler(reader, "LRU_2", cache_size=2000)
 
@@ -149,30 +149,6 @@ class cGeneralProfilerTest(unittest.TestCase):
         self.assertAlmostEqual(hr[1], 0.2)
 
 
-        reader = plainReader("{}/trace.txt".format(DAT_FOLDER))
-        p = cGeneralProfiler(reader, "LRU_2", cache_size=2000, num_of_threads=8)
-
-        hr = p.get_hit_rate()
-        self.assertAlmostEqual(hr[0], 0.0)
-        self.assertAlmostEqual(hr[100], 0.16544891893863678)
-        hc = p.get_hit_count()
-        self.assertEqual(hc[10], 164)
-        self.assertEqual(hc[0], 0)
-        mr = p.get_miss_rate()
-        self.assertAlmostEqual(mr[-1], 0.83455109596252441)
-
-
-        reader = csvReader("{}/trace.csv".format(DAT_FOLDER), init_params={"header":True, 'label_column':5, 'delimiter':','})
-        p = cGeneralProfiler(reader, "LRU_2", cache_size=2000, num_of_threads=8)
-
-        hr = p.get_hit_rate()
-        self.assertAlmostEqual(hr[0], 0.0)
-        self.assertAlmostEqual(hr[100], 0.16544891893863678)
-        hc = p.get_hit_count()
-        self.assertEqual(hc[10], 164)
-        self.assertEqual(hc[0], 0)
-        mr = p.get_miss_rate()
-        self.assertAlmostEqual(mr[-1], 0.83455109596252441)
 
     def test_SLRU(self):
         reader = vscsiReader("{}/trace.vscsi".format(DAT_FOLDER))
@@ -189,6 +165,23 @@ class cGeneralProfilerTest(unittest.TestCase):
 
         hr = p.get_hit_rate(begin=113852, end=113872, cache_size=5000)
         self.assertAlmostEqual(hr[1], 0.2)
+
+
+    def test_LFU_LFUFast(self):
+        reader = csvReader("{}/trace.csv".format(DAT_FOLDER),
+                           init_params={"header":True, 'label_column':5, 'delimiter':','})
+        p  = cGeneralProfiler(reader, "LFU", cache_size=2000, num_of_threads=8)
+        p2 = cGeneralProfiler(reader, "LFUFast", cache_size=2000, num_of_threads=8)
+
+        hr  = p.get_hit_rate()
+        hr2 = p2.get_hit_rate()
+        self.assertCountEqual(hr, hr2)
+
+        self.assertAlmostEqual(hr[0], 0.0)
+        self.assertAlmostEqual(hr[100], 0.17430096864700317)
+
+        mr = p.get_miss_rate()
+        self.assertAlmostEqual(mr[-1], 0.82569903135299683)
 
 
 
