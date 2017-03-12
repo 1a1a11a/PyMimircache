@@ -50,9 +50,6 @@ gboolean __LFU_fast_verify(struct_cache* LFU_fast){
 
 
 
-
-
-
 void __LFU_fast_insert_element(struct_cache* LFU_fast, cache_line* cp){
     LFU_fast_params_t* LFU_fast_params = (LFU_fast_params_t*)(LFU_fast->cache_params);
     
@@ -202,7 +199,6 @@ gpointer __LFU_fast__evict_with_return(struct_cache* cache, cache_line* cp){
 
 gboolean LFU_fast_add_element(struct_cache* cache, cache_line* cp){
     LFU_fast_params_t* LFU_fast_params = (LFU_fast_params_t*)(cache->cache_params);
-    static int i = 0;
     
     if (LFU_fast_check_element(cache, cp)){
         __LFU_fast_update_element(cache, cp);
@@ -218,15 +214,11 @@ gboolean LFU_fast_add_element(struct_cache* cache, cache_line* cp){
 
 
 
-void free_bnode_data(gpointer data){
-    branch_list_node_data_t *bnode_data = data;
-    g_free(bnode_data->key);
-}
 
 void free_main_list_node_data(gpointer data){
     main_list_node_data_t* mnode_data = data;
-    g_queue_free(mnode_data->queue);
-//    g_queue_free_full(mnode_data->queue, free_bnode_data);
+    g_queue_free_full(mnode_data->queue, simple_key_value_destroyer);
+    g_free(data);
 }
 
 
