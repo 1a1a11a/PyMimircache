@@ -77,7 +77,7 @@ struct cache_core{
     void*               eviction_array;     // Optimal Eviction Array, either guint64* or char**
     guint64             eviction_array_len;
     guint64             evict_err;      // used for counting
-    struct              break_point* bp; // break points, same as the one in reader, just one more pointer
+    break_point_t       * bp; // break points, same as the one in reader, just one more pointer
     guint64             bp_pos;         // the current location in bp->array
     gdouble*            evict_err_array;       // in each time interval, the eviction error array 
 };

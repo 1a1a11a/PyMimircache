@@ -47,7 +47,7 @@
 
 typedef struct break_point{
     GArray* array;
-    char mode;
+    char mode;                  // r or v
     guint64 time_interval;
 }break_point_t;
 
@@ -91,41 +91,13 @@ typedef struct reader_base{
                                              * used in vscsiReaser and binaryReader */
     
     gint64 total_num;                       /* number of records */
-//    guint64 ref_num;                        /* current reference number, virtual timestamp,
-//                                             * in other words, it is the order of current request
-//                                             * in the trace */
     
     
     gint ver;
     
     void* params;                           /* currently not used */
     
-    
-//    void    (*read_one_element)(struct reader*, cache_line*);
-//    
-//    guint64 (*skip_N_elements)(struct reader*, guint64);
-//    
-//    int     (*go_back_one_line)(struct reader*);
-//    
-//    int     (*go_back_two_lines)(struct reader*);
-//    
-//    void    (*read_one_element_above)(struct reader*, cache_line*);
-//    
-//    void    (*reader_set_read_pos)(struct reader*, double);
-//    
-//    guint64 (*get_num_of_cache_lines)(struct reader*);
-//    
-//    void    (*reset_reader)(struct reader*);
-//    
-//    int     (*close_reader)(struct reader*);
-//
-//    int     (*close_reader_unique)(struct reader*);
-//    
-//    struct reader* (*clone_reader)(struct reader*);
-//    
-//    void    (*set_no_eof)(struct reader*); 
-    
-    
+
 } reader_base_t;
 
 
@@ -140,6 +112,7 @@ typedef struct reader_data_unique{
 typedef struct reader_data_share{
     break_point_t *break_points;
     gint64* reuse_dist;
+    char reuse_dist_type;                  // NORMAL_REUSE_DISTANCE or FUTURE_REUSE_DISTANCE 
     gint64 max_reuse_dist;
     gint* last_access;
     
