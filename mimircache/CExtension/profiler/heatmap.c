@@ -108,6 +108,7 @@ draw_dict* heatmap_LRU(reader_t* reader, struct_cache* cache, char mode,
     else if (plot_type == future_rd_distribution){
         if (reader->sdata->reuse_dist_type != FUTURE_REUSE_DISTANCE){
             g_free(reader->sdata->reuse_dist);
+            reader->sdata->reuse_dist = NULL; 
             reader->sdata->reuse_dist = get_future_reuse_dist(reader, 0, -1);
         }
         

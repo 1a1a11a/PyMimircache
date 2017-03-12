@@ -392,8 +392,10 @@ gint64* get_future_reuse_dist(reader_t* reader, gint64 begin, gint64 end){
     }
     
     // save to reader
-    if (reader->sdata->reuse_dist != NULL)
-        g_free(reader->sdata->reuse_dist); 
+    if (reader->sdata->reuse_dist != NULL){
+        g_free(reader->sdata->reuse_dist);
+        reader->sdata->reuse_dist = NULL;
+    }
     reader->sdata->reuse_dist = reuse_dist_array;
     reader->sdata->max_reuse_dist = max_rd;
     reader->sdata->reuse_dist_type = FUTURE_REUSE_DISTANCE;
