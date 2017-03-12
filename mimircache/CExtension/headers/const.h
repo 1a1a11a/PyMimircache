@@ -25,6 +25,10 @@
 #define rd_distribution_CDF                             7
 
 
+#define NORMAL_REUSE_DISTANCE                           1
+#define FUTURE_REUSE_DISTANCE                           2
+
+
 
 #define SANITY_CHECK 1
 // #define _DEBUG

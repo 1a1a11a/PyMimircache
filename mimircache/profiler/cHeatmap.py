@@ -235,7 +235,7 @@ class cHeatmap:
 
                 self.set_plot_params('x', mode_string, xydict=xydict)
                 self.set_plot_params('y', 'reuse_dist', xydict=xydict, log_base=log_base)
-                self.set_plot_params('cb', 'count', fixed_range=(0.01, 1))
+                self.set_plot_params('cb', 'count') #, fixed_range=(0.01, 1))
                 self.draw_heatmap(xydict, figname=figname, not_mask=True)
 
             elif plot_type == "rd_distribution_CDF":
@@ -248,7 +248,7 @@ class cHeatmap:
                                                                      num_of_threads=num_of_threads, CDF=1)
                 self.set_plot_params('x', mode_string, xydict=xydict)
                 self.set_plot_params('y', 'reuse_dist', xydict=xydict, log_base=log_base)
-                # self.set_plot_params('cb', 'count')
+                self.set_plot_params('cb', 'count') #, fixed_range=(0.01, 1))
                 self.draw_heatmap(xydict, figname=figname, not_mask=True)
 
 
@@ -262,7 +262,7 @@ class cHeatmap:
                                                                             num_of_threads=num_of_threads)
                 self.set_plot_params('x', mode_string, xydict=xydict)
                 self.set_plot_params('y', 'reuse_dist', xydict=xydict, log_base=log_base)
-                self.set_plot_params('cb', 'count', fixed_range=(0.01, 1))
+                self.set_plot_params('cb', 'count') #, fixed_range=(0.01, 1))
                 self.draw_heatmap(xydict, figname=figname, not_mask=True)
 
 

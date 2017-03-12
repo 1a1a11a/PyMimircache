@@ -237,21 +237,32 @@ gint64* get_reuse_dist_seq(reader_t* reader, gint64 begin, gint64 end){
     if (reader->base->total_num == -1)
         get_num_of_cache_lines(reader);
     
+    if (begin != 0 && begin != -1){
+        WARNING("range reuse distance computation is no longer supported, "
+                "the returned result is full reust distance\n");
+    }
+    if (end !=0 && end != -1 && end != reader->base->total_num){
+        WARNING("range reuse distance computation is no longer supported, "
+                "the returned result is full reust distance\n");
+    }
+    
+    
     if (begin < 0)
         begin = 0;
     if (end <= 0)
         end = reader->base->total_num;
     
-    gint64 * reuse_dist_array = g_new(gint64, end-begin);
     
     
     // check whether the reuse dist computation has been finished or not
     if (reader->sdata->reuse_dist){
-        gint64 i;
-        for (i=begin; i<end; i++)
-            reuse_dist_array[i-begin] = reader->sdata->reuse_dist[i];
-        return reuse_dist_array;
+//        gint64 i;
+//        for (i=begin; i<end; i++)
+//            reuse_dist_array[i-begin] = reader->sdata->reuse_dist[i];
+        return reader->sdata->reuse_dist;
     }
+
+    gint64 * reuse_dist_array = g_new(gint64, reader->base->total_num);
     
     // create cache lize struct and initialization
     cache_line* cp = new_cacheline();
@@ -274,8 +285,8 @@ gint64* get_reuse_dist_seq(reader_t* reader, gint64 begin, gint64 end){
     // create splay tree
     sTree* splay_tree = NULL;
     
-    if (begin != -1 && begin != 0)
-        skip_N_elements(reader, begin);
+//    if (begin != -1 && begin != 0)
+//        skip_N_elements(reader, begin);
     
     read_one_element(reader, cp);
     while (cp->valid){
@@ -291,10 +302,11 @@ gint64* get_reuse_dist_seq(reader_t* reader, gint64 begin, gint64 end){
     }
     
     
-    if (end-begin == reader->base->total_num){
+//    if (end-begin == reader->base->total_num){
         reader->sdata->reuse_dist = reuse_dist_array;
         reader->sdata->max_reuse_dist = max_rd;
-    }
+    reader->sdata->reuse_dist_type = NORMAL_REUSE_DISTANCE;
+//    }
     
     // clean up
     destroy_cacheline(cp);
@@ -322,12 +334,21 @@ gint64* get_future_reuse_dist(reader_t* reader, gint64 begin, gint64 end){
     if (reader->base->total_num == -1)
         get_num_of_cache_lines(reader);
 
+    if (begin != 0 && begin != -1){
+        WARNING("range reuse distance computation is no longer supported, "
+                "the returned result is full reust distance\n");
+    }
+    if (end !=0 && end != -1 && end != reader->base->total_num){
+        WARNING("range reuse distance computation is no longer supported, "
+                "the returned result is full reust distance\n");
+    }
+    
     if (begin < 0)
         begin = 0;
     if (end < 0)
         end = reader->base->total_num;
     
-    gint64 * reuse_dist_array = g_new(gint64, end-begin);
+    gint64 * reuse_dist_array = g_new(gint64, reader->base->total_num);
     
     // create cache lize struct and initializa
     cache_line* cp = new_cacheline();
@@ -350,12 +371,13 @@ gint64* get_future_reuse_dist(reader_t* reader, gint64 begin, gint64 end){
     // create splay tree
     sTree* splay_tree = NULL;
     
-    if (begin != -1 && begin != 0)
-        skip_N_elements(reader, begin);
+//    if (begin != -1 && begin != 0)
+//        skip_N_elements(reader, begin);
     
     reader_set_read_pos(reader, 1.0);
     go_back_one_line(reader);
     read_one_element(reader, cp);
+    set_no_eof(reader);
     while (cp->valid){
         if (reader->base->type == 'c'){
             if (ts==reader->base->total_num)
@@ -372,6 +394,11 @@ gint64* get_future_reuse_dist(reader_t* reader, gint64 begin, gint64 end){
         ts++;
     }
     
+    // save to reader
+    reader->sdata->reuse_dist = reuse_dist_array;
+    reader->sdata->max_reuse_dist = max_rd;
+    reader->sdata->reuse_dist_type = FUTURE_REUSE_DISTANCE;
+
     // clean up
     destroy_cacheline(cp);
     g_hash_table_destroy(hash_table);

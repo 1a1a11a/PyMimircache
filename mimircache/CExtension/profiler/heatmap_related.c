@@ -137,7 +137,7 @@ GArray* gen_breakpoints_virtualtime(reader_t* reader,
     
     if (reader->sdata->break_points){
         if (reader->sdata->break_points->mode == 'v' &&
-            reader->sdata->break_points->time_interval == time_interval)
+            reader->sdata->break_points->time_interval == time_interval )
             return reader->sdata->break_points->array;
         else{
             g_array_free(reader->sdata->break_points->array, TRUE);

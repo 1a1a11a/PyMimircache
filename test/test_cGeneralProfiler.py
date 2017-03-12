@@ -22,8 +22,8 @@ if not os.path.exists(DAT_FOLDER):
 class cGeneralProfilerTest(unittest.TestCase):
     def test_FIFO(self):
         reader = vscsiReader("{}/trace.vscsi".format(DAT_FOLDER))
-        p = cGeneralProfiler(reader, "FIFO", cache_size=2000, num_of_threads=8)
-        p2 = generalProfiler(reader, 'FIFO', cache_size=2000, num_of_threads=8)
+        p = cGeneralProfiler(reader, "FIFO", cache_size=2000, num_of_threads=4)
+        p2 = generalProfiler(reader, 'FIFO', cache_size=2000, num_of_threads=4)
 
         hr = p.get_hit_rate()
         hr2 = p2.get_hit_rate()
@@ -38,45 +38,6 @@ class cGeneralProfilerTest(unittest.TestCase):
         self.assertAlmostEqual(mr[-1], 0.83065193891525269)
         hr = p.get_hit_rate(begin=113852, end=113872, cache_size=5000)
         self.assertAlmostEqual(hr[1], 0.2)
-
-
-        reader = plainReader("{}/trace.txt".format(DAT_FOLDER))
-        p = cGeneralProfiler(reader, "FIFO", cache_size=2000, num_of_threads=8)
-        hr = p.get_hit_rate()
-        self.assertAlmostEqual(hr[0], 0.0)
-        self.assertAlmostEqual(hr[100], 0.16934804618358612)
-        hc = p.get_hit_count()
-        self.assertEqual(hc[10], 449)
-        self.assertEqual(hc[0], 0)
-        mr = p.get_miss_rate()
-        self.assertAlmostEqual(mr[-1], 0.83065193891525269)
-
-
-        reader = csvReader("{}/trace.csv".format(DAT_FOLDER),
-                           init_params={"header":True, 'label_column':5, 'delimiter':','})
-        p = cGeneralProfiler(reader, "FIFO", cache_size=2000, num_of_threads=8)
-        hc = p.get_hit_count()
-        self.assertEqual(hc[10], 449)
-        self.assertEqual(hc[0], 0)
-        hr = p.get_hit_rate()
-        self.assertAlmostEqual(hr[0], 0.0)
-        self.assertAlmostEqual(hr[100], 0.16934804618358612)
-        mr = p.get_miss_rate()
-        self.assertAlmostEqual(mr[-1], 0.83065193891525269)
-
-
-        reader = binaryReader("{}/trace.vscsi".format(DAT_FOLDER),
-                              init_params={"label":6, "real_time":7, "fmt": "<3I2H2Q"})
-        p = cGeneralProfiler(reader, "FIFO", cache_size=2000, num_of_threads=8)
-        hc = p.get_hit_count()
-        self.assertEqual(hc[10], 449)
-        self.assertEqual(hc[0], 0)
-        hr = p.get_hit_rate()
-        self.assertAlmostEqual(hr[0], 0.0)
-        self.assertAlmostEqual(hr[100], 0.16934804618358612)
-        mr = p.get_miss_rate()
-        self.assertAlmostEqual(mr[-1], 0.83065193891525269)
-
 
 
     def test_Optimal(self):
@@ -95,7 +56,7 @@ class cGeneralProfilerTest(unittest.TestCase):
 
 
         reader = plainReader("{}/trace.txt".format(DAT_FOLDER))
-        p = cGeneralProfiler(reader, "Optimal", cache_size=2000, num_of_threads=8)
+        p = cGeneralProfiler(reader, "Optimal", cache_size=2000, num_of_threads=4)
         hr = p.get_hit_rate()
         self.assertAlmostEqual(hr[0], 0.0)
         self.assertAlmostEqual(hr[100], 0.28106996417045593)
@@ -108,7 +69,7 @@ class cGeneralProfilerTest(unittest.TestCase):
 
         reader = csvReader("{}/trace.csv".format(DAT_FOLDER),
                            init_params={"header":True, 'label_column':5, 'delimiter':','})
-        p = cGeneralProfiler(reader, "Optimal", cache_size=2000, num_of_threads=8)
+        p = cGeneralProfiler(reader, "Optimal", cache_size=2000, num_of_threads=4)
         hr = p.get_hit_rate()
         self.assertAlmostEqual(hr[0], 0.0)
         self.assertAlmostEqual(hr[100], 0.28106996417045593)
@@ -121,7 +82,7 @@ class cGeneralProfilerTest(unittest.TestCase):
 
         reader = binaryReader("{}/trace.vscsi".format(DAT_FOLDER),
                               init_params={"label":6, "real_time":7, "fmt": "<3I2H2Q"})
-        p = cGeneralProfiler(reader, "Optimal", cache_size=2000, num_of_threads=8)
+        p = cGeneralProfiler(reader, "Optimal", cache_size=2000, num_of_threads=4)
         hr = p.get_hit_rate()
         self.assertAlmostEqual(hr[0], 0.0)
         self.assertAlmostEqual(hr[100], 0.28106996417045593)
@@ -170,8 +131,8 @@ class cGeneralProfilerTest(unittest.TestCase):
     def test_LFU_LFUFast(self):
         reader = csvReader("{}/trace.csv".format(DAT_FOLDER),
                            init_params={"header":True, 'label_column':5, 'delimiter':','})
-        p  = cGeneralProfiler(reader, "LFU", cache_size=2000, num_of_threads=8)
-        p2 = cGeneralProfiler(reader, "LFUFast", cache_size=2000, num_of_threads=8)
+        p  = cGeneralProfiler(reader, "LFU", cache_size=2000, num_of_threads=4)
+        p2 = cGeneralProfiler(reader, "LFUFast", cache_size=2000, num_of_threads=4)
 
         hr  = p.get_hit_rate()
         hr2 = p2.get_hit_rate()

@@ -124,7 +124,6 @@ void heatmap_rd_distribution_thread(gpointer data, gpointer user_data){
     guint64 order = (guint64)GPOINTER_TO_INT(data)-1;
     double* array = dd->matrix[order];
     
-    
     if (order != break_points->len-1){
         for(j=g_array_index(break_points, guint64, order); j< g_array_index(break_points, guint64, order+1); j++){
             if (reuse_dist[j] == 0 ||reuse_dist[j] == 1)
