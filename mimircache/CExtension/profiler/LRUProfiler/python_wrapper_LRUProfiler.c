@@ -169,11 +169,10 @@ static PyObject* LRUProfiler_get_reuse_dist_seq(PyObject* self,
     PyObject* po;
     reader_t* reader;
     gint64 begin=-1, end=-1;
-    static char *kwlist[] = {"reader", "begin", "end", NULL};
+    static char *kwlist[] = {"reader", NULL};
 
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O|ll", kwlist, 
-                                &po, &begin, &end)) {
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O", kwlist, &po)) {
         return NULL;
     }
 
@@ -201,9 +200,6 @@ static PyObject* LRUProfiler_get_reuse_dist_seq(PyObject* self,
     for (i=0; i<(guint64)(end-begin); i++)
         *((long long*)PyArray_GETPTR1((PyArrayObject*)ret_array, i)) = (long long)reuse_dist[i];
     
-    if (begin!=0 || end!=reader->base->total_num){
-        g_free(reuse_dist);
-    }
 
     return ret_array;
 }
@@ -216,11 +212,10 @@ static PyObject* LRUProfiler_get_future_reuse_dist(PyObject* self,
     PyObject* po;
     reader_t* reader;
     gint64 begin=-1, end=-1;
-    static char *kwlist[] = {"reader", "begin", "end", NULL};
+    static char *kwlist[] = {"reader", NULL};
     
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O|ll", kwlist,
-                                     &po, &begin, &end)) {
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O|ll", kwlist, &po)) {
         return NULL;
     }
     
@@ -245,8 +240,6 @@ static PyObject* LRUProfiler_get_future_reuse_dist(PyObject* self,
     guint64 i;
     for (i=0; i<(guint64)(end-begin); i++)
         *((long long*)PyArray_GETPTR1((PyArrayObject*)ret_array, i)) = (long long)reuse_dist[i];
-    
-    g_free(reuse_dist);
     
     return ret_array;
 }

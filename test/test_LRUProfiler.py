@@ -30,7 +30,7 @@ class LRUProfilerTest(unittest.TestCase):
         self.assertEqual(hc[0], 0)
         mr = p.get_miss_rate()
         self.assertEqual(hr[-1], mr[-1])
-
+        #
         rd = p.get_reuse_distance()
         self.assertEqual(rd[1024], -1)
         self.assertEqual(rd[113860], 1)
@@ -39,20 +39,15 @@ class LRUProfilerTest(unittest.TestCase):
 
         hr = p.get_hit_rate(begin=113852, end=113872)
         self.assertEqual(hr[8], 0.2)
-
-        rd = p.get_reuse_distance(begin=113852, end=113872)
-        self.assertEqual(rd[5], 4)
-
-        with self.assertRaises(IndexError):
-            print(rd[1024])
-
+        print("here1")
 
         hr = p.get_hit_rate(cache_size=20)
         self.assertAlmostEqual(hr[1], 0.02357911)
+        print("here2")
         hr = p.get_hit_rate(cache_size=5, begin=113852, end=113872)
+        print("here3")
+        print(hr)
         self.assertAlmostEqual(hr[2], 0.05)
-        # p.plotHRC()
-        # p.plotMRC()
 
 
     def test_reader_p(self):
@@ -76,11 +71,6 @@ class LRUProfilerTest(unittest.TestCase):
         hr = p.get_hit_rate(begin=113852, end=113872)
         self.assertEqual(hr[8], 0.2)
 
-        rd = p.get_reuse_distance(begin=113852, end=113872)
-        self.assertEqual(rd[5], 4)
-
-        with self.assertRaises(IndexError):
-            print(rd[1024])
 
         hr = p.get_hit_rate(cache_size=20)
         self.assertAlmostEqual(hr[1], 0.02357911)
@@ -89,7 +79,8 @@ class LRUProfilerTest(unittest.TestCase):
 
 
     def test_reader_c(self):
-        reader = csvReader("{}/trace.csv".format(DAT_FOLDER), init_params={"header":True, "label_column":5})
+        reader = csvReader("{}/trace.csv".format(DAT_FOLDER),
+                           init_params={"header":True, "label_column":5})
         p = LRUProfiler(reader)
 
         rd = p.get_reuse_distance()
@@ -112,12 +103,6 @@ class LRUProfilerTest(unittest.TestCase):
 
         hr = p.get_hit_rate(begin=113852, end=113872)
         self.assertEqual(hr[8], 0.2)
-
-        rd = p.get_reuse_distance(begin=113852, end=113872)
-        self.assertEqual(rd[5], 4)
-
-        with self.assertRaises(IndexError):
-            print(rd[1024])
 
         hr = p.get_hit_rate(cache_size=20)
         self.assertAlmostEqual(hr[1], 0.02357911)
