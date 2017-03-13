@@ -33,7 +33,8 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
     // parse arguments
     if (!PyArg_ParseTupleAndKeywords(args, keywds, "ss|sO", kwlist, &file_loc,
                                      &file_type, &data_type, &py_init_params)){
-        printf("parsing argument failed in setup reader\n");
+        PyErr_SetString(PyExc_RuntimeError,
+                        "parsing argument failed in setup reader\n");
         return NULL;
     }
     if (file_type[0] == 'v')
@@ -41,7 +42,8 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
 
     if (file_type[0] == 'c'){
         if (!PyDict_Check(py_init_params)){
-            ERROR("input init_params is not a valid python dictionary\n");
+            PyErr_SetString(PyExc_RuntimeError,
+                            "input init_params is not a valid python dictionary\n");
             exit(-1); 
         }
         
@@ -89,7 +91,8 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
     
     else if (file_type[0] == 'b'){
         if (!PyDict_Check(py_init_params)){
-            ERROR("input init_params is not a valid python dictionary\n");
+            PyErr_SetString(PyExc_RuntimeError,
+                            "input init_params is not a valid python dictionary\n");
             exit(-1);
         }
         
@@ -116,12 +119,14 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
         
         py_fmt = PyDict_GetItemString(py_init_params, "fmt");
         if (!PyUnicode_Check(py_fmt)){
-            ERROR("passed format string is not unicode \n");
+            PyErr_SetString(PyExc_RuntimeError,
+                            "passed format string is not unicode \n");
             exit(1);
         }
         if (PyUnicode_READY(py_fmt) != 0){
-            ERROR("failed get fmt unicode ready\n");
-            exit(1); 
+            PyErr_SetString(PyExc_RuntimeError,
+                            "failed get fmt unicode ready\n");
+            exit(1);
         }
             
         Py_UCS1* py_ucs1 = PyUnicode_1BYTE_DATA(py_fmt);

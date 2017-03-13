@@ -111,23 +111,6 @@ struct_cache* build_cache(reader_t* reader,
 #endif 
 
     else if (strcmp(algorithm, "LRU_K") == 0){
-//        printf("check dict\n");
-//        printf("check = %d\n", PyDict_Check(cache_params));
-//        printf("prepare LRU_K\n");
-//        printf("dict size = %zd\n", PyDict_Size(cache_params));
-//        PyObject* list = PyDict_Keys(cache_params);
-//        PyObject* list0 = PyList_GetItem(list, 0);
-//        printf("key unicode = %d\n", PyUnicode_Check(list0));
-//        
-//        list = PyDict_Values(cache_params);
-//        list0 = PyList_GetItem(list, 0);
-//        printf("value is long = %d\n", PyLong_Check(list0));
-//        printf("real value is %ld\n", PyLong_AsLong(list0));
-//        
-//        
-//        printf("inside = %d\n", PyDict_Contains(cache_params, PyUnicode_FromString("K")));
-//        PyObject* lO = PyDict_GetItemString(cache_params, "K");
-//        printf("lO is long = %d\n", PyLong_Check(lO));
         int K = (int)PyLong_AsLong(PyDict_GetItemString(cache_params, "K"));
         struct LRU_K_init_params *init_params = g_new(struct LRU_K_init_params, 1);
         init_params->K = K;
@@ -189,7 +172,7 @@ struct_cache* build_cache(reader_t* reader,
             Py_DECREF(temp_bytes);
         }
         if (strcmp(cache_type, "unknown") == 0){
-            printf("please provide cache_type\n");
+            PyErr_SetString(PyExc_RuntimeError, "please provide cache_type\n");
             exit(1);
         }
         if (strcmp(cache_type, "AMP") == 0)
@@ -217,7 +200,8 @@ struct_cache* build_cache(reader_t* reader,
         cache = MIMIR_init(cache_size, data_type, (void*)init_params);
     }
     else {
-        printf("does not support given cache replacement algorithm: %s\n", algorithm);
+        PyErr_Format(PyExc_RuntimeError,
+                        "does not support given cache replacement algorithm: %s\n", algorithm);
         exit(1);
     }
     return cache;
