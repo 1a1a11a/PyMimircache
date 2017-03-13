@@ -379,12 +379,12 @@ return_res** profiler_partition(reader_t* reader_in, struct_cache* cache_in, int
                                                     num_of_threads,
                                                     TRUE, NULL);
     if (gthread_pool == NULL)
-        g_error("cannot create thread pool in general profiler\n");
+        ERROR("cannot create thread pool in general profiler\n");
     
     
     for (i=1; i<num_of_bins; i++){
         if ( g_thread_pool_push (gthread_pool, GUINT_TO_POINTER(i), NULL) == FALSE)
-            g_error("cannot push data into thread in generalprofiler\n");
+            ERROR("cannot push data into thread in generalprofiler\n");
     }
     
     while (progress < (guint64)num_of_bins-1){

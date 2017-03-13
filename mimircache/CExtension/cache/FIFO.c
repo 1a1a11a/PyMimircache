@@ -129,7 +129,7 @@ struct_cache* fifo_init(guint64 size, char data_type, void* params){
                                   simple_g_key_value_destroyer, NULL);
     }
     else{
-        g_error("does not support given data type: %c\n", data_type);
+        ERROR("does not support given data type: %c\n", data_type);
     }
     fifo_params->list = g_queue_new();
     

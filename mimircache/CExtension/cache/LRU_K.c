@@ -246,7 +246,7 @@ struct_cache* LRU_K_init(guint64 size, char data_type, void* params){
                                                               gqueue_destroyer);
     }
     else{
-        g_error("does not support given data type: %c\n", data_type);
+        ERROR("does not support given data type: %c\n", data_type);
     }
     
     return cache;

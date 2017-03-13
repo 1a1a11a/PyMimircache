@@ -104,7 +104,7 @@ struct_cache* MRU_init(guint64 size, char data_type, void* params){
         MRU_params->hashtable = g_hash_table_new_full(g_str_hash, g_str_equal, simple_g_key_value_destroyer, NULL);
     }
     else{
-        g_error("does not support given data type: %c\n", data_type);
+        ERROR("does not support given data type: %c\n", data_type);
     }
     
     return cache;

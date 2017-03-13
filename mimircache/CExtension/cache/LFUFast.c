@@ -218,7 +218,7 @@ gboolean LFU_fast_add_element(struct_cache* cache, cache_line* cp){
 
 void free_main_list_node_data(gpointer data){
     main_list_node_data_t* mnode_data = data;
-    g_queue_free_full(mnode_data->queue, simple_key_value_destroyer);
+    g_queue_free_full(mnode_data->queue, simple_g_key_value_destroyer);
     g_free(data);
 }
 

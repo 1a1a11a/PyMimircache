@@ -152,7 +152,7 @@ struct_cache* LRUPage_init(guint64 size, char data_type, void* params){
                                                               NULL);
     }
     else{
-        g_error("does not support given data type: %c\n", data_type);
+        ERROR("does not support given data type: %c\n", data_type);
     }
     LRUPage_params->list = g_queue_new();
     

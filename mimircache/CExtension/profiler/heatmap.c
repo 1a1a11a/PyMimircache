@@ -226,13 +226,13 @@ draw_dict* heatmap_hit_rate_start_time_end_time(reader_t* reader, struct_cache* 
         gthread_pool = g_thread_pool_new ( (GFunc) heatmap_nonLRU_hit_rate_start_time_end_time_thread, (gpointer)params, num_of_threads, TRUE, NULL);
     
     if (gthread_pool == NULL)
-        g_error("cannot create thread pool in heatmap\n");
+        ERROR("cannot create thread pool in heatmap\n");
     
     
     // send data to thread pool and begin computation
     for (i=0; i<break_points->len-1; i++){
         if ( g_thread_pool_push (gthread_pool, GINT_TO_POINTER(i+1), NULL) == FALSE)    // +1 otherwise, 0 will be a problem
-            g_error("cannot push data into thread in generalprofiler\n");
+            ERROR("cannot push data into thread in generalprofiler\n");
     }
     
     while ( progress < break_points->len-1 ){
@@ -308,7 +308,7 @@ draw_dict* heatmap_rd_distribution(reader_t* reader, char mode, int num_of_threa
     // send data to thread pool and begin computation
     for (i=0; i<break_points->len-1; i++){
         if ( g_thread_pool_push (gthread_pool, GINT_TO_POINTER(i+1), NULL) == FALSE)    // +1, otherwise, 0 will be a problem
-            g_error("cannot push data into thread in generalprofiler\n");
+            ERROR("cannot push data into thread in generalprofiler\n");
     }
 
     while ( progress < break_points->len-1 ){

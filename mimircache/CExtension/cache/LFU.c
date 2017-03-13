@@ -199,7 +199,7 @@ struct_cache* LFU_init(guint64 size, char data_type, void* params){
                                   simple_g_key_value_destroyer);
     }
     else{
-        g_error("does not support given data type: %c\n", data_type);
+        ERROR("does not support given data type: %c\n", data_type);
     }
     
     LFU_params->pq = pqueue_init(size, cmp_pri, get_pri,
