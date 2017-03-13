@@ -33,7 +33,8 @@ struct optimal_init_params{
     guint64 ts;
 };
 
-
+typedef struct optimal_params       optimal_params_t;
+typedef struct optimal_init_params  optimal_init_params_t;
 
 
 

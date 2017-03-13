@@ -14,7 +14,7 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
         self.file_loc = file_loc
         self.trace_file = None
         self.cReader = None
-        assert (os.path.exists(file_loc)), "data file does not exist"
+        assert (os.path.exists(file_loc)), "data file({}) does not exist".format(file_loc)
 
         self.counter = 0
         self.num_of_line = -1

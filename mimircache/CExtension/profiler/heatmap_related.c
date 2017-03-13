@@ -17,14 +17,21 @@ static inline gint process_one_element_last_access(cache_line* cp,
                                                    guint64 ts);
 
 
-GSList* get_last_access_dist_seq(reader_t* reader, void (*funcPtr)(reader_t*, cache_line*)){
-    /*
-    !!!!!! the list returned from this function is in reversed order!!!!!!
-    */
+GSList* get_last_access_dist_seq(reader_t* reader,
+                                 void (*funcPtr)(reader_t*, cache_line*)){
 
     /* this function currently using int, may cause some problem when the 
     trace file is tooooooo large 
     */
+    
+    /* this function returns how far away one request was requested in the past,
+     * if it was not requested before, then -1; 
+     * it can be run forward or backward depends on the paaed reading func
+     * when running forward, it gives how far in the past of its last request, 
+     * when running backward, it gives how far away in the future 
+     * it will be requested again. 
+     * ATTENTION: when running backward, the returned list is also REVERSED 
+     */
 
     GSList* list= NULL; 
 
@@ -61,12 +68,12 @@ GSList* get_last_access_dist_seq(reader_t* reader, void (*funcPtr)(reader_t*, ca
     else if (funcPtr == read_one_element_above){
         reader_set_read_pos(reader, 1.0);
         if (go_back_one_line(reader)!=0)
-            fprintf(stderr, "error when going back one line\n");
+            ERROR("error when going back one line\n");
         read_one_element(reader, cp);
         set_no_eof(reader);        
     }
     else{
-        fprintf(stderr, "unknown function pointer received in heatmap: get_last_access_dist_seq\n");
+        ERROR("unknown function pointer received in heatmap\n");
         exit(1);
     }
 
@@ -103,15 +110,19 @@ static inline gint process_one_element_last_access(cache_line* cp,
         guint64* value = g_new(guint64, 1);
         *value = ts;
         if (cp->type == 'c') 
-            g_hash_table_insert(hash_table, g_strdup((gchar*)(cp->item_p)), (gpointer)value);
+            g_hash_table_insert(hash_table,
+                                g_strdup((gchar*)(cp->item_p)),
+                                (gpointer)value);
         
         else if (cp->type == 'l'){
             guint64* key = g_new(guint64, 1);
             *key = *(guint64*)(cp->item_p);
-            g_hash_table_insert(hash_table, (gpointer)(key), (gpointer)value);            
+            g_hash_table_insert(hash_table,
+                                (gpointer)(key),
+                                (gpointer)value);
         }
         else{
-            printf("unknown cache line content type: %c\n", cp->type);
+            ERROR("unknown cache line content type: %c\n", cp->type);
             exit(1);
         }
     }
