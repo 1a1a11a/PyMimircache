@@ -44,9 +44,9 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
         if (!PyDict_Check(py_init_params)){
             PyErr_SetString(PyExc_RuntimeError,
                             "input init_params is not a valid python dictionary\n");
-            exit(-1); 
+            return NULL;
         }
-        
+        printf("after checking\n");
         init_params = (void*) new_csvReader_init_params(-1, -1, -1, -1, FALSE, ',', -1);
         /* if it is csv file, we need extra init parameters */
         PyObject *py_label, *py_size, *py_op, *py_real_time,
@@ -93,7 +93,7 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
         if (!PyDict_Check(py_init_params)){
             PyErr_SetString(PyExc_RuntimeError,
                             "input init_params is not a valid python dictionary\n");
-            exit(-1);
+            return NULL;
         }
         
         init_params = g_new0(binary_init_params_t, 1);
@@ -121,12 +121,12 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
         if (!PyUnicode_Check(py_fmt)){
             PyErr_SetString(PyExc_RuntimeError,
                             "passed format string is not unicode \n");
-            exit(1);
+            return NULL;
         }
         if (PyUnicode_READY(py_fmt) != 0){
             PyErr_SetString(PyExc_RuntimeError,
                             "failed get fmt unicode ready\n");
-            exit(1);
+            return NULL;
         }
             
         Py_UCS1* py_ucs1 = PyUnicode_1BYTE_DATA(py_fmt);

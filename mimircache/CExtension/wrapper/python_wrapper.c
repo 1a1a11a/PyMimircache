@@ -173,7 +173,7 @@ struct_cache* build_cache(reader_t* reader,
         }
         if (strcmp(cache_type, "unknown") == 0){
             PyErr_SetString(PyExc_RuntimeError, "please provide cache_type\n");
-            exit(1);
+            return NULL;
         }
         if (strcmp(cache_type, "AMP") == 0)
             AMP_pthreshold = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "AMP_pthreshold"));
@@ -202,7 +202,7 @@ struct_cache* build_cache(reader_t* reader,
     else {
         PyErr_Format(PyExc_RuntimeError,
                         "does not support given cache replacement algorithm: %s\n", algorithm);
-        exit(1);
+        return NULL;
     }
     return cache;
 }

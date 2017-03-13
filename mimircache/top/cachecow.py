@@ -469,6 +469,10 @@ class cachecow:
             pass
         plt.clf()
 
+    def __len__(self):
+        assert self.reader is not None, "you must open a trace to call len"
+        return len(self.reader)
+
     def __iter__(self):
         assert self.reader, "you haven't provided a data file"
         return self.reader
