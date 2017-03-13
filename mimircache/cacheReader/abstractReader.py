@@ -35,11 +35,12 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
         if self.num_of_line != -1:
             return self.num_of_line
 
+        # clear before counting
+        self.num_of_line = 0
         if self.cReader:
             self.num_of_line = c_cacheReader.get_num_of_lines(self.cReader)
         else:
             while self.read_one_element():
-                # use the one above, not output progress
                 self.num_of_line += 1
         self.reset()
 
