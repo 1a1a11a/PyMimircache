@@ -16,7 +16,7 @@
 
 typedef struct LFU_fast_params{
     GHashTable *hashtable;      // key -> glist 
-    GList *list;
+    GQueue *main_list;
     gint min_freq; 
 }LFU_fast_params_t;
 

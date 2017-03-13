@@ -26,7 +26,7 @@
 gboolean __LFU_fast_verify(struct_cache* LFU_fast){
 
     LFU_fast_params_t* LFU_fast_params = (LFU_fast_params_t*)(LFU_fast->cache_params);
-    GList *mnode_list = LFU_fast_params->list;
+    GList *mnode_list = g_queue_peek_head_link(LFU_fast_params->main_list);
     main_list_node_data_t *mnode_data;
 //    branch_list_node_data_t *bnode_data;
     guint64 current_size = 0;
@@ -65,23 +65,25 @@ void __LFU_fast_insert_element(struct_cache* LFU_fast, cache_line* cp){
     bnode_data->key = key;
     GList *list_node = g_list_append(NULL, bnode_data);
     
-    g_hash_table_insert (LFU_fast_params->hashtable, (gpointer)key, (gpointer)list_node);
+    g_hash_table_insert (LFU_fast_params->hashtable,
+                         (gpointer)key, (gpointer)list_node);
 
     
     main_list_node_data_t *mnode_data;
     if (LFU_fast_params->min_freq != 1){
         // initial
-        if (LFU_fast_params->min_freq < 1 && LFU_fast_params->list != NULL){
+        if (LFU_fast_params->min_freq < 1 &&
+                LFU_fast_params->main_list->length != 0){
             WARNING("LFU initialization error\n");
         }
         mnode_data = g_new0(main_list_node_data_t, 1);
         mnode_data->freq = 1;
         mnode_data->queue = g_queue_new();
-        LFU_fast_params->list = g_list_prepend(LFU_fast_params->list, mnode_data);
+        g_queue_push_head(LFU_fast_params->main_list, mnode_data);
         LFU_fast_params->min_freq = 1;
     }
     else if (LFU_fast_params->min_freq == 1){
-        mnode_data = (main_list_node_data_t*)(g_list_first(LFU_fast_params->list)->data);
+        mnode_data = (main_list_node_data_t*)(g_queue_peek_head(LFU_fast_params->main_list));
 #ifdef SANITY_CHECK
         if (mnode_data->freq != 1){
             ERROR("first main node freq is not 1, is %d\n", mnode_data->freq);
@@ -91,7 +93,7 @@ void __LFU_fast_insert_element(struct_cache* LFU_fast, cache_line* cp){
     }
     
     g_queue_push_tail_link(mnode_data->queue, list_node);
-    bnode_data->main_list_node = g_list_first(LFU_fast_params->list);
+    bnode_data->main_list_node = g_queue_peek_head_link(LFU_fast_params->main_list);
 }
 
 
@@ -140,9 +142,9 @@ void __LFU_fast_update_element(struct_cache* cache, cache_line* cp){
         new_mnode_data->queue = g_queue_new();
         g_queue_push_tail_link(new_mnode_data->queue, list_node);
         // insert mnode
-        LFU_fast_params->list = g_list_insert_before(LFU_fast_params->list,
-                                                     bnode_data->main_list_node->next,
-                                                     new_mnode_data);
+        g_queue_insert_after(LFU_fast_params->main_list,
+                                bnode_data->main_list_node,
+                                new_mnode_data);
     }
     bnode_data->main_list_node = bnode_data->main_list_node->next;
 }
@@ -152,8 +154,8 @@ void __LFU_fast_update_element(struct_cache* cache, cache_line* cp){
 void __LFU_fast_evict_element(struct_cache* cache, cache_line* cp){
     LFU_fast_params_t* LFU_fast_params = (LFU_fast_params_t*)(cache->cache_params);
     
-    GList* mnode = g_list_first(LFU_fast_params->list);
-    main_list_node_data_t* mnode_data = g_list_first(LFU_fast_params->list)->data;
+    GList* mnode = g_queue_peek_head_link(LFU_fast_params->main_list);
+    main_list_node_data_t* mnode_data = g_queue_peek_head(LFU_fast_params->main_list);
     
     // find the first main list node that has an non-empty queue
     while (g_queue_is_empty(mnode_data->queue)){
@@ -163,7 +165,6 @@ void __LFU_fast_evict_element(struct_cache* cache, cache_line* cp){
     branch_list_node_data_t* bnode_data = g_queue_pop_head(mnode_data->queue);
     g_hash_table_remove(LFU_fast_params->hashtable, (gconstpointer)(bnode_data->key));
     
-//    g_free(bnode_data->key);
     g_free(bnode_data);
 }
 
@@ -171,8 +172,8 @@ void __LFU_fast_evict_element(struct_cache* cache, cache_line* cp){
 gpointer __LFU_fast__evict_with_return(struct_cache* cache, cache_line* cp){
     LFU_fast_params_t* LFU_fast_params = (LFU_fast_params_t*)(cache->cache_params);
     
-    GList* mnode = g_list_first(LFU_fast_params->list);
-    main_list_node_data_t* mnode_data = g_list_first(LFU_fast_params->list)->data;
+    GList* mnode = g_queue_peek_head_link(LFU_fast_params->main_list);
+    main_list_node_data_t* mnode_data = g_queue_peek_head(LFU_fast_params->main_list);
     
     // find the first main list node that has an non-empty queue
     while (g_queue_is_empty(mnode_data->queue)){
@@ -199,7 +200,7 @@ gpointer __LFU_fast__evict_with_return(struct_cache* cache, cache_line* cp){
 
 gboolean LFU_fast_add_element(struct_cache* cache, cache_line* cp){
     LFU_fast_params_t* LFU_fast_params = (LFU_fast_params_t*)(cache->cache_params);
-    
+
     if (LFU_fast_check_element(cache, cp)){
         __LFU_fast_update_element(cache, cp);
         return TRUE;
@@ -227,7 +228,7 @@ void free_main_list_node_data(gpointer data){
 void LFU_fast_destroy(struct_cache* cache){
     LFU_fast_params_t* LFU_fast_params = (LFU_fast_params_t*)(cache->cache_params);
     
-    g_list_free_full(LFU_fast_params->list, free_main_list_node_data);
+    g_queue_free_full(LFU_fast_params->main_list, free_main_list_node_data);
     g_hash_table_destroy(LFU_fast_params->hashtable);
     
     cache_destroy(cache);
@@ -281,11 +282,11 @@ struct_cache* LFU_fast_init(guint64 size, char data_type, void* params){
                                   NULL);
     }
     else{
-        g_error("does not support given data type: %c\n", data_type);
+        ERROR("does not support given data type: %c\n", data_type);
     }
     
     LFU_fast_params->min_freq = 0; 
-    LFU_fast_params->list = NULL;
+    LFU_fast_params->main_list = g_queue_new();
     
     return cache;
 }
