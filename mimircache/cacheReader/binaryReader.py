@@ -11,6 +11,13 @@ from mimircache.cacheReader.abstractReader import cacheReaderAbstract
 
 class binaryReader(cacheReaderAbstract):
     def __init__(self, file_loc, init_params, data_type='c', open_c_reader=True):
+        """
+        initialization function
+        :param file_loc:
+        :param init_params:
+        :param data_type:
+        :param open_c_reader:
+        """
         super(binaryReader, self).__init__(file_loc, 'c')
         self.file_loc = file_loc
         assert os.path.exists(file_loc), "provided data file does not exist"
@@ -33,6 +40,10 @@ class binaryReader(cacheReaderAbstract):
 
 
     def read_one_element(self):
+        """
+        read one request, only return the label of the request
+        :return:
+        """
         super().read_one_element()
         b = self.trace_file.read(self.record_size)
         if len(b):
@@ -41,6 +52,20 @@ class binaryReader(cacheReaderAbstract):
                 return int(ret)
             else:
                 return ret
+        else:
+            return None
+
+
+    def read_whole_line(self):
+        """
+        read the complete line, including request and its all related info
+        :return:
+        """
+        super().read_one_element()
+        b = self.trace_file.read(self.record_size)
+        if len(b):
+            ret = self.structIns.unpack(b)
+            return ret
         else:
             return None
 

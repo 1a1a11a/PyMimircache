@@ -40,7 +40,7 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
         if self.cReader:
             self.num_of_line = c_cacheReader.get_num_of_lines(self.cReader)
         else:
-            while self.read_one_element():
+            while self.read_one_element() is not None:
                 self.num_of_line += 1
         self.reset()
 
