@@ -30,8 +30,11 @@ void heatmap_nonLRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer 
     cache_line* cp = new_cacheline();
     cp->type = cache->core->data_type;
 
-    
-    skip_N_elements(reader_thread, g_array_index(break_points, guint64, order));
+    guint64 N = g_array_index(break_points, guint64, order);
+    if (N != skip_N_elements(reader_thread, N)){
+        ERROR("failed to skip %lu requests\n", N);
+        exit(1); 
+    };
     
     // this is for synchronizing ts in cache, which is used as index for access next_access array 
     if (cache->core->type == e_Optimal)

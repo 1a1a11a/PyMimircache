@@ -46,7 +46,6 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
                             "input init_params is not a valid python dictionary\n");
             return NULL;
         }
-        printf("after checking\n");
         init_params = (void*) new_csvReader_init_params(-1, -1, -1, -1, FALSE, ',', -1);
         /* if it is csv file, we need extra init parameters */
         PyObject *py_label, *py_size, *py_op, *py_real_time,
@@ -83,9 +82,10 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
         
 
         if (((csvReader_init_params*)init_params)->has_header)
-            DEBUG_MSG("csv data has header\n");
+            DEBUG("csv data has header");
         
-        DEBUG_MSG("delimiter %c\n", ((csvReader_init_params*)init_params)->delimiter);
+        DEBUG("delimiter %d(%c)\n", ((csvReader_init_params*)init_params)->delimiter,
+                  ((csvReader_init_params*)init_params)->delimiter);
     }
     
     

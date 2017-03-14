@@ -160,13 +160,13 @@ void csv_read_one_element(reader_t* reader, cache_line* c){
                     c->valid = FALSE;
             }
             else{
-                fprintf(stderr, "error in csv reader, didn't read in "
+                ERROR("error in csv reader, didn't read in "
                         "cache request and file not end\n");
                 exit(1);
             }
         }
         else{
-            fprintf(stderr, "error in csv reader, read in file, but not "
+            ERROR("error in csv reader, read in file, but "
                     "cannot parse into cache request\n");
             exit(1);
         }
@@ -183,6 +183,19 @@ guint64 csv_skip_N_elements(reader_t* reader, guint64 N){
 
     csv_free(params->csv_parser);
     csv_init(params->csv_parser, CSV_APPEND_NULL);
+    
+    if (params->delim)
+        csv_set_delim(params->csv_parser, params->delim);
+    
+    if (params->has_header){
+        char *line=NULL;
+        size_t len;
+        len = getline(&line, &len, reader->base->file);
+        free(line);
+        line = NULL;
+    }
+    params->reader_end = FALSE;
+    
     char *line=NULL;
     size_t len;
     guint64 i, count;
