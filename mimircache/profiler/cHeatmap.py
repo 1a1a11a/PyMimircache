@@ -154,11 +154,8 @@ class cHeatmap:
             if plot_type == "hit_rate_start_time_end_time":
                 # assert algorithm!=None, "please specify your cache replacement algorithm in heatmap plotting"
                 assert cache_size != -1, "please provide cache_size parameter for plotting hit_rate_start_time_end_time"
-                print("going to plot heatmap of hit_rate_start_time_end_time using {} "
-                      "of cache size: {}".format(algorithm, cache_size))
 
                 if algorithm.lower() in const.c_available_cache:
-                    print('time: {}, size: {}, threads: {}'.format(time_interval, cache_size, num_of_threads))
                     xydict = c_heatmap.heatmap(reader.cReader, mode, plot_type,
                                                cache_size, algorithm,
                                                time_interval=time_interval,

@@ -89,7 +89,7 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
                 c_cacheReader.close_reader(self.cReader)
                 self.cReader = None
         except Exception as e:
-            print(e)
+            print("Exception during close reader: {}".format(e))
 
     @abc.abstractclassmethod
     def __next__(self):  # Python 3

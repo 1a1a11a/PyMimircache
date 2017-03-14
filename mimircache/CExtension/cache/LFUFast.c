@@ -267,7 +267,7 @@ struct_cache* LFU_fast_init(guint64 size, char data_type, void* params){
     cache->core->get_size           =   LFU_fast_get_size;
     cache->core->cache_init_params  =   NULL;
     
-    
+
     if (data_type == 'l'){
         LFU_fast_params->hashtable =
             g_hash_table_new_full(g_int64_hash, g_int64_equal,
