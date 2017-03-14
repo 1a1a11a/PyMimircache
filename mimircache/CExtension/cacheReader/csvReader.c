@@ -187,13 +187,6 @@ guint64 csv_skip_N_elements(reader_t* reader, guint64 N){
     if (params->delim)
         csv_set_delim(params->csv_parser, params->delim);
     
-    if (params->has_header){
-        char *line=NULL;
-        size_t len;
-        len = getline(&line, &len, reader->base->file);
-        free(line);
-        line = NULL;
-    }
     params->reader_end = FALSE;
     
     char *line=NULL;
