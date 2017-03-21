@@ -184,8 +184,8 @@ class generalProfiler(profilerAbstract):
             num_of_blocks = self.num_of_blocks + 1
             plt.plot(range(0, self.bin_size * num_of_blocks, self.bin_size), self.MRC[:num_of_blocks])
             plt.xlabel("cache Size")
-            plt.ylabel("Miss Rate")
-            plt.title('Miss Rate Curve', fontsize=18, color='black')
+            plt.ylabel("Miss Ratio")
+            plt.title('Miss Ratio Curve', fontsize=18, color='black')
             plt.savefig(figname, dpi=600)
             INFO("plot is saved at the same directory")
             plt.show()
@@ -203,8 +203,8 @@ class generalProfiler(profilerAbstract):
 
             plt.plot(range(0, self.bin_size * num_of_blocks, self.bin_size), self.HRC[:num_of_blocks])
             plt.xlabel("cache Size")
-            plt.ylabel("Hit Rate")
-            plt.title('Hit Rate Curve', fontsize=18, color='black')
+            plt.ylabel("Hit Ratio")
+            plt.title('Hit Ratio Curve', fontsize=18, color='black')
             plt.savefig(figname, dpi=600)
             INFO("plot is saved at the same directory")
             plt.show()

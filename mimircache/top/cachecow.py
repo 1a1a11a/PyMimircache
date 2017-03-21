@@ -358,7 +358,7 @@ class cachecow:
             ))
 
     def plotHRCs(self, algorithm_list, cache_params=None, cache_size=-1, bin_size=-1, auto_size=True, **kwargs):
-        plot_dict = prepPlotParams("Hit Rate Curve", "Cache Size/A.U.", "Hit Rate", "HRC.png", **kwargs)
+        plot_dict = prepPlotParams("Hit Ratio Curve", "Cache Size/item.", "Hit Ratio", "HRC.png", **kwargs)
         num_of_threads = 4
         if 'num_of_threads' in kwargs:
             num_of_threads=kwargs['num_of_threads']
@@ -386,6 +386,7 @@ class cachecow:
                 cache_param = None
             profiler = self.profiler(alg, cache_param, cache_size,
                                      bin_size=bin_size, num_of_threads=num_of_threads)
+            t1 = time.time()
             hr = profiler.get_hit_rate()
             self.reader.reset()
             # plt.xlim(0, cache_size)
@@ -393,7 +394,7 @@ class cachecow:
                 plt.plot([i*bin_size for i in range(len(hr))], hr, label=label[i])
             else:
                 plt.plot(hr[:-2], label=label[i])
-            INFO("HRC plotting {} computation finished".format(alg))
+            INFO("HRC plotting {} computation finished using time {} s".format(alg, time.time() - t1))
 
         plt.legend(loc="best")
         plt.xlabel(plot_dict['xlabel'])
@@ -401,7 +402,7 @@ class cachecow:
         plt.title(plot_dict['title'], fontsize=18, color='black')
         if not 'no_save' in kwargs or not kwargs['no_save']:
             plt.savefig(plot_dict['figname'], dpi=600)
-        INFO("plot is saved at the same directory")
+        INFO("HRC plot is saved at the same directory")
         try:
             plt.show()
         except:
@@ -410,7 +411,7 @@ class cachecow:
 
 
     def plotMRCs(self, algorithm_list, cache_params=None, cache_size=-1, bin_size=-1, auto_size=True, **kwargs):
-        plot_dict = prepPlotParams("Miss Rate Curve", "Cache Size/blocks.", "Miss Rate", "MRC.png", **kwargs)
+        plot_dict = prepPlotParams("Miss Ratio Curve", "Cache Size/item.", "Miss Ratio", "MRC.png", **kwargs)
         num_of_threads = 4
         if 'num_of_threads' in kwargs:
             num_of_threads = kwargs['num_of_threads']

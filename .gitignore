@@ -1,14 +1,10 @@
 # 1a1a11a 
-mimircache/test*
-makefile
-Makefile
-*.sh
-bin
-log
-1a1a11a/*
-profiler/*.png
-top/*.png
-*.o
+mimircache/CExtension/makefile
+mimircache/bin/*
+mimircache/A1a1a11a/*
+mimircache/cache/deprecated
+mimircache/cache/TODO
+.DS_Store
 
 
 
@@ -18,7 +14,6 @@ __pycache__/
 *$py.class
 
 # C extensions
-*.so
 *.dylib
 
 # Distribution / packaging
@@ -76,8 +71,8 @@ target/
 #Ipython Notebook
 .ipynb_checkpoints
 
-# 1a1a11a
-1a1a11a/
+# A1a1a11a
+mimircache/A1a1a11a/
 
 # old 
 oldModule/ 
@@ -85,3 +80,25 @@ oldModule/
 # pycharm 
 .idea/
 mimircache/data/
+data/test.dat
+data/test.py
+memo
+mimircache/CExtension/cache/LRFU.c
+mimircache/CExtension/cache/SLRUML.c
+mimircache/CExtension/cache/Score.c
+
+mimircache/CExtension/headers/cache/LRFU.h
+mimircache/CExtension/headers/cache/SLRUML.h
+mimircache/CExtension/headers/cache/Score.h
+
+mimircache/CExtension/headers/errors.h
+mimircache/CExtension/profiler/generalProfiler/generalProfiler.c.copy
+
+mimircache/CExtension/profiler/monitor/
+mimircache/CExtension/test.c
+
+mimircache/cache/deprecated/OPT.py
+mimircache/cache/deprecated/Optimal2.py
+mimircache/cache/external/
+pape/
+tVarying/

@@ -24,7 +24,7 @@ def colorfulPrintWithBackground(bcolor, fcolor, s):
 
 
 # drop it
-def DEBUG(s):
+def DEBUG_MSG(s):
     print("{}: {}: {}".format(sys._getframe().f_code.co_name, sys._getframe().f_lineno, s))
 
 
@@ -37,14 +37,17 @@ def printList(l, num_in_one_line=20):
             print("")
             counter = 0
 
+def DEBUG(s):
+    print('[DEBUG]: {}{}{}'.format(COLOR_LIGHT_PURPLE, s, COLOR_END))
+
 def INFO(s):
-    print('{}{}{}'.format(COLOR_YELLOW, s, COLOR_END))
+    print('[INFO]: {}{}{}'.format(COLOR_YELLOW, s, COLOR_END))
 
 def WARNING(s):
-    print('{}{}{}'.format(COLOR_PURPLE, s, COLOR_END))
+    print('[WARNING]: {}{}{}'.format(COLOR_PURPLE, s, COLOR_END))
 
 def ERROR(s):
-    print('{}{}{}'.format(COLOR_RED, s, COLOR_END))
+    print('[ERROR]: {}{}{}'.format(COLOR_RED, s, COLOR_END))
 
 
 

@@ -126,8 +126,8 @@ class abstractLRUProfiler(profilerAbstract):
 
             line = plt.plot(range(0, self.bin_size * num_of_blocks, self.bin_size), self.HRC[:num_of_blocks])
             plt.xlabel("cache Size")
-            plt.ylabel("Hit Rate/%")
-            plt.title('Hit Rate Curve', fontsize=18, color='black')
+            plt.ylabel("Hit Ratio/%")
+            plt.title('Hit Ratio Curve', fontsize=18, color='black')
             plt.show()
             plt.savefig("figure_temp_HRC.pdf")
         except Exception as e:

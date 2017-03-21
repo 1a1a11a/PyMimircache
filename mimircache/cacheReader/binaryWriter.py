@@ -5,6 +5,7 @@ save as a binary format trace
 """
 
 import struct
+from mimircache.utils.printing import *
 
 
 class traceBinaryWriter:
@@ -12,7 +13,10 @@ class traceBinaryWriter:
         self.ofilename = ofilename
         self.ofile = None
         if self.ofile is None:
-            self.ofile = open(ofilename, 'wb')
+            try:
+                self.ofile = open(ofilename, 'wb')
+            except Exception as e:
+                raise RuntimeError("failed to create output file {}, {}".format(ofilename, e))
         self.fmt = fmt
         self.structIns = struct.Struct(self.fmt)
 
