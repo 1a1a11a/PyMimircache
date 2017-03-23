@@ -9,36 +9,15 @@
 #include "binaryReader.h"
 
 
-int binaryReader_setup(char *filename, reader_t* reader, binary_init_params_t* init_params)
-{
-	struct stat st;	
-	int f = -1;
-	void *mapped_file = NULL;
-    
-	if ( (f = open (filename, O_RDONLY)) < 0){
-		ERROR ("Unable to open '%s'\n", filename);
-		return -1;
-	}
+int binaryReader_setup(const char *const filename,
+                       reader_t *const reader,
+                       const binary_init_params_t *const init_params){
 
-	if ( (fstat (f, &st)) < 0){
-		close (f);
-		ERROR("Unable to fstat '%s'\n", filename);
-		return -1;
-	}
-
-    if ( (mapped_file = (mmap (NULL, st.st_size, PROT_READ, MAP_PRIVATE, f, 0))) == MAP_FAILED){
-		close (f);
-		ERROR("Unable to allocate %llu bytes of memory\n", (unsigned long long) st.st_size);
-		return -1;
-	}
-
-    /* passed in init_params needs to be saved within reader, to faciliate clone and free */
+    /* passed in init_params needs to be saved within reader, 
+     * to faciliate clone and free */
     reader->base->init_params = g_new(binary_init_params_t, 1);
     memcpy(reader->base->init_params, init_params, sizeof(binary_init_params_t));
     
-
-	reader->base->mapped_file = mapped_file;
-	reader->base->offset = 0;
 	reader->base->type = 'b';
     reader->base->record_size = 0;
 
@@ -48,7 +27,7 @@ int binaryReader_setup(char *filename, reader_t* reader, binary_init_params_t* i
     
     
     /* begin parsing input params and fmt */
-    char *cp = init_params->fmt;
+    const char *cp = init_params->fmt;
     // ignore the first few characters related to endien
     while (! ((*cp>='0' && *cp<='9') || (*cp>='a' && *cp<='z') || (*cp>='A' && *cp<='Z'))){
         cp ++;
@@ -163,13 +142,14 @@ int binaryReader_setup(char *filename, reader_t* reader, binary_init_params_t* i
         exit(1); 
     }
     
-    if (st.st_size % reader->base->record_size != 0){
+    if (reader->base->file_size % reader->base->record_size != 0){
         WARNING("trace file size %lu is not multiple of record size %lu, mod %lu\n",
-                (unsigned long)st.st_size, (unsigned long)reader->base->record_size,
-                (unsigned long)st.st_size % reader->base->record_size);
+                (unsigned long)reader->base->file_size,
+                (unsigned long)reader->base->record_size,
+                (unsigned long)reader->base->file_size % reader->base->record_size);
     }
     
-    reader->base->total_num = st.st_size/(reader->base->record_size);
+    reader->base->total_num = reader->base->file_size/(reader->base->record_size);
     params->num_of_fields = count_sum;
     
     DEBUG_MSG("record size %zu, label pos %d, label len %d, label type %c, "
@@ -177,7 +157,6 @@ int binaryReader_setup(char *filename, reader_t* reader, binary_init_params_t* i
           reader->base->record_size, params->label_pos, params->label_len, params->label_type,
           params->real_time_pos, params->real_time_len, params->real_time_type); 
     
-	close(f);
 	return 0;
 }
 

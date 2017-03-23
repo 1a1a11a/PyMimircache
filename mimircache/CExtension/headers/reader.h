@@ -81,6 +81,7 @@ typedef struct reader_base{
     
     FILE* file;
     char file_loc[FILE_LOC_STR_SIZE];
+    size_t file_size; 
     void* init_params;
     
     void* mapped_file;                      /* mmap the file, this should not change during runtime
@@ -136,29 +137,51 @@ typedef struct reader{
 
 
 
-reader_t* setup_reader(char* file_loc, char file_type, char data_type, void* setup_params);
-void read_one_element(reader_t* reader, cache_line* c);
-guint64 skip_N_elements(reader_t* reader, guint64 N);
-int go_back_one_line(reader_t* reader);
-int go_back_two_lines(reader_t* reader);
-void read_one_element_above(reader_t* reader, cache_line* c);
+reader_t* setup_reader(const char* file_loc,
+                       const char file_type,
+                       const char data_type,
+                       const void* const setup_params);
 
-int read_one_request_all_info(reader_t* reader, void* storage);
-guint64 read_one_timestamp(reader_t* reader);
-void read_one_op(reader_t* reader, void* op);
-guint64 read_one_request_size(reader_t* reader);
+void read_one_element(reader_t *const reader,
+                      cache_line *const c);
+
+guint64 skip_N_elements(reader_t *const reader,
+                        const guint64 N);
+
+int go_back_one_line(reader_t *const reader);
+
+int go_back_two_lines(reader_t *const reader);
+
+void read_one_element_above(reader_t *const reader,
+                            cache_line *const c);
+
+int read_one_request_all_info(reader_t *const reader,
+                              void* storage);
+
+guint64 read_one_timestamp(reader_t *const reader);
+
+void read_one_op(reader_t *const reader, void* op);
+
+guint64 read_one_request_size(reader_t *const reader);
 
 
-void reader_set_read_pos(reader_t* reader, double pos);
-guint64 get_num_of_cache_lines(reader_t* reader);
-void reset_reader(reader_t* reader);
-int close_reader(reader_t* reader);
-int close_reader_unique(reader_t* reader);
-reader_t* clone_reader(reader_t* reader);
-void set_no_eof(reader_t* reader);
+void reader_set_read_pos(reader_t *const reader, double pos);
+
+guint64 get_num_of_cache_lines(reader_t *const reader);
+
+void reset_reader(reader_t *const reader);
+
+int close_reader(reader_t *const reader);
+
+int close_reader_unique(reader_t *const reader);
+
+reader_t* clone_reader(reader_t *const reader);
+
+void set_no_eof(reader_t *const reader);
 
 
 cache_line* new_cacheline(void);
+
 void destroy_cacheline(cache_line* cp);
 
 

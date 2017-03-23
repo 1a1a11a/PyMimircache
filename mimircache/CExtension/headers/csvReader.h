@@ -46,8 +46,13 @@ typedef struct{
 csvReader_init_params* new_csvReader_init_params(gint, gint, gint, gint,
                                                  gboolean, unsigned char, gint);
 
-void csv_setup_Reader(char*, reader_t*, csvReader_init_params*);
-void csv_read_one_element(reader_t*, cache_line*);
+void csv_setup_Reader(const char *const file_loc,
+                      reader_t *const reader,
+                      const csvReader_init_params *const init_params);
+
+void csv_read_one_element(reader_t *const,
+                          cache_line *const);
+
 int csv_go_back_one_line(reader_t*);
 
 guint64 csv_skip_N_elements(reader_t* reader, guint64 N);

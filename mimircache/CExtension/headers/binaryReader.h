@@ -154,7 +154,9 @@ static inline int binary_read(reader_t* reader, cache_line* cp){
 
 
 /* function to setup binary reader */
-int binaryReader_setup(char *filename, reader_t* reader, binary_init_params_t* params);
+int binaryReader_setup(const char *const filename,
+                       reader_t *const reader,
+                       const binary_init_params_t *const params);
 
 
 #endif

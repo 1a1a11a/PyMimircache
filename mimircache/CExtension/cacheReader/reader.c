@@ -15,14 +15,19 @@
 
 
 
-reader_t* setup_reader(char* file_loc, char file_type, char data_type, void* setup_params){
+reader_t* setup_reader(const char* file_loc,
+                       const char file_type,
+                       const char data_type,
+                       const void* const setup_params){
     /* setup the reader struct for reading trace
      file_type: c: csv, v: vscsi, p: plain text, b: binary
      data_type: l: guint64, c: string
      Return value: a pointer to READER struct, the returned reader
      needs to be explicitly closed by calling close_reader */
     
-    reader_t* reader = g_new0(reader_t, 1);
+    int fd;
+    struct stat st;
+    reader_t *const reader = g_new0(reader_t, 1);
     reader->base = g_new0(reader_base_t, 1);
     reader->sdata = g_new0(reader_data_share_t, 1);
     reader->udata = g_new0(reader_data_unique_t, 1);
@@ -37,6 +42,7 @@ reader_t* setup_reader(char* file_loc, char file_type, char data_type, void* set
     reader->base->total_num = -1;
     reader->base->data_type = data_type;
     reader->base->init_params = NULL;
+    reader->base->offset = 0;
     
     
     if (strlen(file_loc) > FILE_LOC_STR_SIZE-1){
@@ -47,6 +53,29 @@ reader_t* setup_reader(char* file_loc, char file_type, char data_type, void* set
     else{
         strcpy(reader->base->file_loc, file_loc);
     }
+    
+    
+    // set up mmap region
+    if ( (fd = open (file_loc, O_RDONLY)) < 0){
+        ERROR("Unable to open '%s'\n", file_loc);
+        exit(1);
+    }
+    
+    if ( (fstat (fd, &st)) < 0){
+        close (fd);
+        ERROR("Unable to fstat '%s'\n", file_loc);
+        exit(1);
+    }
+    
+    if ( (reader->base->mapped_file = mmap (NULL, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0)) == MAP_FAILED){
+        close (fd);
+        reader->base->mapped_file = NULL;
+        ERROR("Unable to allocate %llu bytes of memory\n", (unsigned long long) st.st_size);
+        exit(1);
+    }
+    
+    reader->base->file_size = st.st_size; 
+    
     
     switch (file_type) {
         case 'c':
@@ -75,7 +104,7 @@ reader_t* setup_reader(char* file_loc, char file_type, char data_type, void* set
     return reader;
 }
 
-void read_one_element(reader_t* reader, cache_line* c){
+void read_one_element(reader_t *const reader, cache_line *const c){
     /* read one cache line from reader,
      and store it in the pre-allocated cache_line c, current given
      size for the element(label) is 128 bytes(cache_line_label_size).
@@ -115,7 +144,7 @@ void read_one_element(reader_t* reader, cache_line* c){
     }
 }
 
-int go_back_one_line(reader_t* reader){
+int go_back_one_line(reader_t *const reader){
     /* go back one cache line
      return 0 on successful, non-zero otherwise
      */
@@ -167,7 +196,7 @@ int go_back_one_line(reader_t* reader){
 
 
 
-int go_back_two_lines(reader_t* reader){
+int go_back_two_lines(reader_t *const reader){
     /* go back two cache lines
      return 0 on successful, non-zero otherwise
      */
@@ -220,7 +249,7 @@ int go_back_two_lines(reader_t* reader){
 
 
 
-void read_one_element_above(reader_t* reader, cache_line* c){
+void read_one_element_above(reader_t *const reader, cache_line* c){
     /* read one cache line from reader precede current position,
      and store it in the pre-allocated cache_line c, current given
      size for the element(label) is 128 bytes(cache_line_label_size).
@@ -238,7 +267,7 @@ void read_one_element_above(reader_t* reader, cache_line* c){
 
 
 
-guint64 skip_N_elements(reader_t* reader, guint64 N){
+guint64 skip_N_elements(reader_t *const reader, guint64 N){
     /* skip the next following N elements,
      Return value: the number of elements that are actually skipped,
      this will differ from N when it reaches the end of file
@@ -284,7 +313,7 @@ guint64 skip_N_elements(reader_t* reader, guint64 N){
     return count;
 }
 
-void reset_reader(reader_t* reader){
+void reset_reader(reader_t *const reader){
     /* rewind the reader back to beginning */
     switch (reader->base->type) {
         case 'c':
@@ -306,7 +335,7 @@ void reset_reader(reader_t* reader){
 }
 
 
-void reader_set_read_pos(reader_t* reader, double pos){
+void reader_set_read_pos(reader_t *const reader, double pos){
     /* jump to given postion, like 1/3, or 1/2 and so on
      * reference number will NOT change in the function! .
      * due to above property, this function is deemed as deprecated.
@@ -342,7 +371,7 @@ void reader_set_read_pos(reader_t* reader, double pos){
 }
 
 
-guint64 get_num_of_cache_lines(reader_t* reader){
+guint64 get_num_of_cache_lines(reader_t *const reader){
     
 #define BUFFER_SIZE 1024*1024
     if (reader->base->total_num !=0 && reader->base->total_num != -1)
@@ -391,16 +420,17 @@ guint64 get_num_of_cache_lines(reader_t* reader){
 }
 
 
-reader_t* clone_reader(reader_t* reader_in){
+reader_t* clone_reader(reader_t *const reader_in){
     /* this function clone the given reader to give an exactly same reader */
     
-    reader_t* reader = setup_reader(reader_in->base->file_loc, reader_in->base->type,
+    reader_t *const reader = setup_reader(reader_in->base->file_loc, reader_in->base->type,
                                     reader_in->base->data_type, reader_in->base->init_params);
-//    FILE *temp_file = reader->base->file;
-//    memcpy(reader->base, reader_in->base, sizeof(reader_base_t));
-//    reader->base->file = temp_file;
     memcpy(reader->sdata, reader_in->sdata, sizeof(reader_data_share_t));
     
+    // this is not ideal, but we don't want to multiple mapped files
+    munmap (reader->base->mapped_file, reader->base->file_size);
+    reader->base->mapped_file = reader_in->base->mapped_file;
+
     if (reader->base->type == CSV){
         csv_params_t* params = reader->reader_params;
         csv_params_t* params_in = reader_in->reader_params;
@@ -426,7 +456,7 @@ reader_t* clone_reader(reader_t* reader_in){
 
 
 
-int close_reader(reader_t* reader){
+int close_reader(reader_t *const reader){
     /* close the file in the reader or unmmap the memory in the file
      then free the memory of reader object
      Return value: Upon successful completion 0 is returned.
@@ -447,13 +477,13 @@ int close_reader(reader_t* reader){
             break;
         case 'b':
         case 'v':
-            munmap (reader->base->mapped_file, reader->base->total_num * reader->base->record_size);
             break;
         default:
             ERROR("cannot recognize reader type, given reader type: %c\n",
                   reader->base->type);
     }
     
+    munmap (reader->base->mapped_file, reader->base->file_size);
     if (reader->base->init_params)
         g_free(reader->base->init_params);
     
@@ -487,7 +517,7 @@ int close_reader(reader_t* reader){
 }
 
 
-int close_reader_unique(reader_t* reader){
+int close_reader_unique(reader_t *const reader){
     /* close the file in the reader or unmmap the memory in the file
      then free the memory of reader object
      Return value: Upon successful completion 0 is returned.
@@ -537,7 +567,7 @@ int close_reader_unique(reader_t* reader){
 
 
 
-int read_one_request_all_info(reader_t* reader, void* storage){
+int read_one_request_all_info(reader_t *const reader, void* storage){
     /* read one cache line from reader,
      and store it in the pre-allocated memory pointed at storage.
      return 1 when finished or error, otherwise, return 0.
@@ -570,7 +600,7 @@ int read_one_request_all_info(reader_t* reader, void* storage){
     return 0;
 }
 
-void set_no_eof(reader_t* reader){
+void set_no_eof(reader_t *const reader){
     // remove eof flag for reader 
     switch (reader->base->type) {
         case 'c':
@@ -590,16 +620,16 @@ void set_no_eof(reader_t* reader){
 
 
 
-guint64 read_one_timestamp(reader_t* reader){
+guint64 read_one_timestamp(reader_t *const reader){
     return 0;
 }
 
 
-void read_one_op(reader_t* reader, void* op){
+void read_one_op(reader_t *const reader, void* op){
     ;
 }
 
-guint64 read_one_request_size(reader_t* reader){
+guint64 read_one_request_size(reader_t *const reader){
     return 0;
 }
 

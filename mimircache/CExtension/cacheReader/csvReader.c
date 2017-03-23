@@ -77,7 +77,9 @@ csvReader_init_params* new_csvReader_init_params(gint label_column,
 
 
 
-void csv_setup_Reader(char* file_loc, reader_t* reader, csvReader_init_params* init_params){
+void csv_setup_Reader(const char *const file_loc,
+                      reader_t *const reader,
+                      const csvReader_init_params *const init_params){
     unsigned char options = CSV_APPEND_NULL;
     reader->reader_params = g_new0(csv_params_t, 1);
     csv_params_t *params = reader->reader_params;
@@ -124,7 +126,7 @@ void csv_setup_Reader(char* file_loc, reader_t* reader, csvReader_init_params* i
 }
 
 
-void csv_read_one_element(reader_t* reader, cache_line* c){
+void csv_read_one_element(reader_t *const reader, cache_line *const c){
     char *line = NULL;
     size_t len;
     long size = -1;

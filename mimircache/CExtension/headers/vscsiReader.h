@@ -156,7 +156,7 @@ static inline int vscsi_read(reader_t* reader, cache_line* c){
 }
 
 
-int vscsi_setup(char *filename, reader_t* reader);
+int vscsi_setup(const char *const filename, reader_t *const reader);
 vscsi_version_t test_vscsi_version(void *trace);
 
 
