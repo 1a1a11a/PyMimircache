@@ -25,9 +25,12 @@ guint64* get_hit_count_seq   (reader_t* reader, gint64 size, gint64 begin, gint6
 double* get_hit_rate_seq     (reader_t* reader, gint64 size, gint64 begin, gint64 end);
 double* get_miss_rate_seq    (reader_t* reader, gint64 size, gint64 begin, gint64 end);
 gint64* get_reuse_dist_seq   (reader_t* reader, gint64 begin, gint64 end);
-//guint64* get_rd_distribution (reader_t* reader, gint64 begin, gint64 end);
+
 gint64* get_future_reuse_dist(reader_t* reader, gint64 begin, gint64 end);
 
-GQueue * cal_best_LRU_cache_size(reader_t* reader, unsigned int num, int force_spacing, int cut_off_divider);
+double* get_hit_rate_seq_shards(reader_t* reader,
+                                gint64 size,
+                                double sample_ratio,
+                                gint64 correction); 
 
 #endif /* LRUAnalyzer_h */

@@ -153,6 +153,129 @@ guint64* get_hit_count_seq(reader_t* reader,
     
 }
 
+guint64* get_hit_count_seq_shards(reader_t* reader,
+                                  gint64 size,
+                                  double sample_ratio,
+                                  gint64 correction){
+    /* same as get_hit_count_seq, but using shards generated data,
+     * get the hit count, if size==-1, then do all the counting, otherwise,
+     * treat the ones with reuse distance larger than size as out of range,
+     * and put it in the second to the last bucket of hit_count_array
+     * in other words, 0~size(included) are for counting rd=0~size-1, size+1 is
+     * out of range, size+2 is cold miss, so total is size+3 buckets
+     */
+    
+    
+    guint64 ts=0;
+    gint64 reuse_dist;
+    guint64 * hit_count_array;
+    
+    if (reader->base->total_num == -1)
+        get_num_of_cache_lines(reader);
+    
+    if (size == -1)
+        size = (gint64) (reader->base->total_num / sample_ratio);
+    
+    
+    /* for a cache_size=size, we need size+1 bucket for size 0~size(included),
+     * the last element(size+1) is used for storing count of reuse distance > size
+     * if size==reader->base->total_num, then the last two is not used
+     */
+    hit_count_array = g_new0(guint64, size+3);
+    
+    
+    // create cache lize struct and initialization
+    cache_line* cp = new_cacheline();
+    
+    // create hashtable
+    GHashTable * hash_table;
+    if (reader->base->type == 'v'){
+        cp->type = 'l';
+        hash_table = g_hash_table_new_full(g_int64_hash, g_int64_equal, \
+                                           (GDestroyNotify)simple_g_key_value_destroyer, \
+                                           (GDestroyNotify)simple_g_key_value_destroyer);
+    }
+    else{
+        cp->type = 'c';
+        hash_table = g_hash_table_new_full(g_str_hash, g_str_equal, \
+                                           (GDestroyNotify)simple_g_key_value_destroyer, \
+                                           (GDestroyNotify)simple_g_key_value_destroyer);
+    }
+    
+    // create splay tree
+    sTree* splay_tree = NULL;
+    
+    read_one_element(reader, cp);
+    while (cp->valid){
+        splay_tree = process_one_element(cp, splay_tree, hash_table, ts, &reuse_dist);
+        if (reuse_dist == -1)
+            hit_count_array[size+2] += 1;
+        else
+            reuse_dist = (gint64)(reuse_dist / sample_ratio);
+        
+        if (reuse_dist>=size)
+            hit_count_array[size+1] += 1;
+        else
+            hit_count_array[reuse_dist+1] += 1;
+        read_one_element(reader, cp);
+        ts++;
+    }
+    if (correction != 0){
+        if (correction<0 && -correction > hit_count_array[0])
+            hit_count_array[0] = 0;
+        else
+            hit_count_array[0] += correction;
+    }
+    
+    
+    // clean up
+    destroy_cacheline(cp);
+    g_hash_table_destroy(hash_table);
+    free_sTree(splay_tree);
+    reset_reader(reader);
+    return hit_count_array;
+    
+    
+}
+
+
+double* get_hit_rate_seq_shards(reader_t* reader,
+                                gint64 size,
+                                double sample_ratio,
+                                gint64 correction){
+    int i=0;
+    if (reader->base->total_num == -1)
+        reader->base->total_num = get_num_of_cache_lines(reader);
+    
+    if (size == -1)
+        size = (gint64) (reader->base->total_num / sample_ratio);
+    
+    if (reader->udata->hit_rate && size==reader->base->total_num)
+        return reader->udata->hit_rate;
+    
+    
+    guint64* hit_count_array = get_hit_count_seq_shards(reader, size, sample_ratio, correction);
+    double total_num = (double)(reader->base->total_num);
+    
+    
+    
+    double* hit_rate_array = g_new(double, size+3);
+    hit_rate_array[0] = hit_count_array[0]/total_num;
+    for (i=1; i<size+1; i++){
+        hit_rate_array[i] = hit_count_array[i]/total_num + hit_rate_array[i-1];
+    }
+    // larger than given cache size
+    hit_rate_array[size+1] = hit_count_array[size+1]/total_num;
+    // cold miss
+    hit_rate_array[size+2] = hit_count_array[size+2]/total_num;
+    
+    g_free(hit_count_array);
+    if (size==reader->base->total_num)
+        reader->udata->hit_rate = hit_rate_array;
+    
+    return hit_rate_array;
+}
+
 
 double* get_hit_rate_seq(reader_t* reader, gint64 size, gint64 begin, gint64 end){
     int i=0;
