@@ -31,8 +31,11 @@ class csvReader(cacheReaderAbstract):
     def read_one_element(self):
         super().read_one_element()
         line = self.trace_file.readline()
+        while line and len(line.strip())==0:
+            line = self.trace_file.readline()
+
         if line:
-            return line.split(self.delimiter)[self.label_column -1 ].strip()
+            return line.split(self.delimiter)[self.label_column -1].strip()
         else:
             return None
 
