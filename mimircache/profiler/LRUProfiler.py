@@ -17,36 +17,14 @@ class LRUProfiler:
         self.cache_size = cache_size
         self.reader = reader
 
-        assert isinstance(reader, cacheReaderAbstract), "you provided an invalid cacheReader: {}".format(reader)
+        assert isinstance(reader, cacheReaderAbstract), \
+            "you provided an invalid cacheReader: {}".format(reader)
 
-        # if the given file is not basic reader, needs conversion
-        need_convert = True
-        for instance in c_available_cacheReader:
-            if isinstance(reader, instance):
-                need_convert = False
-                break
-        if need_convert:
-            self.prepare_file()
-        self.num_of_lines = self.reader.get_num_of_total_requests()
-
-
-    def prepare_file(self):
-        """
-        convert dat into plainText
-        :return:
-        """
-        self.num_of_lines = 0
-        with open('temp.dat', 'w') as ofile:
-            i = self.reader.read_one_element()
-            while i is not None:
-                self.num_of_lines += 1
-                ofile.write(str(i) + '\n')
-                i = self.reader.read_one_element()
-        self.reader = plainReader('temp.dat')
 
     def addOneTraceElement(self, element):
         # do not need this function in this profiler
         pass
+
 
     def _kwargs_parse(self, **kwargs):
         kargs = {'begin': 0, 'end': -1, 'cache_size': -1}
@@ -59,7 +37,6 @@ class LRUProfiler:
             kargs['cache_size'] = kwargs['cache_size']
 
         return kargs
-
 
 
     def get_hit_count(self, **kargs):
