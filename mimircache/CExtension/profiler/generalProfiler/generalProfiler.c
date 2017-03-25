@@ -361,7 +361,7 @@ static void profiler_thread(gpointer data, gpointer user_data){
     add_element = cache->core->add_element;
 
     read_one_element(reader_thread, cp);
-    
+
     while (cp->valid && pos<end_pos){
         if (add_element(cache, cp)){
             hit_count ++;
@@ -370,7 +370,6 @@ static void profiler_thread(gpointer data, gpointer user_data){
             miss_count ++;
         pos++;
         read_one_element(reader_thread, cp);
-//        printf("read %lu\n", *(guint64*)(cp->item_p));
     }
     
     result[order]->hit_count = (long long) hit_count;
@@ -440,7 +439,7 @@ static void profiler_thread(gpointer data, gpointer user_data){
 //    if (cache->core->type == e_SLRUML){
 //        int i;
 //        for (i=0; i<((SLRUML_params_t*)(cache->cache_params))->N_segments; i++)
-//            printf("LRU %d size %llu\n", i, ((SLRUML_params_t*)(cache->cache_params))->current_sizes[i] );
+//            printf("insert at seg%d %ld times\n", i, ((SLRUML_params_t*)(cache->cache_params))->num_insert_at_segments[i] );
 //        printf("\n"); 
 //    }
 
@@ -465,7 +464,12 @@ static void profiler_thread(gpointer data, gpointer user_data){
 
     
     
-return_res** profiler(reader_t* reader_in, struct_cache* cache_in, int num_of_threads_in, int bin_size_in, gint64 begin_pos, gint64 end_pos){
+return_res** profiler(reader_t* reader_in,
+                      struct_cache* cache_in,
+                      int num_of_threads_in,
+                      int bin_size_in,
+                      gint64 begin_pos,
+                      gint64 end_pos){
     /**
      if profiling from the very beginning, then set begin_pos=0, 
      if porfiling till the end of trace, then set end_pos=-1 or the length of trace+1; 
@@ -475,7 +479,7 @@ return_res** profiler(reader_t* reader_in, struct_cache* cache_in, int num_of_th
     long i;
     guint64 progress = 0;
     if (end_pos<=begin_pos && end_pos!=-1){
-        printf("end pos <= beigin pos in general profiler, please check\n");
+        ERROR("end pos <= beigin pos in general profiler, please check\n");
         exit(1);
     }
     
@@ -486,9 +490,11 @@ return_res** profiler(reader_t* reader_in, struct_cache* cache_in, int num_of_th
     
     long num_of_bins = ceil(cache_in->core->size/bin_size)+1;
     
-    if (end_pos==-1)
+    if (end_pos==-1){
         if (reader_in->base->total_num == -1)
-            end_pos = get_num_of_cache_lines(reader_in);
+            get_num_of_cache_lines(reader_in);
+        end_pos = reader_in->base->total_num;
+    }
     
     // create the result storage area and caches of varying sizes
     return_res** result = g_new(return_res*, num_of_bins);

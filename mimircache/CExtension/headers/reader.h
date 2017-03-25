@@ -213,9 +213,6 @@ static inline gboolean find_line_ending(reader_t *const reader,
     while (*line_end == NULL){
         if (size > (long)reader->base->file_size - reader->base->offset)
             size = reader->base->file_size - reader->base->offset;
-//        printf("check from %c(%lu) to %c(%lu)\n", *(char*)(reader->base->mapped_file + reader->base->offset),
-//               reader->base->offset, *(char*)(reader->base->mapped_file + reader->base->offset + size -1),
-//               reader->base->offset + size - 1);
         *line_end = memchr(reader->base->mapped_file + reader->base->offset, CSV_LF, size);
         if (*line_end == NULL)
             *line_end = memchr(reader->base->mapped_file + reader->base->offset, CSV_CR, size);
@@ -241,13 +238,18 @@ static inline gboolean find_line_ending(reader_t *const reader,
     // currently line_end points to LFCR
     *line_len = (void*)*line_end - (reader->base->mapped_file + reader->base->offset);
     
-    while ((*(*line_end+1) == CSV_CR || *(*line_end+1) == CSV_LF ||
+    while ( (void*)*line_end - reader->base->mapped_file < reader->base->file_size-1
+           && (*(*line_end+1) == CSV_CR || *(*line_end+1) == CSV_LF ||
             *(*line_end+1) == CSV_TAB || *(*line_end+1) == CSV_SPACE) ){
         (*line_end) ++;
         if ((void*)*line_end - reader->base->mapped_file == reader->base->file_size-1){
             reader->base->record_size = *line_len;
             return TRUE;
         }
+    }
+    if ((void*)*line_end - reader->base->mapped_file == reader->base->file_size-1){
+        reader->base->record_size = *line_len;
+        return TRUE;
     }
     // move to next line, non LFCR
     (*line_end) ++;

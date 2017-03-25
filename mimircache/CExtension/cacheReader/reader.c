@@ -126,7 +126,7 @@ void read_one_element(reader_t *const reader, cache_line *const c){
             csv_read_one_element(reader, c);
             break;
         case PLAIN:
-            if (reader->base->offset == reader->base->file_size){
+            if (reader->base->offset == reader->base->file_size-1){
                 c->valid = FALSE;
                 break;
             }
@@ -408,6 +408,7 @@ reader_t* clone_reader(reader_t *const reader_in){
     munmap (reader->base->mapped_file, reader->base->file_size);
     reader->base->mapped_file = reader_in->base->mapped_file;
     reader->base->offset = reader_in->base->offset;
+    reader->base->total_num = reader_in->base->total_num; 
 
     if (reader->base->type == CSV){
         csv_params_t* params = reader->reader_params;
