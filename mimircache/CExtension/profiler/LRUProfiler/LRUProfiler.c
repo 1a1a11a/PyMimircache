@@ -127,7 +127,7 @@ guint64* get_hit_count_seq(reader_t* reader,
     
     if (begin != -1 && begin != 0)
         skip_N_elements(reader, begin);
-    
+
     read_one_element(reader, cp);
     while (cp->valid){
         splay_tree = process_one_element(cp, splay_tree, hash_table, ts, &reuse_dist);
@@ -435,14 +435,13 @@ gint64* get_reuse_dist_seq(reader_t* reader, gint64 begin, gint64 end){
 
 
 gint64* get_future_reuse_dist(reader_t* reader, gint64 begin, gint64 end){
-    /* the reuse distance of the last element is at last
+    /*  this function finds har far in the future, a given item will be requested again,
+     *  if it won't be requested again, then -1. 
+     *  ATTENTION: the reuse distance of the last element is at last, 
+     *  meaning the sequence is NOT reversed.
      
-     */
-    
-    /*
-     * TODO: might be better to split return result, in case the hit rate array is too large
-     * Is there a better way to do this? this will cause huge amount memory
-     * It is the user's responsibility to release the memory of hit count array returned by this function
+     *  It is the user's responsibility to release the memory of hit count array
+     *  returned by this function.
      */
     
     guint64 ts = 0, max_rd = 0;
@@ -499,12 +498,15 @@ gint64* get_future_reuse_dist(reader_t* reader, gint64 begin, gint64 end){
     read_one_element(reader, cp);
     set_no_eof(reader);
     while (cp->valid){
-        if (reader->base->type == 'c'){
-            if (ts==reader->base->total_num)
-                break;
-        }
+        if (ts==reader->base->total_num)
+            break;
+        
         splay_tree = process_one_element(cp, splay_tree, hash_table,
                                          ts, &reuse_dist);
+        if (end-begin-1-(long)ts < 0){
+            ERROR("array index %ld out of range\n", end-begin-1-ts);
+            exit(1);
+        }
         reuse_dist_array[end-begin-1-ts] = reuse_dist;
         if (reuse_dist > (gint64) max_rd)
             max_rd = reuse_dist;

@@ -70,7 +70,7 @@ GSList* get_last_access_dist_seq(reader_t* reader,
         if (go_back_one_line(reader)!=0)
             ERROR("error when going back one line\n");
         read_one_element(reader, cp);
-        set_no_eof(reader);        
+        set_no_eof(reader);
     }
     else{
         ERROR("unknown function pointer received in heatmap\n");

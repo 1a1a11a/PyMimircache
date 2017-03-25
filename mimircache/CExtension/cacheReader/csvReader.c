@@ -117,19 +117,16 @@ void csv_setup_Reader(const char *const file_loc,
     }
     
     if (init_params->has_header){
-        char *line = NULL;
-        size_t len;
-        len = getline(&line, &len, reader->base->file);
-        free(line);
+        char *line_end = NULL;
+        long line_len = 0;
+        find_line_ending(reader, &line_end, &line_len);
+        reader->base->offset = (void*) line_end - reader->base->mapped_file;
         params->has_header = init_params->has_header;
     }
 }
 
 
 void csv_read_one_element(reader_t *const reader, cache_line *const c){
-    char *line = NULL;
-    size_t len;
-    long size = -1;
     csv_params_t *params = reader->reader_params;
 
     params->cache_line_pointer = c;
@@ -139,44 +136,35 @@ void csv_read_one_element(reader_t *const reader, cache_line *const c){
         c->valid = FALSE;
         return;
     }
-    while (!params->already_got_cache_line){
-        size = (long) getline(&line, &len, reader->base->file);
-        if (size < 0){
-            break;
-        }
-        if ( (long)csv_parse(params->csv_parser, line, (size_t)size,
-                             csv_cb1, csv_cb2, reader) != size) {
-            ERROR("Error while parsing file: %s\n",
-                    csv_strerror(csv_error(params->csv_parser)));
-        }
-        free(line);
-        line = NULL;
-    }
+    
+    char *line_end = NULL;
+    long line_len;
+    gboolean end = find_line_ending(reader, &line_end, &line_len);
+    line_len ++;    // because line_len does not include LFCR 
+    
+    if ( (long)csv_parse(params->csv_parser,
+                         reader->base->mapped_file + reader->base->offset,
+                         line_len, csv_cb1, csv_cb2, reader) != line_len)
+        WARNING("in parsing csv file: %s\n",
+              csv_strerror(csv_error(params->csv_parser)));
+
+    reader->base->offset = (void*)line_end - reader->base->mapped_file;
+    
+    if (end)
+        params->reader_end = TRUE;
+
     if (!params->already_got_cache_line){       // didn't read in trace item
-        if (size < 0){
-            if (feof(reader->base->file) != 0){
-                // end of file, last line
-                csv_fini(params->csv_parser, csv_cb1, csv_cb2, reader);
-                params->reader_end = TRUE;                          // got last line
-                if (!params->already_got_cache_line)
-                    c->valid = FALSE;
-            }
-            else{
-                ERROR("error in csv reader, didn't read in "
-                        "cache request and file not end\n");
-                exit(1);
-            }
-        }
+        if (params->reader_end)
+            csv_fini(params->csv_parser, csv_cb1, csv_cb2, reader);
         else{
-            ERROR("error in csv reader, read in file, but "
-                    "cannot parse into cache request\n");
+            ERROR("in parsing csv file, current offset %lu\n", reader->base->offset);
             exit(1);
         }
     }
 }
 
 
-guint64 csv_skip_N_elements(reader_t* reader, guint64 N){
+guint64 csv_skip_N_elements(reader_t *const reader, const guint64 N){
     /* this function skips the next N requests, 
      * on success, return N, 
      * on failure, return the number of requests skipped 
@@ -190,22 +178,7 @@ guint64 csv_skip_N_elements(reader_t* reader, guint64 N){
         csv_set_delim(params->csv_parser, params->delim);
     
     params->reader_end = FALSE;
-    
-    char *line=NULL;
-    size_t len;
-    guint64 i, count;
-    guint64 skipped = N;
-    for (i=0; i<N; i++){
-        if (getline(&line, &len, reader->base->file) > 0)
-            count++;
-        else{
-            skipped = i;
-            break;
-        }
-        free(line);
-        line = NULL;
-    }
-    return skipped;
+    return 0;
 }
 
 
@@ -220,11 +193,10 @@ void csv_reset_reader(reader_t* reader){
         csv_set_delim(params->csv_parser, params->delim);
     
     if (params->has_header){
-        char *line=NULL;
-        size_t len;
-        len = getline(&line, &len, reader->base->file);
-        free(line);
-        line = NULL;
+        char *line_end = NULL;
+        long line_len = 0;
+        find_line_ending(reader, &line_end, &line_len);
+        reader->base->offset = (void*) line_end - reader->base->mapped_file;
     }
     params->reader_end = FALSE;    
 }

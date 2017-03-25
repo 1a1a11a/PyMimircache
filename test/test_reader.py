@@ -91,6 +91,19 @@ class cReaderTest(unittest.TestCase):
             self.assertEqual(reader.get_num_of_total_requests(), 113872)
 
 
+    def test_potpourri(self):
+        vReader = c_cacheReader.setup_reader("{}/trace.vscsi".format(DAT_FOLDER), 'v')
+        cReader = c_cacheReader.setup_reader("{}/trace.csv".format(DAT_FOLDER), 'c', data_type='l',
+                                            init_params={"header":True, "delimiter":",", "label_column":5, "size_column":4})
+        e1 = c_cacheReader.read_one_element(vReader)
+        e2 = c_cacheReader.read_one_element(cReader)
+        while e1 and e2:
+            self.assertEqual(e1, e2+1)
+            e1 = c_cacheReader.read_one_element(vReader)
+            e2 = c_cacheReader.read_one_element(cReader)
+
+
+
 
 class readerTest(unittest.TestCase):
     def test_reader_v(self):

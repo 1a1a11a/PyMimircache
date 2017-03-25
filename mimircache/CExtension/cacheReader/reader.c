@@ -13,6 +13,15 @@
 
 /* when label/LBA is number, we plus one to it, to avoid cases of block 0 */
 
+/* special case in ascii reader 
+ * multiple blank line in the middle 
+ * each line has only one character 
+ * multiple or non blank line at the end of file 
+ * csv header when go back one line 
+ * ending in go back one line
+ */
+
+
 
 
 reader_t* setup_reader(const char* file_loc,
@@ -78,10 +87,10 @@ reader_t* setup_reader(const char* file_loc,
     
     
     switch (file_type) {
-        case 'c':
+        case CSV:
             csv_setup_Reader(file_loc, reader, setup_params);
             break;
-        case 'p':
+        case PLAIN:
             reader->base->type = 'p';
             reader->base->file = fopen(file_loc, "r");
             if (reader->base->file == 0){
@@ -89,10 +98,10 @@ reader_t* setup_reader(const char* file_loc,
                 exit(1);
             }
             break;
-        case 'v':
+        case VSCSI:
             vscsi_setup(file_loc, reader);
             break;
-        case 'b':
+        case BINARY:
             binaryReader_setup(file_loc, reader, setup_params);
             break;
         default:
@@ -110,25 +119,28 @@ void read_one_element(reader_t *const reader, cache_line *const c){
      size for the element(label) is 128 bytes(cache_line_label_size).
      */
     c->ts ++;
+    char *line_end = NULL;
+    long line_len;
     switch (reader->base->type) {
-        case 'c':
+        case CSV:
             csv_read_one_element(reader, c);
             break;
-        case 'p':
-            if (fscanf(reader->base->file, "%s", c->item) == EOF)
-                //should change to the following to avoid buffer overflow
-                //              if (fgets(c->item, cache_line_label_size, reader->base->file))
+        case PLAIN:
+            if (reader->base->offset == reader->base->file_size){
                 c->valid = FALSE;
-            else {
-                if (strlen(c->item)==2 && c->item[0] == LINE_ENDING && c->item[1] == '\0')
-                    return read_one_element(reader, c);
+                break;
             }
+            
+            find_line_ending(reader, &line_end, &line_len);
+            strncpy(c->item, reader->base->mapped_file+reader->base->offset, line_len);
+            c->item[line_len] = 0;
+            reader->base->offset = (void*)line_end - reader->base->mapped_file;
             break;
-        case 'v':
+        case VSCSI:
             vscsi_read(reader, c);
             *(guint64*) (c->item_p) = *(guint64*)(c->item_p) + 1;
             break;
-        case 'b':
+        case BINARY:
             binary_read(reader, c);
             break;
         default:
@@ -148,39 +160,48 @@ int go_back_one_line(reader_t *const reader){
     /* go back one cache line
      return 0 on successful, non-zero otherwise
      */
-    FILE *file = NULL;
     switch (reader->base->type) {
-        case 'c':
-        case 'p':
-            file = reader->base->file;
-            int r;
-            // flag for jump over multiple empty lines at the end of file
-            gboolean after_empty_lines=FALSE;
-            if (fseek(file, -2L, SEEK_CUR)!=0)
+        case CSV:
+        case PLAIN:
+            if (reader->base->offset == 0)
                 return 1;
-            char c = getc(file);
-            if (c != LINE_ENDING && c!=' ' && c!='\t' && c!=',' && c!='.')
-                after_empty_lines = TRUE;
+            
+            // use last record size to save loop
+            const char * cp = reader->base->mapped_file + reader->base->offset;
+            if (reader->base->record_size){
+                cp -= reader->base->record_size - 1;
+            }
             else{
-                // this might happen if the length of line is 1(excluding \n)
-                char c2 = getc(file);
-                if (c2 != LINE_ENDING && c2!=' ' && c2!='\t' && c2!=',' && c2!='.')
-                    after_empty_lines = TRUE;
-                fseek(file, -1L, SEEK_CUR);
+                // no record size, can only happen when it is the last line
+                cp --;
+                // find the first current line ending
+                while (*cp == FILE_LF || *cp == FILE_CR){
+                    cp--;
+                    if ((void*)cp < reader->base->mapped_file)
+                        return 1;
+                }
             }
-            while( c != LINE_ENDING || !after_empty_lines){
-                if (( r= fseek(file, -2L, SEEK_CUR)) != 0)
-                    return 1;
-                c = getc(file);
-                if (!after_empty_lines && c != LINE_ENDING
-                    && c!=' ' && c!='\t' && c!=',' && c!='.')
-                    after_empty_lines = TRUE;
+            // now points to either end of current line letters/non-LFCR
+            // or points to somewhere after the beginning of current line beginning
+            // find the first character of current line
+            while ( (void*)cp > reader->base->mapped_file &&
+                   *cp != FILE_LF && *cp != FILE_CR){
+                cp--;
             }
+            if ((void*)cp != reader->base->mapped_file)
+                cp ++; // jump over LFCR
+            
+            if ((void*)cp < reader->base->mapped_file){
+                ERROR("current pointer points before mapped file\n");
+                exit(1);
+            }
+            // now cp points to the LFCR before the line that should be read
+            reader->base->offset = (void*)cp - reader->base->mapped_file; 
             
             return 0;
             
-        case 'b':
-        case 'v':
+        case BINARY:
+        case VSCSI:
             if (reader->base->offset >= reader->base->record_size)
                 reader->base->offset -= (reader->base->record_size);
             else
@@ -201,40 +222,16 @@ int go_back_two_lines(reader_t *const reader){
      return 0 on successful, non-zero otherwise
      */
     switch (reader->base->type) {
-        case 'c':
+        case CSV:
+        case PLAIN:
             if (go_back_one_line(reader)==0){
-                go_back_one_line(reader);
-                return 0;
+                reader->base->record_size = 0; 
+                return go_back_one_line(reader);
             }
             else
                 return 1;
-        case 'p':
-            ;
-            int r;
-            if ( (r=fseek(reader->base->file, -2L, SEEK_CUR)) != 0){
-                return r;
-            }
-            
-            while( getc(reader->base->file) != LINE_ENDING )
-                if ( (r= fseek(reader->base->file, -2L, SEEK_CUR)) != 0){
-                    return r;
-                }
-            fseek(reader->base->file, -2L, SEEK_CUR);
-            while( getc(reader->base->file) != LINE_ENDING )
-                if ( (r=fseek(reader->base->file, -2L, SEEK_CUR)) != 0){
-                    fseek(reader->base->file, -1L, SEEK_CUR);
-                    break;
-                }
-            return 0;
-            // the following will have problem when each line is length 1
-            //            if (go_back_one_line(reader)==0){
-            //                return go_back_one_line(reader);
-            ////                return 0;
-            //            }
-            //            else
-            //                return 1;
-        case 'b':
-        case 'v':
+        case BINARY:
+        case VSCSI:
             if (reader->base->offset >= (reader->base->record_size * 2))
                 reader->base->offset -= (reader->base->record_size)*2;
             else
@@ -251,7 +248,10 @@ int go_back_two_lines(reader_t *const reader){
 
 void read_one_element_above(reader_t *const reader, cache_line* c){
     /* read one cache line from reader precede current position,
-     and store it in the pre-allocated cache_line c, current given
+     * in other words, read the line above current line, 
+     * and currently file points to either the end of current line or 
+     * beginning of next line.
+     then store it in the pre-allocated cache_line c, current given
      size for the element(label) is 128 bytes(cache_line_label_size).
      after reading the new position is at the beginning of readed cache line
      in other words, this method is called for reading from end to beginngng
@@ -267,37 +267,46 @@ void read_one_element_above(reader_t *const reader, cache_line* c){
 
 
 
-guint64 skip_N_elements(reader_t *const reader, guint64 N){
+guint64 skip_N_elements(reader_t *const reader, const guint64 N){
     /* skip the next following N elements,
      Return value: the number of elements that are actually skipped,
      this will differ from N when it reaches the end of file
      */
-    int i;
-    guint64 count=0;
-    char temp[cache_line_label_size];
+    guint64 count=N;
     
     switch (reader->base->type) {
-        case 'c':
-            count = csv_skip_N_elements(reader, N);
-            break;
-        case 'p':
-            for (i=0; i<N; i++)
-                if (fscanf(reader->base->file, "%s", temp)!=EOF)
-                    count++;
-                else
+        case CSV:
+            csv_skip_N_elements(reader, N);
+        case PLAIN:
+            ;
+            char *line_end = NULL;
+            guint64 i;
+            gboolean end = FALSE;
+            long line_len;
+            for (i=0; i<N; i++){
+                end = find_line_ending(reader, &line_end, &line_len);
+                reader->base->offset = (void*)line_end - reader->base->mapped_file;
+                if (end) {
+                    if (reader->base->type == 'c'){
+                        csv_params_t *params = reader->reader_params;
+                        params->reader_end = TRUE;
+                    }
+                    count = i + 1;
                     break;
+                }
+            }
+
             break;
-        case 'b':
-        case 'v':
-            if (reader->base->offset + N * reader->base->record_size <=
-                reader->base->total_num * reader->base->record_size) {
+        case BINARY:
+        case VSCSI:
+            if (reader->base->offset + N * reader->base->record_size
+                <= reader->base->file_size) {
                 reader->base->offset = reader->base->offset + N * reader->base->record_size;
-                count = N;
             }
             else{
-                count = (guint64) ((reader->base->total_num * reader->base->record_size -
-                                    reader->base->offset) / reader->base->record_size);
-                reader->base->offset = reader->base->total_num * reader->base->record_size;
+                count = (guint64) ((reader->base->file_size - reader->base->offset)
+                                   / reader->base->record_size);
+                reader->base->offset = reader->base->file_size;
                 WARNING("required to skip %lu requests, but only %lu requests left\n",
                         N, count);
             }
@@ -309,22 +318,18 @@ guint64 skip_N_elements(reader_t *const reader, guint64 N){
             exit(1);
             break;
     }
-//    reader->base->ref_num += count;
     return count;
 }
 
 void reset_reader(reader_t *const reader){
     /* rewind the reader back to beginning */
+    reader->base->offset = 0;
     switch (reader->base->type) {
-        case 'c':
+        case CSV:
             csv_reset_reader(reader);
-            break;
-        case 'p':
-            fseek(reader->base->file, 0L, SEEK_SET);
-            break;
-        case 'b':
-        case 'v':
-            reader->base->offset = 0;
+        case PLAIN:
+        case BINARY:
+        case VSCSI:
             break;
         default:
             ERROR("cannot recognize reader type, given reader type: %c\n",
@@ -335,76 +340,50 @@ void reset_reader(reader_t *const reader){
 }
 
 
-void reader_set_read_pos(reader_t *const reader, double pos){
+void reader_set_read_pos(reader_t *const reader, const double pos){
     /* jump to given postion, like 1/3, or 1/2 and so on
      * reference number will NOT change in the function! .
      * due to above property, this function is deemed as deprecated.
      */
-    switch (reader->base->type) {
-        case 'c':
-        case 'p':
-            ;
-            struct stat statbuf;
-            if (fstat(fileno(reader->base->file), &statbuf) < 0){
-                ERROR("fstat error");
-                exit(0);
-            }
-            long long fsize = (long long)statbuf.st_size;
-            fseek(reader->base->file, (long)(fsize*pos), SEEK_SET);
-            char c = getc(reader->base->file);
-            while (c!=LINE_ENDING && c!=EOF)
-                c = getc(reader->base->file);
-            break;
-            
-        case 'b':
-        case 'v':
-            reader->base->offset = (guint64)reader->base->record_size *
-                                    (gint64)(reader->base->total_num * pos);
-            break;
-        default:
-            ERROR("cannot recognize reader type, given reader type: %c\n",
-                  reader->base->type);
-            exit(1);
-            break;
+    reader->base->offset = (long)(reader->base->file_size * pos);
+    if (reader->base->type == 'c' || reader->base->type == 'p'){
+        reader->base->record_size = 0;
+        /* for plain and csv file, if it points to the end, we need to rewind by 1,
+         * because mapped_file+file_size-1 is the last byte 
+         */ 
+        if ( (pos > 1 && pos-1 < 0.0001) || (pos<1 && 1-pos< 0.0001))
+            reader->base->offset --;
     }
-    
 }
 
 
 guint64 get_num_of_cache_lines(reader_t *const reader){
-    
-#define BUFFER_SIZE 1024*1024
     if (reader->base->total_num !=0 && reader->base->total_num != -1)
         return reader->base->total_num;
     
+    guint64 old_offset = reader->base->offset;
+    reader->base->offset = 0;
     guint64 num_of_lines = 0;
-    char temp[BUFFER_SIZE+1];       // 1MB buffer
-    int fd = 0, i=0;
-    char last_char = 0;
-    long size;
-    reset_reader(reader);
+    // reset_reader(reader);
     
     switch (reader->base->type) {
-            // why not use getline here? 0308
-        case 'c':
+        case CSV:
             /* same as plain text, except when has_header, it needs to reduce by 1  */
-        case 'p':
-            fd = fileno(reader->base->file);
-            lseek(fd, 0L, SEEK_SET);
-            while ((size=read(fd, (void*)temp, BUFFER_SIZE)) != 0){
-                if (temp[0] == LINE_ENDING && last_char != LINE_ENDING)
-                    num_of_lines++;
-                for (i=1;i<size;i++)
-                    if (temp[i] == LINE_ENDING && temp[i-1] != LINE_ENDING)
-                        num_of_lines++;
-                last_char = temp[size-1];
+        case PLAIN:
+            ;
+            char *line_end = NULL;
+            long line_len;
+            while (!find_line_ending(reader, &line_end, &line_len)){
+                reader->base->offset = (void*)line_end - reader->base->mapped_file;
+                num_of_lines ++;
             }
-            if (last_char!=LINE_ENDING){
-                num_of_lines++;
-            }
+            num_of_lines++;
+            if (reader->base->type == 'c')
+                if (((csv_params_t*)(reader->reader_params))->has_header)
+                    num_of_lines --;
             break;
-        case 'b':
-        case 'v':
+        case BINARY:
+        case VSCSI:
             return reader->base->total_num;
         default:
             ERROR("cannot recognize reader type, given reader type: %c\n",
@@ -412,10 +391,8 @@ guint64 get_num_of_cache_lines(reader_t *const reader){
             exit(1);
             break;
     }
-    if (reader->base->type == 'c' && ((csv_params_t*)reader->reader_params)->has_header)
-        num_of_lines --;
     reader->base->total_num = num_of_lines;
-    reset_reader(reader);
+    reader->base->offset = old_offset;
     return num_of_lines;
 }
 
@@ -430,6 +407,7 @@ reader_t* clone_reader(reader_t *const reader_in){
     // this is not ideal, but we don't want to multiple mapped files
     munmap (reader->base->mapped_file, reader->base->file_size);
     reader->base->mapped_file = reader_in->base->mapped_file;
+    reader->base->offset = reader_in->base->offset;
 
     if (reader->base->type == CSV){
         csv_params_t* params = reader->reader_params;
@@ -437,18 +415,6 @@ reader_t* clone_reader(reader_t *const reader_in){
         
         fseek(reader->base->file, ftell(reader_in->base->file), SEEK_SET);
         memcpy(params->csv_parser, params_in->csv_parser, sizeof(struct csv_parser));
-    }
-    else if (reader->base->type == PLAIN){
-        fseek(reader->base->file, ftell(reader_in->base->file), SEEK_SET);
-    }
-    else if (reader->base->type == VSCSI || reader->base->type == BINARY){
-        reader->base->offset = reader_in->base->offset;
-    }
-        
-    else{
-        ERROR("cannot recognize reader type, given reader type: %c\n",
-              reader->base->type);
-        exit(1);
     }
     return reader;
 }
@@ -465,18 +431,18 @@ int close_reader(reader_t *const reader){
      access to the stream is possible.*/
     
     switch (reader->base->type) {
-        case 'c':
+        case CSV:
             ;
             csv_params_t *params = reader->reader_params;
             fclose(reader->base->file);
             csv_free(params->csv_parser);
             g_free(params->csv_parser);
             break;
-        case 'p':
+        case PLAIN:
             fclose(reader->base->file);
             break;
-        case 'b':
-        case 'v':
+        case BINARY:
+        case VSCSI:
             break;
         default:
             ERROR("cannot recognize reader type, given reader type: %c\n",
@@ -526,18 +492,18 @@ int close_reader_unique(reader_t *const reader){
      access to the stream is possible.*/
     
     switch (reader->base->type) {
-        case 'c':
+        case CSV:
             ;
             csv_params_t *params = reader->reader_params;
             fclose(reader->base->file);
             csv_free(params->csv_parser);
             g_free(params->csv_parser);
             break;
-        case 'p':
+        case PLAIN:
             fclose(reader->base->file);
             break;
-        case 'b':
-        case 'v':
+        case BINARY:
+        case VSCSI:
             break;
         default:
             ERROR("cannot recognize reader type, given reader type: %c\n",
@@ -565,7 +531,7 @@ int close_reader_unique(reader_t *const reader){
 
 
 
-
+// not supported 
 
 int read_one_request_all_info(reader_t *const reader, void* storage){
     /* read one cache line from reader,
@@ -573,21 +539,22 @@ int read_one_request_all_info(reader_t *const reader, void* storage){
      return 1 when finished or error, otherwise, return 0.
      */
     switch (reader->base->type) {
-        case 'c':
+        case CSV:
             printf("currently c reader is not supported yet\n");
             exit(1);
             break;
-        case 'p':
+        case PLAIN:
             if (fscanf(reader->base->file, "%s", (char*)storage) == EOF)
                 return 1;
             else {
-                if (strlen((char*)storage)==2 && ((char*)storage)[0] == LINE_ENDING && ((char*)storage)[1] == '\0')
+                if (strlen((char*)storage)==2 && ((char*)storage)[1] == '\0'
+                    && (((char*)storage)[0] == FILE_LF || ((char*)storage)[0]==FILE_CR) )
                     return read_one_request_all_info(reader, storage);
                 return 0;
             }
             break;
-        case 'b':
-        case 'v':
+        case BINARY:
+        case VSCSI:
             printf("currently v/b reader is not supported yet\n");
             exit(1);
             break;
@@ -603,12 +570,12 @@ int read_one_request_all_info(reader_t *const reader, void* storage){
 void set_no_eof(reader_t *const reader){
     // remove eof flag for reader 
     switch (reader->base->type) {
-        case 'c':
+        case CSV:
             csv_set_no_eof(reader);
             break;
-        case 'p':
-        case 'b':
-        case 'v':
+        case PLAIN:
+        case BINARY:
+        case VSCSI:
             break;
         default:
             ERROR("cannot recognize reader type, given reader type: %c\n",

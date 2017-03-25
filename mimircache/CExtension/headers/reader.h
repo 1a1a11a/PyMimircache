@@ -27,8 +27,15 @@
 #include "libcsv.h"
 
 
-#define LINE_ENDING '\n'
+#define FILE_TAB    0x09
+#define FILE_SPACE  0x20
+#define FILE_CR     0x0d
+#define FILE_LF     0x0a
+#define FILE_COMMA  0x2c
+#define FILE_QUOTE  0x22
+
 #define BINARY_FMT_MAX_LEN 32
+#define MAX_LINE_LEN 1024*1024
 
 
 // trace type
@@ -89,7 +96,10 @@ typedef struct reader_base{
     guint64 offset;
     size_t record_size;                     /* the size of one record, used to
                                              * locate the memory location of next element,
-                                             * used in vscsiReaser and binaryReader */
+                                             * when used in vscsiReaser and binaryReader, 
+                                             * it is a const value, 
+                                             * when it is used in plainReader or csvReader, 
+                                             * it is the size of last record */
     
     gint64 total_num;                       /* number of records */
     
@@ -120,8 +130,6 @@ typedef struct reader_data_share{
 }reader_data_share_t;
 
 
-
-//typedef struct reader_base reader_base_t;
 typedef struct reader{
     struct reader_base* base;
     struct reader_data_unique* udata;
@@ -183,6 +191,73 @@ void set_no_eof(reader_t *const reader);
 cache_line* new_cacheline(void);
 
 void destroy_cacheline(cache_line* cp);
+
+
+
+
+static inline gboolean find_line_ending(reader_t *const reader,
+                                        char **line_end,
+                                        long* const line_len){
+    /**
+     *  find the closest line ending, save at line_end
+     *  line_end should point to the character that is not current line, 
+     *  in other words, the character after all LFCR
+     *  line_len is the length of current line, does not include CRLF, nor \0
+     *  return TRUE, if end of file
+     *  return FALSE else
+     */
+    
+    size_t size = MAX_LINE_LEN;
+    *line_end = NULL;
+    
+    while (*line_end == NULL){
+        if (size > (long)reader->base->file_size - reader->base->offset)
+            size = reader->base->file_size - reader->base->offset;
+//        printf("check from %c(%lu) to %c(%lu)\n", *(char*)(reader->base->mapped_file + reader->base->offset),
+//               reader->base->offset, *(char*)(reader->base->mapped_file + reader->base->offset + size -1),
+//               reader->base->offset + size - 1);
+        *line_end = memchr(reader->base->mapped_file + reader->base->offset, CSV_LF, size);
+        if (*line_end == NULL)
+            *line_end = memchr(reader->base->mapped_file + reader->base->offset, CSV_CR, size);
+        
+        if (*line_end == NULL){
+            if (size == MAX_LINE_LEN){
+                WARNING("line length exceeds %d characters\n", MAX_LINE_LEN);
+                size *= 2;
+            }
+            else{
+                /*  end of trace, does not -1 here
+                 *  if file ending has no CRLF, then file_end points to end of file, return TRUE; 
+                 *  if file ending has one or more CRLF, it will goes to next while,
+                 *  then file_end points to end of file, still return TRUE 
+                 */
+                *line_end = reader->base->mapped_file + reader->base->file_size;
+                *line_len = size;
+                reader->base->record_size = *line_len;
+                return TRUE;
+            }
+        }
+    }
+    // currently line_end points to LFCR
+    *line_len = (void*)*line_end - (reader->base->mapped_file + reader->base->offset);
+    
+    while ((*(*line_end+1) == CSV_CR || *(*line_end+1) == CSV_LF ||
+            *(*line_end+1) == CSV_TAB || *(*line_end+1) == CSV_SPACE) ){
+        (*line_end) ++;
+        if ((void*)*line_end - reader->base->mapped_file == reader->base->file_size-1){
+            reader->base->record_size = *line_len;
+            return TRUE;
+        }
+    }
+    // move to next line, non LFCR
+    (*line_end) ++;
+    reader->base->record_size = *line_len;
+
+    return FALSE;
+}
+
+
+
 
 
 
