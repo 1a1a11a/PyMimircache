@@ -9,11 +9,11 @@ import mimircache.c_cacheReader as c_cacheReader
 class cacheReaderAbstract(metaclass=abc.ABCMeta):
     __metaclass__ = abc.ABCMeta
 
-    @abc.abstractclassmethod
     def __init__(self, file_loc, data_type='c'):
         self.file_loc = file_loc
         self.trace_file = None
         self.cReader = None
+        self.data_type = data_type
         assert (os.path.exists(file_loc)), "data file({}) does not exist".format(file_loc)
 
         self.counter = 0
@@ -76,22 +76,24 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
 
 
 
-    @abc.abstractclassmethod
+    @abc.abstractmethod
     def read_one_element(self):
         pass
 
     def close(self):
         try:
-            if self.trace_file:
-                self.trace_file.close()
-                self.trace_file = None
-            if self.cReader and c_cacheReader is not None:
-                c_cacheReader.close_reader(self.cReader)
-                self.cReader = None
+            if self is not None:
+                if self.trace_file:
+                    self.trace_file.close()
+                    self.trace_file = None
+                if self.cReader and c_cacheReader is not None:
+                    c_cacheReader.close_reader(self.cReader)
+                    self.cReader = None
         except Exception as e:
+            # return
             print("Exception during close reader: {}, ccacheReader={}".format(e, c_cacheReader))
 
-    @abc.abstractclassmethod
+    @abc.abstractmethod
     def __next__(self):  # Python 3
         self.counter += 1
 

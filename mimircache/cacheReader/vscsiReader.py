@@ -13,7 +13,6 @@ class vscsiReader(cacheReaderAbstract):
         if open_c_reader:
             self.cReader = c_cacheReader.setup_reader(file_loc, 'v', data_type=data_type)
 
-
         self.get_num_of_total_requests()
 
 
@@ -67,7 +66,7 @@ class vscsiReader(cacheReaderAbstract):
 
 
     def __repr__(self):
-        return "vscsi cache reader, %s" % super().__repr__()
+        return "vscsiReader of {}".format(self.file_loc)
 
 
 if __name__ == "__main__":

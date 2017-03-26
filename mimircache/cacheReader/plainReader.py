@@ -27,4 +27,4 @@ class plainReader(cacheReaderAbstract):
             raise StopIteration
 
     def __repr__(self):
-        return "basic cache reader, cache trace separated by line, %s" % super().__repr__()
+        return "plainTextReader on file {}".format(self.file_loc)
