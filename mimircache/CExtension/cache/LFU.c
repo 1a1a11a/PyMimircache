@@ -165,8 +165,8 @@ gboolean LFU_add_element(struct_cache* cache, cache_line* cp){
 
 
 
-struct_cache* LFU_init(guint64 size, char data_type, void* params){
-    struct_cache* cache = cache_init(size, data_type);
+struct_cache* LFU_init(guint64 size, char data_type, int block_size, void* params){
+    struct_cache* cache = cache_init(size, data_type, block_size);
     LFU_params_t* LFU_params = g_new0(LFU_params_t, 1);
     cache->cache_params = (void*) LFU_params;
     
@@ -176,6 +176,7 @@ struct_cache* LFU_init(guint64 size, char data_type, void* params){
     cache->core->destroy_unique     =   LFU_destroy_unique;
     cache->core->add_element        =   LFU_add_element;
     cache->core->check_element      =   LFU_check_element;
+    cache->core->add_element_only   =   LFU_add_element;
 
     cache->core->__insert_element   =   __LFU_insert_element;
     cache->core->__update_element   =   __LFU_update_element;
@@ -209,7 +210,7 @@ struct_cache* LFU_init(guint64 size, char data_type, void* params){
 }
 
 
-uint64_t LFU_get_size(struct_cache* cache){
+gint64 LFU_get_size(struct_cache* cache){
     LFU_params_t* LFU_params = (LFU_params_t*)(cache->cache_params);
     return (guint64) g_hash_table_size(LFU_params->hashtable);
 }

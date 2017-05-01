@@ -147,7 +147,6 @@ struct MIMIR_params{
     GHashTable *prefetched_hashtable_mimir;
     guint64 hit_on_prefetch_mimir;
     guint64 num_of_prefetch_mimir;
-    guint64 evicted_prefetch;
     
     GHashTable *prefetched_hashtable_sequential;
     guint64 hit_on_prefetch_sequential;
@@ -191,7 +190,7 @@ extern void     __MIMIR_aging(struct_cache* MIMIR);
 extern void     mimir_add_to_prefetch_table(struct_cache* MIMIR, gpointer gp1, gpointer gp2);
 
 
-struct_cache*   MIMIR_init(guint64 size, char data_type, void* params);
+struct_cache*   MIMIR_init(guint64 size, char data_type, int block_size, void* params); 
 
 
 extern void     prefetch_node_destroyer(gpointer data);
@@ -202,7 +201,7 @@ void prefetch_hashmap_count_length (gpointer key, gpointer value, gpointer user_
 
 
 extern void MIMIR_remove_element(struct_cache* cache, void* data_to_remove);
-extern guint64 MIMIR_get_size(struct_cache* cache);
+extern gint64 MIMIR_get_size(struct_cache* cache);
 
 
 

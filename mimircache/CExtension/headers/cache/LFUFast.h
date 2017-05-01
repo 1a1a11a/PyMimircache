@@ -50,11 +50,11 @@ extern void*    __LFU_fast__evict_with_return(struct_cache* cache, cache_line* c
 extern void     LFU_fast_destroy(struct_cache* cache);
 extern void     LFU_fast_destroy_unique(struct_cache* cache);
 
-struct_cache*   LFU_fast_init(guint64 size, char data_type, void* params);
+struct_cache*   LFU_fast_init(guint64 size, char data_type, int block_size, void* params);
 
 
 extern void     LFU_fast_remove_element(struct_cache* cache, void* data_to_remove);
-extern uint64_t LFU_fast_get_size(struct_cache* cache);
+extern gint64 LFU_fast_get_size(struct_cache* cache);
 
 
 

@@ -18,6 +18,7 @@ void heatmap_nonLRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer 
     draw_dict* dd = params->dd;
     struct cache* cache = params->cache->core->cache_init(params->cache->core->size,
                                                           params->cache->core->data_type,
+                                                          params->cache->core->block_unit_size, 
                                                           params->cache->core->cache_init_params);
     
     int order = GPOINTER_TO_INT(data)-1;
@@ -29,6 +30,7 @@ void heatmap_nonLRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer 
     // create cache lize struct and initialization
     cache_line* cp = new_cacheline();
     cp->type = cache->core->data_type;
+    cp->block_unit_size = (size_t) reader_thread->base->block_unit_size;
 
     guint64 N = g_array_index(break_points, guint64, order);
     if (N != skip_N_elements(reader_thread, N)){

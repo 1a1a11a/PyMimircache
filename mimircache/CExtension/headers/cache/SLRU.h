@@ -44,11 +44,11 @@ extern void     SLRU_destroy(struct_cache* cache);
 extern void     SLRU_destroy_unique(struct_cache* cache);
 
 
-struct_cache*   SLRU_init(guint64 size, char data_type, void* params);
+struct_cache*   SLRU_init(guint64 size, char data_type, int block_size, void* params);
 
 
 extern void     SLRU_remove_element(struct_cache* cache, void* data_to_remove);
-extern uint64_t SLRU_get_size(struct_cache* cache);
+extern gint64 SLRU_get_size(struct_cache* cache);
 
 
 

@@ -38,7 +38,7 @@ extern  gboolean Random_add_element(struct_cache* cache, cache_line* cp);
 extern  void Random_destroy(struct_cache* cache);
 extern  void Random_destroy_unique(struct_cache* cache);
 
-struct_cache* Random_init(guint64 size, char data_type, void* params);
+struct_cache* Random_init(guint64 size, char data_type, int block_size, void* params);
 
 
 

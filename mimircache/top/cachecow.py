@@ -3,7 +3,7 @@
 """
 this module offer the upper level API to user
 """
-
+from matplotlib.ticker import FuncFormatter
 
 from mimircache.profiler.generalProfiler import generalProfiler
 from mimircache.profiler.heatmap import heatmap
@@ -280,7 +280,7 @@ class cachecow:
         bin_size = -1
 
 
-        if algorithm.lower() == "lru":
+        if algorithm.lower() == "lru": # and (cache_params is None or 'block_unit_size' not in cache_params):
             profiler = LRUProfiler(reader, cache_size)
         else:
             assert cache_size != -1, "you didn't provide size for cache"
@@ -358,6 +358,16 @@ class cachecow:
             ))
 
     def plotHRCs(self, algorithm_list, cache_params=None, cache_size=-1, bin_size=-1, auto_size=True, **kwargs):
+        """
+        
+        :param algorithm_list: 
+        :param cache_params: 
+        :param cache_size: 
+        :param bin_size: 
+        :param auto_size: 
+        :param kwargs: block_unit_size, num_of_threads, label, autosize_threshold  
+        :return: 
+        """
         plot_dict = prepPlotParams("Hit Ratio Curve", "Cache Size/item.", "Hit Ratio", "HRC.png", **kwargs)
         num_of_threads = 4
         if 'num_of_threads' in kwargs:
@@ -382,24 +392,37 @@ class cachecow:
             alg = algorithm_list[i]
             if cache_params and i < len(cache_params):
                 cache_param = cache_params[i]
+
+                if 'block_unit_size' in kwargs and kwargs["block_unit_size"] != 0:
+                    cache_param.update({'block_unit_size': kwargs['block_unit_size']})
             else:
                 cache_param = None
             profiler = self.profiler(alg, cache_param, cache_size,
                                      bin_size=bin_size, num_of_threads=num_of_threads)
             t1 = time.time()
-            hr = profiler.get_hit_rate()
-            self.reader.reset()
-            # plt.xlim(0, cache_size)
-            if alg!="LRU":
-                plt.plot([i*bin_size for i in range(len(hr))], hr, label=label[i])
-            else:
+
+            if alg=="LRU" and ('block_unit_size' not in kwargs or kwargs['block_unit_size']==0):
+                hr = profiler.get_hit_rate()
                 plt.plot(hr[:-2], label=label[i])
+            elif alg=="LRU" and kwargs['block_unit_size']!=0:
+                hr = profiler.get_hit_rate_with_size(block_size=kwargs['block_unit_size'])
+                plt.plot(hr[:-2], label=label[i])
+            else:
+                hr = profiler.get_hit_rate()
+                plt.plot([i*bin_size for i in range(len(hr))], hr, label=label[i])
+            self.reader.reset()
             INFO("HRC plotting {} computation finished using time {} s".format(alg, time.time() - t1))
 
         plt.legend(loc="best")
         plt.xlabel(plot_dict['xlabel'])
         plt.ylabel(plot_dict['ylabel'])
         plt.title(plot_dict['title'], fontsize=18, color='black')
+
+        if 'block_unit_size' in kwargs and kwargs["block_unit_size"] != 0:
+            plt.xlabel("Cache Size (MB)")
+            plt.gca().xaxis.set_major_formatter(
+                FuncFormatter(lambda x, p: int(x * kwargs['block_unit_size'] // 1024 // 1024)))
+
         if not 'no_save' in kwargs or not kwargs['no_save']:
             plt.savefig(plot_dict['figname'], dpi=600)
         INFO("HRC plot is saved at the same directory")

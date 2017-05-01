@@ -21,38 +21,47 @@ struct_cache* build_cache(reader_t* reader,
 
     struct_cache *cache;
     char data_type = reader->base->data_type;
+    int block_unit_size = 0;
+    if (cache_params!=Py_None && PyDict_Check(cache_params) &&
+        PyDict_Contains(cache_params, PyUnicode_FromString("block_unit_size"))){
+        block_unit_size = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "block_unit_size"));
+        INFO("considering cache size in profiling\n");
+    }
+    
+
+    
     
     if (strcmp(algorithm, "FIFO") == 0){
-        cache = fifo_init(cache_size, data_type, NULL);
+        cache = fifo_init(cache_size, data_type, block_unit_size, NULL);
     }
     else if (strcmp(algorithm, "LRU") == 0){
         WARNING("we suggest using LRUProfiler for profiling, it's faster\n");
-        cache = LRU_init(cache_size, data_type, NULL);
+        cache = LRU_init(cache_size, data_type, block_unit_size, NULL);
     }
     else if (strcmp(algorithm, "LFU") == 0){
-        cache = LFU_init(cache_size, data_type, NULL);
+        cache = LFU_init(cache_size, data_type, block_unit_size, NULL);
     }
     else if (strcmp(algorithm, "LFUFast") == 0){
-        cache = LFU_fast_init(cache_size, data_type, NULL);
+        cache = LFU_fast_init(cache_size, data_type, block_unit_size, NULL);
     }
     else if (strcmp(algorithm, "MRU") == 0){
-        cache = MRU_init(cache_size, data_type, NULL);
+        cache = MRU_init(cache_size, data_type, block_unit_size, NULL);
     }
     else if (strcmp(algorithm, "Random") == 0){
-        cache = Random_init(cache_size, data_type, NULL);
+        cache = Random_init(cache_size, data_type, block_unit_size, NULL);
     }
     else if (strcmp(algorithm, "Optimal") == 0){
         struct optimal_init_params *init_params = g_new(struct optimal_init_params, 1);
         init_params->ts = begin;
         init_params->reader = reader;
         init_params->next_access = NULL;
-        cache = optimal_init(cache_size, data_type, (void*)init_params);
+        cache = optimal_init(cache_size, data_type, block_unit_size, (void*)init_params);
     }
     else if (strcmp(algorithm, "LRU_2") == 0){
         struct LRU_K_init_params *init_params = g_new(struct LRU_K_init_params, 1);
         init_params->K = 2;
         init_params->maxK = 2;
-        cache = LRU_K_init(cache_size, data_type, (void*)init_params);
+        cache = LRU_K_init(cache_size, data_type, block_unit_size, (void*)init_params);
     }
     else if (strcmp(algorithm, "ARC") == 0){
         ARC_init_params_t *init_params = g_new(ARC_init_params_t, 1);
@@ -60,21 +69,21 @@ struct_cache* build_cache(reader_t* reader,
             init_params->ghost_list_factor = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "ghost_list_factor"));
         else
             init_params->ghost_list_factor = 10;
-        cache = ARC_init(cache_size, data_type, (void*)init_params);
+        cache = ARC_init(cache_size, data_type, block_unit_size, (void*)init_params);
     }
-    else if (strcmp(algorithm, "LRFU") == 0){
-        struct LRU_K_init_params *init_params = g_new(struct LRU_K_init_params, 1);
-        init_params->K = 2;
-        init_params->maxK = 2;
-        cache = ARC_init(cache_size, data_type, (void*)init_params);
-    }
+//    else if (strcmp(algorithm, "LRFU") == 0){
+//        struct LRU_K_init_params *init_params = g_new(struct LRU_K_init_params, 1);
+//        init_params->K = 2;
+//        init_params->maxK = 2;
+//        cache = ARC_init(cache_size, data_type, (void*)init_params);
+//    }
     else if (strcmp(algorithm, "SLRU") == 0){
         SLRU_init_params_t *init_params = g_new(struct SLRU_init_params, 1);
         if (cache_params!=Py_None && PyDict_Contains(cache_params, PyUnicode_FromString("N")))
             init_params->N_segments = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "N"));
         else
             init_params->N_segments = 2;
-        cache = SLRU_init(cache_size, data_type, (void*)init_params);
+        cache = SLRU_init(cache_size, data_type, block_unit_size, (void*)init_params);
     }
 
 #ifdef ML
@@ -91,7 +100,7 @@ struct_cache* build_cache(reader_t* reader,
         }
 
         init_params->N_segments = 5;
-        cache = SLRUML_init(cache_size, data_type, init_params);
+        cache = SLRUML_init(cache_size, data_type, block_unit_size, init_params);
     }
 
     else if (strcmp(algorithm, "ScoreML") == 0){
@@ -106,7 +115,7 @@ struct_cache* build_cache(reader_t* reader,
             strcpy(init_params->hint_loc, "hint");
         }
         
-        cache = Score_init(cache_size, data_type, init_params);
+        cache = Score_init(cache_size, data_type, block_unit_size, init_params);
     }
 #endif 
 
@@ -115,7 +124,7 @@ struct_cache* build_cache(reader_t* reader,
         struct LRU_K_init_params *init_params = g_new(struct LRU_K_init_params, 1);
         init_params->K = K;
         init_params->maxK = K;
-        cache = LRU_K_init(cache_size, data_type, (void*)init_params);
+        cache = LRU_K_init(cache_size, data_type, block_unit_size, (void*)init_params);
         DEBUG_MSG("cache->K = %d, maxK = %d\n",
                   ((struct LRU_K_params*)(cache->cache_params))->K,
                   ((struct LRU_K_params*)(cache->cache_params))->maxK);
@@ -136,7 +145,7 @@ struct_cache* build_cache(reader_t* reader,
         DEBUG_MSG("PG lookahead %d, max_meta_data %lf, prefetch_threshold %lf, cache type %s\n",
                   init_params->lookahead, init_params->max_meta_data,
                   init_params->prefetch_threshold, init_params->cache_type);
-        cache = PG_init(cache_size, data_type, (void*)init_params);
+        cache = PG_init(cache_size, data_type, block_unit_size, (void*)init_params);
     }
     else if (strcmp(algorithm, "AMP") == 0){
         gint threshold = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "pthreshold"));
@@ -147,7 +156,7 @@ struct_cache* build_cache(reader_t* reader,
         init_params->read_size      = 1;
         init_params->p_threshold    = threshold;
         init_params->K              = K;
-        cache = AMP_init(cache_size, data_type, (void*)init_params);
+        cache = AMP_init(cache_size, data_type, block_unit_size, (void*)init_params);
     }
     else if (strcmp(algorithm, "mimir") == 0){
         gint max_support = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "max_support"));
@@ -197,12 +206,14 @@ struct_cache* build_cache(reader_t* reader,
         init_params->AMP_pthreshold         = AMP_pthreshold;
         init_params->cycle_time             = cycle_time;
         
-        cache = MIMIR_init(cache_size, data_type, (void*)init_params);
+        cache = MIMIR_init(cache_size, data_type, block_unit_size, (void*)init_params);
     }
     else {
         PyErr_Format(PyExc_RuntimeError,
                         "does not support given cache replacement algorithm: %s\n", algorithm);
         return NULL;
     }
+    
+    
     return cache;
 }

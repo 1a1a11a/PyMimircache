@@ -51,9 +51,9 @@ void __LRU_evict_element(struct_cache* LRU, cache_line* cp){
     struct LRU_params* LRU_params = (struct LRU_params*)(LRU->cache_params);
 
     if (LRU->core->cache_debug_level == 2){     // compare to Oracle
-        while (LRU_params->ts > g_array_index(LRU->core->bp->array, guint64, LRU->core->bp_pos)){
-            if ( g_array_index(LRU->core->bp->array, guint64, LRU->core->bp_pos) -
-                g_array_index(LRU->core->bp->array, guint64, LRU->core->bp_pos-1) != 0 ){
+        while (LRU_params->ts > (gint64) g_array_index(LRU->core->bp->array, guint64, LRU->core->bp_pos)){
+            if ( (long) g_array_index(LRU->core->bp->array, guint64, LRU->core->bp_pos) -
+                (long) g_array_index(LRU->core->bp->array, guint64, LRU->core->bp_pos-1) != 0 ){
                 
                 LRU->core->evict_err_array[LRU->core->bp_pos-1] = LRU->core->evict_err /
                     (g_array_index(LRU->core->bp->array, guint64, LRU->core->bp_pos) -
@@ -67,7 +67,7 @@ void __LRU_evict_element(struct_cache* LRU, cache_line* cp){
             LRU->core->bp_pos++;
         }
         
-        if (LRU_params->ts == g_array_index(LRU->core->bp->array, guint64, LRU->core->bp_pos)){
+        if (LRU_params->ts == (long) g_array_index(LRU->core->bp->array, guint64, LRU->core->bp_pos)){
             LRU->core->evict_err_array[LRU->core->bp_pos-1] = (double)LRU->core->evict_err /
             (g_array_index(LRU->core->bp->array, guint64, LRU->core->bp_pos) -
              g_array_index(LRU->core->bp->array, guint64, LRU->core->bp_pos-1));
@@ -162,6 +162,42 @@ gboolean LRU_add_element(struct_cache* cache, cache_line* cp){
 }
 
 
+gboolean LRU_add_element_only(struct_cache* cache, cache_line* cp){
+    struct LRU_params* LRU_params = (struct LRU_params*)(cache->cache_params);
+    if (LRU_check_element(cache, cp)){
+        __LRU_update_element(cache, cp);
+        return TRUE;
+    }
+    else{
+        __LRU_insert_element(cache, cp);
+        while ((long)g_hash_table_size(LRU_params->hashtable) > cache->core->size)
+            __LRU_evict_element(cache, cp);
+        return FALSE;
+    }
+}
+
+
+gboolean LRU_add_element_withsize(struct_cache* cache, cache_line* cp){
+    int i;
+    gboolean ret_val;
+    
+    *(gint64*)(cp->item_p) = (gint64) (*(gint64*)(cp->item_p) *
+                                       DEFAULT_SECTOR_SIZE /
+                                       cache->core->block_unit_size);
+    ret_val = LRU_add_element(cache, cp);
+    
+    int n = (int)ceil((double) cp->size/cache->core->block_unit_size);
+    
+    for (i=0; i<n-1; i++){
+        (*(guint64*)(cp->item_p)) ++;
+        LRU_add_element_only(cache, cp);
+    }
+    *(gint64*)(cp->item_p) -= (n-1);
+    return ret_val;
+}
+
+
+
 
 
 void LRU_destroy(struct_cache* cache){
@@ -187,8 +223,25 @@ void LRU_destroy_unique(struct_cache* cache){
 }
 
 
-struct_cache* LRU_init(guint64 size, char data_type, void* params){
-    struct_cache *cache = cache_init(size, data_type);
+/*-----------------------------------------------------------------------------
+ *
+ * LRU_init --
+ *      initialize a LRU cache
+ *
+ * Input: 
+ *      size:       cache size
+ *      data_type:  the type of data, currently support l for long or c for string
+ *      block_size: the basic unit size of block, used for profiling with size
+ *                  if not profiling with size, this is 0
+ *      params:     params used for initialization, NULL for LRU 
+ *
+ * Return:
+ *      a LRU cache struct
+ *
+ *-----------------------------------------------------------------------------
+ */
+struct_cache* LRU_init(guint64 size, char data_type, int block_size, void* params){
+    struct_cache *cache = cache_init(size, data_type, block_size);
     cache->cache_params = g_new0(struct LRU_params, 1);
     struct LRU_params* LRU_params = (struct LRU_params*)(cache->cache_params);
     
@@ -205,12 +258,17 @@ struct_cache* LRU_init(guint64 size, char data_type, void* params){
     cache->core->get_size               =   LRU_get_size;
     cache->core->remove_element         =   LRU_remove_element; 
     cache->core->cache_init_params      =   NULL;
+    cache->core->add_element_only       =   LRU_add_element_only; 
+    cache->core->add_element_withsize   =   LRU_add_element_withsize;
+    
 
     if (data_type == 'l'){
-        LRU_params->hashtable = g_hash_table_new_full(g_int64_hash, g_int64_equal, simple_g_key_value_destroyer, NULL);
+        LRU_params->hashtable = g_hash_table_new_full(g_int64_hash, g_int64_equal,
+                                                      simple_g_key_value_destroyer, NULL);
     }
     else if (data_type == 'c'){
-        LRU_params->hashtable = g_hash_table_new_full(g_str_hash, g_str_equal, simple_g_key_value_destroyer, NULL);
+        LRU_params->hashtable = g_hash_table_new_full(g_str_hash, g_str_equal,
+                                                      simple_g_key_value_destroyer, NULL);
     }
     else{
         ERROR("does not support given data type: %c\n", data_type);
@@ -236,7 +294,7 @@ void LRU_remove_element(struct_cache* cache, void* data_to_remove){
     g_hash_table_remove(LRU_params->hashtable, data_to_remove);
 }
 
-uint64_t LRU_get_size(struct_cache* cache){
+gint64 LRU_get_size(struct_cache* cache){
     struct LRU_params* LRU_params = (struct LRU_params*)(cache->cache_params);
     return (guint64) g_hash_table_size(LRU_params->hashtable);
 }

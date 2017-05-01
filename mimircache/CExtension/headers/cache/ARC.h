@@ -23,16 +23,16 @@ typedef struct ARC_params{
     struct_cache* LRU1g;        // ghost list for normal LRU segment
     struct_cache* LRU2;         // normal LRU segement for items accessed more than once
     struct_cache* LRU2g;        // ghost list for normal LFU segment
-    int32_t ghost_list_factor;  // size(ghost_list)/size(cache),
+    gint32 ghost_list_factor;  // size(ghost_list)/size(cache),
                                 // by default, the ghost list size is
                                 // 10 times the orginal cache size
-    uint64_t size1;             // size for segment 1
-    uint64_t size2;             // size for segment 2 
+    gint64 size1;             // size for segment 1
+    gint64 size2;             // size for segment 2
 }ARC_params_t;
 
 
 typedef struct ARC_init_params{
-    int32_t ghost_list_factor; 
+    gint32 ghost_list_factor;
 } ARC_init_params_t;
 
 
@@ -51,11 +51,11 @@ extern void     ARC_destroy(struct_cache* cache);
 extern void     ARC_destroy_unique(struct_cache* cache);
 
 
-struct_cache*   ARC_init(guint64 size, char data_type, void* params);
+struct_cache*   ARC_init(guint64 size, char data_type, int block_size, void* params);
 
 
 extern void     ARC_remove_element(struct_cache* cache, void* data_to_remove);
-extern uint64_t ARC_get_size(struct_cache* cache);
+extern gint64 ARC_get_size(struct_cache* cache);
 
 
 

@@ -8,6 +8,7 @@ from mimircache.cacheReader.vscsiReader import vscsiReader
 from mimircache.cacheReader.abstractReader import cacheReaderAbstract
 import matplotlib.pyplot as plt
 from mimircache.utils.printing import *
+from matplotlib.ticker import FuncFormatter
 
 class LRUProfiler:
     all = ["get_hit_count", "get_hit_rate", "get_miss_rate", "get_reuse_distance",
@@ -71,6 +72,23 @@ class LRUProfiler:
 
         hit_rate = c_LRUProfiler.get_hit_rate_seq(self.reader.cReader, **kargs)
         return hit_rate
+
+    def get_hit_rate_with_size(self, block_size, **kwargs):
+        """
+
+        :param kwargs:
+        :return: a numpy array of CACHE_SIZE+3, 0~CACHE_SIZE corresponds to hit rate of size 0~CACHE_SIZE,
+         size 0 should always be 0, CACHE_SIZE+1 is out of range, CACHE_SIZE+2 is cold miss,
+         so total is CACHE_SIZE+3 buckets
+        """
+        kargs = {}
+        if 'cache_size' not in kwargs:
+            kargs['cache_size'] = self.cache_size
+        else:
+            kargs['cache_size'] = kwargs['cache_size']
+        hit_rate = c_LRUProfiler.get_hit_rate_with_size(self.reader.cReader, block_size=block_size, **kargs)
+        return hit_rate
+
 
     def get_hit_rate_shards(self, sample_ratio=0.01, **kwargs):
         from mimircache.cacheReader.tracePreprocesser import tracePreprocessor
@@ -137,9 +155,13 @@ class LRUProfiler:
             plt.savefig(figname)
             WARNING("the plotting function is not wrong, is this a headless server? {}".format(e))
 
-    def plotHRC(self, figname="HRC.png", auto_resize=False, threshold=0.98, **kwargs):
+    def plotHRC(self, figname="HRC.png", auto_resize=False, threshold=0.98, with_size=False, **kwargs):
         EXTENTION_LENGTH = 1024
-        HRC = self.get_hit_rate(**kwargs)
+        if with_size:
+            assert "block_size" in kwargs, "to use size option, please provide block_size parameter"
+            HRC = self.get_hit_rate_with_size(**kwargs)
+        else:
+            HRC = self.get_hit_rate(**kwargs)
         try:
             stop_point = len(HRC) - 3
             if self.cache_size == -1 and 'cache_size' not in kwargs and auto_resize:
@@ -154,7 +176,12 @@ class LRUProfiler:
 
             plt.xlim(0, stop_point)
             plt.plot(HRC[:stop_point])
-            plt.xlabel("cache Size")
+            if with_size:
+                plt.gca().xaxis.set_major_formatter(FuncFormatter(lambda x, p: int(x * kwargs['block_unit_size']//1024//1024)))
+                plt.xlabel("Cache Size (MB)")
+            else:
+                plt.xlabel("Cache Size")
+
             plt.ylabel("Hit Ratio")
             plt.title('Hit Ratio Curve', fontsize=18, color='black')
             if not 'no_save' in kwargs or not kwargs['no_save']:

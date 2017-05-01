@@ -64,7 +64,7 @@ partition_t* get_partition(reader_t* reader, struct cache* cache, uint8_t n_part
     void      (*insert_element)(struct cache*, cache_line*)     =   cache->core->__insert_element;
     void      (*update_element)(struct cache*, cache_line*)     =   cache->core->__update_element;
     gpointer  (*evict_with_return)(struct cache*, cache_line*)  =   cache->core->__evict_with_return;
-    uint64_t   (*get_size)      (struct cache*)                 =   cache->core->get_size;
+    gint64    (*get_size)      (struct cache*)                  =   cache->core->get_size;
 
     
     char* key;
@@ -108,7 +108,7 @@ partition_t* get_partition(reader_t* reader, struct cache* cache, uint8_t n_part
         if (partitions->partition_history[0]->len == 1)
             partitions->jump_over_count = counter;
         
-        if (get_size(cache) > cache_size)
+        if (get_size(cache) > (gint64) cache_size)
             fprintf(stderr, "ERROR current size %lu, given size %ld\n", (unsigned long)get_size(cache), cache_size);
 
         read_one_element(reader, cp);
@@ -197,11 +197,11 @@ static void profiler_partition_thread(gpointer data, gpointer user_data){
     
     /*************************** THIS IS NOT GENERAL (BEGIN) **********************/
     int i;
-    uint32_t n_partition = 2;
+    int n_partition = 2;
     struct optimal_init_params* init_params = g_new0(struct optimal_init_params, 1);
     init_params->reader = reader_thread;
     init_params->ts = 0;
-    struct_cache* optimal = optimal_init(bin_size*order, reader_thread->base->data_type, (void*)init_params);
+    struct_cache* optimal = optimal_init(bin_size*order, reader_thread->base->data_type, 0, (void*)init_params);
 
     struct_cache** cache = g_new0(struct_cache*, n_partition);
     partition_t* partition = get_partition(reader_thread, optimal, n_partition);
@@ -210,6 +210,7 @@ static void profiler_partition_thread(gpointer data, gpointer user_data){
         cache[i] = params->cache->core->cache_init(
                             (long)(g_array_index(partition->partition_history[i], double, 0) * bin_size * order),
                             params->cache->core->data_type,
+                            params->cache->core->block_unit_size,
                             params->cache->core->cache_init_params);
     }
 
@@ -229,7 +230,7 @@ static void profiler_partition_thread(gpointer data, gpointer user_data){
     void      (*update_element)(struct cache*, cache_line*)     =   cache[0]->core->__update_element;
     void      (*evict_element) (struct cache*, cache_line*)     =   cache[0]->core->__evict_element; 
 //    gpointer  (*evict_with_return)(struct cache*, cache_line*)  =   cache[0]->core->__evict_with_return;
-    uint64_t  (*get_size)      (struct cache*)                  =   cache[0]->core->get_size;
+    gint64    (*get_size)      (struct cache*)                  =   cache[0]->core->get_size;
     
     read_one_element(reader_thread, cp);
     
@@ -265,7 +266,7 @@ static void profiler_partition_thread(gpointer data, gpointer user_data){
         // evict after adjustment
         for(i=0; i<n_partition; i++){
             // can't use while here, because ?
-            while (get_size(cache[i]) > cache[i]->core->size){
+            while ((long)get_size(cache[i]) > cache[i]->core->size){
                 evict_element(cache[i], cp);
                 partition->current_partition[i] --;
             }
@@ -349,7 +350,7 @@ return_res** profiler_partition(reader_t* reader_in, struct_cache* cache_in, int
     int num_of_threads = num_of_threads_in;
     int bin_size = bin_size_in;
     
-    long num_of_bins = ceil(cache_in->core->size/bin_size)+1;
+    long num_of_bins = ceil((double) cache_in->core->size/bin_size)+1;
     
     
     // create the result storage area and caches of varying sizes

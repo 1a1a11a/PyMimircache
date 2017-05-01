@@ -77,6 +77,38 @@ gboolean fifo_add_element(struct_cache* cache, cache_line* cp){
 
 
 
+gboolean fifo_add_element_only(struct_cache* cache, cache_line* cp){
+    return fifo_add_element(cache, cp);
+}
+
+
+gboolean fifo_add_element_withsize(struct_cache* cache, cache_line* cp){
+    int i, n = 0;
+    gint64 original_lbn = *(gint64*)(cp->item_p);
+    gboolean ret_val;
+    
+    if (cache->core->block_unit_size != 0){
+        *(gint64*)(cp->item_p) = (gint64) (*(gint64*)(cp->item_p) *
+                                           DEFAULT_SECTOR_SIZE /
+                                           cache->core->block_unit_size);
+        n = (int)ceil((double) cp->size/cache->core->block_unit_size);
+    }
+    ret_val = fifo_add_element(cache, cp);
+    
+    
+    if (cache->core->block_unit_size != 0){
+        for (i=0; i<n-1; i++){
+            (*(guint64*)(cp->item_p)) ++;
+            fifo_add_element_only(cache, cp);
+        }
+    }
+
+    *(gint64*)(cp->item_p) = original_lbn;
+    return ret_val;
+}
+
+
+
 
 void fifo_destroy(struct_cache* cache){
     struct FIFO_params* fifo_params = (struct FIFO_params*)(cache->cache_params);
@@ -99,8 +131,8 @@ void fifo_destroy_unique(struct_cache* cache){
 }
 
 
-struct_cache* fifo_init(guint64 size, char data_type, void* params){
-    struct_cache *cache = cache_init(size, data_type);
+struct_cache* fifo_init(guint64 size, char data_type, int block_size, void* params){
+    struct_cache *cache = cache_init(size, data_type, block_size); 
     cache->cache_params = g_new0(struct FIFO_params, 1);
     struct FIFO_params* fifo_params = (struct FIFO_params*)(cache->cache_params);
     
@@ -115,6 +147,8 @@ struct_cache* fifo_init(guint64 size, char data_type, void* params){
     cache->core->__update_element           =       __fifo_update_element;
     cache->core->__evict_with_return        =       __fifo__evict_with_return;
     cache->core->get_size                   =       fifo_get_size; 
+    cache->core->add_element_only           =       fifo_add_element; 
+    cache->core->add_element_withsize       =       fifo_add_element_withsize; 
     
     cache->core->cache_init_params = NULL;
 
@@ -138,7 +172,7 @@ struct_cache* fifo_init(guint64 size, char data_type, void* params){
 }
 
 
-uint64_t fifo_get_size(struct_cache *cache){
+gint64 fifo_get_size(struct_cache *cache){
     struct FIFO_params* fifo_params = (struct FIFO_params*)(cache->cache_params);
     return g_hash_table_size(fifo_params->hashtable);
 }

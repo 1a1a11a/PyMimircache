@@ -248,8 +248,8 @@ void LFU_fast_destroy_unique(struct_cache* cache){
 
 
 
-struct_cache* LFU_fast_init(guint64 size, char data_type, void* params){
-    struct_cache* cache = cache_init(size, data_type);
+struct_cache* LFU_fast_init(guint64 size, char data_type, int block_size, void* params){
+    struct_cache* cache = cache_init(size, data_type, block_size);
     LFU_fast_params_t* LFU_fast_params = g_new0(LFU_fast_params_t, 1);
     cache->cache_params = (void*) LFU_fast_params;
     
@@ -266,6 +266,7 @@ struct_cache* LFU_fast_init(guint64 size, char data_type, void* params){
     cache->core->__evict_with_return=   __LFU_fast__evict_with_return;
     cache->core->get_size           =   LFU_fast_get_size;
     cache->core->cache_init_params  =   NULL;
+    cache->core->add_element_only   =   LFU_fast_add_element;
     
 
     if (data_type == 'l'){
@@ -292,7 +293,7 @@ struct_cache* LFU_fast_init(guint64 size, char data_type, void* params){
 }
 
 
-uint64_t LFU_fast_get_size(struct_cache* cache){
+gint64 LFU_fast_get_size(struct_cache* cache){
     LFU_fast_params_t* LFU_fast_params = (LFU_fast_params_t*)(cache->cache_params);
     return (guint64) g_hash_table_size(LFU_fast_params->hashtable);
 }

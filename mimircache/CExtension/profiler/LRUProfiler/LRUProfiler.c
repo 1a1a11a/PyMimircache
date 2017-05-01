@@ -153,6 +153,126 @@ guint64* get_hit_count_seq(reader_t* reader,
     
 }
 
+
+guint64* get_hitcount_withsize_seq(reader_t* reader, gint64 size, int block_unit_size){
+    /* allow variable size of request */
+    
+    guint64 ts=0;
+    gint64 reuse_dist;
+    guint64 * hit_count_array;
+    int n, i;
+    
+    if (reader->base->total_num == -1)
+        get_num_of_cache_lines(reader);
+    
+    if (size == -1)
+        size = reader->base->total_num;
+    
+    /* for a cache_size=size, we need size+1 bucket for size 0~size(included),
+     * the last element(size+1) is used for storing count of reuse distance > size
+     * if size==reader->base->total_num, then the last two is not used
+     */
+    hit_count_array = g_new0(guint64, size+3);
+    
+    
+    // create cache lize struct and initialization
+    cache_line* cp = new_cacheline();
+    
+    // create hashtable
+    GHashTable * hash_table;
+    if (reader->base->type == 'v'){
+        cp->type = 'l';
+        hash_table = g_hash_table_new_full(g_int64_hash, g_int64_equal, \
+                                           (GDestroyNotify)simple_g_key_value_destroyer, \
+                                           (GDestroyNotify)simple_g_key_value_destroyer);
+    }
+    else{
+        cp->type = 'c';
+        hash_table = g_hash_table_new_full(g_str_hash, g_str_equal, \
+                                           (GDestroyNotify)simple_g_key_value_destroyer, \
+                                           (GDestroyNotify)simple_g_key_value_destroyer);
+    }
+    
+    // create splay tree
+    sTree* splay_tree = NULL;
+    
+    
+    read_one_element(reader, cp);
+    while (cp->valid){
+        *(gint64*)(cp->item_p) = (gint64) (*(gint64*)(cp->item_p) * DEFAULT_SECTOR_SIZE / block_unit_size);
+
+        splay_tree = process_one_element(cp, splay_tree, hash_table, ts, &reuse_dist);
+        if (reuse_dist == -1)
+            hit_count_array[size+2] += 1;
+        else if (reuse_dist>=size)
+            hit_count_array[size+1] += 1;
+        else
+            hit_count_array[reuse_dist+1] += 1;
+
+        // new 170428
+        n = (int)ceil((double) cp->size/block_unit_size);
+        
+        for (i=0; i<n-1; i++){
+            ts++;
+            (*(guint64*)(cp->item_p)) ++;
+            splay_tree = process_one_element(cp, splay_tree, hash_table, ts, &reuse_dist);
+        }
+        // end
+        
+        ts++;
+        read_one_element(reader, cp);
+    }
+    
+    // clean up
+    destroy_cacheline(cp);
+    g_hash_table_destroy(hash_table);
+    free_sTree(splay_tree);
+    reset_reader(reader);
+    return hit_count_array;
+    
+    
+}
+
+
+double* get_hitrate_withsize_seq(reader_t* reader,
+                                gint64 size,
+                                int block_size){
+    int i=0;
+    if (reader->base->total_num == -1)
+        reader->base->total_num = get_num_of_cache_lines(reader);
+    
+    if (size == -1)
+        size = reader->base->total_num;
+    
+    if (reader->udata->hit_rate && size==reader->base->total_num)
+        return reader->udata->hit_rate;
+    
+    
+    guint64* hit_count_array = get_hitcount_withsize_seq(reader, size, block_size);
+    double total_num = (double)(reader->base->total_num);
+    
+    
+    
+    double* hit_rate_array = g_new(double, size+3);
+    hit_rate_array[0] = hit_count_array[0]/total_num;
+    for (i=1; i<size+1; i++){
+        hit_rate_array[i] = hit_count_array[i]/total_num + hit_rate_array[i-1];
+    }
+    // larger than given cache size
+    hit_rate_array[size+1] = hit_count_array[size+1]/total_num;
+    // cold miss
+    hit_rate_array[size+2] = hit_count_array[size+2]/total_num;
+    
+    g_free(hit_count_array);
+    if (size==reader->base->total_num)
+        reader->udata->hit_rate = hit_rate_array;
+    
+    return hit_rate_array;
+}
+
+
+
+
 guint64* get_hit_count_seq_shards(reader_t* reader,
                                   gint64 size,
                                   double sample_ratio,
@@ -221,7 +341,7 @@ guint64* get_hit_count_seq_shards(reader_t* reader,
         ts++;
     }
     if (correction != 0){
-        if (correction<0 && -correction > hit_count_array[0])
+        if (correction<0 && -correction > (long) hit_count_array[0])
             hit_count_array[0] = 0;
         else
             hit_count_array[0] += correction;
@@ -444,7 +564,7 @@ gint64* get_future_reuse_dist(reader_t* reader, gint64 begin, gint64 end){
      *  returned by this function.
      */
     
-    guint64 ts = 0, max_rd = 0;
+    gint64 ts = 0, max_rd = 0;
     gint64 reuse_dist;
     
     if (reader->base->total_num == -1)
@@ -498,7 +618,7 @@ gint64* get_future_reuse_dist(reader_t* reader, gint64 begin, gint64 end){
     read_one_element(reader, cp);
     set_no_eof(reader);
     while (cp->valid){
-        if (ts==reader->base->total_num)
+        if (ts == reader->base->total_num)
             break;
         
         splay_tree = process_one_element(cp, splay_tree, hash_table,
@@ -510,7 +630,7 @@ gint64* get_future_reuse_dist(reader_t* reader, gint64 begin, gint64 end){
         reuse_dist_array[end-begin-1-ts] = reuse_dist;
         if (reuse_dist > (gint64) max_rd)
             max_rd = reuse_dist;
-        if (ts >= (guint64) end-begin)
+        if (ts >= end-begin)
             break;
         read_one_element_above(reader, cp);
         ts++;

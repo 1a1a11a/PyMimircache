@@ -9,11 +9,14 @@ import mimircache.c_cacheReader as c_cacheReader
 class cacheReaderAbstract(metaclass=abc.ABCMeta):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, file_loc, data_type='c'):
+    def __init__(self, file_loc, data_type='c', block_unit_size=0):
         self.file_loc = file_loc
         self.trace_file = None
         self.cReader = None
         self.data_type = data_type
+        self.block_unit_size = block_unit_size
+        if self.block_unit_size != 0:
+            assert data_type == 'l', "block size option only support on block request(data type l)"
         assert (os.path.exists(file_loc)), "data file({}) does not exist".format(file_loc)
 
         self.counter = 0

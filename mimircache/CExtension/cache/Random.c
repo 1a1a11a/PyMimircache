@@ -98,8 +98,8 @@ void Random_destroy_unique(struct_cache* cache){
 
 
 
-struct_cache* Random_init(guint64 size, char data_type, void* params){
-    struct_cache* cache = cache_init(size, data_type);
+struct_cache* Random_init(guint64 size, char data_type, int block_size, void* params){
+    struct_cache* cache = cache_init(size, data_type, block_size); 
     struct Random_params* Random_params = g_new0(struct Random_params, 1);
     cache->cache_params = (void*) Random_params;
     
@@ -109,6 +109,8 @@ struct_cache* Random_init(guint64 size, char data_type, void* params){
     cache->core->destroy_unique = Random_destroy_unique;
     cache->core->add_element = Random_add_element;
     cache->core->check_element = Random_check_element;
+    cache->core->add_element_only = Random_add_element;
+    
     
     
     if (data_type == 'l'){

@@ -129,7 +129,7 @@ void* __optimal_evict_with_return(struct_cache* optimal, cache_line* cp){
 }
 
 
-uint64_t optimal_get_size(struct_cache* cache){
+gint64 optimal_get_size(struct_cache* cache){
     optimal_params_t* optimal_params = (optimal_params_t*)(cache->cache_params);
     return (guint64) g_hash_table_size(optimal_params->hashtable);
 }
@@ -164,6 +164,51 @@ gboolean optimal_add_element(struct_cache* cache, cache_line* cp){
 }
 
 
+gboolean optimal_add_element_only(struct_cache* cache, cache_line* cp){
+    optimal_params_t* optimal_params = (optimal_params_t*)(cache->cache_params);
+    
+    if (optimal_check_element(cache, cp)){
+        __optimal_update_element(cache, cp);
+        (optimal_params->ts) ++ ;   // do not move
+        return TRUE;
+    }
+    else{
+        __optimal_insert_element(cache, cp);
+        if ( (long)g_hash_table_size( optimal_params->hashtable) > cache->core->size)
+            __optimal_evict_element(cache, cp);
+        (optimal_params->ts) ++ ;
+        return FALSE;
+    }
+}
+
+
+gboolean optimal_add_element_withsize(struct_cache* cache, cache_line* cp){
+    int i, n = 0;
+    gint64 original_lbn = *(gint64*)(cp->item_p);
+    gboolean ret_val;
+    
+    if (cache->core->block_unit_size != 0){
+        *(gint64*)(cp->item_p) = (gint64) (*(gint64*)(cp->item_p) *
+                                           DEFAULT_SECTOR_SIZE /
+                                           cache->core->block_unit_size);
+        n = (int)ceil((double) cp->size/cache->core->block_unit_size);
+    }
+    ret_val = optimal_add_element(cache, cp);
+    
+    
+    if (cache->core->block_unit_size != 0){
+        for (i=0; i<n-1; i++){
+            (*(guint64*)(cp->item_p)) ++;
+            optimal_add_element_only(cache, cp);
+        }
+    }
+    
+    *(gint64*)(cp->item_p) = original_lbn;
+    return ret_val;
+}
+
+
+
  void optimal_destroy(struct_cache* cache){
     optimal_params_t* optimal_params = (optimal_params_t*)(cache->cache_params);
 
@@ -195,9 +240,9 @@ gboolean optimal_add_element(struct_cache* cache, cache_line* cp){
 
 
 
-struct_cache* optimal_init(guint64 size, char data_type, void* params){
+struct_cache* optimal_init(guint64 size, char data_type, int block_size, void* params){
 #define pq_size_multiplier 10       // ??? WHY
-    struct_cache* cache = cache_init(size, data_type);
+    struct_cache* cache = cache_init(size, data_type, block_size);
     
     optimal_params_t* optimal_params = g_new0(optimal_params_t, 1);
     cache->cache_params = (void*) optimal_params;
@@ -214,6 +259,8 @@ struct_cache* optimal_init(guint64 size, char data_type, void* params){
     cache->core->__evict_element        =   __optimal_evict_element;
     cache->core->__evict_with_return    =   __optimal_evict_with_return;
     cache->core->get_size               =   optimal_get_size;
+    cache->core->add_element_only       =   optimal_add_element_only; 
+    cache->core->add_element_withsize   =   optimal_add_element_withsize; 
 
     
     

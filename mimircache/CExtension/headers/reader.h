@@ -65,6 +65,7 @@ typedef struct{
     char type;                              /* type of content can be either guint64(l) or char*(c) */
     guint64 ts;                             /* deprecated, should not use, virtual timestamp */
     size_t size;
+    size_t block_unit_size;             
     int op;
     guint64 real_time;
     gboolean valid;
@@ -85,6 +86,10 @@ typedef struct reader_base{
     char type;                              /* possible types: c(csv), v(vscsi),
                                              * p(plain text), b(binaryReader)  */
     char data_type;                         /* possible types: l(guint64), c(char*) */
+    int block_unit_size;                         /* used when consider variable request size 
+                                             * it is size of basic unit of a big request, 
+                                             * in CPHY data, it is 512 bytes */
+                                            /* currently not used */
     
     FILE* file;
     char file_loc[FILE_LOC_STR_SIZE];
@@ -148,6 +153,7 @@ typedef struct reader{
 reader_t* setup_reader(const char* file_loc,
                        const char file_type,
                        const char data_type,
+                       const int block_size, 
                        const void* const setup_params);
 
 void read_one_element(reader_t *const reader,
@@ -238,16 +244,16 @@ static inline gboolean find_line_ending(reader_t *const reader,
     // currently line_end points to LFCR
     *line_len = (void*)*line_end - (reader->base->mapped_file + reader->base->offset);
     
-    while ( (void*)*line_end - reader->base->mapped_file < reader->base->file_size-1
+    while ( (long) ((void*)*line_end - reader->base->mapped_file) < (long) (reader->base->file_size) - 1
            && (*(*line_end+1) == CSV_CR || *(*line_end+1) == CSV_LF ||
             *(*line_end+1) == CSV_TAB || *(*line_end+1) == CSV_SPACE) ){
         (*line_end) ++;
-        if ((void*)*line_end - reader->base->mapped_file == reader->base->file_size-1){
+        if ( (long)( (void*)*line_end - reader->base->mapped_file) == (long) (reader->base->file_size) - 1){
             reader->base->record_size = *line_len;
             return TRUE;
         }
     }
-    if ((void*)*line_end - reader->base->mapped_file == reader->base->file_size-1){
+    if ( (long) ((void*)*line_end - reader->base->mapped_file) == (long) (reader->base->file_size) - 1){
         reader->base->record_size = *line_len;
         return TRUE;
     }

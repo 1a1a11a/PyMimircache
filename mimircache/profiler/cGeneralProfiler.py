@@ -147,12 +147,14 @@ class cGeneralProfiler:
     def plotHRC(self, figname="HRC.png", **kwargs):
         HRC = self.get_hit_rate(**kwargs)
         try:
-            # tick = ticker.FuncFormatter(lambda x, pos: '{:2.0f}'.format(x * self.bin_size))
-            # plt.gca().xaxis.set_major_formatter(tick)
-
             plt.xlim(0, self.cache_size)
             plt.plot(range(0, self.cache_size + 1, self.bin_size), HRC)
-            plt.xlabel("cache Size")
+            if 'block_unit_size' in self.cache_params:
+                plt.xlabel("Cache Size (MB)")
+                plt.gca().xaxis.set_major_formatter(
+                    ticker.FuncFormatter(lambda x, p: int(x * self.cache_params['block_unit_size'] // 1024 // 1024)))
+            else:
+                plt.xlabel("Cache Size")
             plt.ylabel("Hit Ratio")
             plt.title('Hit Ratio Curve', fontsize=18, color='black')
             plt.savefig(figname, dpi=600)

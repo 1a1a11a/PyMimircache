@@ -61,69 +61,6 @@ void __ARC_update_element(struct_cache* cache, cache_line* cp){
 
 void __ARC_evict_element(struct_cache* cache, cache_line* cp){
     ARC_params_t* ARC_params = (ARC_params_t*)(cache->cache_params);
-
-//    if (ARC->core->cache_debug_level == 2){     // compare to Oracle
-//        while (ARC_params->ts > g_array_index(ARC->core->bp->array, guint64, ARC->core->bp_pos)){
-//            if ( g_array_index(ARC->core->bp->array, guint64, ARC->core->bp_pos) -
-//                g_array_index(ARC->core->bp->array, guint64, ARC->core->bp_pos-1) != 0 ){
-//                
-//                ARC->core->evict_err_array[ARC->core->bp_pos-1] = ARC->core->evict_err /
-//                    (g_array_index(ARC->core->bp->array, guint64, ARC->core->bp_pos) -
-//                        g_array_index(ARC->core->bp->array, guint64, ARC->core->bp_pos-1));
-//                ARC->core->evict_err = 0;
-//            }
-//            else
-//                ARC->core->evict_err_array[ARC->core->bp_pos-1] = 0;
-//            
-//            ARC->core->evict_err = 0;
-//            ARC->core->bp_pos++;
-//        }
-//        
-//        if (ARC_params->ts == g_array_index(ARC->core->bp->array, guint64, ARC->core->bp_pos)){
-//            ARC->core->evict_err_array[ARC->core->bp_pos-1] = (double)ARC->core->evict_err /
-//            (g_array_index(ARC->core->bp->array, guint64, ARC->core->bp_pos) -
-//             g_array_index(ARC->core->bp->array, guint64, ARC->core->bp_pos-1));
-//            ARC->core->evict_err = 0;
-//            ARC->core->bp_pos ++;
-//        }
-//            
-//        gpointer data = g_queue_peek_head(ARC_params->list);
-//        if (cp->type == 'l'){
-//            if (*(guint64*)(data) != ((guint64*)ARC->core->oracle)[ARC_params->ts]){
-//                printf("error at %lu, ARC: %lu, Optimal: %lu\n", ARC_params->ts, *(guint64*)(data), ((guint64*)ARC->core->oracle)[ARC_params->ts]);
-//                ARC->core->evict_err ++;
-//            }
-//            else
-//                printf("no error at %lu: %lu, %lu\n", ARC_params->ts, *(guint64*)(data), *(guint64*)(g_queue_peek_tail(ARC_params->list)));
-//            gpointer data_oracle = g_hash_table_lookup(ARC_params->hashtable, (gpointer)&((guint64* )ARC->core->oracle)[ARC_params->ts]);
-//            g_queue_delete_link(ARC_params->list, (GList*)data_oracle);
-//            g_hash_table_remove(ARC_params->hashtable, (gpointer)&((guint64*)ARC->core->oracle)[ARC_params->ts]);
-//        }
-//        else{
-//            if (strcmp((gchar*)data, ((gchar**)(ARC->core->oracle))[ARC_params->ts]) != 0)
-//                ARC->core->evict_err ++;
-//            gpointer data_oracle = g_hash_table_lookup(ARC_params->hashtable, (gpointer)((gchar**)ARC->core->oracle)[ARC_params->ts]);
-//            g_hash_table_remove(ARC_params->hashtable, (gpointer)((gchar**)ARC->core->oracle)[ARC_params->ts]);
-//            g_queue_remove(ARC_params->list, ((GList*) data_oracle)->data);
-//        }
-//        
-//    }
-//    
-//    else if (ARC->core->cache_debug_level == 1){
-//        // record eviction list
-//        
-//        gpointer data = g_queue_pop_head(ARC_params->list);
-//        if (cp->type == 'l'){
-//            ((guint64*)(ARC->core->eviction_array))[ARC_params->ts] = *(guint64*)(data);
-//        }
-//        else{
-//            gchar* key = g_strdup((gchar*)(data));
-//            ((gchar**)(ARC->core->eviction_array))[ARC_params->ts] = key;
-//        }
-//
-//        g_hash_table_remove(ARC_params->hashtable, (gconstpointer)data);
-//    }
-
     
     /* check whether it is a hit on LRU1g or LRU2g,
      * if yes, evcit from the other LRU segments 
@@ -133,7 +70,7 @@ void __ARC_evict_element(struct_cache* cache, cache_line* cp){
      */
     gpointer evicted_item, old_cp_itemp;
     struct_cache* evicted_from, *remove_ghost, *add_ghost;
-    uint64_t* size;
+    gint64* size;
     if (ARC_params->LRU1g->core->check_element(ARC_params->LRU1g, cp)){
         // hit on LRU1g, evict from LRU2 and remove from LRU1g,
         // then add evicted to LRU2g
@@ -287,8 +224,8 @@ void ARC_destroy_unique(struct_cache* cache){
 }
 
 
-struct_cache* ARC_init(guint64 size, char data_type, void* params){
-    struct_cache *cache = cache_init(size, data_type);
+struct_cache* ARC_init(guint64 size, char data_type, int block_size, void* params){
+    struct_cache *cache = cache_init(size, data_type, block_size);
     cache->cache_params = g_new0(struct ARC_params, 1);
     ARC_params_t* ARC_params = (ARC_params_t*)(cache->cache_params);
     ARC_init_params_t* init_params = (ARC_init_params_t*)params;
@@ -305,15 +242,16 @@ struct_cache* ARC_init(guint64 size, char data_type, void* params){
     cache->core->__evict_with_return    =       __ARC__evict_with_return;
     cache->core->get_size               =       ARC_get_size;
     cache->core->cache_init_params      =       params;
+    cache->core->add_element_only       =       ARC_add_element; 
 
     ARC_params->ghost_list_factor = init_params->ghost_list_factor;
     
-    ARC_params->LRU1    =   LRU_init(size, data_type, NULL);
+    ARC_params->LRU1    =   LRU_init(size, data_type, block_size, NULL);
     ARC_params->LRU1g   =   LRU_init(size * ARC_params->ghost_list_factor,
-                                     data_type, NULL);
-    ARC_params->LRU2    =   LRU_init(size, data_type, NULL);
+                                     data_type, block_size, NULL);
+    ARC_params->LRU2    =   LRU_init(size, data_type, block_size, NULL);
     ARC_params->LRU2g   =   LRU_init(size * ARC_params->ghost_list_factor,
-                                     data_type, NULL);
+                                     data_type, block_size, NULL);
 
     return cache;
 }
@@ -321,7 +259,7 @@ struct_cache* ARC_init(guint64 size, char data_type, void* params){
 
 
 
-uint64_t ARC_get_size(struct_cache* cache){
+gint64 ARC_get_size(struct_cache* cache){
     ARC_params_t* ARC_params = (ARC_params_t*)(cache->cache_params);
     return (uint64_t)(ARC_params->size1 + ARC_params->size2);
 }

@@ -12,12 +12,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <glib.h>
+#include <math.h> 
 #include "splay.h"
 #include "reader.h"
 #include "glib_related.h" 
 #include "const.h" 
 #include "pqueue.h"
-
 
 
 
@@ -32,5 +32,8 @@ double* get_hit_rate_seq_shards(reader_t* reader,
                                 gint64 size,
                                 double sample_ratio,
                                 gint64 correction); 
+
+guint64* get_hitcount_withsize_seq(reader_t* reader, gint64 size, int block_size); 
+double* get_hitrate_withsize_seq(reader_t* reader, gint64 size, int block_size);
 
 #endif /* LRUAnalyzer_h */

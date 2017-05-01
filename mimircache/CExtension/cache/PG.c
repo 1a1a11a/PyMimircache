@@ -338,7 +338,43 @@ gboolean PG_add_element(struct_cache* PG, cache_line* cp){
 }
  
  
- 
+gboolean PG_add_element_only(struct_cache* PG, cache_line* cp){
+    if (PG_check_element(PG, cp)){
+        __PG_update_element(PG, cp);
+        return TRUE;
+    }
+    else{
+        __PG_insert_element(PG, cp);
+        while ( PG_get_size(PG) > PG->core->size)
+            __PG_evict_element(PG, cp);
+        return FALSE;
+    }
+}
+
+
+gboolean PG_add_element_withsize(struct_cache* cache, cache_line* cp){
+    int i;
+    gboolean ret_val;
+    
+    *(gint64*)(cp->item_p) = (gint64) (*(gint64*)(cp->item_p) *
+                                       DEFAULT_SECTOR_SIZE /
+                                       cache->core->block_unit_size);
+    ret_val = PG_add_element(cache, cp);
+    
+    int n = (int)ceil((double) cp->size/cache->core->block_unit_size);
+    
+    for (i=0; i<n-1; i++){
+        (*(guint64*)(cp->item_p)) ++;
+        PG_add_element_only(cache, cp);
+    }
+    *(gint64*)(cp->item_p) -= (n-1); 
+    return ret_val;
+}
+
+
+
+
+
  
 void PG_destroy(struct_cache* PG){
     PG_params_t* PG_params = (PG_params_t*)(PG->cache_params);
@@ -382,9 +418,9 @@ void PG_destroy_unique(struct_cache* PG){
 
 
 
-struct_cache* PG_init(guint64 size, char data_type, void* params){
+struct_cache* PG_init(guint64 size, char data_type, int block_size, void* params){
     
-    struct_cache *cache                 =       cache_init(size, data_type);
+    struct_cache *cache                 =       cache_init(size, data_type, block_size);
     cache->cache_params                 =       g_new0(PG_params_t, 1);
     PG_params_t* PG_params              =       (PG_params_t*)(cache->cache_params);
     PG_init_params_t* init_params       =       (PG_init_params_t*) params;
@@ -399,6 +435,8 @@ struct_cache* PG_init(guint64 size, char data_type, void* params){
     cache->core->__update_element       =       __PG_update_element;
     cache->core->__evict_element        =       __PG_evict_element;
     cache->core->__evict_with_return    =       __PG__evict_with_return;
+    cache->core->add_element_only       =       PG_add_element_only;
+    cache->core->add_element_withsize   =       PG_add_element_withsize; 
     
     cache->core->get_size               =       PG_get_size;
     cache->core->cache_init_params      =       params;
@@ -413,9 +451,9 @@ struct_cache* PG_init(guint64 size, char data_type, void* params){
     
 
     if (strcmp(init_params->cache_type, "LRU") == 0)
-        PG_params->cache = LRU_init(size, data_type, NULL);
+        PG_params->cache = LRU_init(size, data_type, block_size, NULL);
     else if (strcmp(init_params->cache_type, "FIFO") == 0)
-        PG_params->cache = fifo_init(size, data_type, NULL);
+        PG_params->cache = fifo_init(size, data_type, block_size, NULL);
     else if (strcmp(init_params->cache_type, "Optimal") == 0){
         struct optimal_init_params *optimal_init_params = g_new(struct optimal_init_params, 1);
         optimal_init_params->reader = NULL;
@@ -423,7 +461,7 @@ struct_cache* PG_init(guint64 size, char data_type, void* params){
     }
     else{
         fprintf(stderr, "can't recognize cache type: %s\n", init_params->cache_type);
-        PG_params->cache = LRU_init(size, data_type, NULL);
+        PG_params->cache = LRU_init(size, data_type, block_size, NULL);
     }
 
 
@@ -462,7 +500,7 @@ struct_cache* PG_init(guint64 size, char data_type, void* params){
 
 
 
-uint64_t PG_get_size(struct_cache* cache){
+gint64 PG_get_size(struct_cache* cache){
     PG_params_t* PG_params = (PG_params_t*)(cache->cache_params);
     return PG_params->cache->core->get_size(PG_params->cache);
 }

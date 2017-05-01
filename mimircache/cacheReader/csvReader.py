@@ -7,8 +7,8 @@ from mimircache.cacheReader.abstractReader import cacheReaderAbstract
 
 
 class csvReader(cacheReaderAbstract):
-    def __init__(self, file_loc, data_type='c', init_params=None, open_c_reader=True):
-        super(csvReader, self).__init__(file_loc, data_type)
+    def __init__(self, file_loc, data_type='c', init_params=None, block_unit_size=0, open_c_reader=True):
+        super(csvReader, self).__init__(file_loc, data_type, block_unit_size)
         assert init_params is not None, "please provide init_param for csvReader"
         assert "label_column" in init_params, "please provide label_column for csv reader"
 
@@ -16,6 +16,9 @@ class csvReader(cacheReaderAbstract):
         self.init_params = init_params
         self.label_column = init_params['label_column']
         self.time_column = init_params.get("real_time_column", -1)
+
+        if block_unit_size != 0:
+            assert "size_column" in init_params, "please provide size_column option to consider request size"
 
         self.header_bool = init_params.get('header', False)
         self.delimiter = init_params.get('delimiter', ',')
@@ -25,7 +28,9 @@ class csvReader(cacheReaderAbstract):
             self.read_one_element()
 
         if open_c_reader:
-            self.cReader = c_cacheReader.setup_reader(file_loc, 'c', data_type=data_type, init_params=init_params)
+            self.cReader = c_cacheReader.setup_reader(file_loc, 'c', data_type=data_type,
+                                                      block_unit_size=block_unit_size,
+                                                      init_params=init_params)
 
 
     def read_one_element(self):

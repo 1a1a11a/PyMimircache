@@ -1,5 +1,5 @@
 //
-//  cache.h
+//  cache.c
 //  mimircache
 //
 //  Created by Juncheng on 6/2/16.
@@ -67,16 +67,20 @@ void cache_destroy_unique(struct_cache* cache){
 }
 
 
-struct_cache* cache_init(long long size, char data_type){
+struct_cache* cache_init(long long size, char data_type, int block_unit_size){
     struct_cache *cache = g_new0(struct_cache, 1);
     cache->core = g_new0(struct cache_core, 1);
     cache->core->size = size;
     cache->core->cache_init_params = NULL;
     cache->core->data_type = data_type;
-    
+    if (block_unit_size != 0 && block_unit_size != -1){
+        cache->core->consider_size = TRUE;
+        cache->core->block_unit_size = block_unit_size;
+    }
+    else {
+        cache->core->consider_size = FALSE;
+        cache->core->block_unit_size = 0;
+    }
     return cache;
 }
 
-//guint64 get_current_size(struct_cache* cache){
-//    return 0;
-//}

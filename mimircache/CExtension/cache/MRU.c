@@ -83,8 +83,8 @@ void MRU_destroy_unique(struct_cache* cache){
 
 
 
-struct_cache* MRU_init(guint64 size, char data_type, void* params){
-    struct_cache* cache = cache_init(size, data_type);
+struct_cache* MRU_init(guint64 size, char data_type, int block_size, void* params){
+    struct_cache* cache = cache_init(size, data_type, block_size); 
     struct MRU_params* MRU_params = g_new0(struct MRU_params, 1);
     cache->cache_params = (void*) MRU_params;
     
@@ -94,7 +94,8 @@ struct_cache* MRU_init(guint64 size, char data_type, void* params){
     cache->core->destroy_unique = MRU_destroy_unique;
     cache->core->add_element = MRU_add_element;
     cache->core->check_element = MRU_check_element;
-    
+    cache->core->add_element_only = MRU_add_element;
+
     
     if (data_type == 'l'){
         MRU_params->hashtable = g_hash_table_new_full(g_int64_hash, g_int64_equal, simple_g_key_value_destroyer, NULL);

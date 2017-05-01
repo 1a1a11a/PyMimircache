@@ -1,4 +1,16 @@
+//
+//  const.h
+//  mimircache
+//
+//  Created by Juncheng on 6/2/16.
+//  Copyright © 2016 Juncheng. All rights reserved.
+//
 
+
+
+
+#ifndef CONST_H 
+#define CONST_H
 
 #define cache_line_label_size 1024
 #define CACHE_LINE_LABEL_SIZE 1024
@@ -28,10 +40,13 @@
 #define NORMAL_REUSE_DISTANCE                           1
 #define FUTURE_REUSE_DISTANCE                           2
 
+#define DEFAULT_SECTOR_SIZE                             512
 
 
-#define SANITY_CHECK 1
-#define _DEBUG
+
+
+#define SANITY_CHECK 1 
+//#define _DEBUG
 #define ML
 #undef ML 
 
@@ -64,3 +79,5 @@ fprintf(stderr, __VA_ARGS__);}
     {fprintf(stderr, "[ERROR]: %s:%d:%s: ", __FILE__, __LINE__, __func__); \
     fprintf(stderr,  __VA_ARGS__);}
 
+
+#endif 

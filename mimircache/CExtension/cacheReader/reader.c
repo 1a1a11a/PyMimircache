@@ -27,6 +27,7 @@
 reader_t* setup_reader(const char* file_loc,
                        const char file_type,
                        const char data_type,
+                       const int block_unit_size,
                        const void* const setup_params){
     /* setup the reader struct for reading trace
      file_type: c: csv, v: vscsi, p: plain text, b: binary
@@ -49,6 +50,7 @@ reader_t* setup_reader(const char* file_loc,
     reader->udata->hit_rate = NULL;
     
     reader->base->total_num = -1;
+    reader->base->block_unit_size = block_unit_size;
     reader->base->data_type = data_type;
     reader->base->init_params = NULL;
     reader->base->offset = 0;
@@ -152,7 +154,7 @@ void read_one_element(reader_t *const reader, cache_line *const c){
     if (reader->base->data_type == 'l' &&
         (reader->base->type == 'c' || reader->base->type == 'p')){
         guint64 n = atoll(c->item);
-        *(guint64*) (c->item_p) = n; 
+        *(guint64*) (c->item_p) = n + 1; // this is to avoid some of the block number is 0 
     }
 }
 
@@ -401,7 +403,8 @@ reader_t* clone_reader(reader_t *const reader_in){
     /* this function clone the given reader to give an exactly same reader */
     
     reader_t *const reader = setup_reader(reader_in->base->file_loc, reader_in->base->type,
-                                    reader_in->base->data_type, reader_in->base->init_params);
+                                          reader_in->base->data_type, reader_in->base->block_unit_size,
+                                          reader_in->base->init_params); 
     memcpy(reader->sdata, reader_in->sdata, sizeof(reader_data_share_t));
     
     // this is not ideal, but we don't want to multiple mapped files
@@ -604,7 +607,8 @@ guint64 read_one_request_size(reader_t *const reader){
 cache_line* new_cacheline(){
     cache_line* cp = g_new0(cache_line, 1);
     cp->op = -1;
-    cp->size = -1;
+    cp->size = 0;
+    cp->block_unit_size = 0;
     cp->valid = TRUE;
     cp->item_p = (gpointer)cp->item;
     cp->ts = 0; 

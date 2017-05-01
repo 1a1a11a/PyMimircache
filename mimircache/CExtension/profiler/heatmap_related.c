@@ -41,6 +41,7 @@ GSList* get_last_access_dist_seq(reader_t* reader,
     // create cache lize struct and initialization
     cache_line* cp = new_cacheline();
     cp->type = reader->base->data_type;
+    cp->block_unit_size = (size_t) reader->base->block_unit_size;
 
     // create hashtable
     GHashTable * hash_table; 
@@ -148,7 +149,7 @@ GArray* gen_breakpoints_virtualtime(reader_t* reader,
     
     if (reader->sdata->break_points){
         if (reader->sdata->break_points->mode == 'v' &&
-            reader->sdata->break_points->time_interval == time_interval )
+            (long) reader->sdata->break_points->time_interval == time_interval )
             return reader->sdata->break_points->array;
         else{
             g_array_free(reader->sdata->break_points->array, TRUE);
@@ -156,12 +157,12 @@ GArray* gen_breakpoints_virtualtime(reader_t* reader,
         }
     }
     
-    guint i;
+    gint i;
     gint array_size = (gint) num_of_piexls;
     if (array_size==-1)
-        array_size = (gint) ceil( reader->base->total_num/time_interval + 1);
+        array_size = (gint) ceil((double) reader->base->total_num/time_interval + 1);
     else
-        time_interval = (gint) ceil( reader->base->total_num/num_of_piexls + 1);
+        time_interval = (gint) ceil((double) reader->base->total_num/num_of_piexls + 1);
 //    array_size ++ ;
     
     GArray* break_points = g_array_sized_new(FALSE, FALSE, sizeof(guint64), array_size);
@@ -231,7 +232,7 @@ GArray* gen_breakpoints_realtime(reader_t* reader,
     
     if (reader->sdata->break_points){
         if (reader->sdata->break_points->mode == 'r' &&
-            reader->sdata->break_points->time_interval == time_interval ){
+            (long) reader->sdata->break_points->time_interval == time_interval ){
             return reader->sdata->break_points->array;
         }
         else{
@@ -258,7 +259,7 @@ GArray* gen_breakpoints_realtime(reader_t* reader,
     if (num_of_piexls != -1 && time_interval == -1){
         reader_set_read_pos(reader, 1);
         read_one_element_above(reader, cp);
-        time_interval = (gint64) ceil( (cp->real_time - previous_time) /num_of_piexls + 1);
+        time_interval = (gint64) ceil( (double)(cp->real_time - previous_time) /num_of_piexls + 1);
         reader_set_read_pos(reader, 0);
         read_one_element(reader, cp);
     }

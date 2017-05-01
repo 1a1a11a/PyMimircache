@@ -121,8 +121,8 @@ void LRUPage_destroy_unique(struct_cache* cache){
 }
 
 
-struct_cache* LRUPage_init(guint64 size, char data_type, void* params){
-    struct_cache *cache = cache_init(size, data_type);
+struct_cache* LRUPage_init(guint64 size, char data_type, int block_size, void* params){
+    struct_cache *cache = cache_init(size, data_type, block_size);
     cache->cache_params = g_new0(struct LRUPage_params, 1);
     struct LRUPage_params* LRUPage_params = (struct LRUPage_params*)(cache->cache_params);
     
@@ -138,6 +138,7 @@ struct_cache* LRUPage_init(guint64 size, char data_type, void* params){
     cache->core->__evict_with_return=       __LRUPage__evict_with_return;
     cache->core->get_size           =       LRUPage_get_size;
     cache->core->cache_init_params  =       NULL;
+    cache->core->add_element_only   =       LRUPage_add_element;
 
     if (data_type == 'l'){
         LRUPage_params->hashtable   =   g_hash_table_new_full(g_int64_hash,
@@ -170,7 +171,7 @@ void LRUPage_remove_element(struct_cache* cache, void* data_to_remove){
     g_hash_table_remove(LRUPage_params->hashtable, data_to_remove);
 }
 
-uint64_t LRUPage_get_size(struct_cache* cache){
+gint64 LRUPage_get_size(struct_cache* cache){
     struct LRUPage_params* LRUPage_params = (struct LRUPage_params*)(cache->cache_params);
     return (guint64) g_hash_table_size(LRUPage_params->hashtable);
 }

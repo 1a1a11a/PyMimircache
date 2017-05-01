@@ -174,7 +174,7 @@ static PyObject* heatmap_computation(PyObject* self,
     
     // build cache
     if (strcmp(algorithm, "LRU") == 0){
-        cache = cache_init(cache_size, reader->base->type);
+        cache = cache_init(cache_size, reader->base->type, 0);
         cache->core->type = e_LRU;
     }
     else
@@ -274,7 +274,7 @@ static PyObject* differential_heatmap_with_Optimal(PyObject* self,
     
     // build cache
     if (strcmp(algorithm, "LRU") == 0){
-        cache = cache_init(cache_size, reader->base->type);
+        cache = cache_init(cache_size, reader->base->type, 0);
         cache->core->type = e_LRU;
     }
     else
@@ -295,7 +295,7 @@ static PyObject* differential_heatmap_with_Optimal(PyObject* self,
     }
     
     struct optimal_init_params init_params = {.reader=reader, .next_access=NULL, .ts=0};
-    struct_cache* optimal = optimal_init(cache_size, reader->base->type, (void*)&init_params);
+    struct_cache* optimal = optimal_init(cache_size, reader->base->type, 0, (void*)&init_params);
     
 
     
@@ -382,7 +382,7 @@ static PyObject* differential_heatmap_py(PyObject* self,
                 data_type= 'l';
             else
                 data_type = 'c';
-            cache[i] = cache_init(cache_size, data_type);
+            cache[i] = cache_init(cache_size, data_type, 0);
             cache[i]->core->type = e_LRU;
         }
         else

@@ -32,6 +32,7 @@ static void traverse_trace(reader_t* reader, struct_cache* cache){
     cache_line* cp = new_cacheline();
     
     cp->type = cache->core->data_type;
+    cp->block_unit_size = (size_t) reader->base->block_unit_size;
     
     gboolean (*add_element)(struct cache*, cache_line* cp);
     add_element = cache->core->add_element;

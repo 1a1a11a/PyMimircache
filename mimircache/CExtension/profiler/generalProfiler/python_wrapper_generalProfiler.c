@@ -49,7 +49,7 @@ static PyObject* generalProfiler_get_hit_rate(PyObject* self,
     if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osli|Oill", kwlist, &po,
                                      &algorithm, &cache_size, &bin_size,
                                      &cache_params, &num_of_threads, &begin, &end)) {
-        printf("parsing argument failed in generalProfiler_get_hit_rate\n");
+        ERROR("parsing argument failed in generalProfiler_get_hit_rate\n");
         return NULL;
     }
     
@@ -72,7 +72,7 @@ static PyObject* generalProfiler_get_hit_rate(PyObject* self,
     DEBUG_MSG("after profiling\n");
     
     // create numpy array 
-    guint num_of_bins = ceil(cache_size/bin_size)+1;
+    guint num_of_bins = ceil((double) cache_size/bin_size)+1;
     npy_intp dims[1] = { num_of_bins };
     PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
     guint i;
@@ -142,7 +142,7 @@ static PyObject* generalProfiler_get_hit_count(PyObject* self,
     DEBUG_MSG("after profiling\n");
     
     // create numpy array
-    guint num_of_bins = ceil(cache_size/bin_size)+1;
+    guint num_of_bins = ceil((double) cache_size/bin_size)+1;
     npy_intp dims[1] = { num_of_bins };
     PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_LONGLONG);
     guint64 i;
@@ -204,7 +204,7 @@ static PyObject* generalProfiler_get_miss_rate(PyObject* self,
     DEBUG_MSG("after profiling\n");
     
     // create numpy array
-    guint num_of_bins = ceil(cache_size/bin_size)+1;
+    guint num_of_bins = ceil((double) cache_size/bin_size)+1;
     npy_intp dims[1] = { num_of_bins };
     PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
     guint i;
@@ -357,10 +357,10 @@ static PyObject* generalProfiler_get_partition(PyObject* self,
     // create numpy array
     npy_intp dims[2] = { n_partitions, partitions->partition_history[0]->len };
     PyObject* ret_array = PyArray_SimpleNew(2, dims, NPY_DOUBLE);
-    guint i, j;
+    gint i, j;
     
     double *array;
-    uint length = partitions->partition_history[0]->len;
+    gint length = (gint) partitions->partition_history[0]->len;
     for (i=0; i<n_partitions; i++){
         array = (double*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
         for (j=0; j<length; j++)
@@ -412,7 +412,7 @@ static PyObject* generalProfiler_get_partition_hit_rate(PyObject* self,
     return_res** results = profiler_partition(reader, cache, num_of_threads, bin_size);
     
     // create numpy array
-    guint num_of_bins = ceil(cache_size/bin_size)+1;
+    guint num_of_bins = ceil((double) cache_size/bin_size)+1;
     npy_intp dims[1] = { num_of_bins };
     PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
     guint i;

@@ -22,34 +22,41 @@
 //#include "SLRUML.h"
 
 
+/********************************************************************* 
+ **  printHashTable
+ **  used for output associations found in Mithril
+ **
+ **
+ *********************************************************************/
 
 
-//static void
-//printHashTable (gpointer key, gpointer value, gpointer user_data){
-//    // only works for long data type 
-//    struct MIMIR_params* MIMIR_params = user_data;
-//    gint prefetch_table_index = GPOINTER_TO_INT(value);
-//    gint dim1 = (gint)floor(prefetch_table_index/(double)PREFETCH_TABLE_SHARD_SIZE);
-//    gint dim2 = prefetch_table_index % PREFETCH_TABLE_SHARD_SIZE * (MIMIR_params->prefetch_list_size+1);
-//    
-//    int i;
-//    for (i=0; i<3; i++){
-//        if (MIMIR_params->prefetch_table_array[dim1][dim2] != *(gint64*)key){
-//            fprintf(stderr, "ERROR prefetch table pos wrong %ld %ld, dim %d %d\n",
-//                *(gint64*)key, MIMIR_params->prefetch_table_array[dim1][dim2], dim1, dim2);
-//            exit(1);
-//        }
-//        printf("%ld, ", MIMIR_params->prefetch_table_array[dim1][dim2+i]);
-//    }
-//
-//    printf("\n");
-//}
+static void
+printHashTable (gpointer key, gpointer value, gpointer user_data){
+    // only works for long data type 
+    struct MIMIR_params* MIMIR_params = user_data;
+    gint prefetch_table_index = GPOINTER_TO_INT(value);
+    gint dim1 = (gint)floor(prefetch_table_index/(double)PREFETCH_TABLE_SHARD_SIZE);
+    gint dim2 = prefetch_table_index % PREFETCH_TABLE_SHARD_SIZE * (MIMIR_params->prefetch_list_size+1);
+    
+    int i;
+    for (i=0; i<3; i++){
+        if (MIMIR_params->prefetch_table_array[dim1][dim2] != *(gint64*)key){
+            fprintf(stderr, "ERROR prefetch table pos wrong %ld %ld, dim %d %d\n",
+                *(gint64*)key, MIMIR_params->prefetch_table_array[dim1][dim2], dim1, dim2);
+            exit(1);
+        }
+        printf("%ld, ", MIMIR_params->prefetch_table_array[dim1][dim2+i]);
+    }
+
+    printf("\n");
+}
 
 struct HR_PE* get_HR_PE(reader_t* reader_in, guint64 size){
     
     int i;
     int AMP_n = 1, mimir_n1 = 8, mimir_n2 = 8, PG_n = 1;
     int n = AMP_n + mimir_n1 + mimir_n2 + + PG_n + 1;
+    int block_unit_size = 16 * 1024; 
     
     
     // initialization
@@ -65,7 +72,7 @@ struct HR_PE* get_HR_PE(reader_t* reader_in, guint64 size){
     hrpe_params->reader = reader_in;
     hrpe_params->caches = g_new0(struct_cache*, n);
     
-    hrpe_params->caches[0] = LRU_init(size, reader_in->base->data_type, NULL);
+    hrpe_params->caches[0] = LRU_init(size, reader_in->base->data_type, block_unit_size, NULL);
     
     
     struct AMP_init_params** AMP_initp = g_new0(struct AMP_init_params*, AMP_n);
@@ -74,18 +81,18 @@ struct HR_PE* get_HR_PE(reader_t* reader_in, guint64 size){
         AMP_initp[i]->APT = 4;
         AMP_initp[i]->read_size = 1;
         AMP_initp[i]->K = i+1;
-        AMP_initp[i]->p_threshold = (int)(256/pow(2, i+1));
-        hrpe_params->caches[i+1] = AMP_init(size, reader_in->base->data_type, AMP_initp[i]);
+        AMP_initp[i]->p_threshold = (int)(256/pow(2, i));
+        hrpe_params->caches[i+1] = AMP_init(size, reader_in->base->data_type, block_unit_size, AMP_initp[i]);
     }
 
     PG_init_params_t *PG_initp = g_new0(PG_init_params_t, 1);
-    PG_initp->block_size = 64*1024;
+    PG_initp->block_size = block_unit_size;
     PG_initp->cache_type = "LRU";
     PG_initp->lookahead = 20;
     PG_initp->max_meta_data = 0.1;
     PG_initp->prefetch_threshold = 0.05;
     
-    hrpe_params->caches[1+AMP_n] = PG_init(size, reader_in->base->data_type, PG_initp); 
+    hrpe_params->caches[1+AMP_n] = PG_init(size, reader_in->base->data_type, block_unit_size, PG_initp);
 
     
     struct MIMIR_init_params** mimir_initp = g_new0(struct MIMIR_init_params*, mimir_n1 + mimir_n2);
@@ -95,6 +102,7 @@ struct HR_PE* get_HR_PE(reader_t* reader_in, guint64 size){
         mimir_initp[i]->cache_type = "LRU";
 //        mimir_initp[i]->max_support = 20;
 //        mimir_initp[i]->min_support = 2;
+        mimir_initp[i]->output_statistics = 1;
         mimir_initp[i]->confidence = 0;
         mimir_initp[i]->item_set_size = 20;
         mimir_initp[i]->training_period = 0;
@@ -211,7 +219,7 @@ struct HR_PE* get_HR_PE(reader_t* reader_in, guint64 size){
     
     
     for (i=0; i<mimir_n1+mimir_n2; i++)
-        hrpe_params->caches[i+AMP_n+PG_n+1] = MIMIR_init(size, reader_in->base->data_type, mimir_initp[i]);
+        hrpe_params->caches[i+AMP_n+PG_n+1] = MIMIR_init(size, reader_in->base->data_type, block_unit_size, mimir_initp[i]);
     
     
     // build the thread pool
@@ -227,6 +235,8 @@ struct HR_PE* get_HR_PE(reader_t* reader_in, guint64 size){
     
     
     g_thread_pool_free (gthread_pool, FALSE, TRUE);
+    
+
     
     
     // clean up
@@ -256,7 +266,7 @@ void get_HR_PE_thread(gpointer data, gpointer user_data){
     // create cache line struct and initialization
     cache_line* cp = new_cacheline();
     cp->type = reader->base->data_type;
-
+    cp->block_unit_size = (size_t) reader->base->block_unit_size;
     
     
     guint64 hit_count=0, miss_count=0;
@@ -264,16 +274,31 @@ void get_HR_PE_thread(gpointer data, gpointer user_data){
     add_element = cache->core->add_element;
     
     read_one_element(reader_thread, cp);
-    
+    // new 
+    if (cache->core->consider_size && cp->size != 0 && cp->type == 'l'){
+        add_element = cache->core->add_element_withsize;
+        if (add_element == NULL){
+            printf("profiling with size, but does not have add_element_withsize\n");
+            abort();
+        }
+    }
     
     while (cp->valid){
-        if (add_element(cache, cp)){
+        /* new 170428
+         add size into consideration, this only affects the traces with cache_size column,
+         currently CPHY traces are affected
+         the default size for each block is 512 bytes */
+        if (add_element(cache, cp))
             hit_count ++;
-        }
         else
             miss_count ++;
         read_one_element(reader_thread, cp);
     }
+    
+    
+    
+    
+    
     
     
     hrpe->HR[order] = (double)hit_count/(hit_count+miss_count);
@@ -314,7 +339,9 @@ void get_HR_PE_thread(gpointer data, gpointer user_data){
         gint64 hit = ((PG_params_t*)(cache->cache_params))->num_of_hit;
         hrpe->PE[order] = (double)hit/prefetch;
         hrpe->prefetch[order] = prefetch;
+        printf("PG hit %ld, prefetch %ld\n", hit, prefetch);
     }
+    
     
     
     // clean up
@@ -336,13 +363,14 @@ static void profiler_thread(gpointer data, gpointer user_data){
     struct multithreading_params_generalProfiler* params = (struct multithreading_params_generalProfiler*) user_data;
 
     int order = GPOINTER_TO_UINT(data);
-    guint64 begin_pos = params->begin_pos;
-    guint64 end_pos = params->end_pos;
-    guint64 pos = begin_pos;
+    gint64 begin_pos = params->begin_pos;
+    gint64 end_pos = params->end_pos;
+    gint64 pos = begin_pos;
     guint bin_size = params->bin_size;
     
     struct_cache* cache = params->cache->core->cache_init(bin_size * order,
                                                           params->cache->core->data_type,
+                                                          params->cache->core->block_unit_size,
                                                           params->cache->core->cache_init_params);        
     return_res** result = params->result;
         
@@ -355,6 +383,8 @@ static void profiler_thread(gpointer data, gpointer user_data){
     // create cache line struct and initialization
     cache_line* cp = new_cacheline();
     cp->type = params->cache->core->data_type;
+    cp->block_unit_size = (size_t) reader_thread->base->block_unit_size;
+    
     
     guint64 hit_count=0, miss_count=0;
     gboolean (*add_element)(struct cache*, cache_line* cp);
@@ -362,12 +392,43 @@ static void profiler_thread(gpointer data, gpointer user_data){
 
     read_one_element(reader_thread, cp);
 
-    while (cp->valid && pos<end_pos){
-        if (add_element(cache, cp)){
-            hit_count ++;
+    // this must happen after read, otherwise cp size and type unknown
+    if (cache->core->consider_size && cp->size != 0 && cp->type == 'l'){
+        add_element = cache->core->add_element_withsize;
+        if (add_element == NULL){
+            ERROR("using size with profiling, cannot find add_element_withsize\n");
+            abort();
         }
-        else
-            miss_count ++;
+    }
+
+    while (cp->valid && pos<end_pos){
+        /* new 170428
+         add size into consideration, this only affects the traces with cache_size column, 
+         currently CPHY traces are affected 
+         the default size for each block is 512 bytes */
+//        if (cache->core->consider_size && cp->size != 0 && cp->type == 'l'){
+//            *(gint64*)(cp->item_p) = (gint64) (*(gint64*)(cp->item_p) * DEFAULT_SECTOR_SIZE / cache->core->block_unit_size);
+//            if (add_element(cache, cp)){
+//                hit_count ++;
+//            }
+//            else
+//                miss_count ++;
+//
+//            n = (int)ceil((double) cp->size/cache->core->block_unit_size);
+//            
+//            for (i=0; i<n-1; i++){
+//                (*(guint64*)(cp->item_p)) ++;
+//                cache->core->add_element_only(cache, cp);
+//            }
+//        }
+        
+        // end
+//        else{
+            if (add_element(cache, cp))
+                hit_count ++;
+            else
+                miss_count ++;
+//        }
         pos++;
         read_one_element(reader_thread, cp);
     }
@@ -436,12 +497,6 @@ static void profiler_thread(gpointer data, gpointer user_data){
                prefech, hit, (double)hit/prefech);
     }
     
-//    if (cache->core->type == e_SLRUML){
-//        int i;
-//        for (i=0; i<((SLRUML_params_t*)(cache->cache_params))->N_segments; i++)
-//            printf("insert at seg%d %ld times\n", i, ((SLRUML_params_t*)(cache->cache_params))->num_insert_at_segments[i] );
-//        printf("\n"); 
-//    }
 
     // clean up
     g_mutex_lock(&(params->mtx));
@@ -449,15 +504,6 @@ static void profiler_thread(gpointer data, gpointer user_data){
     g_mutex_unlock(&(params->mtx));
 
     g_free(cp);
-//    if (reader_thread->base->type != 'v')
-//        fclose(reader_thread->base->file);
-//    if (reader_thread->base->type == 'c'){
-//        csv_free(reader_thread->csv_parser);
-//        g_free(reader_thread->csv_parser);
-//    }
-//    g_free(reader_thread);
-    
-    
     close_reader_unique(reader_thread);
     cache->core->destroy_unique(cache);
 }
@@ -482,13 +528,14 @@ return_res** profiler(reader_t* reader_in,
         ERROR("end pos <= beigin pos in general profiler, please check\n");
         exit(1);
     }
-    
+    if (cache_in->core->block_unit_size != 0)
+        INFO("use block size %d in profiling\n", cache_in->core->block_unit_size); 
     
     // initialization
     int num_of_threads = num_of_threads_in;
     int bin_size = bin_size_in;
     
-    long num_of_bins = ceil(cache_in->core->size/bin_size)+1;
+    long num_of_bins = ceil((double) cache_in->core->size/bin_size)+1;
     
     if (end_pos==-1){
         if (reader_in->base->total_num == -1)
@@ -554,6 +601,7 @@ static void traverse_trace(reader_t* reader, struct_cache* cache){
     // create cache lize struct and initialization
     cache_line* cp = new_cacheline();
     cp->type = cache->core->data_type;
+    cp->block_unit_size = (size_t) reader->base->block_unit_size;
     
     gboolean (*add_element)(struct cache*, cache_line* cp);
     add_element = cache->core->add_element;
@@ -579,6 +627,7 @@ static void get_evict_err(reader_t* reader, struct_cache* cache){
     // create cache lize struct and initialization
     cache_line* cp = new_cacheline();
     cp->type = cache->core->data_type;
+    cp->block_unit_size = (size_t) reader->base->block_unit_size;
     
     gboolean (*add_element)(struct cache*, cache_line* cp);
     add_element = cache->core->add_element;
@@ -611,7 +660,7 @@ gdouble* LRU_evict_err_statistics(reader_t* reader_in, struct_cache* cache_in, g
     init_params->ts = 0;
     struct_cache* optimal; 
     if (cache_in->core->data_type == 'l')
-        optimal = optimal_init(cache_in->core->size, 'l', (void*)init_params);
+        optimal = optimal_init(cache_in->core->size, 'l', 0, (void*)init_params);
     else{
         printf("other cache data type not supported in LRU_evict_err_statistics in generalProfiler\n");
         exit(1);

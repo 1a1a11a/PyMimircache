@@ -10,7 +10,7 @@ from mimircache.cacheReader.abstractReader import cacheReaderAbstract
 
 
 class binaryReader(cacheReaderAbstract):
-    def __init__(self, file_loc, init_params, data_type='c', open_c_reader=True):
+    def __init__(self, file_loc, init_params, data_type='c', block_unit_size=0, open_c_reader=True):
         """
         initialization function
         :param file_loc:
@@ -18,11 +18,14 @@ class binaryReader(cacheReaderAbstract):
         :param data_type:
         :param open_c_reader:
         """
-        super(binaryReader, self).__init__(file_loc, 'c')
+        super(binaryReader, self).__init__(file_loc, 'c', block_unit_size)
         self.file_loc = file_loc
         assert os.path.exists(file_loc), "provided data file does not exist"
         assert 'fmt' in init_params, "please provide format string(fmt) in init_params"
         assert "label" in init_params, "please specify the order of label, beginning from 1"
+        if block_unit_size != 0:
+            assert "size" in init_params, "please provide size option to consider request size"
+
         self.fmt = init_params['fmt']
         self.label_column = init_params['label']
         self.time_column = init_params.get("real_time", -1)
@@ -35,6 +38,7 @@ class binaryReader(cacheReaderAbstract):
         if open_c_reader:
             # the data type here is not real data type, it will auto correct in C
             self.cReader = c_cacheReader.setup_reader(file_loc, 'b', data_type=self.data_type,
+                                                      block_unit_size=block_unit_size,
                                                       init_params=init_params)
 
 

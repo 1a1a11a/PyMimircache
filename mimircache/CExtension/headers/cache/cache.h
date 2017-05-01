@@ -13,9 +13,12 @@
 #include <glib.h>
 #include <stdlib.h>
 #include <string.h> 
+#include <math.h> 
 #include "glib_related.h"
 #include "reader.h"
 #include "const.h"
+#include "macro.h" 
+#include "errors.h" 
 
 
 
@@ -35,6 +38,7 @@ typedef enum{
     
     e_AMP,
     e_LRUPage,
+    e_LRUSize, 
     e_PG,
 
     e_LRU_LFU,
@@ -56,7 +60,9 @@ struct cache_core{
     long long           hit_count;
     long long           miss_count;
     void*               cache_init_params;
-    struct cache*       (*cache_init)(guint64, char, void*);
+    gboolean            consider_size;
+    int                 block_unit_size;
+    struct cache*       (*cache_init)(guint64, char, int, void*);
     void                (*destroy)(struct cache* );
     void                (*destroy_unique)(struct cache* );
     gboolean            (*add_element)(struct cache*, cache_line*);
@@ -67,9 +73,14 @@ struct cache_core{
     void                (*__update_element)(struct cache*, cache_line*);
     void                (*__evict_element)(struct cache*, cache_line*);
     gpointer            (*__evict_with_return)(struct cache*, cache_line*);
-    uint64_t            (*get_size)(struct cache*);
+    gint64              (*get_size)(struct cache*);
     void                (*remove_element)(struct cache*, void*);
-    
+
+    gboolean            (*add_element_only)(struct cache*, cache_line*);
+    gboolean            (*add_element_withsize)(struct cache*, cache_line*);
+            // only insert(and possibly evict) or update, do not conduct any other
+            // operation, especially for those complex algorithm
+
     
     
     int                 cache_debug_level;  // 0 not debug, 1: prepare oracle, 2: compare to oracle
@@ -77,7 +88,7 @@ struct cache_core{
     void*               eviction_array;     // Optimal Eviction Array, either guint64* or char**
     guint64             eviction_array_len;
     guint64             evict_err;      // used for counting
-    break_point_t       * bp; // break points, same as the one in reader, just one more pointer
+    break_point_t       * bp;           // break points, same as the one in reader, just one more pointer
     guint64             bp_pos;         // the current location in bp->array
     gdouble*            evict_err_array;       // in each time interval, the eviction error array 
 };
@@ -94,7 +105,7 @@ typedef struct cache cache_t;
 
 
 
-extern struct_cache*    cache_init(long long size, char data_type);
+extern struct_cache*    cache_init(long long size, char data_type, int block_size);
 extern void             cache_destroy(struct_cache* cache);
 extern void             cache_destroy_unique(struct_cache* cache);
 

@@ -25,18 +25,20 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
     char* file_loc;
     char* file_type;
     char* data_type = "c";
+    int block_unit_size = 0;
     PyObject *py_init_params;
     void *init_params = NULL;
 
-    static char *kwlist[] = {"file_loc", "file_type", "data_type", "init_params", NULL};
+    static char *kwlist[] = {"file_loc", "file_type", "data_type", "block_unit_size", "init_params", NULL};
     
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "ss|sO", kwlist, &file_loc,
-                                     &file_type, &data_type, &py_init_params)){
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "ss|siO", kwlist, &file_loc,
+                                     &file_type, &data_type, &block_unit_size, &py_init_params)){
         PyErr_SetString(PyExc_RuntimeError,
                         "parsing argument failed in setup reader\n");
         return NULL;
     }
+    
     if (file_type[0] == 'v')
         data_type = "l"; 
 
@@ -82,9 +84,9 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
         
 
         if (((csvReader_init_params*)init_params)->has_header)
-            DEBUG("csv data has header");
+            DEBUG_MSG("csv data has header");
         
-        DEBUG("delimiter %d(%c)\n", ((csvReader_init_params*)init_params)->delimiter,
+        DEBUG_MSG("delimiter %d(%c)\n", ((csvReader_init_params*)init_params)->delimiter,
                   ((csvReader_init_params*)init_params)->delimiter);
     }
     
@@ -137,7 +139,7 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
     }
     
     
-    reader_t* reader = setup_reader(file_loc, *file_type, *data_type, init_params);
+    reader_t* reader = setup_reader(file_loc, *file_type, *data_type, block_unit_size, init_params);
 
     if (init_params != NULL){
         g_free(init_params);
