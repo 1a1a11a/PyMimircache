@@ -183,6 +183,9 @@ gboolean optimal_add_element_only(struct_cache* cache, cache_line* cp){
 
 
 gboolean optimal_add_element_withsize(struct_cache* cache, cache_line* cp){
+    ERROR("optimal does not support size now\n");
+    abort(); 
+    
     int i, n = 0;
     gint64 original_lbn = *(gint64*)(cp->item_p);
     gboolean ret_val;

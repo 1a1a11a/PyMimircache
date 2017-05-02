@@ -275,7 +275,7 @@ void get_HR_PE_thread(gpointer data, gpointer user_data){
     
     read_one_element(reader_thread, cp);
     // new 
-    if (cache->core->consider_size && cp->size != 0 && cp->type == 'l'){
+    if (cache->core->consider_size && cp->type == 'l'){
         add_element = cache->core->add_element_withsize;
         if (add_element == NULL){
             printf("profiling with size, but does not have add_element_withsize\n");
@@ -339,6 +339,7 @@ void get_HR_PE_thread(gpointer data, gpointer user_data){
         gint64 hit = ((PG_params_t*)(cache->cache_params))->num_of_hit;
         hrpe->PE[order] = (double)hit/prefetch;
         hrpe->prefetch[order] = prefetch;
+        hrpe->real_cache_size[order] = ((PG_params_t*)(cache->cache_params))->cache->core->size; 
         printf("PG hit %ld, prefetch %ld\n", hit, prefetch);
     }
     
@@ -393,7 +394,7 @@ static void profiler_thread(gpointer data, gpointer user_data){
     read_one_element(reader_thread, cp);
 
     // this must happen after read, otherwise cp size and type unknown
-    if (cache->core->consider_size && cp->size != 0 && cp->type == 'l'){
+    if (cache->core->consider_size && cp->type == 'l'){     // && cp->size != 0 is removed due to trace dirty
         add_element = cache->core->add_element_withsize;
         if (add_element == NULL){
             ERROR("using size with profiling, cannot find add_element_withsize\n");
@@ -406,29 +407,10 @@ static void profiler_thread(gpointer data, gpointer user_data){
          add size into consideration, this only affects the traces with cache_size column, 
          currently CPHY traces are affected 
          the default size for each block is 512 bytes */
-//        if (cache->core->consider_size && cp->size != 0 && cp->type == 'l'){
-//            *(gint64*)(cp->item_p) = (gint64) (*(gint64*)(cp->item_p) * DEFAULT_SECTOR_SIZE / cache->core->block_unit_size);
-//            if (add_element(cache, cp)){
-//                hit_count ++;
-//            }
-//            else
-//                miss_count ++;
-//
-//            n = (int)ceil((double) cp->size/cache->core->block_unit_size);
-//            
-//            for (i=0; i<n-1; i++){
-//                (*(guint64*)(cp->item_p)) ++;
-//                cache->core->add_element_only(cache, cp);
-//            }
-//        }
-        
-        // end
-//        else{
-            if (add_element(cache, cp))
-                hit_count ++;
-            else
-                miss_count ++;
-//        }
+        if (add_element(cache, cp))
+            hit_count ++;
+        else
+            miss_count ++;
         pos++;
         read_one_element(reader_thread, cp);
     }

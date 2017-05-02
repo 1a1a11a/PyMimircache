@@ -37,6 +37,11 @@ class cGeneralProfiler:
         self.cache_params = cache_params
         self.num_of_threads = num_of_threads
 
+        if cache_params is not None and 'block_unit_size' in cache_params:
+            self.with_size = True
+        else:
+            self.with_size = False
+
         # if the given file is not basic reader, needs conversion
         need_convert = True
         for instance in c_available_cacheReader:
@@ -77,8 +82,11 @@ class cGeneralProfiler:
             sanity_kwargs['begin'] = kwargs['begin']
         if 'end' in kwargs:
             sanity_kwargs['end'] = kwargs['end']
-        return c_generalProfiler.get_hit_count(self.reader.cReader, self.cache_name, cache_size,
-                                               self.bin_size, cache_params=self.cache_params, **sanity_kwargs)
+        if self.with_size:
+            print("not supported yet")
+        else:
+            return c_generalProfiler.get_hit_count(self.reader.cReader, self.cache_name, cache_size,
+                                                   self.bin_size, cache_params=self.cache_params, **sanity_kwargs)
 
     def get_hit_rate(self, **kwargs):
         """
@@ -98,12 +106,11 @@ class cGeneralProfiler:
             sanity_kwargs['begin'] = kwargs['begin']
         if 'end' in kwargs:
             sanity_kwargs['end'] = kwargs['end']
-        if "prefetch" in kwargs and kwargs['prefetch']:
-            return c_generalProfiler.get_hit_rate_with_prefetch(self.reader.cReader, self.cache_name, cache_size,
-                                              self.bin_size, cache_params=self.cache_params, **sanity_kwargs)
-        else:
-            return c_generalProfiler.get_hit_rate(self.reader.cReader, self.cache_name, cache_size,
-                                                            self.bin_size, cache_params=self.cache_params, **sanity_kwargs)
+        # handles both withsize and no size
+        return c_generalProfiler.get_hit_rate(self.reader.cReader, self.cache_name, cache_size,
+                                                        self.bin_size, cache_params=self.cache_params, **sanity_kwargs)
+
+
 
     def get_miss_rate(self, **kwargs):
         """
@@ -122,10 +129,14 @@ class cGeneralProfiler:
             sanity_kwargs['begin'] = kwargs['begin']
         if 'end' in kwargs:
             sanity_kwargs['end'] = kwargs['end']
-        return c_generalProfiler.get_miss_rate(self.reader.cReader, self.cache_name, cache_size,
-                                               self.bin_size, cache_params=self.cache_params, **sanity_kwargs)
+        if self.with_size:
+            print("not supported yet")
+        else:
+            return c_generalProfiler.get_miss_rate(self.reader.cReader, self.cache_name, cache_size,
+                                                   self.bin_size, cache_params=self.cache_params, **sanity_kwargs)
 
     def plotMRC(self, figname="MRC.png", **kwargs):
+        print("function not updated")
         MRC = self.get_miss_rate(**kwargs)
         try:
             # tick = ticker.FuncFormatter(lambda x, pos: '{:2.0f}'.format(x * self.bin_size))

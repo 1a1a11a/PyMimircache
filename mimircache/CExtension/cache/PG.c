@@ -137,7 +137,7 @@ static inline void __PG_add_to_graph(struct_cache* PG, cache_line* cp){
                 pqueue_change_priority(graphNode->pq, pq_node->pri, pq_node);
 
 #ifdef SANITY_CHECK
-                if ( *((gint64*)(pq_node->item)) != block)
+                if ( *((gint64*)(pq_node->item)) != (gint64) block)
                     ERROR("pq node content not equal block\n");
 #endif
             }

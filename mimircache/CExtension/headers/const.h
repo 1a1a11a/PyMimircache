@@ -40,12 +40,12 @@
 #define NORMAL_REUSE_DISTANCE                           1
 #define FUTURE_REUSE_DISTANCE                           2
 
-#define DEFAULT_SECTOR_SIZE                             512
+#define DEFAULT_SECTOR_SIZE                             512 
 
 
 
 
-#define SANITY_CHECK 1 
+//#define SANITY_CHECK 1 
 //#define _DEBUG
 #define ML
 #undef ML 

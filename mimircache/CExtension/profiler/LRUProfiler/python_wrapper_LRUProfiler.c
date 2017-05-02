@@ -294,7 +294,7 @@ static PyObject* LRUProfiler_get_hit_rate_withsize_seq(PyObject* self,
     reader_t* reader;
     gint64 cache_size=-1;
     int block_size=0;
-    static char *kwlist[] = {"reader", "cache_size", "block_size", NULL};
+    static char *kwlist[] = {"reader", "cache_size", "block_unit_size", NULL};
     
     // parse arguments
     if (!PyArg_ParseTupleAndKeywords(args, keywds, "O|li", kwlist,
@@ -338,7 +338,7 @@ static PyObject* LRUProfiler_get_hit_count_withsize_seq(PyObject* self, PyObject
     reader_t* reader;
     gint64 cache_size = -1;
     int block_size = 0;
-    static char *kwlist[] = {"reader", "cache_size", "block_size", NULL};
+    static char *kwlist[] = {"reader", "cache_size", "block_unit_size", NULL};
     
     // parse arguments
     if (!PyArg_ParseTupleAndKeywords(args, keywds, "O|li", kwlist,

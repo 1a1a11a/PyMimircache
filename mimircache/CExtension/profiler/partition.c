@@ -275,7 +275,7 @@ static void profiler_partition_thread(gpointer data, gpointer user_data){
 #ifdef SANITY_CHECK
         // sanity check
         for(i=0; i<n_partition; i++)
-            if (get_size(cache[i]) != partition->current_partition[i])
+            if (get_size(cache[i]) != (long) partition->current_partition[i])
                 fprintf(stderr, "Sanity check failed, i %d, ERROR size %lu, "
                         "partition %lu\n", i, (unsigned long)get_size(cache[i]),
                         (unsigned long)partition->current_partition[i]);
@@ -288,7 +288,7 @@ static void profiler_partition_thread(gpointer data, gpointer user_data){
                     fprintf(stderr, "Sanity check failed, cache size full, "
                             "but partition not consistent %d %d\n",
                             get_size(cache[i]) != cache[i]->core->size,
-                            partition->current_partition[i] != cache[i]->core->size);
+                            (long) partition->current_partition[i] != (long) cache[i]->core->size);
                     fprintf(stderr, "i %d, get size %lu, given size %ld, partition %lu\n",
                             i, (unsigned long)get_size(cache[i]), cache[i]->core->size,
                             (unsigned long)partition->current_partition[i]);

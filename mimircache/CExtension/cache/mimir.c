@@ -18,6 +18,9 @@
  * alternatively, we can also prefetch at eviction, or both 
  */
 
+//#define TRACK_BLOCK 6442457105
+
+
 
 static inline void __MIMIR_record_entry_min_support_1(struct_cache* MIMIR, cache_line* cp);
 
@@ -362,7 +365,7 @@ static inline void __MIMIR_record_entry(struct_cache* MIMIR, cache_line* cp){
                     memset(array_ele + r_m_struct->recording_table_row_len, 0,
                            sizeof(TS_REPRESENTATION) * (r_m_struct->mining_table_row_len - r_m_struct->recording_table_row_len));
 #ifdef SANITY_CHECK
-                    if (r_m_struct->mining_table->len >= MIMIR_params->mining_threshold){
+                    if ((long) r_m_struct->mining_table->len >= MIMIR_params->mining_threshold){
                         // if this happens, array will re-malloc, which will make the hashtable key not reliable when data_type is l
                         printf("ERROR mining table length reaches limit, but does not mining, entry %d, len %u, threshold %d\n",
                                r_m_struct->num_of_entry_available_for_mining, r_m_struct->mining_table->len, MIMIR_params->mining_threshold);
@@ -433,6 +436,27 @@ static inline void __MIMIR_record_entry_min_support_1(struct_cache* MIMIR, cache
     struct MIMIR_params* MIMIR_params = (struct MIMIR_params*)(MIMIR->cache_params);
     struct recording_mining_struct *r_m_struct = MIMIR_params->record_mining_struct;
     
+#ifdef TRACK_BLOCK 
+    if (*(gint64*) (cp->item_p) == TRACK_BLOCK){
+        int old_pos = GPOINTER_TO_INT( g_hash_table_lookup(r_m_struct->hashtable, cp->item_p));
+        printf("insert %ld, old pos %d", TRACK_BLOCK, old_pos);
+        if (old_pos == 0)
+            printf("\n");
+        else
+            printf(", block at old_pos %ld\n", *(gint64*) GET_ROW_IN_MINING_TABLE(MIMIR_params, old_pos-1));
+        
+    }
+    else {
+        gint64 b = TRACK_BLOCK;
+        int old_pos = GPOINTER_TO_INT( g_hash_table_lookup(r_m_struct->hashtable, &b));
+        if (old_pos != 0){
+            ERROR("ts %lu, checking %ld, %ld is found at pos %d\n", cp->ts, TRACK_BLOCK,
+                  *(gint64*) GET_ROW_IN_MINING_TABLE(MIMIR_params, old_pos-1), old_pos);
+            abort();
+        }
+    }
+#endif
+    
     int i;
     // check the item in hashtable for training
     gint index = GPOINTER_TO_INT( g_hash_table_lookup(r_m_struct->hashtable, cp->item_p) );
@@ -451,11 +475,42 @@ static inline void __MIMIR_record_entry_min_support_1(struct_cache* MIMIR, cache
         for (i=1; i<r_m_struct->mining_table_row_len; i++)
             array_ele[i] = 0;
         array_ele[1] = ADD_TS(array_ele[1], MIMIR_params->ts);
-        
+
         g_array_append_val(r_m_struct->mining_table, array_ele);
         r_m_struct->num_of_entry_available_for_mining ++;
-        
+
         g_hash_table_insert(r_m_struct->hashtable, hash_key, GINT_TO_POINTER(r_m_struct->mining_table->len));       // all index is real row number + 1
+#ifdef TRACK_BLOCK
+        gint64 b = TRACK_BLOCK;
+        int old_pos = GPOINTER_TO_INT( g_hash_table_lookup(r_m_struct->hashtable, &b));
+        if (old_pos != 0){
+            ERROR("HASH COLLISON: ts %lu, checking %ld, %ld is found at pos %d, just added %ld, ", cp->ts, TRACK_BLOCK,
+                  *(gint64*) GET_ROW_IN_MINING_TABLE(MIMIR_params, old_pos-1), old_pos,
+                  *(gint64*)hash_key);
+            old_pos = GPOINTER_TO_INT( g_hash_table_lookup(r_m_struct->hashtable, hash_key));
+            fprintf(stderr, "%ld hashed to pos %d\n", *(gint64*)hash_key, old_pos);
+            
+//            abort();
+        }
+#endif
+
+#ifdef SANITY_CHECK
+        gint64* row_in_mining_table = GET_ROW_IN_MINING_TABLE(MIMIR_params, r_m_struct->mining_table->len-1);
+        if (cp->type == 'l'){
+            if (*(gint64*)(cp->item_p) != row_in_mining_table[0]){
+                ERROR("after inserting, hashtable mining not consistent %ld %ld\n",
+                      *(gint64*)(cp->item_p), row_in_mining_table[0]);
+                abort();
+            }
+        }
+        else{
+            if (strcmp(cp->item_p, (char*)(row_in_mining_table[0]))!=0){
+                ERROR("after inserting, hashtable mining not consistent %s %s\n",
+                      (char*)(cp->item_p), (char*)(row_in_mining_table[0]));
+                abort();
+            }
+        }
+#endif
     }
     
     else{
@@ -465,14 +520,16 @@ static inline void __MIMIR_record_entry_min_support_1(struct_cache* MIMIR, cache
 #ifdef SANITY_CHECK
         if (cp->type == 'l'){
             if (*(gint64*)(cp->item_p) != row_in_mining_table[0]){
-                ERROR("hashtable mining found position not correct %ld %ld\n", *(gint64*)(cp->item_p), row_in_mining_table[0]);
-                abort();
+                ERROR("ts %lu, hashtable mining found position not correct %ld %ld\n",
+                      cp->ts, *(gint64*)(cp->item_p), row_in_mining_table[0]);
+//                abort();
             }
         }
         else{
             if (strcmp(cp->item_p, (char*)(row_in_mining_table[0]))!=0){
-                ERROR("hashtable mining found position not correct %s %s\n", (char*)(cp->item_p), (char*)(row_in_mining_table[0]));
-                abort();
+                ERROR("ts %lu, hashtable mining found position not correct %s %s\n",
+                      cp->ts, (char*)(cp->item_p), (char*)(row_in_mining_table[0]));
+//                abort();
             }
         }
 #endif
@@ -493,7 +550,6 @@ static inline void __MIMIR_record_entry_min_support_1(struct_cache* MIMIR, cache
                        %s, mining table length %u\n", (char*)*row_in_mining_table, r_m_struct->mining_table->len);
             
             g_array_remove_index_fast(r_m_struct->mining_table, index-1);
-            
             
             // if array is moved, need to update hashtable
             if (index - 1 != (long) r_m_struct->mining_table->len ){          // r_m_struct->mining_table->len == old_len-1 &&
@@ -620,11 +676,6 @@ gboolean MIMIR_check_element(struct_cache* MIMIR, cache_line* cp){
     __MIMIR_record_entry(MIMIR, cp);
 
     
-#ifdef SANITY_CHECK
-    if (MIMIR_params->cache->core->check_element(MIMIR_params->cache, cp) != result)
-        fprintf(stderr, "ERROR: not same2 %d, %d ************************\n", result, MIMIR_params->cache->core->check_element(MIMIR_params->cache, cp));
-#endif 
-
     return result;
 }
 
@@ -683,7 +734,6 @@ gboolean MIMIR_add_element(struct_cache* MIMIR, cache_line* cp){
     struct MIMIR_params* MIMIR_params = (struct MIMIR_params*)(MIMIR->cache_params);
     MIMIR_params->ts ++;
 
-    
     if (MIMIR_params->cache->core->type == e_AMP){
         gboolean result = MIMIR_check_element(MIMIR, cp);
         AMP_add_element_no_eviction(MIMIR_params->cache, cp);
@@ -695,16 +745,21 @@ gboolean MIMIR_add_element(struct_cache* MIMIR, cache_line* cp){
     }
     else{
         if (MIMIR_check_element(MIMIR, cp)){
-            // new
+
             __MIMIR_update_element(MIMIR, cp);
+
             __MIMIR_prefetch(MIMIR, cp);
+            
             return TRUE;
         }
         else{
             __MIMIR_insert_element(MIMIR, cp);
+
             __MIMIR_prefetch(MIMIR, cp);
+
             while ( (long) MIMIR_params->cache->core->get_size(MIMIR_params->cache) > MIMIR->core->size)
                 __MIMIR_evict_element(MIMIR, cp);
+
             return FALSE;
         }
     }
@@ -797,10 +852,10 @@ gboolean MIMIR_add_element_only(struct_cache* MIMIR, cache_line* cp){
 gboolean MIMIR_add_element_withsize(struct_cache* MIMIR, cache_line* cp){
     int i;
     gboolean ret_val;
-    
     *(gint64*)(cp->item_p) = (gint64) (*(gint64*)(cp->item_p) *
                                        DEFAULT_SECTOR_SIZE /
                                        MIMIR->core->block_unit_size);
+    
     ret_val = MIMIR_add_element(MIMIR, cp);
     
     int n = (int)ceil((double) cp->size/MIMIR->core->block_unit_size);
@@ -945,7 +1000,7 @@ struct_cache* MIMIR_init(guint64 size, char data_type, int block_size, void* par
     r_m_struct->recording_table_row_len = (gint)ceil((double) MIMIR_params->min_support / (double)4) + 1;
     r_m_struct->mining_table_row_len    = (gint)ceil((double) MIMIR_params->max_support / (double)4) + 1;
     r_m_struct->mining_table = g_array_sized_new(FALSE, TRUE,
-                                                 sizeof(gint64)*((gint)ceil((double) MIMIR_params->max_support/(double)4)+1),
+                                                 sizeof(gint64) * r_m_struct->mining_table_row_len,
                                                  MIMIR_params->mining_threshold);
     
     

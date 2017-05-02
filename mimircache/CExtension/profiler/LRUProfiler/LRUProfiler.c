@@ -211,7 +211,7 @@ guint64* get_hitcount_withsize_seq(reader_t* reader, gint64 size, int block_unit
 
         // new 170428
         n = (int)ceil((double) cp->size/block_unit_size);
-        
+//        printf("n %d\n", n); 
         for (i=0; i<n-1; i++){
             ts++;
             (*(guint64*)(cp->item_p)) ++;

@@ -281,7 +281,7 @@ class cachecow:
 
 
         if algorithm.lower() == "lru": # and (cache_params is None or 'block_unit_size' not in cache_params):
-            profiler = LRUProfiler(reader, cache_size)
+            profiler = LRUProfiler(reader, cache_size, cache_params)
         else:
             assert cache_size != -1, "you didn't provide size for cache"
             assert cache_size <= self.num_of_request(), "you cannot specify cache size({}) " \
@@ -401,11 +401,14 @@ class cachecow:
                                      bin_size=bin_size, num_of_threads=num_of_threads)
             t1 = time.time()
 
-            if alg=="LRU" and ('block_unit_size' not in kwargs or kwargs['block_unit_size']==0):
+            # if alg=="LRU" and ('block_unit_size' not in kwargs or kwargs['block_unit_size']==0):
+            #     hr = profiler.get_hit_rate()
+            #     plt.plot(hr[:-2], label=label[i])
+            # elif alg=="LRU" and kwargs['block_unit_size']!=0:
+            #     hr = profiler.get_hit_rate_with_size(block_size=kwargs['block_unit_size'])
+            #     plt.plot(hr[:-2], label=label[i])
+            if alg=="LRU":
                 hr = profiler.get_hit_rate()
-                plt.plot(hr[:-2], label=label[i])
-            elif alg=="LRU" and kwargs['block_unit_size']!=0:
-                hr = profiler.get_hit_rate_with_size(block_size=kwargs['block_unit_size'])
                 plt.plot(hr[:-2], label=label[i])
             else:
                 hr = profiler.get_hit_rate()
