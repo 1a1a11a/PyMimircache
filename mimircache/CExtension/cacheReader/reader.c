@@ -28,6 +28,7 @@ reader_t* setup_reader(const char* file_loc,
                        const char file_type,
                        const char data_type,
                        const int block_unit_size,
+                       const int disk_sector_size,
                        const void* const setup_params){
     /* setup the reader struct for reading trace
      file_type: c: csv, v: vscsi, p: plain text, b: binary
@@ -51,6 +52,7 @@ reader_t* setup_reader(const char* file_loc,
     
     reader->base->total_num = -1;
     reader->base->block_unit_size = block_unit_size;
+    reader->base->disk_sector_size = disk_sector_size; 
     reader->base->data_type = data_type;
     reader->base->init_params = NULL;
     reader->base->offset = 0;
@@ -402,8 +404,11 @@ guint64 get_num_of_cache_lines(reader_t *const reader){
 reader_t* clone_reader(reader_t *const reader_in){
     /* this function clone the given reader to give an exactly same reader */
     
-    reader_t *const reader = setup_reader(reader_in->base->file_loc, reader_in->base->type,
-                                          reader_in->base->data_type, reader_in->base->block_unit_size,
+    reader_t *const reader = setup_reader(reader_in->base->file_loc,
+                                          reader_in->base->type,
+                                          reader_in->base->data_type,
+                                          reader_in->base->block_unit_size,
+                                          reader_in->base->disk_sector_size,
                                           reader_in->base->init_params); 
     memcpy(reader->sdata, reader_in->sdata, sizeof(reader_data_share_t));
     
@@ -609,6 +614,7 @@ cache_line* new_cacheline(){
     cp->op = -1;
     cp->size = 0;
     cp->block_unit_size = 0;
+    cp->disk_sector_size = 0; 
     cp->valid = TRUE;
     cp->item_p = (gpointer)cp->item;
     cp->ts = 0; 

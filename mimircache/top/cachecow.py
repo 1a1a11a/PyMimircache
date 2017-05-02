@@ -33,7 +33,7 @@ class cachecow:
         self.reader = plainReader(file_path, data_type=data_type)
         return self.reader
 
-    def csv(self, file_path, init_params, data_type='c'):
+    def csv(self, file_path, init_params, data_type='c', block_unit_size=0, disk_sector_size=0):
         """
         open a csv file
         :param file_path:
@@ -43,10 +43,13 @@ class cachecow:
         """
         if self.reader:
             self.reader.close()
-        self.reader = csvReader(file_path, data_type=data_type, init_params=init_params)
+        self.reader = csvReader(file_path, data_type=data_type,
+                                block_unit_size=block_unit_size,
+                                disk_sector_size=disk_sector_size,
+                                init_params=init_params)
         return self.reader
 
-    def binary(self, file_path, init_params, data_type='l'):
+    def binary(self, file_path, init_params, data_type='l', block_unit_size=0, disk_sector_size=0):
         """
         open a binary file
         :param file_path:
@@ -56,10 +59,13 @@ class cachecow:
         """
         if self.reader:
             self.reader.close()
-        self.reader = binaryReader(file_path, data_type=data_type, init_params=init_params)
+        self.reader = binaryReader(file_path, data_type=data_type,
+                                   block_unit_size=block_unit_size,
+                                   disk_sector_size=disk_sector_size,
+                                   init_params=init_params)
         return self.reader
 
-    def vscsi(self, file_path, data_type='l'):
+    def vscsi(self, file_path, data_type='l', block_unit_size=0, disk_sector_size=512):
         """
         open vscsi trace file
         :param file_path:
@@ -68,7 +74,9 @@ class cachecow:
         """
         if self.reader:
             self.reader.close()
-        self.reader = vscsiReader(file_path, data_type=data_type)
+        self.reader = vscsiReader(file_path, data_type=data_type,
+                                  block_unit_size=block_unit_size,
+                                  disk_sector_size=disk_sector_size)
         return self.reader
 
     def set_size(self, size):

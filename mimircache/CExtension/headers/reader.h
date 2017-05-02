@@ -65,7 +65,8 @@ typedef struct{
     char type;                              /* type of content can be either guint64(l) or char*(c) */
     guint64 ts;                             /* deprecated, should not use, virtual timestamp */
     size_t size;
-    size_t block_unit_size;             
+    size_t block_unit_size;
+    size_t disk_sector_size;
     int op;
     guint64 real_time;
     gboolean valid;
@@ -90,7 +91,7 @@ typedef struct reader_base{
                                              * it is size of basic unit of a big request, 
                                              * in CPHY data, it is 512 bytes */
                                             /* currently not used */
-    
+    int disk_sector_size;   
     FILE* file;
     char file_loc[FILE_LOC_STR_SIZE];
     size_t file_size; 
@@ -153,7 +154,8 @@ typedef struct reader{
 reader_t* setup_reader(const char* file_loc,
                        const char file_type,
                        const char data_type,
-                       const int block_size, 
+                       const int block_size,
+                       const int disk_sector_size,
                        const void* const setup_params);
 
 void read_one_element(reader_t *const reader,

@@ -10,7 +10,7 @@ from mimircache.cacheReader.abstractReader import cacheReaderAbstract
 
 
 class binaryReader(cacheReaderAbstract):
-    def __init__(self, file_loc, init_params, data_type='c', block_unit_size=0, open_c_reader=True):
+    def __init__(self, file_loc, init_params, data_type='c', block_unit_size=0, disk_sector_size=0, open_c_reader=True):
         """
         initialization function
         :param file_loc:
@@ -18,7 +18,7 @@ class binaryReader(cacheReaderAbstract):
         :param data_type:
         :param open_c_reader:
         """
-        super(binaryReader, self).__init__(file_loc, 'c', block_unit_size)
+        super(binaryReader, self).__init__(file_loc, 'c', block_unit_size, disk_sector_size)
         self.file_loc = file_loc
         assert os.path.exists(file_loc), "provided data file does not exist"
         assert 'fmt' in init_params, "please provide format string(fmt) in init_params"
@@ -39,6 +39,7 @@ class binaryReader(cacheReaderAbstract):
             # the data type here is not real data type, it will auto correct in C
             self.cReader = c_cacheReader.setup_reader(file_loc, 'b', data_type=self.data_type,
                                                       block_unit_size=block_unit_size,
+                                                      disk_sector_size=disk_sector_size, 
                                                       init_params=init_params)
 
 

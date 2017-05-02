@@ -7,8 +7,10 @@ from mimircache.cacheReader.abstractReader import cacheReaderAbstract
 
 
 class csvReader(cacheReaderAbstract):
-    def __init__(self, file_loc, data_type='c', init_params=None, block_unit_size=0, open_c_reader=True):
-        super(csvReader, self).__init__(file_loc, data_type, block_unit_size)
+    def __init__(self, file_loc, data_type='c', init_params=None,
+                block_unit_size=0, disk_sector_size=0,
+                open_c_reader=True):
+        super(csvReader, self).__init__(file_loc, data_type, block_unit_size, disk_sector_size)
         assert init_params is not None, "please provide init_param for csvReader"
         assert "label_column" in init_params, "please provide label_column for csv reader"
 
@@ -30,6 +32,7 @@ class csvReader(cacheReaderAbstract):
         if open_c_reader:
             self.cReader = c_cacheReader.setup_reader(file_loc, 'c', data_type=data_type,
                                                       block_unit_size=block_unit_size,
+                                                      disk_sector_size=disk_sector_size, 
                                                       init_params=init_params)
 
 

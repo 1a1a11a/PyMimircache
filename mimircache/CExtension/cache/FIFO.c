@@ -89,7 +89,7 @@ gboolean fifo_add_element_withsize(struct_cache* cache, cache_line* cp){
     
     if (cache->core->block_unit_size != 0){
         *(gint64*)(cp->item_p) = (gint64) (*(gint64*)(cp->item_p) *
-                                           DEFAULT_SECTOR_SIZE /
+                                           cp->disk_sector_size /
                                            cache->core->block_unit_size);
         n = (int)ceil((double) cp->size/cache->core->block_unit_size);
     }

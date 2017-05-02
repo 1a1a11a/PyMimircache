@@ -8,10 +8,13 @@ import mimircache.c_cacheReader as c_cacheReader
 
 
 class vscsiReader(cacheReaderAbstract):
-    def __init__(self, file_loc, data_type='l', block_unit_size=0, open_c_reader=True):
-        super().__init__(file_loc, data_type='l', block_unit_size=block_unit_size)
+    def __init__(self, file_loc, data_type='l', block_unit_size=0, disk_sector_size=512, open_c_reader=True):
+        super().__init__(file_loc, data_type='l', block_unit_size=block_unit_size,
+                         disk_sector_size=disk_sector_size)
         if open_c_reader:
-            self.cReader = c_cacheReader.setup_reader(file_loc, 'v', data_type=data_type, block_unit_size=block_unit_size)
+            self.cReader = c_cacheReader.setup_reader(file_loc, 'v', data_type=data_type,
+                                                      block_unit_size=block_unit_size,
+                                                      disk_sector_size=disk_sector_size)
 
         self.get_num_of_total_requests()
 

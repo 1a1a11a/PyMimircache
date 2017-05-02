@@ -169,6 +169,7 @@ struct_cache* build_cache(reader_t* reader,
         gint block_size = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "block_size"));
         gint cycle_time = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "cycle_time"));
         gint AMP_pthreshold = -1;
+        recording_loc_e recording_loc = miss;
         
         gint sequential_K = -1;
         if (sequential_type != 0)
@@ -180,6 +181,22 @@ struct_cache* build_cache(reader_t* reader,
             cache_type = g_strdup( PyBytes_AS_STRING(temp_bytes) ); // Borrowed pointer
             Py_DECREF(temp_bytes);
         }
+        temp_bytes = PyUnicode_AsEncodedString(PyDict_GetItemString(cache_params, "recording_loc"), "utf-8", "strict"); // Owned reference
+        if (temp_bytes != NULL) {
+            if (strcmp(PyBytes_AS_STRING(temp_bytes), "miss"))
+                recording_loc = miss;
+            else if (strcmp(PyBytes_AS_STRING(temp_bytes), "hit"))
+                recording_loc = hit;
+            else if (strcmp(PyBytes_AS_STRING(temp_bytes), "hit-miss"))
+                recording_loc = hit_miss;
+            else if (strcmp(PyBytes_AS_STRING(temp_bytes), "each-req"))
+                recording_loc = each_req; 
+            else
+                ERROR("unknown recording loc %s\n", PyBytes_AS_STRING(temp_bytes));
+            Py_DECREF(temp_bytes);
+        }
+
+        
         if (strcmp(cache_type, "unknown") == 0){
             PyErr_SetString(PyExc_RuntimeError, "please provide cache_type\n");
             return NULL;
@@ -195,12 +212,11 @@ struct_cache* build_cache(reader_t* reader,
         init_params->min_support            = min_support;
         init_params->cache_type             = cache_type;
         init_params->confidence             = confidence;
+        init_params->recording_loc          = recording_loc;
         init_params->item_set_size          = item_set_size;
-        init_params->training_period        = 0;
         init_params->prefetch_list_size     = prefetch_list_size;
         init_params->block_size             = block_size;
         init_params->max_metadata_size      = max_metadata_size;
-        init_params->training_period_type   = 'v';
         init_params->sequential_type        = sequential_type;
         init_params->sequential_K           = sequential_K;
         init_params->AMP_pthreshold         = AMP_pthreshold;

@@ -852,21 +852,26 @@ gboolean MIMIR_add_element_only(struct_cache* MIMIR, cache_line* cp){
 gboolean MIMIR_add_element_withsize(struct_cache* MIMIR, cache_line* cp){
     int i;
     gboolean ret_val;
-    *(gint64*)(cp->item_p) = (gint64) (*(gint64*)(cp->item_p) *
-                                       DEFAULT_SECTOR_SIZE /
-                                       MIMIR->core->block_unit_size);
-    
+    if (MIMIR->core->block_unit_size != 0 && cp->disk_sector_size != 0){
+
+        *(gint64*)(cp->item_p) = (gint64) (*(gint64*)(cp->item_p) *
+                                           cp->disk_sector_size /
+                                           MIMIR->core->block_unit_size);
+    }
     ret_val = MIMIR_add_element(MIMIR, cp);
     
-    int n = (int)ceil((double) cp->size/MIMIR->core->block_unit_size);
     
-    for (i=0; i<n-1; i++){
-        (*(guint64*)(cp->item_p)) ++;
-        MIMIR_add_element_only(MIMIR, cp);
+    if (MIMIR->core->block_unit_size != 0 && cp->disk_sector_size != 0){
+        int n = (int)ceil((double) cp->size/MIMIR->core->block_unit_size);
+    
+        for (i=0; i<n-1; i++){
+            (*(guint64*)(cp->item_p)) ++;
+            MIMIR_add_element_only(MIMIR, cp);
+        }
+        *(gint64*)(cp->item_p) -= (n-1);
     }
-    *(gint64*)(cp->item_p) -= (n-1);
 
-    return ret_val; 
+    return ret_val;
 }
 
 
@@ -990,6 +995,7 @@ struct_cache* MIMIR_init(guint64 size, char data_type, int block_size, void* par
     MIMIR_params->sequential_K      = init_params->sequential_K;
     MIMIR_params->cycle_time        = init_params->cycle_time;
     MIMIR_params->block_size        = init_params->block_size;
+    MIMIR_params->recording_loc     = init_params->recording_loc; 
     
     
 //    MIMIR_params->mining_threshold  = (gint)(MINING_THRESHOLD / pow(2, MIMIR_params->min_support));
@@ -1033,7 +1039,6 @@ struct_cache* MIMIR_init(guint64 size, char data_type, int block_size, void* par
     
     size = size - (gint)(MIMIR_params->current_metadata_size/init_params->block_size);
 
-    MIMIR_params->training_period_type = init_params->training_period_type;
     MIMIR_params->ts = 0;
 
     MIMIR_params->output_statistics = init_params->output_statistics;
@@ -1051,6 +1056,8 @@ struct_cache* MIMIR_init(guint64 size, char data_type, int block_size, void* par
         MIMIR_params->cache = LRU_init(size, data_type, block_size, NULL);
     else if (strcmp(init_params->cache_type, "FIFO") == 0)
         MIMIR_params->cache = fifo_init(size, data_type, block_size, NULL);
+    else if (strcmp(init_params->cache_type, "LFU") == 0)       // use LFU_fast
+        MIMIR_params->cache = LFU_fast_init(size, data_type, block_size, NULL);
     else if (strcmp(init_params->cache_type, "AMP") == 0){
         struct AMP_init_params *AMP_init_params = g_new0(struct AMP_init_params, 1);
         AMP_init_params->APT            = 4;

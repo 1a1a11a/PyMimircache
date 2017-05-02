@@ -105,11 +105,9 @@ struct HR_PE* get_HR_PE(reader_t* reader_in, guint64 size){
         mimir_initp[i]->output_statistics = 1;
         mimir_initp[i]->confidence = 0;
         mimir_initp[i]->item_set_size = 20;
-        mimir_initp[i]->training_period = 0;
         mimir_initp[i]->prefetch_list_size = 2;
         mimir_initp[i]->max_metadata_size = 0.10;
-        mimir_initp[i]->training_period_type = 'v';
-        mimir_initp[i]->sequential_type = 0;
+        mimir_initp[i]->sequential_type = 0; 
         mimir_initp[i]->sequential_K = 0;
         mimir_initp[i]->cycle_time = 2;
         mimir_initp[i]->AMP_pthreshold = 256;
@@ -267,6 +265,7 @@ void get_HR_PE_thread(gpointer data, gpointer user_data){
     cache_line* cp = new_cacheline();
     cp->type = reader->base->data_type;
     cp->block_unit_size = (size_t) reader->base->block_unit_size;
+    cp->disk_sector_size = (size_t) reader->base->disk_sector_size;
     
     
     guint64 hit_count=0, miss_count=0;
@@ -275,10 +274,10 @@ void get_HR_PE_thread(gpointer data, gpointer user_data){
     
     read_one_element(reader_thread, cp);
     // new 
-    if (cache->core->consider_size && cp->type == 'l'){
+    if (cache->core->consider_size && cp->type == 'l' && cp->disk_sector_size != 0){     // && cp->size != 0 is removed due to trace dirty
         add_element = cache->core->add_element_withsize;
         if (add_element == NULL){
-            printf("profiling with size, but does not have add_element_withsize\n");
+            ERROR("profiling with size, but does not have add_element_withsize\n");
             abort();
         }
     }
@@ -384,7 +383,8 @@ static void profiler_thread(gpointer data, gpointer user_data){
     // create cache line struct and initialization
     cache_line* cp = new_cacheline();
     cp->type = params->cache->core->data_type;
-    cp->block_unit_size = (size_t) reader_thread->base->block_unit_size;
+    cp->block_unit_size = (size_t) reader_thread->base->block_unit_size;    // this is not used, block_unit_size goes with cache 
+    cp->disk_sector_size = (size_t) reader_thread->base->disk_sector_size;
     
     
     guint64 hit_count=0, miss_count=0;
@@ -394,7 +394,7 @@ static void profiler_thread(gpointer data, gpointer user_data){
     read_one_element(reader_thread, cp);
 
     // this must happen after read, otherwise cp size and type unknown
-    if (cache->core->consider_size && cp->type == 'l'){     // && cp->size != 0 is removed due to trace dirty
+    if (cache->core->consider_size && cp->type == 'l' && cp->disk_sector_size != 0){     // && cp->size != 0 is removed due to trace dirty
         add_element = cache->core->add_element_withsize;
         if (add_element == NULL){
             ERROR("using size with profiling, cannot find add_element_withsize\n");
@@ -510,8 +510,7 @@ return_res** profiler(reader_t* reader_in,
         ERROR("end pos <= beigin pos in general profiler, please check\n");
         exit(1);
     }
-    if (cache_in->core->block_unit_size != 0)
-        INFO("use block size %d in profiling\n", cache_in->core->block_unit_size); 
+
     
     // initialization
     int num_of_threads = num_of_threads_in;
@@ -524,6 +523,17 @@ return_res** profiler(reader_t* reader_in,
             get_num_of_cache_lines(reader_in);
         end_pos = reader_in->base->total_num;
     }
+    
+    
+    // check whether profiling considering size or not
+    if (cache_in->core->consider_size && reader_in->base->data_type == 'l'
+            && reader_in->base->disk_sector_size != 0 &&
+        cache_in->core->block_unit_size != 0){     // && cp->size != 0 is removed due to trace dirty
+        INFO("use block size %d, disk sector size %d in profiling\n",
+             cache_in->core->block_unit_size,
+             reader_in->base->disk_sector_size);
+    }
+    
     
     // create the result storage area and caches of varying sizes
     return_res** result = g_new(return_res*, num_of_bins);
@@ -546,6 +556,7 @@ return_res** profiler(reader_t* reader_in,
     params->progress = &progress;
     g_mutex_init(&(params->mtx));
 
+    
     // build the thread pool
     GThreadPool * gthread_pool = g_thread_pool_new ( (GFunc) profiler_thread, (gpointer)params, num_of_threads, TRUE, NULL);
     if (gthread_pool == NULL)

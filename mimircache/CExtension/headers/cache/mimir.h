@@ -14,6 +14,7 @@
 #include "cache.h" 
 #include "LRU.h"
 #include "FIFO.h" 
+#include "LFUFast.h"
 #include "Optimal.h" 
 #include "AMP.h" 
 
@@ -69,6 +70,13 @@ typedef gint64 TS_REPRESENTATION;
  **/
 
 
+typedef enum _recording_loc{
+    hit=0,
+    miss,
+    hit_miss,
+    each_req,
+}recording_loc_e;
+
 
 
 
@@ -80,8 +88,10 @@ struct MIMIR_init_params{
     gint confidence;
     gint prefetch_list_size;
     
-    gdouble training_period;
-    gchar training_period_type;
+    recording_loc_e recording_loc;
+    
+//    gdouble training_period;
+//    gchar training_period_type;
     
     gint block_size;
     gdouble max_metadata_size;
@@ -112,17 +122,18 @@ struct MIMIR_params{
     gint confidence;                        // use the difference in length of sequence as confidence 
     gint cycle_time;
     gint mining_threshold;
+    recording_loc_e recording_loc;
 
 
     gint prefetch_list_size;
-    gint block_size;
+    gint block_size;                        // this should be equal to block_unit_size in cache->core 
     gint64 max_metadata_size;               // in bytes
     gint64 current_metadata_size;           // in bytes
     
     struct recording_mining_struct *record_mining_struct;
     
     
-    gchar training_period_type;
+//    gchar training_period_type;
 
     
     GHashTable *prefetch_hashtable;             // request -> index in prefetch_table_array 

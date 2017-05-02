@@ -177,6 +177,8 @@ guint64* get_hitcount_withsize_seq(reader_t* reader, gint64 size, int block_unit
     
     // create cache lize struct and initialization
     cache_line* cp = new_cacheline();
+    cp->block_unit_size = reader->base->block_unit_size;
+    cp->disk_sector_size = reader->base->disk_sector_size;
     
     // create hashtable
     GHashTable * hash_table;
@@ -199,7 +201,8 @@ guint64* get_hitcount_withsize_seq(reader_t* reader, gint64 size, int block_unit
     
     read_one_element(reader, cp);
     while (cp->valid){
-        *(gint64*)(cp->item_p) = (gint64) (*(gint64*)(cp->item_p) * DEFAULT_SECTOR_SIZE / block_unit_size);
+
+        *(gint64*)(cp->item_p) = (gint64) (*(gint64*)(cp->item_p) * cp->disk_sector_size / block_unit_size);
 
         splay_tree = process_one_element(cp, splay_tree, hash_table, ts, &reuse_dist);
         if (reuse_dist == -1)
@@ -211,13 +214,13 @@ guint64* get_hitcount_withsize_seq(reader_t* reader, gint64 size, int block_unit
 
         // new 170428
         n = (int)ceil((double) cp->size/block_unit_size);
-//        printf("n %d\n", n); 
         for (i=0; i<n-1; i++){
             ts++;
             (*(guint64*)(cp->item_p)) ++;
             splay_tree = process_one_element(cp, splay_tree, hash_table, ts, &reuse_dist);
         }
         // end
+        (*(guint64*)(cp->item_p)) -= (n-1);
         
         ts++;
         read_one_element(reader, cp);
@@ -250,8 +253,6 @@ double* get_hitrate_withsize_seq(reader_t* reader,
     
     guint64* hit_count_array = get_hitcount_withsize_seq(reader, size, block_size);
     double total_num = (double)(reader->base->total_num);
-    
-    
     
     double* hit_rate_array = g_new(double, size+3);
     hit_rate_array[0] = hit_count_array[0]/total_num;

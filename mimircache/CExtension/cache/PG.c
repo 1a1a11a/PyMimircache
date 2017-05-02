@@ -357,7 +357,7 @@ gboolean PG_add_element_withsize(struct_cache* cache, cache_line* cp){
     gboolean ret_val;
     
     *(gint64*)(cp->item_p) = (gint64) (*(gint64*)(cp->item_p) *
-                                       DEFAULT_SECTOR_SIZE /
+                                       cp->disk_sector_size /
                                        cache->core->block_unit_size);
     ret_val = PG_add_element(cache, cp);
     

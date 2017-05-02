@@ -19,7 +19,7 @@
 
 #define GET_BLOCK( cp )   ( ((cache_line*) (cp))->type == 'l'? *(gint64*) (((cache_line*) (cp))->item_p): atoll(((cache_line*) (cp))->item))
 
-#define TRACKED_BLOCK (-1) // 2619632
+//#define TRACKED_BLOCK 13113277 
 
 
 
@@ -103,7 +103,14 @@ void createPages_no_eviction(struct_cache* AMP, gint64 block_begin, gint length)
     else{
         last_page->p = MAX(prev_page->p, last_page->g +1);
         last_page->g = prev_page->g;
+
+
         AMP_lookup(AMP, last_page->block_number-prev_page->g)->tag = TRUE;
+//        struct AMP_page* tag_page = AMP_lookup(AMP, last_page->block_number-prev_page->g);
+//        // new 1704
+//        if (tag_page)
+//            tag_page->tag = TRUE;
+        //end
     }
 }
 
@@ -142,6 +149,10 @@ void checkHashTable(gpointer key, gpointer value, gpointer user_data){
     struct AMP_page* page = node->data;
     if (page->block_number != *(gint64*)key || page->block_number < 0)
         printf("find error in page, page block %ld, key %ld\n", page->block_number, *(gint64*)key);
+    if (page->p < page->g){
+        ERROR("page %ld, p %d, g %d\n", page->block_number, page->p, page->g);
+        abort(); 
+    }
 }
 
 
@@ -217,7 +228,7 @@ void __AMP_evict_element(struct_cache* AMP, cache_line* cp){
     else{
 #ifdef TRACKED_BLOCK
         if (page->block_number == TRACKED_BLOCK)
-            printf("ts %lu, final evict %d, old %d, accessed %d\n", cp->ts, TRACKED_BLOCK, page->old, page->accessed);
+            printf("ts %lu, try evict %d, old %d, accessed %d\n", cp->ts, TRACKED_BLOCK, page->old, page->accessed);
 #endif 
         
         page->old = TRUE;
@@ -411,14 +422,16 @@ gboolean AMP_add_element_only(struct_cache* cache, cache_line* cp){
 
 gboolean AMP_add_element_no_eviction_withsize(struct_cache* cache, cache_line* cp){
     struct AMP_params* AMP_params = (struct AMP_params*)(cache->cache_params);
-    gint64 block;
-
-    *(gint64*)(cp->item_p) = (gint64) (*(gint64*)(cp->item_p) *
-                                       DEFAULT_SECTOR_SIZE /
-                                       cache->core->block_unit_size);
-    int n = (int)ceil((double)cp->size/cache->core->block_unit_size);
-    if (n<1)    // some traces have size zero for some requests  
-        n = 1;
+    gint64 block, i, n = 1;
+    
+    if (cp->disk_sector_size != 0 && cache->core->block_unit_size !=0){
+        *(gint64*)(cp->item_p) = (gint64) (*(gint64*)(cp->item_p) *
+                                           cp->disk_sector_size /
+                                           cache->core->block_unit_size);
+        n = (int)ceil((double)cp->size/cache->core->block_unit_size);
+        if (n<1)    // some traces have size zero for some requests
+            n = 1;
+    }
 
     block = *(gint64*) (cp->item_p);
     struct AMP_page* page = AMP_lookup(cache, block);
@@ -438,13 +451,14 @@ gboolean AMP_add_element_no_eviction_withsize(struct_cache* cache, cache_line* c
         page->accessed = 1;
 
         // new for withsize, keep reading the remaining pages
-        int i;
-        gint64 old_block = (*(gint64*)(cp->item_p));
-        for (i=0; i<n-1; i++){
-            (*(gint64*)(cp->item_p)) ++;
-            AMP_add_element_only(cache, cp);
+        if (cp->disk_sector_size != 0 && cache->core->block_unit_size !=0){
+            gint64 old_block = (*(gint64*)(cp->item_p));
+            for (i=0; i<n-1; i++){
+                (*(gint64*)(cp->item_p)) ++;
+                AMP_add_element_only(cache, cp);
+            }
+            (*(gint64*)(cp->item_p)) = old_block;
         }
-        (*(gint64*)(cp->item_p)) = old_block; 
         // end
         
         gint length = 0;
@@ -464,13 +478,15 @@ gboolean AMP_add_element_no_eviction_withsize(struct_cache* cache, cache_line* c
                     page_new->p = page_new->p + AMP_params->read_size;
             ;
         }
+
         
         /* this is done here, because the page may be evicted when createPages */
         if (page->tag){
-            // this page can be prefetched or read at miss
+            // this page can come from prefetch or read at miss
             page->tag = FALSE;
             createPages_no_eviction(cache, page->last_block_number+1, length);
         }
+        
         return TRUE;
     }
     // cache miss, load from disk
@@ -482,39 +498,45 @@ gboolean AMP_add_element_no_eviction_withsize(struct_cache* cache, cache_line* c
         struct AMP_page* page_prev = AMP_lookup(cache, block - 1);
         // NEED TO SET LAST PAGE
         AMP_lookup(cache, block)->last_block_number = block;
-
+        
         
         // new for withsize, keep reading the remaining pages
-        int i;
-        gint64 last_block = (*(gint64*)(cp->item_p)) + n -1;
-        AMP_lookup(cache, block)->last_block_number = last_block;
+        if (cp->disk_sector_size != 0 && cache->core->block_unit_size != 0){
 
-        for (i=0; i<n-1; i++){
-            (*(gint64*)(cp->item_p)) ++;
-            AMP_add_element_only(cache, cp);
-            AMP_lookup(cache, (*(gint64*)(cp->item_p)))->last_block_number = last_block;
-        }
-        *(gint64*)(cp->item_p) -= (n-1);
+            gint64 last_block = (*(gint64*)(cp->item_p)) + n -1;
+            // update new last_block_number
+            AMP_lookup(cache, block)->last_block_number = last_block;
 
+            for (i=0; i<n-1; i++){
+                (*(gint64*)(cp->item_p)) ++;
+                AMP_add_element_only(cache, cp);
+                AMP_lookup(cache, (*(gint64*)(cp->item_p)))->last_block_number = last_block;
+            }
+            *(gint64*)(cp->item_p) -= (n-1);
         
 #ifdef SANITY_CHECK
-        if (*(gint64*)(cp->item_p) != block)
-            ERROR("current block %ld, original %ld, n %d\n", *(gint64*)(cp->item_p), block, n);
-        if (AMP_lookup(cache, block) == NULL)
-            ERROR("requested block is not in cache after inserting, n %d, cache size %ld\n", n, cache->core->size); 
+            if (*(gint64*)(cp->item_p) != block)
+                ERROR("current block %ld, original %ld, n %d\n", *(gint64*)(cp->item_p), block, n);
+            if (AMP_lookup(cache, block) == NULL)
+                ERROR("requested block is not in cache after inserting, n %d, cache size %ld\n", n, cache->core->size);
 #endif 
         
-        
-        struct AMP_page* page_last = AMP_lookup(cache, last_block);
-        page_last->p = (page_prev? page_prev->p: 0) + AMP_params->read_size;
-        if (page_last->p > (int) (AMP_params->APT) ){
-            page_last->g = (int) (AMP_params->APT / 2);
-            struct AMP_page* tag_page =
+            // if n==1, then page_last is the same only page
+            struct AMP_page* page_last = AMP_lookup(cache, last_block);
+            page_last->p = (page_prev? page_prev->p: 0) + AMP_params->read_size;
+            if (page_last->p > (int) (AMP_params->APT) ){
+                page_last->g = (int) (AMP_params->APT / 2);
+                struct AMP_page* tag_page =
                 AMP_lookup(cache, page_last->block_number - (int)(AMP_params->APT/2) );
-            if (tag_page){
-                tag_page->tag = TRUE;
-                tag_page->last_block_number = last_block;
+                if (tag_page){
+                    tag_page->tag = TRUE;
+                    tag_page->last_block_number = last_block;
+                }
             }
+            // this is possible, but not mentioned in the paper, anything wrong?
+            if (page_last->p < page_last->g)
+                page_last->g = page_last->p - 1 > 0 ? page_last->p - 1 : 0;
+            
         }
         // end
         
@@ -533,6 +555,7 @@ gboolean AMP_add_element_no_eviction_withsize(struct_cache* cache, cache_line* c
             if (check)
                 createPages_no_eviction(cache, block + 1, length);
         }
+        
         return FALSE;
     }
 }

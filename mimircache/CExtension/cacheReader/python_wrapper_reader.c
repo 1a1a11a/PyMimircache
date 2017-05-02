@@ -26,14 +26,17 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
     char* file_type;
     char* data_type = "c";
     int block_unit_size = 0;
+    int disk_sector_size = 0;
     PyObject *py_init_params;
     void *init_params = NULL;
 
-    static char *kwlist[] = {"file_loc", "file_type", "data_type", "block_unit_size", "init_params", NULL};
+    static char *kwlist[] = {"file_loc", "file_type", "data_type",
+                "block_unit_size", "disk_sector_size", "init_params", NULL};
     
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "ss|siO", kwlist, &file_loc,
-                                     &file_type, &data_type, &block_unit_size, &py_init_params)){
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "ss|siiO", kwlist, &file_loc,
+                                     &file_type, &data_type, &block_unit_size,
+                                     &disk_sector_size, &py_init_params)){
         PyErr_SetString(PyExc_RuntimeError,
                         "parsing argument failed in setup reader\n");
         return NULL;
@@ -139,7 +142,8 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
     }
     
     
-    reader_t* reader = setup_reader(file_loc, *file_type, *data_type, block_unit_size, init_params);
+    reader_t* reader = setup_reader(file_loc, *file_type, *data_type,
+                                    block_unit_size, disk_sector_size, init_params);
 
     if (init_params != NULL){
         g_free(init_params);
