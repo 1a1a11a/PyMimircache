@@ -54,7 +54,9 @@ class binaryReader(cacheReaderAbstract):
         if len(b):
             ret = self.structIns.unpack(b)[self.label_column -1]
             if self.data_type == 'l':
-                return int(ret)
+                if ret and self.block_unit_size != 0 and self.disk_sector_size != 0:
+                    ret = int(ret) * self.disk_sector_size // self.block_unit_size
+                return ret
             else:
                 return ret
         else:
@@ -69,7 +71,9 @@ class binaryReader(cacheReaderAbstract):
         super().read_one_element()
         b = self.trace_file.read(self.record_size)
         if len(b):
-            ret = self.structIns.unpack(b)
+            ret = list(self.structIns.unpack(b))
+            if self.block_unit_size != 0 and self.disk_sector_size != 0:
+                ret[self.label_column-1] = ret[self.label_column-1] * self.disk_sector_size // self.block_unit_size
             return ret
         else:
             return None
@@ -78,7 +82,9 @@ class binaryReader(cacheReaderAbstract):
     def lines(self):
         b = self.trace_file.read(self.record_size)
         while len(b):
-            ret = self.structIns.unpack(b)
+            ret = list(self.structIns.unpack(b))
+            if self.block_unit_size != 0 and self.disk_sector_size != 0:
+                ret[self.label_column-1] = ret[self.label_column-1] * self.disk_sector_size // self.block_unit_size
             b = self.trace_file.read(self.record_size)
             yield ret
 
@@ -94,10 +100,14 @@ class binaryReader(cacheReaderAbstract):
         if len(b):
             ret = self.structIns.unpack(b)
             try:
+                time = float(ret[self.time_column - 1])
+                obj = ret[self.label_column - 1]
                 if self.data_type == 'l':
-                    return float(ret[self.time_column - 1]), int(ret[self.label_column - 1])
+                    if self.block_unit_size != 0 and self.disk_sector_size != 0:
+                        obj = int(obj) * self.disk_sector_size // self.block_unit_size
+                    return time, obj
                 else:
-                    return float(ret[self.time_column - 1]), ret[self.label_column - 1]
+                    return time, obj
             except Exception as e:
                 print("ERROR reading data: {}, current line: {}".format(e, ret))
 

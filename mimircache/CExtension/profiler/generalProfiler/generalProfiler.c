@@ -98,10 +98,8 @@ struct HR_PE* get_HR_PE(reader_t* reader_in, guint64 size){
     struct MIMIR_init_params** mimir_initp = g_new0(struct MIMIR_init_params*, mimir_n1 + mimir_n2);
     for (i=0; i<mimir_n1+mimir_n2; i++){
         mimir_initp[i] = g_new0(struct MIMIR_init_params, 1);
-        mimir_initp[i]->block_size = 64 * 1024;
+        mimir_initp[i]->block_size = block_unit_size;
         mimir_initp[i]->cache_type = "LRU";
-//        mimir_initp[i]->max_support = 20;
-//        mimir_initp[i]->min_support = 2;
         mimir_initp[i]->output_statistics = 1;
         mimir_initp[i]->confidence = 0;
         mimir_initp[i]->item_set_size = 20;
@@ -111,6 +109,7 @@ struct HR_PE* get_HR_PE(reader_t* reader_in, guint64 size){
         mimir_initp[i]->sequential_K = 0;
         mimir_initp[i]->cycle_time = 2;
         mimir_initp[i]->AMP_pthreshold = 256;
+        mimir_initp[i]->mining_threshold = 5120;    // this is the default value used in the past for results
     }
     
     
@@ -210,7 +209,7 @@ struct HR_PE* get_HR_PE(reader_t* reader_in, guint64 size){
     mimir_initp[12]->sequential_type = 2;
     mimir_initp[12]->sequential_K = 1;
     mimir_initp[12]->AMP_pthreshold = 256;
-
+     
 
     **/
     
@@ -339,7 +338,6 @@ void get_HR_PE_thread(gpointer data, gpointer user_data){
         hrpe->PE[order] = (double)hit/prefetch;
         hrpe->prefetch[order] = prefetch;
         hrpe->real_cache_size[order] = ((PG_params_t*)(cache->cache_params))->cache->core->size; 
-        printf("PG hit %ld, prefetch %ld\n", hit, prefetch);
     }
     
     

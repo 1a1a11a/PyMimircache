@@ -71,9 +71,9 @@ typedef gint64 TS_REPRESENTATION;
 
 
 typedef enum _recording_loc{
-    hit=0,
-    miss,
-    hit_miss,
+    miss=0,     // this is the default, change order will have effect 
+    evict,
+    miss_evict,
     each_req,
 }recording_loc_e;
 
@@ -101,7 +101,7 @@ struct MIMIR_init_params{
                                             1: no cycle, no more chance, otherwise give cycle_time-1 chances 
                                          **/
     
-    
+    int mining_threshold;
     
     gint sequential_type;               /** 0: no sequential_prefetching,
                                          *  1: simple sequential_prefetching,
@@ -121,7 +121,8 @@ struct MIMIR_params{
     gint min_support;
     gint confidence;                        // use the difference in length of sequence as confidence 
     gint cycle_time;
-    gint mining_threshold;
+    gint mining_table_size;
+    int mining_threshold; 
     recording_loc_e recording_loc;
 
 

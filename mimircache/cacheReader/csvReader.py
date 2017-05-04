@@ -37,17 +37,30 @@ class csvReader(cacheReaderAbstract):
 
 
     def read_one_element(self):
+        """
+        read one request, return the lbn/objID 
+        :return: 
+        """
         super().read_one_element()
         line = self.trace_file.readline()
         while line and len(line.strip())==0:
             line = self.trace_file.readline()
-
         if line:
-            return line.split(self.delimiter)[self.label_column -1].strip()
+            ret = line.split(self.delimiter)[self.label_column -1].strip()
+            if self.data_type == 'l':
+                ret = int(ret)
+                if self.block_unit_size!=0 and self.disk_sector_size!=0:
+                    ret = ret * self.disk_sector_size // self.block_unit_size
+            return ret
         else:
             return None
 
     def lines_dict(self):
+        """
+        return a dict with column header->data 
+        note this function does not convert lbn even if disk_sector_size and block_unit_size are set 
+        :return: 
+        """
         line = self.trace_file.readline()
         while line:
             line_split = line.split(self.delimiter)
@@ -78,7 +91,14 @@ class csvReader(cacheReaderAbstract):
         if line:
             line = line.split(self.delimiter)
             try:
-                return float(line[self.time_column - 1].strip()), line[self.label_column - 1].strip()
+                time = float(line[self.time_column - 1].strip())
+                lbn  = line[self.label_column - 1].strip()
+                if self.data_type == 'l':
+                    lbn = int(lbn)
+                    if self.block_unit_size != 0 and self.disk_sector_size != 0:
+                        lbn = lbn * self.disk_sector_size // self.block_unit_size
+
+                return time, lbn
             except Exception as e:
                 print("ERROR reading data: {}, current line: {}".format(e, line))
 

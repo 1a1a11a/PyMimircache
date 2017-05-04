@@ -24,22 +24,30 @@ class vscsiReader(cacheReaderAbstract):
             c_cacheReader.reset_reader(self.cReader)
 
     def read_one_element(self):
-        return c_cacheReader.read_one_element(self.cReader)
-
+        r = c_cacheReader.read_one_element(self.cReader)
+        if r and self.block_unit_size != 0 and self.disk_sector_size != 0:
+            r = r * self.disk_sector_size // self.block_unit_size
+        return r
 
     def read_time_request(self):
         """
         return real_time information for the request in the form of (time, request)
         :return:
         """
-        return c_cacheReader.read_time_request(self.cReader)
+        r = c_cacheReader.read_time_request(self.cReader)
+        if r and self.block_unit_size != 0 and self.disk_sector_size != 0:
+            r[1] = r[1] * self.disk_sector_size // self.block_unit_size
+        return r
 
     def read_one_request_full_info(self):
         """
         obtain more info for the request in the form of (time, request, size)
         :return:
         """
-        return c_cacheReader.read_one_request_full_info(self.cReader)
+        r = c_cacheReader.read_one_request_full_info(self.cReader)
+        if r and self.block_unit_size != 0 and self.disk_sector_size != 0:
+            r[1] = r[1] * self.disk_sector_size // self.block_unit_size
+        return r
 
     def get_average_size(self):
         """
@@ -61,7 +69,7 @@ class vscsiReader(cacheReaderAbstract):
 
     def __next__(self):  # Python 3
         super().__next__()
-        element = c_cacheReader.read_one_element(self.cReader)
+        element = self.read_one_element()
         if element is not None:
             return element
         else:

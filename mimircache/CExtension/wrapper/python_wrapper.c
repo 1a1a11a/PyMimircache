@@ -168,6 +168,10 @@ struct_cache* build_cache(reader_t* reader,
         gdouble max_metadata_size = (gdouble) PyFloat_AsDouble(PyDict_GetItemString(cache_params, "max_metadata_size"));
         gint block_size = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "block_size"));
         gint cycle_time = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "cycle_time"));
+        gint mining_threshold = 5120;
+        if (PyDict_Contains(cache_params, PyUnicode_FromString("mining_threshold")))
+            mining_threshold = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "mining_threshold"));
+
         gint AMP_pthreshold = -1;
         recording_loc_e recording_loc = miss;
         
@@ -181,15 +185,19 @@ struct_cache* build_cache(reader_t* reader,
             cache_type = g_strdup( PyBytes_AS_STRING(temp_bytes) ); // Borrowed pointer
             Py_DECREF(temp_bytes);
         }
-        temp_bytes = PyUnicode_AsEncodedString(PyDict_GetItemString(cache_params, "recording_loc"), "utf-8", "strict"); // Owned reference
+        
+        temp_bytes = NULL;
+        if (PyDict_Contains(cache_params, PyUnicode_FromString("recording_loc")))
+            temp_bytes = PyUnicode_AsEncodedString(PyDict_GetItemString(cache_params, "recording_loc"), "utf-8", "strict"); // Owned reference
         if (temp_bytes != NULL) {
-            if (strcmp(PyBytes_AS_STRING(temp_bytes), "miss"))
+            // Default is record at miss if not set 
+            if (strcmp(PyBytes_AS_STRING(temp_bytes), "miss") == 0)
                 recording_loc = miss;
-            else if (strcmp(PyBytes_AS_STRING(temp_bytes), "hit"))
-                recording_loc = hit;
-            else if (strcmp(PyBytes_AS_STRING(temp_bytes), "hit-miss"))
-                recording_loc = hit_miss;
-            else if (strcmp(PyBytes_AS_STRING(temp_bytes), "each-req"))
+            else if (strcmp(PyBytes_AS_STRING(temp_bytes), "evict") == 0)
+                recording_loc = evict;
+            else if (strcmp(PyBytes_AS_STRING(temp_bytes), "miss-evict") == 0)
+                recording_loc = miss_evict;
+            else if (strcmp(PyBytes_AS_STRING(temp_bytes), "each-req") == 0)
                 recording_loc = each_req; 
             else
                 ERROR("unknown recording loc %s\n", PyBytes_AS_STRING(temp_bytes));
@@ -221,6 +229,7 @@ struct_cache* build_cache(reader_t* reader,
         init_params->sequential_K           = sequential_K;
         init_params->AMP_pthreshold         = AMP_pthreshold;
         init_params->cycle_time             = cycle_time;
+        init_params->mining_threshold       = mining_threshold;
         
         cache = MIMIR_init(cache_size, data_type, block_unit_size, (void*)init_params);
     }
