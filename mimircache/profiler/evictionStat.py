@@ -40,7 +40,7 @@ def eviction_stat_reuse_dist_plot(reader, algorithm, cache_size, mode, time_inte
     rd_array = c_eviction_stat.get_stat(reader.cReader, algorithm=alg, cache_size=cache_size, stat_type="reuse_dist")
 
     # generate break points for bucketing the reuse_dist array
-    bp = cHeatmap().gen_breakpoints(reader, mode, time_interval)
+    bp = cHeatmap().getBreakpoints(reader, mode, time_interval)
 
     pos = 1
     count = 0
@@ -126,7 +126,7 @@ def eviction_stat_freq_plot(reader, algorithm, cache_size, mode, time_interval,
         stat_type = "accumulative_freq"
     assert alg=="Optimal", "Currently only Optimal is supported"
     freq_array = c_eviction_stat.get_stat(reader.cReader, algorithm=alg, cache_size=cache_size, stat_type=stat_type)
-    bp = cHeatmap().gen_breakpoints(reader, mode, time_interval)
+    bp = cHeatmap().getBreakpoints(reader, mode, time_interval)
 
     pos = 1
     count = 0

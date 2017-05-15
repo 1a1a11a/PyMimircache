@@ -98,7 +98,7 @@ class cReaderTest(unittest.TestCase):
         e1 = c_cacheReader.read_one_element(vReader)
         e2 = c_cacheReader.read_one_element(cReader)
         while e1 and e2:
-            self.assertEqual(e1, e2+1)
+            self.assertEqual(e1, e2)
             e1 = c_cacheReader.read_one_element(vReader)
             e2 = c_cacheReader.read_one_element(cReader)
 

@@ -18,7 +18,7 @@ class binaryReader(cacheReaderAbstract):
         :param data_type:
         :param open_c_reader:
         """
-        super(binaryReader, self).__init__(file_loc, 'c', block_unit_size, disk_sector_size)
+        super(binaryReader, self).__init__(file_loc, data_type, block_unit_size, disk_sector_size)
         self.file_loc = file_loc
         assert os.path.exists(file_loc), "provided data file does not exist"
         assert 'fmt' in init_params, "please provide format string(fmt) in init_params"

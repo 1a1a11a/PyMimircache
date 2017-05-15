@@ -11,16 +11,27 @@ import sys
 import shutil
 import subprocess
 import tempfile
+import sysconfig
 # from Cython.Build import cythonize
 from _version import __version__
+
+_DEBUG = False
+_DEBUG_LEVEL = 0
 
 # --------------------- Initialization ------------------------------
 
 extensions = []
-extra_compile_args = ["-O3"]
+extra_compile_args = []
 extra_link_args = ["-lm"]
 numpy_headers = []
 
+
+if _DEBUG:
+    extra_compile_args += ["-g3", "-O0", "-D_DEBUG=%s" % _DEBUG_LEVEL, "-UNDEBUG"]
+else:
+    extra_compile_args += ["-DNDEBUG", "-O3"]
+
+# print(sysconfig.get_config_var('CFLAGS').split())
 # --------------------- Get OpenMP compiler flag --------------------
 
 # If this C test program compiles the compiler supports OpenMP
@@ -246,7 +257,7 @@ extensions.append(Extension(
 
 
 print("find packages: " + str(
-    find_packages(exclude=(['mimircache.bin', 'mimircache.test', 'mimircache.data', 'mimircache.1a1a11a']))))
+    find_packages(exclude=(['mimircache.bin', 'mimircache.test', 'mimircache.data', 'mimircache.A1a1a11a']))))
 
 print("Extension: " + str(extensions))
 # long_description = read('README.md', 'CHANGES')
@@ -257,7 +268,7 @@ setup(
     version=__version__,
     # package_dir = {'':'src'},
     # packages = ['cache', 'cacheReader', 'profiler', 'utils'],
-    packages=find_packages(exclude=(['mimircache.bin', 'mimircache.test', 'mimircache.data', 'mimircache.1a1a11a'])),
+    packages=find_packages(exclude=(['mimircache.bin', 'mimircache.test', 'mimircache.data', 'mimircache.A1a1a11a'])),
     # modules = 
     package_data={'plain': ['mimircache/data/trace.txt'],
                   'csv': ['mimircache/data/trace.csv'],
@@ -287,7 +298,7 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
     ],
-    install_requires=['heapdict'],      # 'numpy', 'matplotlib', 'scipy', 
+    install_requires=['heapdict', 'mmh3'],      # 'numpy', 'matplotlib', 'scipy',
     # long_description=long_description
 )
 

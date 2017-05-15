@@ -128,10 +128,8 @@ static inline int binary_read(reader_t* reader, cache_line* cp){
                        params->real_time_type, &(cp->real_time));
     }
     if (params->size_type){
-        printf("size type %d %c\n", params->size_type, params->size_type);
-        WARNING("currently size option is not supported\n");
-//        binary_extract(record, params->size_pos, params->size_len,
-//                       params->size_type, &(cp->size));
+        binary_extract(record, params->size_pos, params->size_len,
+                       params->size_type, &(cp->size));
     }
     if (params->op_type){
         printf("op type %d %c\n", params->op_type, params->op_type);

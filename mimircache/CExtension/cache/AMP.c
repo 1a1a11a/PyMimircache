@@ -103,14 +103,7 @@ void createPages_no_eviction(struct_cache* AMP, gint64 block_begin, gint length)
     else{
         last_page->p = MAX(prev_page->p, last_page->g +1);
         last_page->g = prev_page->g;
-
-
         AMP_lookup(AMP, last_page->block_number-prev_page->g)->tag = TRUE;
-//        struct AMP_page* tag_page = AMP_lookup(AMP, last_page->block_number-prev_page->g);
-//        // new 1704
-//        if (tag_page)
-//            tag_page->tag = TRUE;
-        //end
     }
 }
 
@@ -509,6 +502,14 @@ gboolean AMP_add_element_no_eviction_withsize(struct_cache* cache, cache_line* c
 
             for (i=0; i<n-1; i++){
                 (*(gint64*)(cp->item_p)) ++;
+                
+                // added 170505, for calculating precision
+//                if (g_hash_table_contains(AMP_params->prefetched, cp->item_p)){
+//                    AMP_params->num_of_hit ++;
+//                    g_hash_table_remove(AMP_params->prefetched, cp->item_p);
+//                }
+
+                
                 AMP_add_element_only(cache, cp);
                 AMP_lookup(cache, (*(gint64*)(cp->item_p)))->last_block_number = last_block;
             }
@@ -552,8 +553,17 @@ gboolean AMP_add_element_no_eviction_withsize(struct_cache* cache, cache_line* c
             int m;  // m begins with 2, because page_prev already exists
             for (m=2; m<=AMP_params->K; m++)
                 check = check && AMP_lookup(cache, block-m);
-            if (check)
+            if (check){
+                // new 170505, for calculating precision
+//                if (cp->disk_sector_size != 0 && cache->core->block_unit_size != 0){
+//                    block = (*(gint64*)(cp->item_p)) + n -1;
+//                    length -= (long)(n - 1);
+//                }
+//                if (length > 0)
+//                    createPages_no_eviction(cache, block + 1, length);
+                // end
                 createPages_no_eviction(cache, block + 1, length);
+            }
         }
         
         return FALSE;

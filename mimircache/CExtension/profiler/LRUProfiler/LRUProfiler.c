@@ -168,6 +168,12 @@ guint64* get_hitcount_withsize_seq(reader_t* reader, gint64 size, int block_unit
     if (size == -1)
         size = reader->base->total_num;
     
+    // check for size option
+    if (reader->base->type == 'p' || reader->base->data_type == 'c'){
+        ERROR("plain reader or dataType c does not support profiling with size\n");
+        abort();
+    }
+    
     /* for a cache_size=size, we need size+1 bucket for size 0~size(included),
      * the last element(size+1) is used for storing count of reuse distance > size
      * if size==reader->base->total_num, then the last two is not used
@@ -179,6 +185,11 @@ guint64* get_hitcount_withsize_seq(reader_t* reader, gint64 size, int block_unit
     cache_line* cp = new_cacheline();
     cp->block_unit_size = reader->base->block_unit_size;
     cp->disk_sector_size = reader->base->disk_sector_size;
+    if (cp->block_unit_size == 0 || cp->disk_sector_size == 0){
+        ERROR("block unit size %d disk sector size %d cannot be 0\n",
+              (int) cp->block_unit_size, (int) cp->disk_sector_size);
+        abort();
+    }
     
     // create hashtable
     GHashTable * hash_table;
@@ -201,7 +212,6 @@ guint64* get_hitcount_withsize_seq(reader_t* reader, gint64 size, int block_unit
     
     read_one_element(reader, cp);
     while (cp->valid){
-
         *(gint64*)(cp->item_p) = (gint64) (*(gint64*)(cp->item_p) * cp->disk_sector_size / block_unit_size);
 
         splay_tree = process_one_element(cp, splay_tree, hash_table, ts, &reuse_dist);
@@ -213,6 +223,15 @@ guint64* get_hitcount_withsize_seq(reader_t* reader, gint64 size, int block_unit
             hit_count_array[reuse_dist+1] += 1;
 
         // new 170428
+        if (cp->size == 0){
+            if (cp->type == 'c'){
+                WARNING("ts %lu, request lbn %s size 0\n", ts, (char*)(cp->item_p));
+            }
+            else{
+                WARNING("ts %lu, request lbn %ld size 0\n", ts, *(gint64*)(cp->item_p));
+            }
+        }
+        
         n = (int)ceil((double) cp->size/block_unit_size);
         for (i=0; i<n-1; i++){
             ts++;

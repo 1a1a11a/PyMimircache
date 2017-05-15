@@ -18,10 +18,12 @@ Now let's open a trace file, your have three choices for opening different types
     >>> c.open("trace/file/location")
     >>> c.csv("trace/file/location", init_params={'label_column':x})  # specify which column contains the request key(label),
     >>> c.vscsi("trace/file/location")          # for vscsi format data
+    >>> c.binary("trace/file/location", init_params={"label": x, "fmt": xxx})   # use same format as python struct
+
 
 .. note::
-    for csv data, the column number begins with 0, so the first column is 0, the second is 1, etc. In the init_params, other possible parameters include: header: True/False; real_time_column:x; op_column:x; size_column:x. Header indicates whether the csv file has a header; real_time_column indicates the time of the request, it must be in the form of number, either in microseconds, milliseconds, seconds or some other unit; op_column means the type of operation, it is not supported currently, size_column indicates the column of request size, it is not used in current version
-
+    for csv data, the column number begins from 1, so the first column is 1, the second is 2, etc. In the init_params, other possible parameters include: header: True/False; real_time_column:x; op_column:x; size_column:x. Header indicates whether the csv file has a header; real_time_column indicates the time of the request, it must be in the form of number, either in microseconds, milliseconds, seconds or some other unit; op_column means the type of operation, it is not supported currently, size_column indicates the column of request size, it is not used in current version
+    for binary data, the column number also begins from 1, other available parameters include real_time: x;
 
 OK, data is ready, now let's play!
 
@@ -298,10 +300,322 @@ You are in the right place! Differential heatmaps allow you to compare cache rep
 
 Currently we only support differential heatmap of hit_rate_start_time_end_time, and the function to plot is shown below:
 
+    >>> c.diffHeatmap(mode, plot_type, algorithm1, cache_size...)
+
+The first three parameters are the same as before, which are time mode (r or v), time interval, the types of plot(only support hit_rate_start_time_end_time for now)
+algorithm1 is the first algorithm, algorithm2 is the second algorithm (default to be Optimal), cache_size is a
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_rate_start_time_end_time, and the function to plot is shown below:
+
+    >>> c.diffHeatmap(mode, plot_type, algorithm1, cache_size...)
+
+The first three parameters are the same as before, which are time mode (r or v), time interval, the types of plot(only support hit_rate_start_time_end_time for now)
+algorithm1 is the first algorithm, algorithm2 is the second algorithm (default to be Optimal), cache_size is a
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_rate_start_time_end_time, and the function to plot is shown below:
+
+    >>> c.diffHeatmap(mode, plot_type, algorithm1, cache_size...)
+
+The first three parameters are the same as before, which are time mode (r or v), time interval, the types of plot(only support hit_rate_start_time_end_time for now)
+algorithm1 is the first algorithm, algorithm2 is the second algorithm (default to be Optimal), cache_size is a
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_rate_start_time_end_time, and the function to plot is shown below:
+
+    >>> c.diffHeatmap(mode, plot_type, algorithm1, cache_size...)
+
+The first three parameters are the same as before, which are time mode (r or v), time interval, the types of plot(only support hit_rate_start_time_end_time for now)
+algorithm1 is the first algorithm, algorithm2 is the second algorithm (default to be Optimal), cache_size is a
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_rate_start_time_end_time, and the function to plot is shown below:
+
+    >>> c.diffHeatmap(mode, plot_type, algorithm1, cache_size...)
+
+The first three parameters are the same as before, which are time mode (r or v), time interval, the types of plot(only support hit_rate_start_time_end_time for now)
+algorithm1 is the first algorithm, algorithm2 is the second algorithm (default to be Optimal), cache_size is a
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_rate_start_time_end_time, and the function to plot is shown below:
+
+    >>> c.diffHeatmap(mode, plot_type, algorithm1, cache_size...)
+
+The first three parameters are the same as before, which are time mode (r or v), time interval, the types of plot(only support hit_rate_start_time_end_time for now)
+algorithm1 is the first algorithm, algorithm2 is the second algorithm (default to be Optimal), cache_size is a
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_rate_start_time_end_time, and the function to plot is shown below:
+
+    >>> c.diffHeatmap(mode, plot_type, algorithm1, cache_size...)
+
+The first three parameters are the same as before, which are time mode (r or v), time interval, the types of plot(only support hit_rate_start_time_end_time for now)
+algorithm1 is the first algorithm, algorithm2 is the second algorithm (default to be Optimal), cache_size is a
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_rate_start_time_end_time, and the function to plot is shown below:
+
+    >>> c.diffHeatmap(mode, plot_type, algorithm1, cache_size...)
+
+The first three parameters are the same as before, which are time mode (r or v), time interval, the types of plot(only support hit_rate_start_time_end_time for now)
+algorithm1 is the first algorithm, algorithm2 is the second algorithm (default to be Optimal), cache_size is a
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_rate_start_time_end_time, and the function to plot is shown below:
+
     >>> c.differential_heatmap(mode, plot_type, algorithm1, cache_size...)
 
 The first three parameters are the same as before, which are time mode (r or v), time interval, the types of plot(only support hit_rate_start_time_end_time for now)
 algorithm1 is the first algorithm, algorithm2 is the second algorithm (default to be Optimal), cache_size is a **necessary** parameter here and it can only be used as keyword argument.
+Besides these parameters, there are several keywords arguments listed below.
+
+
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| Keyword Arguments | Default Value            | Possible Values                            | Necessary                                                  |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| time_interval     | "-1"                     | a time interval                            | give this value or num_of_pixels                           |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| num_of_pixels     | "-1"                     | the number of pixels on one dimension      | give this value or time_interval                           |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| algorithm1        | "LRU"                    | All available cache replacement algorithms | Yes                                                        |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| cache_params1     | None                     | Depends on cache replacement algorithms    | Depends on cache replacement algorithms, for example LRU_K |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| algorithm2        | "Optimal"                | All available cache replacement algorithms | No                                                         |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| cache_params2     | None                     | Depends on cache replacement algorithms    | Depends on cache replacement algorithms, for example LRU_K |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| cache_size        | No Default Value         | Positive integer                           | Yes                                                        |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| figname           | differential_heatmap.png | Any name, remember to include suffix       | No                                                         |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| num_of_threads    | 4                        | Positive integers except 0                 | No                                                         |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+
+
+Example:
+    >>> c.diffHeatmap('r', "hit_rate_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+Besides these parameters, there are several keywords arguments listed below.
+
+
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| Keyword Arguments | Default Value            | Possible Values                            | Necessary                                                  |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| time_interval     | "-1"                     | a time interval                            | give this value or num_of_pixels                           |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| num_of_pixels     | "-1"                     | the number of pixels on one dimension      | give this value or time_interval                           |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| algorithm1        | "LRU"                    | All available cache replacement algorithms | Yes                                                        |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| cache_params1     | None                     | Depends on cache replacement algorithms    | Depends on cache replacement algorithms, for example LRU_K |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| algorithm2        | "Optimal"                | All available cache replacement algorithms | No                                                         |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| cache_params2     | None                     | Depends on cache replacement algorithms    | Depends on cache replacement algorithms, for example LRU_K |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| cache_size        | No Default Value         | Positive integer                           | Yes                                                        |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| figname           | differential_heatmap.png | Any name, remember to include suffix       | No                                                         |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| num_of_threads    | 4                        | Positive integers except 0                 | No                                                         |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+
+
+Example:
+    >>> c.diffHeatmap('r', "hit_rate_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+Besides these parameters, there are several keywords arguments listed below.
+
+
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| Keyword Arguments | Default Value            | Possible Values                            | Necessary                                                  |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| time_interval     | "-1"                     | a time interval                            | give this value or num_of_pixels                           |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| num_of_pixels     | "-1"                     | the number of pixels on one dimension      | give this value or time_interval                           |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| algorithm1        | "LRU"                    | All available cache replacement algorithms | Yes                                                        |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| cache_params1     | None                     | Depends on cache replacement algorithms    | Depends on cache replacement algorithms, for example LRU_K |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| algorithm2        | "Optimal"                | All available cache replacement algorithms | No                                                         |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| cache_params2     | None                     | Depends on cache replacement algorithms    | Depends on cache replacement algorithms, for example LRU_K |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| cache_size        | No Default Value         | Positive integer                           | Yes                                                        |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| figname           | differential_heatmap.png | Any name, remember to include suffix       | No                                                         |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| num_of_threads    | 4                        | Positive integers except 0                 | No                                                         |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+
+
+Example:
+    >>> c.diffHeatmap('r', "hit_rate_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+Besides these parameters, there are several keywords arguments listed below.
+
+
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| Keyword Arguments | Default Value            | Possible Values                            | Necessary                                                  |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| time_interval     | "-1"                     | a time interval                            | give this value or num_of_pixels                           |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| num_of_pixels     | "-1"                     | the number of pixels on one dimension      | give this value or time_interval                           |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| algorithm1        | "LRU"                    | All available cache replacement algorithms | Yes                                                        |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| cache_params1     | None                     | Depends on cache replacement algorithms    | Depends on cache replacement algorithms, for example LRU_K |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| algorithm2        | "Optimal"                | All available cache replacement algorithms | No                                                         |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| cache_params2     | None                     | Depends on cache replacement algorithms    | Depends on cache replacement algorithms, for example LRU_K |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| cache_size        | No Default Value         | Positive integer                           | Yes                                                        |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| figname           | differential_heatmap.png | Any name, remember to include suffix       | No                                                         |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| num_of_threads    | 4                        | Positive integers except 0                 | No                                                         |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+
+
+Example:
+    >>> c.diffHeatmap('r', "hit_rate_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+Besides these parameters, there are several keywords arguments listed below.
+
+
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| Keyword Arguments | Default Value            | Possible Values                            | Necessary                                                  |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| time_interval     | "-1"                     | a time interval                            | give this value or num_of_pixels                           |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| num_of_pixels     | "-1"                     | the number of pixels on one dimension      | give this value or time_interval                           |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| algorithm1        | "LRU"                    | All available cache replacement algorithms | Yes                                                        |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| cache_params1     | None                     | Depends on cache replacement algorithms    | Depends on cache replacement algorithms, for example LRU_K |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| algorithm2        | "Optimal"                | All available cache replacement algorithms | No                                                         |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| cache_params2     | None                     | Depends on cache replacement algorithms    | Depends on cache replacement algorithms, for example LRU_K |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| cache_size        | No Default Value         | Positive integer                           | Yes                                                        |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| figname           | differential_heatmap.png | Any name, remember to include suffix       | No                                                         |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| num_of_threads    | 4                        | Positive integers except 0                 | No                                                         |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+
+
+Example:
+    >>> c.diffHeatmap('r', "hit_rate_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+Besides these parameters, there are several keywords arguments listed below.
+
+
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| Keyword Arguments | Default Value            | Possible Values                            | Necessary                                                  |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| time_interval     | "-1"                     | a time interval                            | give this value or num_of_pixels                           |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| num_of_pixels     | "-1"                     | the number of pixels on one dimension      | give this value or time_interval                           |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| algorithm1        | "LRU"                    | All available cache replacement algorithms | Yes                                                        |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| cache_params1     | None                     | Depends on cache replacement algorithms    | Depends on cache replacement algorithms, for example LRU_K |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| algorithm2        | "Optimal"                | All available cache replacement algorithms | No                                                         |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| cache_params2     | None                     | Depends on cache replacement algorithms    | Depends on cache replacement algorithms, for example LRU_K |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| cache_size        | No Default Value         | Positive integer                           | Yes                                                        |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| figname           | differential_heatmap.png | Any name, remember to include suffix       | No                                                         |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| num_of_threads    | 4                        | Positive integers except 0                 | No                                                         |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+
+
+Example:
+    >>> c.diffHeatmap('r', "hit_rate_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+Besides these parameters, there are several keywords arguments listed below.
+
+
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| Keyword Arguments | Default Value            | Possible Values                            | Necessary                                                  |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| time_interval     | "-1"                     | a time interval                            | give this value or num_of_pixels                           |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| num_of_pixels     | "-1"                     | the number of pixels on one dimension      | give this value or time_interval                           |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| algorithm1        | "LRU"                    | All available cache replacement algorithms | Yes                                                        |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| cache_params1     | None                     | Depends on cache replacement algorithms    | Depends on cache replacement algorithms, for example LRU_K |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| algorithm2        | "Optimal"                | All available cache replacement algorithms | No                                                         |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| cache_params2     | None                     | Depends on cache replacement algorithms    | Depends on cache replacement algorithms, for example LRU_K |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| cache_size        | No Default Value         | Positive integer                           | Yes                                                        |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| figname           | differential_heatmap.png | Any name, remember to include suffix       | No                                                         |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| num_of_threads    | 4                        | Positive integers except 0                 | No                                                         |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+
+
+Example:
+    >>> c.diffHeatmap('r', "hit_rate_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+Besides these parameters, there are several keywords arguments listed below.
+
+
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| Keyword Arguments | Default Value            | Possible Values                            | Necessary                                                  |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| time_interval     | "-1"                     | a time interval                            | give this value or num_of_pixels                           |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| num_of_pixels     | "-1"                     | the number of pixels on one dimension      | give this value or time_interval                           |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| algorithm1        | "LRU"                    | All available cache replacement algorithms | Yes                                                        |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| cache_params1     | None                     | Depends on cache replacement algorithms    | Depends on cache replacement algorithms, for example LRU_K |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| algorithm2        | "Optimal"                | All available cache replacement algorithms | No                                                         |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| cache_params2     | None                     | Depends on cache replacement algorithms    | Depends on cache replacement algorithms, for example LRU_K |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| cache_size        | No Default Value         | Positive integer                           | Yes                                                        |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| figname           | differential_heatmap.png | Any name, remember to include suffix       | No                                                         |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+| num_of_threads    | 4                        | Positive integers except 0                 | No                                                         |
++-------------------+--------------------------+--------------------------------------------+------------------------------------------------------------+
+
+
+Example:
+    >>> c.diffHeatmap('r', "hit_rate_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
 Besides these parameters, there are several keywords arguments listed below.
 
 

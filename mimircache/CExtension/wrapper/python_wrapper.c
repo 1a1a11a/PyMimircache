@@ -22,7 +22,7 @@ struct_cache* build_cache(reader_t* reader,
     struct_cache *cache;
     char data_type = reader->base->data_type;
     int block_unit_size = 0;
-    if (cache_params!=Py_None && PyDict_Check(cache_params) &&
+    if (cache_params != NULL && cache_params!=Py_None && PyDict_Check(cache_params) &&
         PyDict_Contains(cache_params, PyUnicode_FromString("block_unit_size"))){
         block_unit_size = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "block_unit_size"));
         INFO("considering cache size in profiling\n");

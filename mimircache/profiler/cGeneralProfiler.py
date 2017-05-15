@@ -170,12 +170,14 @@ class cGeneralProfiler:
             plt.title('Hit Ratio Curve', fontsize=18, color='black')
             plt.savefig(figname, dpi=600)
             INFO("plot is saved at the same directory")
-            plt.show()
+            # plt.show()
             plt.clf()
             del HRC
         except Exception as e:
             plt.savefig(figname)
             WARNING("the plotting function is not wrong, is this a headless server? {}".format(e))
+
+
 
 
     # def __del__(self):

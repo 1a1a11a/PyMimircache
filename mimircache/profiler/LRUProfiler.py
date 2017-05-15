@@ -203,7 +203,7 @@ class LRUProfiler:
             except:
                 pass
             plt.clf()
-            return stop_point
+            return HRC[:stop_point]
         except Exception as e:
             plt.savefig(figname)
             WARNING("the plotting function is not wrong, is this a headless server? {}".format(e))

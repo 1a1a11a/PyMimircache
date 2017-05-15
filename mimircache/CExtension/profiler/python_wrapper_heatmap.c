@@ -658,13 +658,13 @@ static PyMethodDef c_heatmap_funcs[] = {
         METH_VARARGS | METH_KEYWORDS, "heatmap pixel computation"},
     {"differential_heatmap_with_Optimal", (PyCFunction)differential_heatmap_with_Optimal,
         METH_VARARGS | METH_KEYWORDS, "differential heatmap pixel computation compared with Optimal"},
-    {"differential_heatmap", (PyCFunction)differential_heatmap_py,
+    {"diffHeatmap", (PyCFunction)differential_heatmap_py,
         METH_VARARGS | METH_KEYWORDS, "differential heatmap pixel computation"},
     {"heatmap_rd_distribution", (PyCFunction)heatmap_rd_distribution_py,
         METH_VARARGS | METH_KEYWORDS, "reuse distance distribution heatmap"},
     {"heatmap_future_rd_distribution", (PyCFunction)heatmap_future_rd_distribution_py,
         METH_VARARGS | METH_KEYWORDS, "reuse distance distribution heatmap"},
-    {"gen_breakpoints", (PyCFunction)heatmap_get_break_points,
+    {"getBreakpoints", (PyCFunction)heatmap_get_break_points,
         METH_VARARGS | METH_KEYWORDS, "generate virtual/real break points"},
     {NULL, NULL, 0, NULL}
 };

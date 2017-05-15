@@ -143,6 +143,42 @@ gboolean LFU_add_element(struct_cache* cache, cache_line* cp){
 }
 
 
+gboolean LFU_add_element_only(struct_cache* cache, cache_line* cp){
+    return LFU_add_element(cache, cp);
+}
+
+
+gboolean LFU_add_element_with_size(struct_cache* cache, cache_line* cp){
+    int i, n = 0;
+    gint64 original_lbn = *(gint64*)(cp->item_p);
+    gboolean ret_val;
+    
+    if (cache->core->block_unit_size != 0 && cp->disk_sector_size != 0){
+        *(gint64*)(cp->item_p) = (gint64) (*(gint64*)(cp->item_p) *
+                                           cp->disk_sector_size /
+                                           cache->core->block_unit_size);
+        n = (int)ceil((double) cp->size/cache->core->block_unit_size);
+    }
+    
+    ret_val = LFU_add_element(cache, cp);
+    
+    
+    if (cache->core->block_unit_size != 0 && cp->disk_sector_size != 0){
+        if (cache->core->block_unit_size != 0){
+            for (i=0; i<n-1; i++){
+                (*(guint64*)(cp->item_p)) ++;
+                LFU_add_element_only(cache, cp);
+            }
+        }
+    }
+    
+    *(gint64*)(cp->item_p) = original_lbn;
+    return ret_val;
+    
+}
+
+
+
  void LFU_destroy(struct_cache* cache){
     LFU_params_t* LFU_params = (LFU_params_t*)(cache->cache_params);
     
@@ -184,6 +220,8 @@ struct_cache* LFU_init(guint64 size, char data_type, int block_size, void* param
     cache->core->__evict_with_return=   __LFU__evict_with_return;
     cache->core->get_size           =   LFU_get_size;
     cache->core->cache_init_params  =   NULL;
+    cache->core->add_element_only   =   LFU_add_element_only;
+    cache->core->add_element_withsize = LFU_add_element_with_size; 
     
     
     if (data_type == 'l'){

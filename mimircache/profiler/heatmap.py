@@ -77,9 +77,9 @@ class heatmap:
 
         # check break points are loaded or not, if not need to calculate it
         if not break_points:
-            break_points = cHeatmap().gen_breakpoints(reader, mode,
-                                                      time_interval=time_interval,
-                                                      num_of_pixels=num_of_pixels)
+            break_points = cHeatmap().getBreakpoints(reader, mode,
+                                                     time_interval=time_interval,
+                                                     num_of_pixels=num_of_pixels)
             if save:
                 with open('temp/break_points_' + mode + str(time_interval) + '.dat', 'wb') as ifile:
                     pickle.dump(break_points, ifile)
@@ -214,9 +214,9 @@ class heatmap:
 
             # prepare break points
             if mode[0] == 'r' or mode[0] == 'v':
-                break_points = cHeatmap().gen_breakpoints(reader, mode[0],
-                                                          time_interval=time_interval,
-                                                          num_of_pixels=num_of_pixels)
+                break_points = cHeatmap().getBreakpoints(reader, mode[0],
+                                                         time_interval=time_interval,
+                                                         num_of_pixels=num_of_pixels)
             else:
                 raise RuntimeError("unrecognized mode, it can only be r or v")
 

@@ -1507,3 +1507,112 @@ void prefetch_node_destroyer(gpointer data){
 void prefetch_array_node_destroyer(gpointer data){
     g_free(data);
 }
+
+
+void __MIMIR_mining_test(struct_cache* MIMIR){
+    // new function for different approaches selecting strong associations
+    struct MIMIR_params* MIMIR_params = (struct MIMIR_params*)(MIMIR->cache_params);
+    struct recording_mining_struct *r_m_struct = MIMIR_params->record_mining_struct;
+#ifdef PROFILING
+    GTimer *timer = g_timer_new();
+    gulong microsecond;
+    g_timer_start(timer);
+#endif
+    
+    __MIMIR_aging(MIMIR);
+#ifdef PROFILING
+    printf("ts: %lu, aging takes %lf seconds\n", MIMIR_params->ts, g_timer_elapsed(timer, &microsecond));
+#endif
+    
+    
+    int i, j, k;
+    double gmean_min = 0, gmean;
+    gint64* min_ptr = NULL;
+    
+    /* first sort mining table, then do the mining */
+    /* first remove all elements from hashtable, otherwise after sort, it will mess up for data_type l
+     but we can't do this for dataType c, otherwise the string will be freed during remove in hashtable
+     */
+    gint64* item = (gint64*)r_m_struct->mining_table->data;
+    if (MIMIR->core->data_type == 'l'){
+        for (i=0; i<(int) r_m_struct->mining_table->len; i++){
+            g_hash_table_remove(r_m_struct->hashtable, item);
+            item += r_m_struct->mining_table_row_len;
+        }
+    }
+    
+    g_array_sort(r_m_struct->mining_table, mining_table_entry_cmp);
+    
+    
+    gboolean associated_flag, first_flag;
+    gint64* item1, *item2;
+    gint num_of_ts1, num_of_ts2, shorter_length;
+    for (i=0; i < (long) r_m_struct->mining_table->len-1; i++){
+        gmean_min = 0;
+        item1 = GET_ROW_IN_MINING_TABLE(MIMIR_params, i);
+        num_of_ts1 = __MIMIR_get_total_num_of_ts(item1, r_m_struct->mining_table_row_len);
+        
+        for (j=i+1; j < (long) r_m_struct->mining_table->len; j++){
+            item2 = GET_ROW_IN_MINING_TABLE(MIMIR_params, j);
+            
+            // check first timestamp
+            if ( GET_NTH_TS(item2, 1) - GET_NTH_TS(item1, 1) > MIMIR_params->item_set_size)
+                break;
+            num_of_ts2 = __MIMIR_get_total_num_of_ts(item2, r_m_struct->mining_table_row_len);
+            
+            if (ABS( num_of_ts1 - num_of_ts2) > MIMIR_params->confidence){
+                continue;
+            }
+            
+            shorter_length = MIN(num_of_ts1, num_of_ts2);
+            
+            gmean = 1;
+            for (k=0; k<shorter_length; k++)
+                gmean *= ABS(GET_NTH_TS(item1, k) - GET_NTH_TS(item2, k));
+            gmean = pow(gmean, 1.0/shorter_length);
+            if (gmean_min < 0.000000001 || gmean < gmean_min){
+                gmean_min = gmean;
+                min_ptr = item;
+            }
+        }
+        
+        if (gmean_min < MIMIR_params->item_set_size/2+1){
+            // finally, add to prefetch table
+            if (MIMIR->core->data_type == 'l')
+                mimir_add_to_prefetch_table(MIMIR, item1, min_ptr);
+            else if (MIMIR->core->data_type == 'c')
+                mimir_add_to_prefetch_table(MIMIR, (char*)*item1, (char*)*min_ptr);
+        }
+        
+        
+        if (MIMIR->core->data_type == 'c')
+            if (!g_hash_table_remove(r_m_struct->hashtable, (char*)*item1)){
+                printf("ERROR remove mining table entry, but not in hash %s\n", (char*)*item1);
+                exit(1);
+            }
+    }
+    // delete last element
+    if (MIMIR->core->data_type == 'c'){
+        item1 = GET_ROW_IN_MINING_TABLE(MIMIR_params, i);
+        if (!g_hash_table_remove(r_m_struct->hashtable, (char*)*item1)){
+            printf("ERROR remove mining table entry, but not in hash %s\n", (char*)*item1);
+            exit(1);
+        }
+    }
+    
+    
+    // may be just following?
+    r_m_struct->mining_table->len = 0;
+    
+    
+    
+#ifdef PROFILING
+    printf("ts: %lu, clearing training data takes %lf seconds\n", MIMIR_params->ts, g_timer_elapsed(timer, &microsecond));
+    g_timer_stop(timer);
+    g_timer_destroy(timer);
+#endif
+}
+
+
+
+

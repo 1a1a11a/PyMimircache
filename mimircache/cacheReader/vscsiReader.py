@@ -46,6 +46,7 @@ class vscsiReader(cacheReaderAbstract):
         """
         r = c_cacheReader.read_one_request_full_info(self.cReader)
         if r and self.block_unit_size != 0 and self.disk_sector_size != 0:
+            r = list(r)
             r[1] = r[1] * self.disk_sector_size // self.block_unit_size
         return r
 
