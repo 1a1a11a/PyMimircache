@@ -88,7 +88,7 @@ class cReaderTest(unittest.TestCase):
 
     def test_context_manager(self):
         with vscsiReader("{}/trace.vscsi".format(DAT_FOLDER)) as reader:
-            self.assertEqual(reader.get_num_of_total_requests(), 113872)
+            self.assertEqual(reader.get_num_total_req(), 113872)
 
 
     def test_potpourri(self):

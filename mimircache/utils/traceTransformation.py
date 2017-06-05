@@ -26,7 +26,7 @@ def splitTrace(reader, n, output_folder, prefix=""):
     :param prefix:
     :return:
     """
-    total_num = reader.get_num_of_total_requests()
+    total_num = reader.get_num_total_req()
     num_each_file = total_num // n
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)

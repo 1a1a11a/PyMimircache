@@ -29,7 +29,7 @@ class cHeatmapTest(unittest.TestCase):
         bpr = cH.getBreakpoints(reader, 'r', time_interval=1000000)
         self.assertEqual(bpr[10], 53)
         bpr = cH.getBreakpoints(reader, 'r', num_of_pixels=1000)
-        print(bpr)
+        # print(bpr)
         bpv = cH.getBreakpoints(reader, 'v', time_interval=1000)
         self.assertEqual(bpv[10], 10000)
 

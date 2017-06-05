@@ -117,22 +117,27 @@ gint64* get_eviction_freq(reader_t* reader, struct_cache* optimal, gboolean accu
     gint64 * freq_array = g_new0(gint64, reader->base->total_num);
     
     
-    // create cache line struct and initialization
+    // create cache line struct and initializa
     cache_line* cp = new_cacheline();
+    cp->type = reader->base->data_type;
     
-    // create hashtable for recording frequency
+    // create hashtable
     GHashTable * hash_table;
     if (reader->base->data_type == 'l'){
-        cp->type = 'l';
+        //        cp->type = 'l';
         hash_table = g_hash_table_new_full(g_int64_hash, g_int64_equal, \
                                            (GDestroyNotify)simple_g_key_value_destroyer, \
                                            (GDestroyNotify)simple_g_key_value_destroyer);
     }
-    else{
-        cp->type = 'c';
+    else if (reader->base->data_type == 'c' ){
+        //        cp->type = 'c';
         hash_table = g_hash_table_new_full(g_str_hash, g_str_equal, \
                                            (GDestroyNotify)simple_g_key_value_destroyer, \
                                            (GDestroyNotify)simple_g_key_value_destroyer);
+    }
+    else{
+        ERROR("does not recognize reader data type %c\n", reader->base->data_type);
+        abort();
     }
     
     gpointer gp;
@@ -216,22 +221,27 @@ static gint64* get_eviction_reuse_dist(reader_t* reader, struct_cache* optimal){
     gint64 * reuse_dist_array = g_new0(gint64, reader->base->total_num);
     
     
-    // create cache lize struct and initializa
+    // create cache line struct and initializa
     cache_line* cp = new_cacheline();
+    cp->type = reader->base->data_type;
     
     // create hashtable
     GHashTable * hash_table;
-    if (reader->base->type == 'v'){
-        cp->type = 'l';
+    if (reader->base->data_type == 'l'){
+        //        cp->type = 'l';
         hash_table = g_hash_table_new_full(g_int64_hash, g_int64_equal, \
                                            (GDestroyNotify)simple_g_key_value_destroyer, \
                                            (GDestroyNotify)simple_g_key_value_destroyer);
     }
-    else{
-        cp->type = 'c';
+    else if (reader->base->data_type == 'c' ){
+        //        cp->type = 'c';
         hash_table = g_hash_table_new_full(g_str_hash, g_str_equal, \
                                            (GDestroyNotify)simple_g_key_value_destroyer, \
                                            (GDestroyNotify)simple_g_key_value_destroyer);
+    }
+    else{
+        ERROR("does not recognize reader data type %c\n", reader->base->data_type);
+        abort();
     }
     
     // create splay tree

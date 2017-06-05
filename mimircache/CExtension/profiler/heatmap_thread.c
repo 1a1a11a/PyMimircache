@@ -8,10 +8,15 @@
 
 #include "heatmap.h"
 
-
+/**
+ * thread function for computing nonLRU heatmap of type start_time_end_time 
+ * 
+ * @param data: contains order+1 
+ * @param user_data: passed in param 
+ */
 void heatmap_nonLRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer user_data){
     guint64 i, j, hit_count, miss_count;
-    struct multithreading_params_heatmap* params = (struct multithreading_params_heatmap*) user_data;
+    mt_params_hm_t* params = (mt_params_hm_t*) user_data;
     reader_t* reader_thread = clone_reader(params->reader);
     GArray* break_points = params->break_points;
     guint64* progress = params->progress;
@@ -62,17 +67,69 @@ void heatmap_nonLRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer 
     
     
     close_reader_unique(reader_thread);
-//    if (reader_thread->type != 'v')
-//        fclose(reader_thread->file);
-//    g_free(reader_thread);
     cache->core->destroy_unique(cache);
 }
 
 
+/**
+ * thread function for computing nonLRU heatmap of type start_time_end_time 
+ * 
+ * @param data: contains order+1 
+ * @param user_data: passed in param 
+ */
 void heatmap_LRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer user_data){
 
     guint64 i, j, hit_count, miss_count;
-    struct multithreading_params_heatmap* params = (struct multithreading_params_heatmap*) user_data;
+    mt_params_hm_t* params = (mt_params_hm_t*) user_data;
+    reader_t* reader_thread = clone_reader(params->reader);
+    GArray* break_points = params->break_points;
+    guint64* progress = params->progress;
+    draw_dict* dd = params->dd;
+    guint64 cache_size = (guint64)params->cache->core->size;
+    gint* last_access = reader_thread->sdata->last_access;
+    gint64* reuse_dist = reader_thread->sdata->reuse_dist;
+    
+    int order = GPOINTER_TO_INT(data)-1;
+    guint64 real_start = g_array_index(break_points, guint64, order);
+    
+    hit_count = 0;
+    miss_count = 0;
+    
+
+    // unnecessary ? 
+    skip_N_elements(reader_thread, g_array_index(break_points, guint64, order));
+
+    for (i=order; i<break_points->len-1; i++){
+        for(j=g_array_index(break_points, guint64, i); j< g_array_index(break_points, guint64, i+1); j++){
+            if (reuse_dist[j] == -1)
+                miss_count ++;
+            else if (last_access[j] - (long long)(j - real_start) <= 0 && reuse_dist[j] < (long long)cache_size)
+                hit_count ++;
+            else
+                miss_count ++;
+        }
+        dd->matrix[order][i] = (double)(hit_count)/(hit_count+miss_count);
+    }
+    
+    // clean up
+    g_mutex_lock(&(params->mtx));
+    (*progress) ++ ;
+    g_mutex_unlock(&(params->mtx));
+    close_reader_unique(reader_thread);
+}
+
+
+
+/**
+ * thread function for computing nonLRU heatmap of type start_time_end_time 
+ * 
+ * @param data: contains order+1 
+ * @param user_data: passed in param 
+ */
+void heatmap_LRU_hitrate_start_time_cachesize_thread(gpointer data, gpointer user_data){
+
+    guint64 i, j, hit_count, miss_count; 
+    mt_params_hm_t* params = (mt_params_hm_t*) user_data;
     reader_t* reader_thread = clone_reader(params->reader);
     GArray* break_points = params->break_points;
     guint64* progress = params->progress;
@@ -108,18 +165,18 @@ void heatmap_LRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer use
     g_mutex_lock(&(params->mtx));
     (*progress) ++ ;
     g_mutex_unlock(&(params->mtx));
-//    if (reader_thread->type != 'v')
-//        fclose(reader_thread->file);
-//    g_free(reader_thread);
     close_reader_unique(reader_thread);
-
 }
+
+
+
+
 
 
 void heatmap_rd_distribution_thread(gpointer data, gpointer user_data){
     
     guint64 j;
-    struct multithreading_params_heatmap* params = (struct multithreading_params_heatmap*) user_data;
+    mt_params_hm_t* params = (mt_params_hm_t*) user_data;
     GArray* break_points = params->break_points;
     guint64* progress = params->progress;
     draw_dict* dd = params->dd;
@@ -147,7 +204,7 @@ void heatmap_rd_distribution_thread(gpointer data, gpointer user_data){
 void heatmap_rd_distribution_CDF_thread(gpointer data, gpointer user_data){
     
     guint64 j;
-    struct multithreading_params_heatmap* params = (struct multithreading_params_heatmap*) user_data;
+    mt_params_hm_t* params = (mt_params_hm_t*) user_data;
     GArray* break_points = params->break_points;
     guint64* progress = params->progress;
     draw_dict* dd = params->dd;

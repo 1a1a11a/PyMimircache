@@ -12,26 +12,56 @@
 draw_dict* heatmap_LRU(reader_t* reader,
                        struct_cache* cache,
                        char mode,
-                       int plot_type,
+                       heatmap_type_e plot_type,
                        int num_of_threads);
+
 draw_dict* heatmap_nonLRU(reader_t* reader,
                           struct_cache* cache,
                           char mode,
-                          int plot_type,
+                          heatmap_type_e plot_type,
                           int num_of_threads);
+
 draw_dict* heatmap_hit_rate_start_time_end_time(reader_t* reader,
                                                 struct_cache* cache,
                                                 char mode,
-                                                int plot_type,
+                                                heatmap_type_e plot_type,
                                                 int num_of_threads);
 
+
+
+
+
+
+
+
+/*-----------------------------------------------------------------------------
+ *
+ * heatmap --
+ *      the entrance for heatmap computation
+ *
+ * Input:
+ *      reader:         the reader for data
+ *      cache:          cache which heatmap is based on
+ *      mode:           real time (r) or virtual time (v)
+ *      time_interval:  real time interval or vritual time interval
+ *      num_of_pixels:  the number of pixels in x/y dimension,
+ *                      this is optional, if time_interval is specified,
+ *                      then this one is not needed
+ *      plot_type:      the type of plot
+ *      num_of_threads: the maximum number of threads can use
+ *
+ * Return:
+ *      draw_dict
+ *
+ *-----------------------------------------------------------------------------
+ */
 
 draw_dict* heatmap(reader_t* reader,
                    struct_cache* cache,
                    char mode,
                    gint64 time_interval,
                    gint64 num_of_pixels,
-                   int plot_type,
+                   heatmap_type_e plot_type,
                    int num_of_threads){
     
     if (mode == 'v')
@@ -40,7 +70,7 @@ draw_dict* heatmap(reader_t* reader,
         gen_breakpoints_realtime(reader, time_interval, num_of_pixels);
     else{
         ERROR("unsupported mode: %c\n", mode);
-        exit(1);
+        abort();
     }
 
 
@@ -54,8 +84,35 @@ draw_dict* heatmap(reader_t* reader,
 }
 
 
-draw_dict* heatmap_LRU(reader_t* reader, struct_cache* cache, char mode,
-                       int plot_type, int num_of_threads){
+
+/*-----------------------------------------------------------------------------
+ *
+ * heatmap_LRU --
+ *      heatmap computation for LRU
+ *
+ * Input:
+ *      reader:         the reader for data
+ *      cache:          cache which heatmap is based on, contains information 
+ *                      including cache_size, etc.
+ *      mode:           real time (r) or virtual time (v)
+ *      time_interval:  real time interval or vritual time interval
+ *      num_of_pixels:  the number of pixels in x/y dimension,
+ *                      this is optional, if time_interval is specified,
+ *                      then this one is not needed
+ *      plot_type:      the type of plot
+ *      num_of_threads: the maximum number of threads can use
+ *
+ * Return:
+ *      draw_dict
+ *
+ *-----------------------------------------------------------------------------
+ */
+
+draw_dict* heatmap_LRU(reader_t* reader,
+                       struct_cache* cache,
+                       char mode,
+                       heatmap_type_e plot_type,
+                       int num_of_threads){
     
     if (plot_type != future_rd_distribution){
         if (reader->sdata->reuse_dist_type != NORMAL_REUSE_DISTANCE)
@@ -134,9 +191,15 @@ draw_dict* heatmap_LRU(reader_t* reader, struct_cache* cache, char mode,
 }
 
 
-draw_dict* heatmap_nonLRU(reader_t* reader, struct_cache* cache, char mode, int plot_type, int num_of_threads){
+draw_dict* heatmap_nonLRU(reader_t* reader,
+                          struct_cache* cache,
+                          char mode,
+                          heatmap_type_e plot_type,
+                          int num_of_threads){
+    
     if (plot_type == hit_rate_start_time_end_time){
-        return heatmap_hit_rate_start_time_end_time(reader, cache, mode, plot_type, num_of_threads);
+        return heatmap_hit_rate_start_time_end_time(reader, cache, mode,
+                                                    plot_type, num_of_threads);
     }
     else if (plot_type == hit_rate_start_time_cache_size){
         
@@ -155,24 +218,6 @@ draw_dict* heatmap_nonLRU(reader_t* reader, struct_cache* cache, char mode, int 
         
         
     }
-//    else if (plot_type == rd_distribution){
-//        get_reuse_dist_seq(reader, 0, -1);
-//        return heatmap_rd_distribution(reader, mode, time_interval, num_of_threads, 0);
-//    }
-//    else if (plot_type == rd_distribution_CDF){
-//        get_reuse_dist_seq(reader, 0, -1);
-//        return heatmap_rd_distribution(reader, mode, time_interval, num_of_threads, 1);
-//    }
-//    else if (plot_type == future_rd_distribution){
-//        get_future_reuse_dist(reader, 0, -1);
-//        draw_dict* dd = heatmap_rd_distribution(reader, mode, time_interval, num_of_threads, 0);
-//        
-//        reader->max_reuse_dist = 0;
-//        g_free(reader->reuse_dist);
-//        reader->reuse_dist = NULL;
-//        
-//        return dd;
-//    }
 
     else if (plot_type == hit_rate_start_time_cache_size){
         
@@ -190,7 +235,11 @@ draw_dict* heatmap_nonLRU(reader_t* reader, struct_cache* cache, char mode, int 
 
 
 
-draw_dict* heatmap_hit_rate_start_time_end_time(reader_t* reader, struct_cache* cache, char mode, int plot_type, int num_of_threads){
+draw_dict* heatmap_hit_rate_start_time_end_time(reader_t* reader,
+                                                struct_cache* cache,
+                                                char mode,
+                                                heatmap_type_e plot_type,
+                                                int num_of_threads){
 
     guint i;
     guint64 progress = 0;
@@ -209,7 +258,7 @@ draw_dict* heatmap_hit_rate_start_time_end_time(reader_t* reader, struct_cache* 
     
 
     // build parameters
-    struct multithreading_params_heatmap* params = g_new(struct multithreading_params_heatmap, 1);
+    mt_params_hm_t* params = g_new(mt_params_hm_t, 1);
     params->reader = reader;
     params->break_points = break_points;
     params->cache = cache;
@@ -221,9 +270,11 @@ draw_dict* heatmap_hit_rate_start_time_end_time(reader_t* reader, struct_cache* 
     // build the thread pool
     GThreadPool * gthread_pool;
     if (cache->core->type == e_LRU)
-        gthread_pool = g_thread_pool_new ( (GFunc) heatmap_LRU_hit_rate_start_time_end_time_thread, (gpointer)params, num_of_threads, TRUE, NULL);
+        gthread_pool = g_thread_pool_new ( (GFunc) heatmap_LRU_hit_rate_start_time_end_time_thread,
+                                          (gpointer)params, num_of_threads, TRUE, NULL);
     else
-        gthread_pool = g_thread_pool_new ( (GFunc) heatmap_nonLRU_hit_rate_start_time_end_time_thread, (gpointer)params, num_of_threads, TRUE, NULL);
+        gthread_pool = g_thread_pool_new ( (GFunc) heatmap_nonLRU_hit_rate_start_time_end_time_thread,
+                                          (gpointer)params, num_of_threads, TRUE, NULL);
     
     if (gthread_pool == NULL)
         ERROR("cannot create thread pool in heatmap\n");
@@ -237,7 +288,7 @@ draw_dict* heatmap_hit_rate_start_time_end_time(reader_t* reader, struct_cache* 
     
     while ( progress < break_points->len-1 ){
         fprintf(stderr, "%.2f%%\n", ((double)progress)/break_points->len*100);
-        sleep(1);
+        sleep(5);
         fprintf(stderr, "\033[A\033[2K\r");
     }
 
@@ -285,7 +336,7 @@ draw_dict* heatmap_rd_distribution(reader_t* reader, char mode, int num_of_threa
 
     
     // build parameters
-    struct multithreading_params_heatmap* params = g_new(struct multithreading_params_heatmap, 1);
+    mt_params_hm_t* params = g_new(mt_params_hm_t, 1);
     params->reader = reader;
     params->break_points = break_points;
     params->dd = dd;
@@ -297,9 +348,11 @@ draw_dict* heatmap_rd_distribution(reader_t* reader, char mode, int num_of_threa
     // build the thread pool
     GThreadPool * gthread_pool;
     if (!CDF)
-        gthread_pool = g_thread_pool_new ( (GFunc) heatmap_rd_distribution_thread, (gpointer)params, num_of_threads, TRUE, NULL);
+        gthread_pool = g_thread_pool_new ( (GFunc) heatmap_rd_distribution_thread,
+                                          (gpointer)params, num_of_threads, TRUE, NULL);
     else
-        gthread_pool = g_thread_pool_new ( (GFunc) heatmap_rd_distribution_CDF_thread, (gpointer)params, num_of_threads, TRUE, NULL);
+        gthread_pool = g_thread_pool_new ( (GFunc) heatmap_rd_distribution_CDF_thread,
+                                          (gpointer)params, num_of_threads, TRUE, NULL);
 
     if (gthread_pool == NULL)
         ERROR("cannot create thread pool in heatmap rd_distribution\n");
@@ -313,7 +366,7 @@ draw_dict* heatmap_rd_distribution(reader_t* reader, char mode, int num_of_threa
 
     while ( progress < break_points->len-1 ){
         fprintf(stderr, "%.2lf%%", ((double)progress)/break_points->len*100);
-        sleep(1);
+        sleep(5);
         fprintf(stderr, "\033[A\033[2K\r");
     }
 
@@ -328,7 +381,14 @@ draw_dict* heatmap_rd_distribution(reader_t* reader, char mode, int num_of_threa
 
 
 
-draw_dict* differential_heatmap(reader_t* reader, struct_cache* cache1, struct_cache* cache2, char mode, gint64 time_interval, gint64 num_of_pixels, int plot_type, int num_of_threads){
+draw_dict* differential_heatmap(reader_t* reader,
+                                struct_cache* cache1,
+                                struct_cache* cache2,
+                                char mode,
+                                gint64 time_interval,
+                                gint64 num_of_pixels,
+                                heatmap_type_e plot_type,
+                                int num_of_threads){
     
     if (mode == 'v')
         gen_breakpoints_virtualtime(reader, time_interval, num_of_pixels);
@@ -359,7 +419,9 @@ draw_dict* differential_heatmap(reader_t* reader, struct_cache* cache1, struct_c
     guint64 i, j;
     for (i=0; i<draw_dict1->xlength; i++)
         for (j=0; j<draw_dict1->ylength; j++){
-            draw_dict2->matrix[i][j] = (draw_dict2->matrix[i][j] - draw_dict1->matrix[i][j])/draw_dict1->matrix[i][j];
+            draw_dict2->matrix[i][j] = (draw_dict2->matrix[i][j] -
+                                        draw_dict1->matrix[i][j]) /
+                                        draw_dict1->matrix[i][j];
         }
     free_draw_dict(draw_dict1);
     return draw_dict2;

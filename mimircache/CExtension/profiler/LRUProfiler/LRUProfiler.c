@@ -59,6 +59,20 @@ process_one_element(cache_line* cp,
                     gint64* reuse_dist);
 
 
+
+
+
+
+/**
+ * get hit count for 0~given cache size, 
+ * non-parallel version
+ *
+ * @param reader: reader for reading data
+ * @param size: the max profiling size, if -1, then the maxinum possible size 
+ * @param begin: the begin pos of the trace 
+ * @param end: teh end pos of the trace
+ */
+
 guint64* get_hit_count_seq(reader_t* reader,
                            gint64 size,
                            gint64 begin,
@@ -104,21 +118,27 @@ guint64* get_hit_count_seq(reader_t* reader,
     
     
     // create cache lize struct and initialization
+    // create cache line struct and initializa
     cache_line* cp = new_cacheline();
+    cp->type = reader->base->data_type;
     
     // create hashtable
     GHashTable * hash_table;
-    if (reader->base->type == 'v'){
-        cp->type = 'l';
+    if (reader->base->data_type == 'l'){
+        //        cp->type = 'l';
         hash_table = g_hash_table_new_full(g_int64_hash, g_int64_equal, \
                                            (GDestroyNotify)simple_g_key_value_destroyer, \
                                            (GDestroyNotify)simple_g_key_value_destroyer);
     }
-    else{
-        cp->type = 'c';
+    else if (reader->base->data_type == 'c' ){
+        //        cp->type = 'c';
         hash_table = g_hash_table_new_full(g_str_hash, g_str_equal, \
                                            (GDestroyNotify)simple_g_key_value_destroyer, \
                                            (GDestroyNotify)simple_g_key_value_destroyer);
+    }
+    else{
+        ERROR("does not recognize reader data type %c\n", reader->base->data_type);
+        abort();
     }
     
     // create splay tree
@@ -181,8 +201,10 @@ guint64* get_hitcount_withsize_seq(reader_t* reader, gint64 size, int block_unit
     hit_count_array = g_new0(guint64, size+3);
     
     
-    // create cache lize struct and initialization
+    // create cache line struct and initialization
     cache_line* cp = new_cacheline();
+    cp->type = reader->base->data_type;
+
     cp->block_unit_size = reader->base->block_unit_size;
     cp->disk_sector_size = reader->base->disk_sector_size;
     if (cp->block_unit_size == 0 || cp->disk_sector_size == 0){
@@ -193,17 +215,21 @@ guint64* get_hitcount_withsize_seq(reader_t* reader, gint64 size, int block_unit
     
     // create hashtable
     GHashTable * hash_table;
-    if (reader->base->type == 'v'){
-        cp->type = 'l';
+    if (reader->base->data_type == 'l'){
+        //        cp->type = 'l';
         hash_table = g_hash_table_new_full(g_int64_hash, g_int64_equal, \
                                            (GDestroyNotify)simple_g_key_value_destroyer, \
                                            (GDestroyNotify)simple_g_key_value_destroyer);
     }
-    else{
-        cp->type = 'c';
+    else if (reader->base->data_type == 'c' ){
+        //        cp->type = 'c';
         hash_table = g_hash_table_new_full(g_str_hash, g_str_equal, \
                                            (GDestroyNotify)simple_g_key_value_destroyer, \
                                            (GDestroyNotify)simple_g_key_value_destroyer);
+    }
+    else{
+        ERROR("does not recognize reader data type %c\n", reader->base->data_type);
+        abort();
     }
     
     // create splay tree
@@ -324,22 +350,27 @@ guint64* get_hit_count_seq_shards(reader_t* reader,
     hit_count_array = g_new0(guint64, size+3);
     
     
-    // create cache lize struct and initialization
+    // create cache line struct and initializa
     cache_line* cp = new_cacheline();
+    cp->type = reader->base->data_type;
     
     // create hashtable
     GHashTable * hash_table;
-    if (reader->base->type == 'v'){
-        cp->type = 'l';
+    if (reader->base->data_type == 'l'){
+        //        cp->type = 'l';
         hash_table = g_hash_table_new_full(g_int64_hash, g_int64_equal, \
                                            (GDestroyNotify)simple_g_key_value_destroyer, \
                                            (GDestroyNotify)simple_g_key_value_destroyer);
     }
-    else{
-        cp->type = 'c';
+    else if (reader->base->data_type == 'c' ){
+        //        cp->type = 'c';
         hash_table = g_hash_table_new_full(g_str_hash, g_str_equal, \
                                            (GDestroyNotify)simple_g_key_value_destroyer, \
                                            (GDestroyNotify)simple_g_key_value_destroyer);
+    }
+    else{
+        ERROR("does not recognize reader data type %c\n", reader->base->data_type);
+        abort();
     }
     
     // create splay tree
@@ -501,11 +532,11 @@ gint64* get_reuse_dist_seq(reader_t* reader, gint64 begin, gint64 end){
         get_num_of_cache_lines(reader);
     
     if (begin != 0 && begin != -1){
-        WARNING("range reuse distance computation is no longer supported(begin=%ld), "
+        WARNING("range reuse distance computation is no longer supported (begin=%ld), "
                 "the returned result is full reust distance\n", begin);
     }
     if (end !=0 && end != -1 && end != reader->base->total_num){
-        WARNING("range reuse distance computation is no longer supported(end=%ld), "
+        WARNING("range reuse distance computation is no longer supported (end=%ld), "
                 "the returned result is full reust distance\n", end);
     }
     
@@ -524,22 +555,27 @@ gint64* get_reuse_dist_seq(reader_t* reader, gint64 begin, gint64 end){
 
     gint64 * reuse_dist_array = g_new(gint64, reader->base->total_num);
     
-    // create cache lize struct and initialization
+    // create cache line struct and initializa
     cache_line* cp = new_cacheline();
+    cp->type = reader->base->data_type;
     
     // create hashtable
     GHashTable * hash_table;
-    if (reader->base->type == 'v'){
-        cp->type = 'l';
+    if (reader->base->data_type == 'l'){
+        //        cp->type = 'l';
         hash_table = g_hash_table_new_full(g_int64_hash, g_int64_equal, \
                                            (GDestroyNotify)simple_g_key_value_destroyer, \
                                            (GDestroyNotify)simple_g_key_value_destroyer);
     }
-    else{
-        cp->type = 'c';
+    else if (reader->base->data_type == 'c' ){
+        //        cp->type = 'c';
         hash_table = g_hash_table_new_full(g_str_hash, g_str_equal, \
                                            (GDestroyNotify)simple_g_key_value_destroyer, \
                                            (GDestroyNotify)simple_g_key_value_destroyer);
+    }
+    else{
+        ERROR("does not recognize reader data type %c\n", reader->base->data_type);
+        abort();
     }
     
     // create splay tree
@@ -547,6 +583,13 @@ gint64* get_reuse_dist_seq(reader_t* reader, gint64 begin, gint64 end){
     
     read_one_element(reader, cp);
     while (cp->valid){
+        if (/* DISABLES CODE */ (0)){
+            if (cp->type == 'l')
+                printf("read in %ld\n", *(gint64*)(cp->item_p));
+            else
+                printf("read in %s\n", cp->item_p);
+        }
+        
         splay_tree = process_one_element(cp, splay_tree, hash_table,
                                          ts, &reuse_dist);
         reuse_dist_array[ts] = reuse_dist;
@@ -612,22 +655,27 @@ gint64* get_future_reuse_dist(reader_t* reader, gint64 begin, gint64 end){
     
     gint64 * reuse_dist_array = g_new(gint64, reader->base->total_num);
     
-    // create cache lize struct and initializa
+    // create cache line struct and initializa
     cache_line* cp = new_cacheline();
+    cp->type = reader->base->data_type;
     
     // create hashtable
     GHashTable * hash_table;
-    if (reader->base->type == 'v'){
-        cp->type = 'l';
+    if (reader->base->data_type == 'l'){
+//        cp->type = 'l';
         hash_table = g_hash_table_new_full(g_int64_hash, g_int64_equal, \
                                            (GDestroyNotify)simple_g_key_value_destroyer, \
                                            (GDestroyNotify)simple_g_key_value_destroyer);
     }
-    else{
-        cp->type = 'c';
+    else if (reader->base->data_type == 'c' ){
+//        cp->type = 'c';
         hash_table = g_hash_table_new_full(g_str_hash, g_str_equal, \
                                            (GDestroyNotify)simple_g_key_value_destroyer, \
                                            (GDestroyNotify)simple_g_key_value_destroyer);
+    }
+    else{
+        ERROR("does not recognize reader data type %c\n", reader->base->data_type);
+        abort();
     }
     
     // create splay tree

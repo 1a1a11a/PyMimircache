@@ -11,13 +11,13 @@ from mimircache.utils.prepPlotParams import *
 
 
 class cachecow:
-    all = ["open", "csv", "vscsi", "binary", "set_size", "num_of_request", "num_of_unique_request",
-           "heatmap", "differential_heatmap", "twoDPlot", "eviction_plot", "plotHRCs", "plotMRCs" "close"]
+    all = ["open", "csv", "vscsi", "binary", "set_size", "num_of_req", "num_of_uniq_req",
+           "heatmap", "diffHeatmap", "twoDPlot", "eviction_plot", "plotHRCs", "plotMRCs" "close"]
     def __init__(self, **kwargs):
         self.reader = None
         self.cache_size = 0
-        self.num_of_req = -1
-        self.num_of_uniq_req = -1
+        self.n_req = -1
+        self.n_uniq_req = -1
         self.cacheclass_mapping = {}
 
     def open(self, file_path, data_type='c'):
@@ -84,7 +84,7 @@ class cachecow:
                                   disk_sector_size=disk_sector_size)
         return self.reader
 
-    def setSize(self, size):
+    def set_size(self, size):
         """
         set the size of cachecow 
         :param size: 
@@ -93,23 +93,23 @@ class cachecow:
         assert isinstance(size, int), "size can only be an integer"
         self.cache_size = size
 
-    def numOfReq(self):
+    def num_of_req(self):
         """
         return the number of requests in the trace
         :return:
         """
-        if self.num_of_req == -1:
-            self.num_of_req = self.reader.get_num_of_total_requests()
-        return self.num_of_req
+        if self.n_req == -1:
+            self.n_req = self.reader.get_num_total_req()
+        return self.n_req
 
-    def numOfUniqReq(self):
+    def num_of_uniq_req(self):
         """
         return the number of unique requests in the trace
         :return:
         """
-        if self.num_of_uniq_req == -1:
-            self.num_of_uniq_req = self.reader.get_num_of_unique_requests()
-        return self.num_of_uniq_req
+        if self.n_uniq_req == -1:
+            self.n_uniq_req = self.reader.get_num_unique_req()
+        return self.n_uniq_req
 
     def reset(self):
         """
@@ -119,7 +119,7 @@ class cachecow:
         assert self.reader is not None, "reader is None, cannot reset"
         self.reader.reset()
 
-    def _profilerPreCheck(self, **kwargs):
+    def _profiler_pre_check(self, **kwargs):
         """
         check whether user has provided new cache size and data information
         :param kwargs:
@@ -167,10 +167,10 @@ class cachecow:
         :return:
         """
 
-        reader, num_of_threads = self._profilerPreCheck(**kwargs)
-        assert cache_size <= self.numOfReq(), "you cannot specify cache size({}) " \
+        reader, num_of_threads = self._profiler_pre_check(**kwargs)
+        assert cache_size <= self.num_of_req(), "you cannot specify cache size({}) " \
                                                     "larger than trace length({})".format(cache_size,
-                                                                                          self.numOfReq())
+                                                                                          self.num_of_req())
 
         l = ["avg_rd_start_time_end_time", "hit_rate_start_time_cache_size"]
 
@@ -212,11 +212,11 @@ class cachecow:
             figname = kwargs['figname']
 
         assert cache_size != -1, "you didn't provide size for cache"
-        assert cache_size <= self.numOfReq(), "you cannot specify cache size({}) " \
+        assert cache_size <= self.num_of_req(), "you cannot specify cache size({}) " \
                                                     "larger than trace length({})".format(cache_size,
-                                                                                          self.numOfReq())
+                                                                                          self.num_of_req())
 
-        reader, num_of_threads = self._profilerPreCheck(**kwargs)
+        reader, num_of_threads = self._profiler_pre_check(**kwargs)
 
         if algorithm1.lower() in c_available_cache and algorithm2.lower() in c_available_cache:
             hm = cHeatmap()
@@ -300,7 +300,7 @@ class cachecow:
         :return:
         """
 
-        reader, num_of_threads = self._profilerPreCheck(**kwargs)
+        reader, num_of_threads = self._profiler_pre_check(**kwargs)
 
         profiler = None
         bin_size = -1
@@ -309,9 +309,9 @@ class cachecow:
             profiler = LRUProfiler(reader, cache_size, cache_params)
         else:
             assert cache_size != -1, "you didn't provide size for cache"
-            assert cache_size <= self.numOfReq(), "you cannot specify cache size({}) " \
+            assert cache_size <= self.num_of_req(), "you cannot specify cache size({}) " \
                                                         "larger than trace length({})".format(cache_size,
-                                                                                              self.numOfReq())
+                                                                                              self.num_of_req())
             if 'bin_size' in kwargs:
                 bin_size = kwargs['bin_size']
 
@@ -414,7 +414,7 @@ class cachecow:
             use_general_profiler = True
 
         save_gradually = False
-        if 'save_gradually' in kwargs:
+        if 'save_gradually' in kwargs and kwargs['save_gradually']:
             save_gradually = True
 
         profiling_with_size = False
@@ -431,7 +431,7 @@ class cachecow:
             LRU_HR = LRUProfiler(self.reader).plotHRC(auto_resize=True, threshold=threshold, no_save=True)
             cache_size = len(LRU_HR)
         else:
-            assert cache_size < self.numOfReq(), "you cannot specify cache size larger than trace length"
+            assert cache_size < self.num_of_req(), "you cannot specify cache size larger than trace length"
 
         if bin_size == -1:
             bin_size = cache_size // DEFAULT_BIN_NUM_PROFILER + 1
@@ -519,7 +519,7 @@ class cachecow:
         if auto_size:
             cache_size = LRUProfiler(self.reader).plotMRC(auto_resize=True, threshold=threshold, no_save=True)
         else:
-            assert cache_size < self.numOfReq(), "you cannot specify cache size larger than trace length"
+            assert cache_size < self.num_of_req(), "you cannot specify cache size larger than trace length"
 
         if bin_size == -1:
             bin_size = cache_size // DEFAULT_BIN_NUM_PROFILER + 1

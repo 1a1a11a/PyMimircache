@@ -22,7 +22,7 @@ class generalProfilerTest(unittest.TestCase):
         reader = vscsiReader("{}/trace.vscsi".format(DAT_FOLDER))
         # reader = plainReader("../mimircache/data/random.dat")
         # reader = plainReader("../mimircache/data/trace.txt")
-        # print(reader.get_num_of_total_requests())
+        # print(reader.get_num_total_req())
         p = generalProfiler(reader, "Optimal", cache_size=CACHE_SIZE, bin_size=BIN_SIZE,
                             cache_params={"reader": reader}, num_of_threads=1)
         hr = p.get_hit_rate()

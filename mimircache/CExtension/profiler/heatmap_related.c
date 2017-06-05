@@ -17,21 +17,35 @@ static inline gint process_one_element_last_access(cache_line* cp,
                                                    guint64 ts);
 
 
+/*-----------------------------------------------------------------------------
+ *
+ * get_last_access_dist_seq --
+ *      this function returns how far away one request was requested in the past,
+ *      if it was not requested before, then -1;
+ *      it can be run forward or backward depends on the paaed reading func
+ *      when running forward, it gives how far in the past of its last request,
+ *      when running backward, it gives how far away in the future
+ *      it will be requested again.
+ *      ATTENTION: when running backward, the returned list is also REVERSED
+ *
+ * Potential bug:
+ *      this function currently using int, may cause some problem when the
+ *      trace file is tooooooo large
+ *
+ * Input:
+ *      reader:         the reader for data
+ *      funcPtr:        how to read data, can be read_one_element or 
+ *                      read_one_element_above
+ *
+ * Return:
+ *      GSList* contains the distance to last access
+ *
+ *-----------------------------------------------------------------------------
+ */
+
 GSList* get_last_access_dist_seq(reader_t* reader,
                                  void (*funcPtr)(reader_t*, cache_line*)){
 
-    /* this function currently using int, may cause some problem when the 
-    trace file is tooooooo large 
-    */
-    
-    /* this function returns how far away one request was requested in the past,
-     * if it was not requested before, then -1; 
-     * it can be run forward or backward depends on the paaed reading func
-     * when running forward, it gives how far in the past of its last request, 
-     * when running backward, it gives how far away in the future 
-     * it will be requested again. 
-     * ATTENTION: when running backward, the returned list is also REVERSED 
-     */
 
     GSList* list= NULL; 
 
@@ -57,7 +71,7 @@ GSList* get_last_access_dist_seq(reader_t* reader,
     }
     else{
         ERROR("unknown data type: %c\n", cp->type);
-        exit(1);
+        abort();
     }
     
     guint64 ts = 0;
@@ -75,7 +89,7 @@ GSList* get_last_access_dist_seq(reader_t* reader,
     }
     else{
         ERROR("unknown function pointer received in heatmap\n");
-        exit(1);
+        abort();
     }
 
     while (cp->valid){
@@ -98,6 +112,27 @@ GSList* get_last_access_dist_seq(reader_t* reader,
     return list;
 }
 
+
+/*-----------------------------------------------------------------------------
+ *
+ * process_one_element_last_access --
+ *      this function is called by get_last_access_dist_seq,
+ *      it insert current request and return distance to its last request
+ *
+ * Potential bug:
+ *      No
+ *
+ * Input:
+ *      cp:             cache_line contains current request
+ *      hash_table:     the hashtable for remembering last access
+ *      ts:             current timestamp
+ *
+ *
+ * Return:
+ *      distance to last request 
+ *
+ *-----------------------------------------------------------------------------
+ */
 
 static inline gint process_one_element_last_access(cache_line* cp,
                                                    GHashTable* hash_table,

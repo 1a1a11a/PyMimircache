@@ -143,7 +143,7 @@ static PyObject* heatmap_computation(PyObject* self,
     long cache_size;
     char *algorithm;
     char* plot_type_s;
-    int plot_type;
+    heatmap_type_e plot_type;
     char* mode;
     long time_interval = -1;
     long num_of_pixels = 200;

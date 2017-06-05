@@ -26,14 +26,17 @@ class cGeneralProfiler:
             "please use generalProfiler".format(c_available_cache)
 
         self.reader = reader
+        assert cache_size != 0, "you cannot provide size 0"
         self.cache_size = cache_size
         self.cache_name = cache_alg_mapping[cache_name.lower()]
         if bin_size == -1:
             self.bin_size = int(self.cache_size / DEFAULT_BIN_NUM_PROFILER)
-            if self.bin_size == 0:
-                self.bin_size =1
         else:
             self.bin_size = bin_size
+
+        if self.bin_size == 0:
+            self.bin_size = 1
+
         self.cache_params = cache_params
         self.num_of_threads = num_of_threads
 

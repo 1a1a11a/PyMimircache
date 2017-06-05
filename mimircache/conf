@@ -17,3 +17,5 @@ PG  = True
 SLRUML = True
 ScoreML = True
 
+[Const]
+_DEBUG_LEVEL = 0
