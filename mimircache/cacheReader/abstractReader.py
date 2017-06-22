@@ -35,7 +35,7 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
         if self.cReader:
             c_cacheReader.reset_reader(self.cReader)
 
-    def get_num_of_total_requests(self):
+    def get_num_total_req(self):
         if self.num_of_line != -1:
             return self.num_of_line
 
@@ -50,16 +50,16 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
 
         return self.num_of_line
 
-    def get_request_num_distribution(self):
+    def get_req_freq_distribution(self):
         d = defaultdict(int)
         for i in self:
             d[i] += 1
         self.reset()
         return d
 
-    def get_num_of_unique_requests(self):
+    def get_num_unique_req(self):
         if self.num_of_uniq_req == -1:
-            self.num_of_uniq_req = len(self.get_request_num_distribution())
+            self.num_of_uniq_req = len(self.get_req_freq_distribution())
         return self.num_of_uniq_req
 
     def __iter__(self):
@@ -69,7 +69,7 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
         return self.__next__()
 
     def __len__(self):
-        return self.get_num_of_total_requests()
+        return self.get_num_total_req()
 
     def __enter__(self):
         return self

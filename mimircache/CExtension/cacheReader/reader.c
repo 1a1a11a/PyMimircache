@@ -24,7 +24,7 @@
 
 
 
-reader_t* setup_reader(const char* file_loc,
+reader_t* setup_reader(const char* const file_loc,
                        const char file_type,
                        const char data_type,
                        const int block_unit_size,
@@ -146,6 +146,7 @@ void read_one_element(reader_t *const reader, cache_line *const c){
             break;
         case BINARY:
             binary_read(reader, c);
+            *(guint64*) (c->item_p) = *(guint64*)(c->item_p) + 1;
             break;
         default:
             ERROR("cannot recognize reader type, given reader type: %c\n",
@@ -617,7 +618,8 @@ cache_line* new_cacheline(){
     cp->disk_sector_size = 0; 
     cp->valid = TRUE;
     cp->item_p = (gpointer)cp->item;
-    cp->ts = 0; 
+    cp->ts = 0;
+    cp->real_time = -1; 
     
     return cp;
 }

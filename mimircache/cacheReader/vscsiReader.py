@@ -16,7 +16,7 @@ class vscsiReader(cacheReaderAbstract):
                                                       block_unit_size=block_unit_size,
                                                       disk_sector_size=disk_sector_size)
 
-        self.get_num_of_total_requests()
+        self.get_num_total_req()
 
 
     def reset(self):

@@ -68,7 +68,7 @@ typedef struct{
     size_t block_unit_size;
     size_t disk_sector_size;
     int op;
-    guint64 real_time;
+    gint64 real_time;
     gboolean valid;
     
     unsigned char traceID;                           /* this is for mixed trace */
@@ -94,7 +94,10 @@ typedef struct reader_base{
     int disk_sector_size;   
     FILE* file;
     char file_loc[FILE_LOC_STR_SIZE];
-    size_t file_size; 
+//    char rd_file_loc[FILE_LOC_STR_SIZE];    /* the file that stores reuse distance of the data, 
+//                                             * format: gint64 per entry */ 
+//    char frd_file_loc[FILE_LOC_STR_SIZE];
+    size_t file_size;
     void* init_params;
     
     void* mapped_file;                      /* mmap the file, this should not change during runtime
