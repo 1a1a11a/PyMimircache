@@ -587,7 +587,7 @@ gint64* get_reuse_dist_seq(reader_t* reader, gint64 begin, gint64 end){
             if (cp->type == 'l')
                 printf("read in %ld\n", *(gint64*)(cp->item_p));
             else
-                printf("read in %s\n", cp->item_p);
+                printf("read in %s\n", (char*) (cp->item_p)); 
         }
         
         splay_tree = process_one_element(cp, splay_tree, hash_table,
@@ -662,13 +662,11 @@ gint64* get_future_reuse_dist(reader_t* reader, gint64 begin, gint64 end){
     // create hashtable
     GHashTable * hash_table;
     if (reader->base->data_type == 'l'){
-//        cp->type = 'l';
         hash_table = g_hash_table_new_full(g_int64_hash, g_int64_equal, \
                                            (GDestroyNotify)simple_g_key_value_destroyer, \
                                            (GDestroyNotify)simple_g_key_value_destroyer);
     }
     else if (reader->base->data_type == 'c' ){
-//        cp->type = 'c';
         hash_table = g_hash_table_new_full(g_str_hash, g_str_equal, \
                                            (GDestroyNotify)simple_g_key_value_destroyer, \
                                            (GDestroyNotify)simple_g_key_value_destroyer);
@@ -722,8 +720,352 @@ gint64* get_future_reuse_dist(reader_t* reader, gint64 begin, gint64 end){
 }
 
 
+/*-----------------------------------------------------------------------------
+ *
+ * get_dist_to_last_access --
+ *      compute distance (not reuse distance) to last access,
+ *      then save to reader->sdata->reuse_dist
+ *
+ *
+ * Input:
+ *      reader:         the reader for data
+ *
+ * Return:
+ *      a pointer to the distance array
+ *
+ *-----------------------------------------------------------------------------
+ */
+gint64* get_dist_to_last_access(reader_t* reader){
+    
+    guint64 ts = 0, max_dist = 0;
+    gint64 dist;
+    gint64* value;
+    
+    if (reader->base->total_num == -1)
+        get_num_of_cache_lines(reader);
+    
+    
+    // check whether dist computation has been finished
+    if (reader->sdata->reuse_dist &&
+        reader->sdata->reuse_dist_type == NORMAL_DISTANCE){
+        return reader->sdata->reuse_dist;
+    }
+    
+    gint64 * dist_array = g_new(gint64, reader->base->total_num);
+    
+    // create cache line struct and initializa
+    cache_line* cp = new_cacheline();
+    cp->type = reader->base->data_type;
+    
+    // create hashtable
+    GHashTable * hash_table;
+    if (reader->base->data_type == 'l'){
+        hash_table = g_hash_table_new_full(g_int64_hash, g_int64_equal, \
+                                           (GDestroyNotify)simple_g_key_value_destroyer, \
+                                           (GDestroyNotify)simple_g_key_value_destroyer);
+    }
+    else if (reader->base->data_type == 'c' ){
+        hash_table = g_hash_table_new_full(g_str_hash, g_str_equal, \
+                                           (GDestroyNotify)simple_g_key_value_destroyer, \
+                                           (GDestroyNotify)simple_g_key_value_destroyer);
+    }
+    else{
+        ERROR("does not recognize reader data type %c\n", reader->base->data_type);
+        abort();
+    }
+    
+    read_one_element(reader, cp);
+    while (cp->valid){
+        if (/* DISABLES CODE */ (0)){
+            if (cp->type == 'l')
+                printf("read in %ld\n", *(gint64*)(cp->item_p));
+            else
+                printf("read in %s\n", (char*) (cp->item_p));
+        }
+        
+        value = g_hash_table_lookup(hash_table, cp->item_p);
+        if (value != NULL){
+            dist = (gint64) ts - *(gint64*) (value);
+        }
+        else
+            dist = -1;
+
+        dist_array[ts] = dist;
+        if (dist > (gint64)max_dist){
+            max_dist = dist;
+        }
+        
+        // insert into hashtable
+        value = g_new(gint64, 1);
+        if (value == NULL){
+            ERROR("not enough memory\n");
+            exit(1);
+        }
+        *value = ts;
+        if (cp->type == 'c')
+            g_hash_table_insert(hash_table, g_strdup((gchar*)(cp->item_p)), (gpointer)value);
+        
+        else if (cp->type == 'l'){
+            gint64* key = g_new(gint64, 1);
+            *key = *(guint64*)(cp->item_p);
+            g_hash_table_insert(hash_table, (gpointer)(key), (gpointer)value);
+        }
+
+        
+        read_one_element(reader, cp);
+        ts++;
+    }
+    
+    
+    reader->sdata->reuse_dist = dist_array;
+    reader->sdata->max_reuse_dist = max_dist;
+    reader->sdata->reuse_dist_type = NORMAL_DISTANCE;
+    
+    
+    // clean up
+    destroy_cacheline(cp);
+    g_hash_table_destroy(hash_table);
+    reset_reader(reader);
+    return dist_array;
+}
 
 
+
+/*-----------------------------------------------------------------------------
+ *
+ * get_reuse_time --
+ *      compute reuse time (wall clock time) since last request,
+ *      then save reader->sdata->reuse_dist
+ *
+ *      Notice that this is not reuse distance, 
+ *      even though it is stored in reuse distance array
+ *      And also the time is converted to integer, so floating point timestmap 
+ *      loses its accuracy
+ *
+ * Input:
+ *      reader:         the reader for data
+ *
+ * Return:
+ *      a pointer to the reuse time array
+ *
+ *-----------------------------------------------------------------------------
+ */
+gint64* get_reuse_time(reader_t* reader){
+    /*
+     * TODO: might be better to split return result, in case the hit rate array is too large
+     * Is there a better way to do this? this will cause huge amount memory
+     * It is the user's responsibility to release the memory of hit count array returned by this function
+     */
+    
+    guint64 ts = 0, max_rt = 0;
+    gint64 rt;
+    gint64* value;
+    
+    if (reader->base->total_num == -1)
+        get_num_of_cache_lines(reader);
+    
+    
+    // check whether dist computation has been finished
+    if (reader->sdata->reuse_dist &&
+        reader->sdata->reuse_dist_type == REUSE_TIME){
+        return reader->sdata->reuse_dist;
+    }
+    
+    gint64 * dist_array = g_new(gint64, reader->base->total_num);
+    
+    // create cache line struct and initializa
+    cache_line* cp = new_cacheline();
+    cp->type = reader->base->data_type;
+    
+    // create hashtable
+    GHashTable * hash_table;
+    if (reader->base->data_type == 'l'){
+        hash_table = g_hash_table_new_full(g_int64_hash, g_int64_equal, \
+                                           (GDestroyNotify)simple_g_key_value_destroyer, \
+                                           (GDestroyNotify)simple_g_key_value_destroyer);
+    }
+    else if (reader->base->data_type == 'c' ){
+        hash_table = g_hash_table_new_full(g_str_hash, g_str_equal, \
+                                           (GDestroyNotify)simple_g_key_value_destroyer, \
+                                           (GDestroyNotify)simple_g_key_value_destroyer);
+    }
+    else{
+        ERROR("does not recognize reader data type %c\n", reader->base->data_type);
+        abort();
+    }
+    
+    read_one_element(reader, cp);
+    if (cp->real_time == -1){
+        ERROR("given reader does not have real time column\n");
+        abort();
+    }
+    
+    
+    while (cp->valid){
+        if (/* DISABLES CODE */ (0)){
+            if (cp->type == 'l')
+                printf("read in %ld\n", *(gint64*)(cp->item_p));
+            else
+                printf("read in %s\n", (char*) (cp->item_p));
+        }
+        
+        value = g_hash_table_lookup(hash_table, cp->item_p);
+        if (value != NULL){
+            rt = (gint64) cp->real_time - *(gint64*) (value);
+        }
+        else
+            rt = -1;
+        
+        dist_array[ts] = rt;
+        if (rt > (gint64) max_rt){
+            max_rt = rt;
+        }
+        
+        // insert into hashtable
+        value = g_new(gint64, 1);
+        if (value == NULL){
+            ERROR("not enough memory\n");
+            exit(1);
+        }
+        *value = ts;
+        if (cp->type == 'c')
+            g_hash_table_insert(hash_table, g_strdup((gchar*)(cp->item_p)), (gpointer)value);
+        
+        else if (cp->type == 'l'){
+            gint64* key = g_new(gint64, 1);
+            *key = *(guint64*)(cp->item_p);
+            g_hash_table_insert(hash_table, (gpointer)(key), (gpointer)value);
+        }
+        
+        
+        read_one_element(reader, cp);
+        ts++;
+    }
+    
+    
+    reader->sdata->reuse_dist = dist_array;
+    reader->sdata->max_reuse_dist = max_rt; 
+    reader->sdata->reuse_dist_type = NORMAL_DISTANCE;
+    
+    
+    // clean up
+    destroy_cacheline(cp);
+    g_hash_table_destroy(hash_table);
+    reset_reader(reader);
+    return dist_array;
+}
+
+
+
+
+/*-----------------------------------------------------------------------------
+ *
+ * cal_save_reuse_dist --
+ *      compute reuse distance or future reuse distance, 
+ *      then save to file to facilitate future computation
+ *
+ *      In detail, this function calculates reuse distance,
+ *          then saves the array to the specified location,
+ *          for each entry in the array, saves using gint64
+ *
+ * Input:
+ *      reader:         the reader for data
+ *      save_file_loc   the location to save frd file
+ *
+ * Return:
+ *      None
+ *
+ *-----------------------------------------------------------------------------
+ */
+void cal_save_reuse_dist(reader_t * const reader,
+                         const char * const save_file_loc,
+                         const int reuse_type){
+    
+    gint64 *rd = NULL;
+    
+    if (reuse_type == NORMAL_REUSE_DISTANCE)
+        rd = get_reuse_dist_seq(reader, 0, -1);
+    else if (reuse_type == FUTURE_REUSE_DISTANCE)
+        rd = get_future_reuse_dist(reader, 0, -1);
+    else{
+        ERROR("cannot recognize reuse_type %d\n", reuse_type);
+        abort(); 
+    }
+        
+
+    FILE* file = fopen(save_file_loc, "wb");
+    fwrite(rd, sizeof(gint64), reader->base->total_num, file);
+    fclose(file);
+}
+
+
+/*-----------------------------------------------------------------------------
+ *
+ * load_future_reuse_dist --
+ *      this function is used for loading either reuse distance or
+ *      future reuse distance from the file, which is pre-computed
+ *
+ *
+ * Input:
+ *      reader:         the reader for saving data
+ *      load_file_loc   the location to file for loading rd or frd
+ *
+ * Return:
+ *      None
+ *
+ *-----------------------------------------------------------------------------
+ */
+void load_reuse_dist(reader_t * const reader,
+                     const char *const load_file_loc,
+                     const int reuse_type){
+
+    if (reader->base->total_num == -1)
+        get_num_of_cache_lines(reader);
+
+    gint64 * reuse_dist_array = g_new(gint64, reader->base->total_num);
+    FILE* file = fopen(load_file_loc, "rb");
+    fread(reuse_dist_array, sizeof(gint64), reader->base->total_num, file);
+    fclose(file);
+
+    int i;
+    gint64 max_rd = -1;
+    for (i=0; i<reader->base->total_num; i++)
+        if (reuse_dist_array[i] > max_rd)
+            max_rd = reuse_dist_array[i];
+    
+    // save to reader
+    if (reader->sdata->reuse_dist != NULL){
+        g_free(reader->sdata->reuse_dist);
+        reader->sdata->reuse_dist = NULL;
+    }
+    reader->sdata->reuse_dist = reuse_dist_array;
+    reader->sdata->max_reuse_dist = max_rd;
+    reader->sdata->reuse_dist_type = reuse_type;
+}
+
+
+
+/*-----------------------------------------------------------------------------
+ *
+ * process_one_element --
+ *      this function is used for computing reuse distance for each request
+ *      it maintains a hashmap and a splay tree, 
+ *      time complexity is O(log(N)), N is the number of unique elements
+ *
+ *
+ * Input:
+ *      cp           the cache line struct contains input data (request label)
+ *      splay_tree   the splay tree struct 
+ *      hash_table   hashtable for remember last request timestamp (virtual)
+ *      ts           current timestamp 
+ *      reuse_dist   the calculated reuse distance
+ *
+ * Return:
+ *      splay tree struct pointer, because splay tree is modified every time, 
+ *      so it is essential to update the splay tree
+ *
+ *-----------------------------------------------------------------------------
+ */
 static inline sTree* process_one_element(cache_line* cp,
                                          sTree* splay_tree,
                                          GHashTable* hash_table,

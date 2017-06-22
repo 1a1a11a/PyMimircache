@@ -213,8 +213,10 @@ static PyObject* heatmap_computation(PyObject* self,
     for (i=0; i<dd->ylength; i++){
         array = (double*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
         for (j=0; j<dd->xlength; j++)
-            if (matrix[j][i])
+            if (matrix[j][i]){
                 array[j] = matrix[j][i];
+//                printf("%lu %lu: %lf\n", i, j, matrix[i][j]);
+            }
         /* change it to opposite will help with cache, but become confusing */
     }
 
@@ -497,14 +499,14 @@ static PyObject* heatmap_rd_distribution_py(PyObject* self,
 //            array = (double*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
 //            for (j=0; j<dd->xlength; j++)
 //                array[j] = (double)matrix[j][i] / sum_array[j];
-
         
         
-        double *array;
+        long long *array;
         for (i=0; i<dd->ylength; i++){
-            array = (double*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
-            for (j=0; j<dd->xlength; j++)
+            array = (long long*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
+            for (j=0; j<dd->xlength; j++){
                 array[j] = (long long)matrix[j][i];
+            }
         }
     }
     else{
@@ -512,8 +514,9 @@ static PyObject* heatmap_rd_distribution_py(PyObject* self,
         double *array;
         for (i=0; i<dd->ylength; i++){
             array = (double*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
-            for (j=0; j<dd->xlength; j++)
+            for (j=0; j<dd->xlength; j++){
                 array[j] = matrix[j][i];
+            }
         }
 
     }
@@ -593,6 +596,112 @@ static PyObject* heatmap_future_rd_distribution_py(PyObject* self,
 }
 
 
+static PyObject* heatmap_dist_distribution_py(PyObject* self,
+                                                   PyObject* args,
+                                                   PyObject* keywds)
+{
+    PyObject* po;
+    reader_t* reader;
+    int num_of_threads = 4;
+    char* mode;
+    long time_interval = -1;
+    long num_of_pixels = 200;
+    
+    static char *kwlist[] = {"reader", "mode", "time_interval", "num_of_pixels",
+        "num_of_threads", NULL};
+    
+    // parse arguments
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Os|$lli", kwlist, &po, &mode,
+                                     &time_interval, &num_of_pixels, &num_of_threads)) {
+        ERROR("parsing argument failed in heatmap_dist_distribution\n");
+        return NULL;
+    }
+    
+    if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
+        return NULL;
+    }
+    if (time_interval == -1 && num_of_pixels == -1)
+        num_of_pixels = 200;
+    
+    
+    draw_dict* dd = heatmap(reader, NULL, *mode, time_interval, num_of_pixels,
+                            dist_distribution, num_of_threads);
+    
+    // create numpy array
+    npy_intp dims[2] = { dd->ylength, dd->xlength };
+    
+    PyObject* ret_array = PyArray_EMPTY(2, dims, NPY_LONGLONG, 0);
+    
+    
+    guint64 i, j;
+    double **matrix = dd->matrix;
+    long long *array;
+    for (i=0; i<dd->ylength; i++){
+        array = (long long*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
+        for (j=0; j<dd->xlength; j++)
+            array[j] = (long long)matrix[j][i];
+    }
+    
+    
+    // clean up
+    free_draw_dict(dd);
+    return Py_BuildValue("Nf", ret_array, reader->udata->log_base);
+}
+
+
+static PyObject* heatmap_rt_distribution_py(PyObject* self,
+                                              PyObject* args,
+                                              PyObject* keywds)
+{
+    PyObject* po;
+    reader_t* reader;
+    int num_of_threads = 4;
+    char* mode;
+    long time_interval = -1;
+    long num_of_pixels = 200;
+    
+    static char *kwlist[] = {"reader", "mode", "time_interval", "num_of_pixels",
+        "num_of_threads", NULL};
+    
+    // parse arguments
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Os|$lli", kwlist, &po, &mode,
+                                     &time_interval, &num_of_pixels, &num_of_threads)) {
+        ERROR("parsing argument failed in heatmap_dist_distribution\n");
+        return NULL;
+    }
+    
+    if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
+        return NULL;
+    }
+    if (time_interval == -1 && num_of_pixels == -1)
+        num_of_pixels = 200;
+    
+    
+    draw_dict* dd = heatmap(reader, NULL, *mode, time_interval, num_of_pixels,
+                            rt_distribution, num_of_threads);
+    
+    // create numpy array
+    npy_intp dims[2] = { dd->ylength, dd->xlength };
+    
+    PyObject* ret_array = PyArray_EMPTY(2, dims, NPY_LONGLONG, 0);
+    
+    
+    guint64 i, j;
+    double **matrix = dd->matrix;
+    long long *array;
+    for (i=0; i<dd->ylength; i++){
+        array = (long long*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
+        for (j=0; j<dd->xlength; j++)
+            array[j] = (long long)matrix[j][i];
+    }
+    
+    
+    // clean up
+    free_draw_dict(dd);
+    return Py_BuildValue("Nf", ret_array, reader->udata->log_base);
+}
+
+
 static PyObject* heatmap_get_break_points(PyObject* self,
                                           PyObject* args,
                                           PyObject* keywds)
@@ -663,6 +772,10 @@ static PyMethodDef c_heatmap_funcs[] = {
     {"heatmap_rd_distribution", (PyCFunction)heatmap_rd_distribution_py,
         METH_VARARGS | METH_KEYWORDS, "reuse distance distribution heatmap"},
     {"heatmap_future_rd_distribution", (PyCFunction)heatmap_future_rd_distribution_py,
+        METH_VARARGS | METH_KEYWORDS, "reuse distance distribution heatmap"},
+    {"heatmap_dist_distribution", (PyCFunction)heatmap_dist_distribution_py,
+        METH_VARARGS | METH_KEYWORDS, "reuse distance distribution heatmap"},
+    {"heatmap_reuse_time_distribution", (PyCFunction)heatmap_rt_distribution_py,
         METH_VARARGS | METH_KEYWORDS, "reuse distance distribution heatmap"},
     {"getBreakpoints", (PyCFunction)heatmap_get_break_points,
         METH_VARARGS | METH_KEYWORDS, "generate virtual/real break points"},

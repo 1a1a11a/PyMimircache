@@ -90,7 +90,7 @@ class cHeatmap:
             label = 'cache size'
             tick = ticker.FuncFormatter(lambda x, pos: '{:2.0f}'.format(log_base ** x))
 
-        elif axis_type == 'reuse_dist':
+        elif axis_type == 'reuse_dist' or axis_type == "distance":
             assert log_base != 1, "please provide log_base"
             label = 'reuse distance'
             tick = ticker.FuncFormatter(lambda x, pos: '{:2.0f}'.format(log_base ** x-1))
@@ -217,17 +217,11 @@ class cHeatmap:
                                                                      time_interval=time_interval,
                                                                      num_of_pixels=num_of_pixels,
                                                                      num_of_threads=num_of_threads)
-                shape = xydict.shape
-                # shape = (shape[0]+1, shape[1]+1)
 
-                # xydict2 = np.zeros(shape)
-                # for i in range(xydict.shape[0]):
-                #     for j in range(xydict.shape[1]):
-                #         if i+ log_base**j//time_interval>=417:
-                #             print(i+ log_base**j//time_interval)
-                #         else:
-                #             xydict2[i+ log_base**j//time_interval][j] += xydict[i][j]
-
+                if 'filter_rd' in kwargs:
+                    assert kwargs['filter_rd'] > 0, "filter_rd must be positive"
+                    index_pos = int(np.log(kwargs['filter_rd'])/np.log(log_base))
+                    xydict[:index_pos+1, :] = 0
 
 
                 self.setPlotParams('x', mode_string, xydict=xydict)
@@ -261,6 +255,48 @@ class cHeatmap:
                 self.setPlotParams('y', 'reuse_dist', xydict=xydict, log_base=log_base)
                 self.setPlotParams('cb', 'count') #, fixed_range=(0.01, 1))
                 self.draw_heatmap(xydict, figname=figname, not_mask=True)
+
+            elif plot_type == "dist_distribution":
+                if not figname:
+                    figname = 'dist_distribution.png'
+
+                xydict, log_base = c_heatmap.heatmap_dist_distribution(reader.cReader, mode,
+                                                                     time_interval=time_interval,
+                                                                     num_of_pixels=num_of_pixels,
+                                                                     num_of_threads=num_of_threads)
+
+                if 'filter_rd' in kwargs:
+                    assert kwargs['filter_rd'] > 0, "filter_rd must be positive"
+                    index_pos = int(np.log(kwargs['filter_rd'])/np.log(log_base))
+                    xydict[:index_pos+1, :] = 0
+
+
+                self.setPlotParams('x', mode_string, xydict=xydict)
+                self.setPlotParams('y', 'distance', xydict=xydict, log_base=log_base)
+                self.setPlotParams('cb', 'count') #, fixed_range=(0.01, 1))
+                self.draw_heatmap(xydict, figname=figname, not_mask=True)
+
+            elif plot_type == "reuse_time_distribution":
+                if not figname:
+                    figname = 'rt_distribution.png'
+
+                xydict, log_base = c_heatmap.heatmap_reuse_time_distribution(reader.cReader, mode,
+                                                                     time_interval=time_interval,
+                                                                     num_of_pixels=num_of_pixels,
+                                                                     num_of_threads=num_of_threads)
+
+                if 'filter_rd' in kwargs:
+                    assert kwargs['filter_rd'] > 0, "filter_rd must be positive"
+                    index_pos = int(np.log(kwargs['filter_rd'])/np.log(log_base))
+                    xydict[:index_pos+1, :] = 0
+
+
+                self.setPlotParams('x', mode_string, xydict=xydict)
+                self.setPlotParams('y', 'distance', xydict=xydict, log_base=log_base)
+                plt.ylabel("reuse time")
+                self.setPlotParams('cb', 'count') #, fixed_range=(0.01, 1))
+                self.draw_heatmap(xydict, figname=figname, not_mask=True)
+
 
 
             else:
@@ -389,6 +425,11 @@ class cHeatmap:
         else:
             plot_array = np.ma.array(xydict, mask=np.tri(len(xydict), dtype=int).T)
 
+        if 'filter_count' in kwargs:
+            assert kwargs['filter_count'] > 0, "filter_count must be positive"
+            plot_array = np.ma.array(xydict, mask=(xydict<kwargs))
+
+
         cmap = plt.cm.jet
         # cmap = plt.get_cmap("Oranges")
         cmap.set_bad('w', 1.)
@@ -408,7 +449,6 @@ class cHeatmap:
                                  cmap=cmap, **self.other_plot_kwargs)
 
             # , vmin=0, vmax=1
-
             cb = plt.colorbar(img)
 
             plt.savefig(filename, dpi=600)
@@ -417,7 +457,17 @@ class cHeatmap:
             plt.clf()
             self.other_plot_kwargs.clear()
         except Exception as e:
-            WARNING("plotting using imshow failed" + str(e))
+            try:
+                import time
+                t = int(time.time())
+                WARNING("plotting using imshow failed: {}, "
+                        "now try to save the plotting data to /tmp/heatmap.{}.pickle".format(e, t))
+                import pickle
+                with open("/tmp/heatmap.{}.pickle", 'wb') as ofile:
+                    pickle.dump(plot_array, ofile)
+            except Exception as e:
+                WARNING("failed to save plotting data")
+
             try:
                 plt.pcolormesh(plot_array.T, cmap=cmap)
                 plt.savefig(filename)

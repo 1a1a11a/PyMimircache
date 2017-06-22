@@ -39,6 +39,8 @@
 
 #define NORMAL_REUSE_DISTANCE                           1
 #define FUTURE_REUSE_DISTANCE                           2
+#define NORMAL_DISTANCE                                 3 
+#define REUSE_TIME                                      4 
 
 //#define DEFAULT_SECTOR_SIZE                             512 
 

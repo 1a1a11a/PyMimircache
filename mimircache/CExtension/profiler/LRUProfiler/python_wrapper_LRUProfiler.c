@@ -21,6 +21,171 @@ not urgent, not necessary: change this profiler module into a pyhton object,
 */
 
 
+
+static PyObject* LRUProfiler_get_reuse_dist_seq(PyObject* self,
+                                                PyObject* args,
+                                                PyObject* keywds)
+{
+    PyObject* po;
+    reader_t* reader;
+    gint64 begin=-1, end=-1;
+    static char *kwlist[] = {"reader", NULL};
+    
+    // parse arguments
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O", kwlist, &po)) {
+        return NULL;
+    }
+    
+    if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
+        return NULL;
+    }
+    
+    if (begin==-1)
+        begin = 0;
+    
+    // get reuse dist
+    gint64* reuse_dist = get_reuse_dist_seq(reader, begin, end);
+    
+    // create numpy array
+    if (begin < 0)
+        begin = 0;
+    if (reader->base->total_num == -1)
+        get_num_of_cache_lines(reader);
+    if (end < 0)
+        end = reader->base->total_num;
+    
+    npy_intp dims[1] = { end-begin };
+    PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_LONGLONG);
+    guint64 i;
+    for (i=0; i<(guint64)(end-begin); i++)
+        *((long long*)PyArray_GETPTR1((PyArrayObject*)ret_array, i)) = (long long)reuse_dist[i];
+    
+    
+    return ret_array;
+}
+
+
+static PyObject* LRUProfiler_get_future_reuse_dist(PyObject* self,
+                                                   PyObject* args,
+                                                   PyObject* keywds)
+{
+    PyObject* po;
+    reader_t* reader;
+    gint64 begin=-1, end=-1;
+    static char *kwlist[] = {"reader", NULL};
+    
+    // parse arguments
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O|ll", kwlist, &po)) {
+        return NULL;
+    }
+    
+    if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
+        return NULL;
+    }
+    
+    // get reuse dist
+    gint64* reuse_dist = get_future_reuse_dist(reader, begin, end);
+    
+    // create numpy array
+    if (begin < 0)
+        begin = 0;
+    if (reader->base->total_num == -1)
+        get_num_of_cache_lines(reader);
+    if (end < 0)
+        end = reader->base->total_num;
+    
+    npy_intp dims[1] = { end-begin };
+    PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_LONGLONG);
+    //    memcpy(PyArray_DATA((PyArrayObject*)ret_array), reuse_dist, sizeof(long long)*(end-begin));
+    guint64 i;
+    for (i=0; i<(guint64)(end-begin); i++)
+        *((long long*)PyArray_GETPTR1((PyArrayObject*)ret_array, i)) = (long long)reuse_dist[i];
+    
+    return ret_array;
+}
+
+
+
+static PyObject* LRUProfiler_load_reuse_dist(PyObject* self,
+                                             PyObject* args,
+                                             PyObject* keywds)
+{
+    PyObject* po;
+    char *cp_file_loc, *cp_rd_type;
+    int rd_type;
+    
+    reader_t* reader;
+
+    static char *kwlist[] = {"reader", "file_loc", "rd_type", NULL};
+    
+    // parse arguments
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Oss", kwlist,
+                                     &po, &cp_file_loc, &cp_rd_type)) {
+        return NULL;
+    }
+
+    if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
+        return NULL;
+    }
+    
+    if (strcmp(cp_rd_type, "rd") == 0)
+        rd_type = NORMAL_REUSE_DISTANCE;
+    else if (strcmp(cp_rd_type, "frd") == 0)
+        rd_type = FUTURE_REUSE_DISTANCE;
+    else{
+        ERROR("error with rd_type\n");
+        abort();
+    }
+    
+
+    // load reuse dist
+    load_reuse_dist(reader, cp_file_loc, rd_type);
+    
+    Py_RETURN_NONE;
+}
+
+
+static PyObject* LRUProfiler_save_reuse_dist(PyObject* self,
+                                             PyObject* args,
+                                             PyObject* keywds)
+{
+    PyObject* po;
+    char *cp_file_loc, *cp_rd_type;
+    int rd_type = NORMAL_REUSE_DISTANCE; 
+    
+    reader_t* reader;
+    
+    static char *kwlist[] = {"reader", "file_loc", "rd_type", NULL};
+    
+    // parse arguments
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Oss", kwlist,
+                                     &po, &cp_file_loc, &cp_rd_type)) {
+        return NULL;
+    }
+    
+    if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
+        ERROR("error retrieving reader pointer from PyCapsule\n");
+        abort();
+    }
+    
+    
+    if (strcmp(cp_rd_type, "rd") == 0)
+        rd_type = NORMAL_REUSE_DISTANCE;
+    else if (strcmp(cp_rd_type, "frd") == 0)
+        rd_type = FUTURE_REUSE_DISTANCE;
+    else{
+        ERROR("error with rd_type\n");
+        abort();
+    }
+    cal_save_reuse_dist(reader, cp_file_loc, rd_type);
+    
+    
+    Py_RETURN_NONE;
+}
+
+
+
+
 static PyObject* LRUProfiler_get_hit_count_seq(PyObject* self, PyObject* args, PyObject* keywds)
 {   
     PyObject* po;
@@ -162,87 +327,6 @@ static PyObject* LRUProfiler_get_miss_rate_seq(PyObject* self,
 }
 
 
-static PyObject* LRUProfiler_get_reuse_dist_seq(PyObject* self,
-                                                PyObject* args,
-                                                PyObject* keywds)
-{   
-    PyObject* po;
-    reader_t* reader;
-    gint64 begin=-1, end=-1;
-    static char *kwlist[] = {"reader", NULL};
-
-    // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O", kwlist, &po)) {
-        return NULL;
-    }
-
-    if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
-        return NULL;
-    }
-    
-    if (begin==-1)
-        begin = 0;
-
-    // get reuse dist 
-    gint64* reuse_dist = get_reuse_dist_seq(reader, begin, end);
-
-    // create numpy array 
-    if (begin < 0)
-        begin = 0;
-    if (reader->base->total_num == -1)
-        get_num_of_cache_lines(reader);
-    if (end < 0)
-        end = reader->base->total_num;
-
-    npy_intp dims[1] = { end-begin };
-    PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_LONGLONG); 
-    guint64 i;
-    for (i=0; i<(guint64)(end-begin); i++)
-        *((long long*)PyArray_GETPTR1((PyArrayObject*)ret_array, i)) = (long long)reuse_dist[i];
-    
-
-    return ret_array;
-}
-
-
-static PyObject* LRUProfiler_get_future_reuse_dist(PyObject* self,
-                                                   PyObject* args,
-                                                   PyObject* keywds)
-{
-    PyObject* po;
-    reader_t* reader;
-    gint64 begin=-1, end=-1;
-    static char *kwlist[] = {"reader", NULL};
-    
-    // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O|ll", kwlist, &po)) {
-        return NULL;
-    }
-    
-    if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
-        return NULL;
-    }
-    
-    // get reuse dist
-    gint64* reuse_dist = get_future_reuse_dist(reader, begin, end);
-    
-    // create numpy array
-    if (begin < 0)
-        begin = 0;
-    if (reader->base->total_num == -1)
-        get_num_of_cache_lines(reader);
-    if (end < 0)
-        end = reader->base->total_num;
-    
-    npy_intp dims[1] = { end-begin };
-    PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_LONGLONG);
-//    memcpy(PyArray_DATA((PyArrayObject*)ret_array), reuse_dist, sizeof(long long)*(end-begin));
-    guint64 i;
-    for (i=0; i<(guint64)(end-begin); i++)
-        *((long long*)PyArray_GETPTR1((PyArrayObject*)ret_array, i)) = (long long)reuse_dist[i];
-    
-    return ret_array;
-}
 
 
 static PyObject* LRUProfiler_get_hit_rate_seq_shards(PyObject* self,
@@ -394,7 +478,14 @@ static PyMethodDef c_LRUProfiler_funcs[] = {
         METH_VARARGS | METH_KEYWORDS, "get reuse distance array of the reversed trace file in the form of numpy array"},
     {"get_reuse_dist_seq", (PyCFunction)LRUProfiler_get_reuse_dist_seq,
         METH_VARARGS | METH_KEYWORDS, "get reuse distance array in the form of numpy array"},
+    {"save_reuse_dist", (PyCFunction)LRUProfiler_save_reuse_dist,
+        METH_VARARGS | METH_KEYWORDS, "save reuse distance array to specified file"},
+    {"load_reuse_dist", (PyCFunction)LRUProfiler_load_reuse_dist,
+        METH_VARARGS | METH_KEYWORDS, "load reuse distance array from specified file"},
 
+    
+    
+    
     {"get_hit_rate_seq_shards", (PyCFunction)LRUProfiler_get_hit_rate_seq_shards,
         METH_VARARGS | METH_KEYWORDS, "shards version"},
     {"get_hit_rate_with_size", (PyCFunction)LRUProfiler_get_hit_rate_withsize_seq,

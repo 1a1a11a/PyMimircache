@@ -61,6 +61,8 @@ typedef enum _heatmap_type{
     cold_miss_count_start_time_end_time,
     rd_distribution,
     future_rd_distribution,
+    dist_distribution,          // this one is not using reuse distance, instead using distance to last access
+    rt_distribution,            // real time distribution, use integer for time 
     rd_distribution_CDF
 }heatmap_type_e;
 

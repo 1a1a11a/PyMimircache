@@ -31,19 +31,13 @@ class LRUProfiler:
         # do not need this function in this profiler
         pass
 
+    def save_reuse_dist(self, file_loc, rd_type):
+        assert rd_type == 'rd' or rd_type == 'frd', "please provide a valid reuse distance type, currently support rd and frd"
+        c_LRUProfiler.save_reuse_dist(self.reader.cReader, file_loc, rd_type)
 
-    # def _kwargs_parse(self, **kwargs):
-    #     kargs = {'begin': 0, 'end': -1, 'cache_size': -1}
-    #
-    #     if 'begin' in kwargs:
-    #         kargs['begin'] = kwargs['begin']
-    #     if 'end' in kwargs:
-    #         kargs['end'] = kwargs['end']
-    #     if 'cache_size' in kwargs:
-    #         kargs['cache_size'] = kwargs['cache_size']
-    #
-    #     return kargs
-
+    def load_reuse_dist(self, file_loc, rd_type):
+        assert rd_type == 'rd' or rd_type == 'frd', "please provide a valid reuse distance type, currently support rd and frd"
+        c_LRUProfiler.load_reuse_dist(self.reader.cReader, file_loc, rd_type)
 
     def get_hit_count(self, **kargs):
         """
