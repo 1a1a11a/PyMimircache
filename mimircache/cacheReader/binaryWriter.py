@@ -22,6 +22,7 @@ class traceBinaryWriter:
 
 
     def write(self, value):
+        assert isinstance(value, tuple)
         b = self.structIns.pack(*value)
         self.ofile.write(b)
 
