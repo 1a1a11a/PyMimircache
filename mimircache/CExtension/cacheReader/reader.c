@@ -117,7 +117,7 @@ reader_t* setup_reader(const char* const file_loc,
     return reader;
 }
 
-void read_one_element(reader_t *const reader, cache_line *const c){
+void read_one_element(reader_t *const reader, cache_line_t *const c){
     /* read one cache line from reader,
      and store it in the pre-allocated cache_line c, current given
      size for the element(label) is 128 bytes(cache_line_label_size).
@@ -142,11 +142,11 @@ void read_one_element(reader_t *const reader, cache_line *const c){
             break;
         case VSCSI:
             vscsi_read(reader, c);
-            *(guint64*) (c->item_p) = *(guint64*)(c->item_p) + 1;
+//            *(guint64*) (c->item_p) += 1;
             break;
         case BINARY:
             binary_read(reader, c);
-            *(guint64*) (c->item_p) = *(guint64*)(c->item_p) + 1;
+//            *(guint64*) (c->item_p) += 1; 
             break;
         default:
             ERROR("cannot recognize reader type, given reader type: %c\n",
@@ -156,8 +156,9 @@ void read_one_element(reader_t *const reader, cache_line *const c){
     }
     if (reader->base->data_type == 'l' &&
         (reader->base->type == 'c' || reader->base->type == 'p')){
-        guint64 n = atoll(c->item);
-        *(guint64*) (c->item_p) = n + 1; // this is to avoid some of the block number is 0 
+        *(guint64*)(c->item_p) = atoll(c->item);
+//        guint64 n = atoll(c->item);
+//        *(guint64*) (c->item_p) = n + 1; // this is to avoid the situation when block number is 0
     }
 }
 
@@ -251,7 +252,7 @@ int go_back_two_lines(reader_t *const reader){
 
 
 
-void read_one_element_above(reader_t *const reader, cache_line* c){
+void read_one_element_above(reader_t *const reader, cache_line_t* c){
     /* read one cache line from reader precede current position,
      * in other words, read the line above current line, 
      * and currently file points to either the end of current line or 
@@ -610,7 +611,7 @@ guint64 read_one_request_size(reader_t *const reader){
     return 0;
 }
 
-cache_line* new_cacheline(){
+cache_line_t* new_cacheline(){
     cache_line* cp = g_new0(cache_line, 1);
     cp->op = -1;
     cp->size = 0;
@@ -624,7 +625,16 @@ cache_line* new_cacheline(){
     return cp;
 }
 
-void destroy_cacheline(cache_line* cp){
+
+cache_line_t *copy_cache_line(cache_line_t *cp){
+    cache_line* cp_new = g_new0(cache_line, 1);
+    memcpy(cp_new, cp, sizeof(cp));
+    cp_new->item_p = (gpointer)cp_new->item;
+    return cp_new;
+}
+
+
+void destroy_cacheline(cache_line_t* cp){
     if (cp->content)
         g_free(cp->content); 
     g_free(cp);

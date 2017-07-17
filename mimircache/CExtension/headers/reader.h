@@ -6,8 +6,8 @@
 //  Copyright © 2016 Juncheng. All rights reserved.
 //
 
-#ifndef reader_h
-#define reader_h
+#ifndef READER_H
+#define READER_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -77,6 +77,8 @@ typedef struct{
     
     
 }cache_line;
+
+typedef cache_line cache_line_t;
 
 
 // declare reader struct 
@@ -162,7 +164,7 @@ reader_t* setup_reader(const char* file_loc,
                        const void* const setup_params);
 
 void read_one_element(reader_t *const reader,
-                      cache_line *const c);
+                      cache_line_t *const c);
 
 guint64 skip_N_elements(reader_t *const reader,
                         const guint64 N);
@@ -172,7 +174,7 @@ int go_back_one_line(reader_t *const reader);
 int go_back_two_lines(reader_t *const reader);
 
 void read_one_element_above(reader_t *const reader,
-                            cache_line *const c);
+                            cache_line_t *const c);
 
 int read_one_request_all_info(reader_t *const reader,
                               void* storage);
@@ -199,9 +201,11 @@ reader_t* clone_reader(reader_t *const reader);
 void set_no_eof(reader_t *const reader);
 
 
-cache_line* new_cacheline(void);
+cache_line_t* new_cacheline(void);
 
-void destroy_cacheline(cache_line* cp);
+cache_line_t *copy_cache_line(cache_line_t *cp);
+
+void destroy_cacheline(cache_line_t* cp);
 
 
 
@@ -224,9 +228,9 @@ static inline gboolean find_line_ending(reader_t *const reader,
     while (*line_end == NULL){
         if (size > (long)reader->base->file_size - reader->base->offset)
             size = reader->base->file_size - reader->base->offset;
-        *line_end = memchr(reader->base->mapped_file + reader->base->offset, CSV_LF, size);
+        *line_end = (char*) memchr( (void*) ((char*)(reader->base->mapped_file) + reader->base->offset), CSV_LF, size);
         if (*line_end == NULL)
-            *line_end = memchr(reader->base->mapped_file + reader->base->offset, CSV_CR, size);
+            *line_end = (char*) memchr((char*)(reader->base->mapped_file) + reader->base->offset, CSV_CR, size);
         
         if (*line_end == NULL){
             if (size == MAX_LINE_LEN){
@@ -239,7 +243,7 @@ static inline gboolean find_line_ending(reader_t *const reader,
                  *  if file ending has one or more CRLF, it will goes to next while,
                  *  then file_end points to end of file, still return TRUE 
                  */
-                *line_end = reader->base->mapped_file + reader->base->file_size;
+                *line_end = (char*)(reader->base->mapped_file) + reader->base->file_size;
                 *line_len = size;
                 reader->base->record_size = *line_len;
                 return TRUE;
@@ -247,18 +251,18 @@ static inline gboolean find_line_ending(reader_t *const reader,
         }
     }
     // currently line_end points to LFCR
-    *line_len = (void*)*line_end - (reader->base->mapped_file + reader->base->offset);
+    *line_len = *line_end - ((char*)(reader->base->mapped_file) + reader->base->offset);
     
-    while ( (long) ((void*)*line_end - reader->base->mapped_file) < (long) (reader->base->file_size) - 1
+    while ( (long) (*line_end - (char*)(reader->base->mapped_file)) < (long) (reader->base->file_size) - 1
            && (*(*line_end+1) == CSV_CR || *(*line_end+1) == CSV_LF ||
             *(*line_end+1) == CSV_TAB || *(*line_end+1) == CSV_SPACE) ){
         (*line_end) ++;
-        if ( (long)( (void*)*line_end - reader->base->mapped_file) == (long) (reader->base->file_size) - 1){
+        if ( (long)( *line_end - (char*)(reader->base->mapped_file)) == (long) (reader->base->file_size) - 1){
             reader->base->record_size = *line_len;
             return TRUE;
         }
     }
-    if ( (long) ((void*)*line_end - reader->base->mapped_file) == (long) (reader->base->file_size) - 1){
+    if ( (long) (*line_end - (char*)(reader->base->mapped_file)) == (long) (reader->base->file_size) - 1){
         reader->base->record_size = *line_len;
         return TRUE;
     }
