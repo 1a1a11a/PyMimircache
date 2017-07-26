@@ -7,8 +7,13 @@
 //
 
 
-#include "cache.h" 
+#include "cache.h"
 
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 
 
@@ -84,3 +89,8 @@ struct_cache* cache_init(long long size, char data_type, int block_unit_size){
     return cache;
 }
 
+
+
+#ifdef __cplusplus
+}
+#endif

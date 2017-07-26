@@ -8,6 +8,13 @@
 
 #include "heatmap.h"
 
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+
 /**
  * thread function for computing nonLRU heatmap of type start_time_end_time 
  * 
@@ -236,3 +243,7 @@ void heatmap_rd_distribution_CDF_thread(gpointer data, gpointer user_data){
     g_mutex_unlock(&(params->mtx));
 }
 
+
+#ifdef __cplusplus
+}
+#endif

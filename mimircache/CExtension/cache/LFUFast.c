@@ -19,6 +19,10 @@
 
 #include "LFUFast.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 
 
@@ -82,7 +86,7 @@ void __LFU_fast_insert_element(struct_cache* LFU_fast, cache_line* cp){
         g_queue_push_head(LFU_fast_params->main_list, mnode_data);
         LFU_fast_params->min_freq = 1;
     }
-    else if (LFU_fast_params->min_freq == 1){
+    else {
         mnode_data = (main_list_node_data_t*)(g_queue_peek_head(LFU_fast_params->main_list));
 #ifdef SANITY_CHECK
         if (mnode_data->freq != 1){
@@ -343,3 +347,9 @@ void LFU_fast_remove_element(struct_cache* cache, void* data_to_remove){
     
     g_hash_table_remove(LFU_fast_params->hashtable, (gconstpointer)(data_to_remove));
 }
+
+
+
+#ifdef __cplusplus
+}
+#endif

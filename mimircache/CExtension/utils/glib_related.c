@@ -9,6 +9,13 @@
 #include "glib_related.h"
 #include "pqueue.h"
 
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+
 void simple_key_value_destroyer(gpointer data) {
     free(data);
 }
@@ -35,3 +42,8 @@ void ML_value_destroyer(gpointer data){
     ;
     
 }
+
+
+#ifdef __cplusplus
+}
+#endif

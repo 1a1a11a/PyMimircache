@@ -10,6 +10,11 @@
 #include "cache.h" 
 #include "LRUPage.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 
 
 void __LRUPage_insert_element(struct_cache* LRUPage, cache_line* cp){
@@ -185,3 +190,9 @@ void destroy_LRUPage_t(gpointer data){
         g_free(page->content);
     g_free(page); 
 }
+
+
+
+#ifdef __cplusplus
+}
+#endif

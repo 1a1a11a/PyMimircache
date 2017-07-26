@@ -7,9 +7,12 @@
 //
 
 
-#include "cache.h" 
 #include "AMP.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 
 /** because we use direct_hash in hashtable, meaning we direct use pointer as int, so be careful
@@ -686,3 +689,11 @@ gint64 AMP_get_size(struct_cache* cache){
     struct AMP_params* AMP_params = (struct AMP_params*)(cache->cache_params);
     return (guint64) g_hash_table_size(AMP_params->hashtable);
 }
+
+
+
+#ifdef __cplusplus
+}
+#endif
+
+

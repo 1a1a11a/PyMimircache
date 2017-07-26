@@ -12,8 +12,14 @@
 #ifndef CONST_H 
 #define CONST_H
 
-#define cache_line_label_size 1024
-#define CACHE_LINE_LABEL_SIZE 1024
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+    
+#define cache_line_label_size 128
+#define CACHE_LINE_LABEL_SIZE 128
 #define FILE_LOC_STR_SIZE 1024
 
 #define KRESET  "\x1B[0m"
@@ -28,13 +34,6 @@
 
 
 
-//#define hit_rate_start_time_end_time                    1
-//#define hit_rate_start_time_cache_size                  2
-//#define avg_rd_start_time_end_time                      3
-//#define cold_miss_count_start_time_end_time             4
-//#define rd_distribution                                 5
-//#define future_rd_distribution                          6
-//#define rd_distribution_CDF                             7
 
 
 #define NORMAL_REUSE_DISTANCE                           1
@@ -55,18 +54,18 @@
 #undef __DEBUG__
 #undef _DEBUG
 
+//#define __DEBUG__
 
 #if defined(__DEBUG__) || defined(_DEBUG)
-#define DEBUG_MSG(...) fprintf(stderr, __VA_ARGS__)
-#define DEBUG(...) \
-{fprintf(stderr, "[DEBUG]: %s:%d:%s: ", __FILE__, __LINE__, __func__); \
-fprintf(stderr, __VA_ARGS__);}
+    #define DEBUG_MSG(...) fprintf(stderr, __VA_ARGS__)
+    #define DEBUG(...) \
+        {fprintf(stderr, "[DEBUG]: %s:%d:%s: ", __FILE__, __LINE__, __func__); \
+        fprintf(stderr, __VA_ARGS__);}
 #else
-#define DEBUG_MSG(...) do { } while (0)
-#define DEBUG(...) do { } while (0)
+    #define DEBUG_MSG(...) do { } while (0)
+    #define DEBUG(...) do { } while (0)
 #endif
 
-// #define INFO(...) fprintf(stderr, __FILE__, __LINE__, __func__, __VA_ARGS__)
 
 #define INFO(...) \
     {fprintf(stderr, "[INFO]: %s%s:%d:%s: ", KYEL, __FILE__, __LINE__, __func__); \
@@ -81,5 +80,15 @@ fprintf(stderr, __VA_ARGS__);}
     {fprintf(stderr, "[ERROR]: %s:%d:%s: ", __FILE__, __LINE__, __func__); \
     fprintf(stderr,  __VA_ARGS__);}
 
+
+
+
+#define SUPPRESS_FUNCTION_NO_USE_WARNING(f) (void)f
+
+
+    
+#ifdef __cplusplus
+    }
+#endif
 
 #endif 

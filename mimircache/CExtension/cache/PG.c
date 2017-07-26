@@ -16,6 +16,10 @@
 
 
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 
 /******************* priority queue structs and def **********************/
@@ -504,3 +508,10 @@ gint64 PG_get_size(struct_cache* cache){
     PG_params_t* PG_params = (PG_params_t*)(cache->cache_params);
     return PG_params->cache->core->get_size(PG_params->cache);
 }
+
+
+
+
+#ifdef __cplusplus
+}
+#endif

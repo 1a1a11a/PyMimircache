@@ -15,6 +15,11 @@
 #include "LRU_K.h"
 #include "LRU.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 
 static gint64* get_eviction_reuse_dist(reader_t* reader, struct_cache* optimal);
 static gint64* get_eviction_freq(reader_t* reader, struct_cache* optimal, gboolean accumulative);
@@ -311,7 +316,7 @@ static inline sTree* process_one_element_eviction_reuse_dist(cache_line* cp, sTr
         *(guint64*)gp = ts;
         
         // update splay tree
-        newtree = delete(old_ts, newtree);
+        newtree = splay_delete(old_ts, newtree);
         newtree = insert(ts, newtree);
         
     }
@@ -335,3 +340,8 @@ static inline sTree* process_one_element_eviction_reuse_dist(cache_line* cp, sTr
     return newtree;
 }
 
+
+
+#ifdef __cplusplus
+}
+#endif

@@ -8,6 +8,12 @@
 
 #include "csvReader.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+
 
 static inline void csv_cb1(void *s, size_t len, void *data){
     /* call back for csv field end */
@@ -15,7 +21,7 @@ static inline void csv_cb1(void *s, size_t len, void *data){
     reader_t* reader = (reader_t*)data;
     csv_params_t *params = reader->reader_params;
     cache_line* cp = params->cache_line_pointer;
-    
+
     if (params->current_column_counter == params->label_column){
         // this field is the request lable (key)
         if (len >= cache_line_label_size)
@@ -42,7 +48,6 @@ static inline void csv_cb1(void *s, size_t len, void *data){
 
 static inline void csv_cb2(int c, void *data){
     /* call back for csv row end */
-    
     
     reader_t* reader = (reader_t*)data;
     csv_params_t *params = reader->reader_params;
@@ -157,8 +162,9 @@ void csv_read_one_element(reader_t *const reader, cache_line *const c){
         if (params->reader_end)
             csv_fini(params->csv_parser, csv_cb1, csv_cb2, reader);
         else{
-            ERROR("in parsing csv file, current offset %lu\n", reader->base->offset);
-            exit(1);
+            ERROR("in parsing csv file, current offset %lu, next string %s\n",
+                  reader->base->offset, (char*) (reader->base->mapped_file + reader->base->offset));
+            abort();
         }
     }
 }
@@ -206,3 +212,9 @@ void csv_set_no_eof(reader_t* reader){
     csv_params_t *params = reader->reader_params;
     params->reader_end = FALSE; 
 }
+
+
+
+#ifdef __cplusplus
+}
+#endif

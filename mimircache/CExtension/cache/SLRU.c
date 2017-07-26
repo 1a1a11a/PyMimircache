@@ -10,6 +10,11 @@
 #include "SLRU.h"
 
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 
 void __SLRU_insert_element(struct_cache* SLRU, cache_line* cp){
     SLRU_params_t* SLRU_params = (SLRU_params_t*)(SLRU->cache_params);
@@ -178,3 +183,8 @@ gint64 SLRU_get_size(struct_cache* cache){
         size += SLRU_params->current_sizes[i];
     return size;
 }
+
+
+#ifdef __cplusplus
+}
+#endif

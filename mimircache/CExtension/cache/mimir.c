@@ -20,6 +20,11 @@
 
 //#define TRACK_BLOCK 192618l
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 
 
 static inline void __MIMIR_record_entry_min_support_1(struct_cache* MIMIR, cache_line* cp);
@@ -1544,7 +1549,7 @@ void __MIMIR_mining_test(struct_cache* MIMIR){
     g_array_sort(r_m_struct->mining_table, mining_table_entry_cmp);
     
     
-    gboolean associated_flag, first_flag;
+//    gboolean associated_flag, first_flag;
     gint64* item1, *item2;
     gint num_of_ts1, num_of_ts2, shorter_length;
     for (i=0; i < (long) r_m_struct->mining_table->len-1; i++){
@@ -1612,6 +1617,12 @@ void __MIMIR_mining_test(struct_cache* MIMIR){
     g_timer_destroy(timer);
 #endif
 }
+
+
+#ifdef __cplusplus
+}
+#endif
+
 
 
 

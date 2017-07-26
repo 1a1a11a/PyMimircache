@@ -9,6 +9,10 @@
 
 #include "ARC.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 
 void __ARC_insert_element(struct_cache* cache, cache_line* cp){
@@ -263,3 +267,9 @@ gint64 ARC_get_size(struct_cache* cache){
     ARC_params_t* ARC_params = (ARC_params_t*)(cache->cache_params);
     return (uint64_t)(ARC_params->size1 + ARC_params->size2);
 }
+
+
+
+#ifdef __cplusplus
+}
+#endif

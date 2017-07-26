@@ -20,12 +20,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #if ___STDC_VERSION__ >= 199901L
-#  include <stdint.h>
+    #include <stdint.h>
 #else
-#  define SIZE_MAX ((size_t)-1) /* C89 doesn't have stdint.h or SIZE_MAX */
+    #define SIZE_MAX ((size_t)-1) /* C89 doesn't have stdint.h or SIZE_MAX */
 #endif
 
 #include "libcsv.h"
+
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 
 #define VERSION "3.0.3"
 
@@ -581,3 +588,8 @@ csv_fwrite2 (FILE *fp, const void *src, size_t src_size, unsigned char quote)
 
   return 0;
 }
+
+
+#ifdef __cplusplus
+}
+#endif

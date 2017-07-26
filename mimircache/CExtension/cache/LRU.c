@@ -7,9 +7,12 @@
 //
 
 
-#include "cache.h" 
 #include "LRU.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 
 void __LRU_insert_element(struct_cache* LRU, cache_line* cp){
@@ -78,20 +81,25 @@ void __LRU_evict_element(struct_cache* LRU, cache_line* cp){
         gpointer data = g_queue_peek_head(LRU_params->list);
         if (cp->type == 'l'){
             if (*(guint64*)(data) != ((guint64*)LRU->core->oracle)[LRU_params->ts]){
-                printf("error at %lu, LRU: %lu, Optimal: %lu\n", LRU_params->ts, *(guint64*)(data), ((guint64*)LRU->core->oracle)[LRU_params->ts]);
+                printf("error at %lu, LRU: %lu, Optimal: %lu\n", LRU_params->ts,
+                       *(guint64*)(data), ((guint64*)LRU->core->oracle)[LRU_params->ts]);
                 LRU->core->evict_err ++;
             }
             else
-                printf("no error at %lu: %lu, %lu\n", LRU_params->ts, *(guint64*)(data), *(guint64*)(g_queue_peek_tail(LRU_params->list)));
-            gpointer data_oracle = g_hash_table_lookup(LRU_params->hashtable, (gpointer)&((guint64* )LRU->core->oracle)[LRU_params->ts]);
+                printf("no error at %lu: %lu, %lu\n", LRU_params->ts, *(guint64*)(data),
+                       *(guint64*)(g_queue_peek_tail(LRU_params->list)));
+            gpointer data_oracle = g_hash_table_lookup(LRU_params->hashtable,
+                                        (gpointer)&((guint64* )LRU->core->oracle)[LRU_params->ts]);
             g_queue_delete_link(LRU_params->list, (GList*)data_oracle);
             g_hash_table_remove(LRU_params->hashtable, (gpointer)&((guint64*)LRU->core->oracle)[LRU_params->ts]);
         }
         else{
             if (strcmp((gchar*)data, ((gchar**)(LRU->core->oracle))[LRU_params->ts]) != 0)
                 LRU->core->evict_err ++;
-            gpointer data_oracle = g_hash_table_lookup(LRU_params->hashtable, (gpointer)((gchar**)LRU->core->oracle)[LRU_params->ts]);
-            g_hash_table_remove(LRU_params->hashtable, (gpointer)((gchar**)LRU->core->oracle)[LRU_params->ts]);
+            gpointer data_oracle = g_hash_table_lookup(LRU_params->hashtable,
+                                                       (gpointer)((gchar**)LRU->core->oracle)[LRU_params->ts]);
+            g_hash_table_remove(LRU_params->hashtable,
+                                (gpointer)((gchar**)LRU->core->oracle)[LRU_params->ts]);
             g_queue_remove(LRU_params->list, ((GList*) data_oracle)->data);
         }
         
@@ -298,3 +306,12 @@ gint64 LRU_get_size(struct_cache* cache){
     struct LRU_params* LRU_params = (struct LRU_params*)(cache->cache_params);
     return (guint64) g_hash_table_size(LRU_params->hashtable);
 }
+
+
+
+
+
+
+#ifdef __cplusplus
+}
+#endif

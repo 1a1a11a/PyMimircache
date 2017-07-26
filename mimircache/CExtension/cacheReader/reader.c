@@ -23,6 +23,11 @@
 
 
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 
 reader_t* setup_reader(const char* const file_loc,
                        const char file_type,
@@ -83,8 +88,9 @@ reader_t* setup_reader(const char* const file_loc,
     if ( (reader->base->mapped_file = mmap (NULL, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0)) == MAP_FAILED){
         close (fd);
         reader->base->mapped_file = NULL;
-        ERROR("Unable to allocate %llu bytes of memory\n", (unsigned long long) st.st_size);
-        exit(1);
+        ERROR("Unable to allocate %llu bytes of memory, %s\n", (unsigned long long) st.st_size,
+              strerror(errno));
+        abort();
     }
     
     reader->base->file_size = st.st_size; 
@@ -627,8 +633,8 @@ cache_line_t* new_cacheline(){
 
 
 cache_line_t *copy_cache_line(cache_line_t *cp){
-    cache_line* cp_new = g_new0(cache_line, 1);
-    memcpy(cp_new, cp, sizeof(cp));
+    cache_line_t* cp_new = g_new0(cache_line_t, 1);
+    memcpy(cp_new, cp, sizeof(cache_line_t));    
     cp_new->item_p = (gpointer)cp_new->item;
     return cp_new;
 }
@@ -639,3 +645,8 @@ void destroy_cacheline(cache_line_t* cp){
         g_free(cp->content); 
     g_free(cp);
 }
+
+
+#ifdef __cplusplus
+}
+#endif

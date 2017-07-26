@@ -8,6 +8,12 @@
 
 #include "binaryReader.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+
 
 int binaryReader_setup(const char *const filename,
                        reader_t *const reader,
@@ -162,3 +168,7 @@ int binaryReader_setup(const char *const filename,
 
 
 
+
+#ifdef __cplusplus
+}
+#endif

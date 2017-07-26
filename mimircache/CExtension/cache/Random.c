@@ -11,6 +11,11 @@
 
 #include "Random.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 
 void __Random_insert_element(struct_cache* Random, cache_line* cp){
     struct Random_params* Random_params = (struct Random_params*)(Random->cache_params);
@@ -136,3 +141,8 @@ struct_cache* Random_init(guint64 size, char data_type, int block_size, void* pa
     return cache;
 }
 
+
+
+#ifdef __cplusplus
+}
+#endif

@@ -11,6 +11,11 @@
 
 #include "MRU.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 
 void __MRU_insert_element(struct_cache* MRU, cache_line* cp){
     struct MRU_params* MRU_params = (struct MRU_params*)(MRU->cache_params);
@@ -111,3 +116,8 @@ struct_cache* MRU_init(guint64 size, char data_type, int block_size, void* param
     return cache;
 }
 
+
+
+#ifdef __cplusplus
+}
+#endif

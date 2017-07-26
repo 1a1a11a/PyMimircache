@@ -34,6 +34,12 @@
 #include "pqueue.h"
 
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+
 #define left(i)   ((i) << 1)
 #define right(i)  (((i) << 1) + 1)
 #define parent(i) ((i) >> 1)
@@ -296,3 +302,11 @@ pqueue_is_valid(pqueue_t *q)
 {
     return subtree_is_valid(q, 1);
 }
+
+
+
+
+
+#ifdef __cplusplus
+}
+#endif

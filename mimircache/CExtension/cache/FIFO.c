@@ -7,8 +7,12 @@
 //
 
 
-#include "cache.h" 
 #include "FIFO.h"
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 
  void __fifo_insert_element(struct_cache* fifo, cache_line* cp){
@@ -176,3 +180,9 @@ gint64 fifo_get_size(struct_cache *cache){
     struct FIFO_params* fifo_params = (struct FIFO_params*)(cache->cache_params);
     return g_hash_table_size(fifo_params->hashtable);
 }
+
+
+
+#ifdef __cplusplus
+}
+#endif

@@ -15,6 +15,10 @@
  
  */
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 
 
@@ -255,3 +259,7 @@ struct_cache* LRU_K_init(guint64 size, char data_type, int block_size, void* par
 
 
 
+
+#ifdef __cplusplus
+}
+#endif

@@ -11,6 +11,12 @@
 #include "reader.h"
 
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+
 int vscsi_setup(const char *const filename,
                 reader_t *const reader){
     
@@ -69,3 +75,6 @@ vscsi_version_t test_vscsi_version(void *trace){
 }
 
 
+#ifdef __cplusplus
+}
+#endif

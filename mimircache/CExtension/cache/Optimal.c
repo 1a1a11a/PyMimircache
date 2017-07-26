@@ -9,6 +9,11 @@
 
 #include "Optimal.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 
 /******************* priority queue structs and def **********************/
 
@@ -328,3 +333,6 @@ struct_cache* optimal_init(guint64 size, char data_type, int block_size, void* p
     
 }
 
+#ifdef __cplusplus
+}
+#endif

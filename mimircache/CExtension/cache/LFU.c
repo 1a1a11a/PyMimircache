@@ -20,6 +20,11 @@
 #include "LFU.h"
 
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 
 /********************* priority queue structs and def ***********************/
 static inline int cmp_pri(pqueue_pri_t next, pqueue_pri_t curr){
@@ -262,3 +267,9 @@ void LFU_remove_element(struct_cache* cache, void* data_to_remove){
     g_hash_table_remove(LFU_params->hashtable,
                         (gconstpointer)data_to_remove);
 }
+
+
+
+#ifdef __cplusplus
+}
+#endif

@@ -9,6 +9,12 @@
 #include "heatmap.h" 
 
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+
 draw_dict* heatmap_LRU(reader_t* reader,
                        struct_cache* cache,
                        char mode,
@@ -469,6 +475,6 @@ void free_draw_dict(draw_dict* dd){
 }
 
 
-
-
-
+#ifdef __cplusplus
+}
+#endif
