@@ -27,7 +27,7 @@ numpy_headers = []
 
 
 if _DEBUG:
-    extra_compile_args += ["-g3", "-O0", "-D_DEBUG=%s" % _DEBUG_LEVEL, "-UNDEBUG"]
+    extra_compile_args += ["-g", "-O0", "-D_DEBUG=%s" % _DEBUG_LEVEL, "-UNDEBUG"]
 else:
     extra_compile_args += ["-DNDEBUG", "-O3"]
 
@@ -124,11 +124,6 @@ def getNumpyHeader():
         print(e)
 
 
-def remove_inline_kw(path='mimircache/CExtension/cache'):
-    for file in os.listdir(path):
-        if file.endswith('.c'):
-            shutil.copyfile(path + '/' + file, path + '/' + file + '.temp')
-
 
 
 getGlibFlag()
@@ -165,18 +160,26 @@ print('all link flasgs: ' + str(extra_link_args))
 
 extensions.append(Extension(
     'mimircache.c_cacheReader',
-    glob("mimircache/CExtension/cacheReader/*.c"),
-    include_dirs=["mimircache/CExtension/headers"] + numpy_headers,
+    glob("mimircache/CExtension/cacheReader/*.c") + 
+    ["mimircache/CExtension/pyBindings/pyReader.c"], 
+    include_dirs=["mimircache/CExtension/headers"] + 
+    ["mimircache/CExtension/cacheReader/include"] + numpy_headers,
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args,
     language="c"))
 
 extensions.append(Extension(
     'mimircache.c_LRUProfiler',
-    glob("mimircache/CExtension/profiler/LRUProfiler/*.c") +
+    ["mimircache/CExtension/profiler/LRUProfiler.c", "mimircache/CExtension/profiler/splay.c"] +
     glob('mimircache/CExtension/cacheReader/*.c') +
-    glob('mimircache/CExtension/utils/*.c'),
-    include_dirs=["mimircache/CExtension/headers"] +
+    glob('mimircache/CExtension/utils/*.c') + 
+    ["mimircache/CExtension/pyBindings/pyLRUProfiler.c"], 
+    include_dirs=["mimircache/CExtension/headers"] + 
+    ["mimircache/CExtension/cache/include"] + 
+    ["mimircache/CExtension/cacheReader/include"] + 
+    ["mimircache/CExtension/profiler/include"] + 
+    ["mimircache/CExtension/utils/include/"] + 
+    ["mimircache/CExtension/pyBindings/headers"] + 
     ['mimircache/CExtension/headers/cache'] + numpy_headers, 
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args,
@@ -185,14 +188,19 @@ extensions.append(Extension(
 extensions.append(Extension(
     'mimircache.c_generalProfiler',
     glob("mimircache/CExtension/profiler/*.c") +
-    glob("mimircache/CExtension/profiler/generalProfiler/*.c") +
-    glob("mimircache/CExtension/profiler/LRUProfiler/*.c") +
     glob("mimircache/CExtension/cache/*.c") +
     glob('mimircache/CExtension/cacheReader/*.c') +
     glob('mimircache/CExtension/utils/*.c') +
-    glob('mimircache/CExtension/wrapper/*.c'),
-    include_dirs=["mimircache/CExtension/headers/"] +
-                 ["mimircache/CExtension/headers/cache/"] + numpy_headers,
+    glob('mimircache/CExtension/wrapper/*.c') + 
+    ["mimircache/CExtension/pyBindings/pyGeneralProfiler.c"] + 
+    ["mimircache/CExtension/pyBindings/python_wrapper.c"], 
+    include_dirs=["mimircache/CExtension/headers"] + 
+    ["mimircache/CExtension/cache/include"] + 
+    ["mimircache/CExtension/cacheReader/include"] + 
+    ["mimircache/CExtension/profiler/include"] + 
+    ["mimircache/CExtension/utils/include/"] + 
+    ["mimircache/CExtension/pyBindings/headers"] + 
+    ['mimircache/CExtension/headers/cache'] + numpy_headers, 
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args,
     language="c"))
@@ -200,14 +208,19 @@ extensions.append(Extension(
 extensions.append(Extension(
     'mimircache.c_heatmap',
     glob("mimircache/CExtension/profiler/*.c") +
-    glob("mimircache/CExtension/profiler/generalProfiler/*.c") +
-    glob("mimircache/CExtension/profiler/LRUProfiler/*.c") +
     glob("mimircache/CExtension/cache/*.c") +
     glob('mimircache/CExtension/cacheReader/*.c') +
     glob('mimircache/CExtension/utils/*.c') +
-    glob('mimircache/CExtension/wrapper/*.c'),
-    include_dirs=["mimircache/CExtension/headers"] +
-                 ["mimircache/CExtension/headers/cache"] + numpy_headers,
+    glob('mimircache/CExtension/wrapper/*.c') + 
+    ["mimircache/CExtension/pyBindings/python_wrapper.c"] +  
+    ["mimircache/CExtension/pyBindings/pyHeatmap.c"], 
+    include_dirs=["mimircache/CExtension/headers"] + 
+    ["mimircache/CExtension/cache/include"] + 
+    ["mimircache/CExtension/cacheReader/include"] + 
+    ["mimircache/CExtension/profiler/include"] + 
+    ["mimircache/CExtension/utils/include/"] + 
+    ["mimircache/CExtension/pyBindings/headers"] + 
+    ['mimircache/CExtension/headers/cache'] + numpy_headers, 
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args,
     language="c"))
@@ -215,14 +228,19 @@ extensions.append(Extension(
 extensions.append(Extension(
     'mimircache.c_eviction_stat',
     glob("mimircache/CExtension/profiler/*.c") +
-    # glob("mimircache/CExtension/profiler/generalProfiler/*.c") +
-    glob("mimircache/CExtension/profiler/LRUProfiler/*.c") +
     glob("mimircache/CExtension/cache/*.c") +
     glob('mimircache/CExtension/cacheReader/*.c') +
     glob('mimircache/CExtension/utils/*.c') +
-    glob('mimircache/CExtension/wrapper/*.c'),
-    include_dirs=["mimircache/CExtension/headers"] +
-                 ["mimircache/CExtension/headers/cache"] + numpy_headers,
+    glob('mimircache/CExtension/wrapper/*.c') + 
+    ["mimircache/CExtension/pyBindings/python_wrapper.c"] +  
+    ["mimircache/CExtension/pyBindings/pyEviction_stat.c"], 
+    include_dirs=["mimircache/CExtension/headers"] + 
+    ["mimircache/CExtension/cache/include"] + 
+    ["mimircache/CExtension/cacheReader/include"] + 
+    ["mimircache/CExtension/profiler/include"] + 
+    ["mimircache/CExtension/utils/include/"] + 
+    ["mimircache/CExtension/pyBindings/headers"] + 
+    ['mimircache/CExtension/headers/cache'] + numpy_headers, 
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args,
     language="c"))

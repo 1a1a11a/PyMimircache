@@ -24,11 +24,11 @@ class cReaderTest(unittest.TestCase):
         self.assertEqual(lines, 113872)
 
         first_request = c_cacheReader.read_one_element(reader)
-        self.assertEqual(int(first_request), 42932745 + 1)              # +1 is to avoid block 0
+        self.assertEqual(int(first_request), 42932745)              # +1 is to avoid block 0
 
         c_cacheReader.reset_reader(reader)
         first_request = c_cacheReader.read_one_element(reader)
-        self.assertEqual(int(first_request), 42932745 + 1)
+        self.assertEqual(int(first_request), 42932745)
         c_cacheReader.close_reader(reader)
 
 
@@ -74,7 +74,7 @@ class cReaderTest(unittest.TestCase):
 
 
     def test_reader_binary(self):
-        reader = binaryReader("{}/trace.vscsi".format(DAT_FOLDER),
+        reader = binaryReader("{}/trace.vscsi".format(DAT_FOLDER), data_type='l',
                                 init_params={"label":6, "real_time":7, "fmt": "<3I2H2Q"})
         lines = 0
         for _ in reader:
@@ -82,6 +82,7 @@ class cReaderTest(unittest.TestCase):
         self.assertEqual(lines, 113872)
         reader.reset()
         first_request = reader.read_one_element()
+        print(first_request)
         self.assertEqual(int(first_request), 42932745)
 
 
