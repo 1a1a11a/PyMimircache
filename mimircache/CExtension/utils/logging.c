@@ -53,7 +53,7 @@ int log_header(int level, const char *file, int line)
     curtime = tv.tv_sec;
     strftime(buffer, 30, "%m-%d-%Y %T", localtime(&curtime));
 
-    printf("%s %25s:%-4d ", buffer, file, line);
+    printf("%s %25s:%-4d ", buffer, strrchr(file, '/')+1, line);
     printf("(tid=%zu): ", (unsigned long) pthread_self());
 
     return 1;

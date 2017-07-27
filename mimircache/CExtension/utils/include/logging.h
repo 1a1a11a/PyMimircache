@@ -2,6 +2,7 @@
 #define LOGGING_H
 
 #include <stdio.h>
+#include <string.h>
 #include <pthread.h>
 #include <sys/time.h>
 

@@ -32,7 +32,12 @@ extern "C" {
 #define KWHT  "\x1B[37m"
 
 
-
+#ifndef _GNU_SOURCE
+    #define _GNU_SOURCE             /* for sched in utils.h */
+#endif 
+    
+    
+    
 
 
 
@@ -57,13 +62,11 @@ extern "C" {
 //#define __DEBUG__
 
 #if defined(__DEBUG__) || defined(_DEBUG)
-    #define DEBUG_MSG(...) fprintf(stderr, __VA_ARGS__)
-    #define DEBUG(...) \
+    #define DEBUG_MSG(...) \
         {fprintf(stderr, "[DEBUG]: %s:%d:%s: ", __FILE__, __LINE__, __func__); \
         fprintf(stderr, __VA_ARGS__);}
 #else
     #define DEBUG_MSG(...) do { } while (0)
-    #define DEBUG(...) do { } while (0)
 #endif
 
 

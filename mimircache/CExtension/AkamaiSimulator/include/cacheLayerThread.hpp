@@ -35,9 +35,11 @@ extern "C"
 #include <algorithm>
 #include <functional>
 #include <vector>
+#include <deque>
 #include <queue>
 #include <thread> 
 #include <mutex>
+#include <condition_variable>
 #include <future>
 #include <chrono>
 #include <climits>
@@ -50,7 +52,7 @@ extern "C"
 #include "cacheLayer.hpp"
 
 
-
+#define SYNCHRONIZE_TIME_DIFF 10 
 
 
 namespace akamaiSimulator {
@@ -64,11 +66,45 @@ namespace akamaiSimulator {
     };
     
     
+    class cacheServerReqQueue{
+        /** the queue for incoming cache server requests 
+         *  this is used for synchronization on all the servers in the same layer */
+        
+        std::mutex mtx;
+        std::condition_variable condt;
+        std::deque<cache_line_t*> dq;
+        unsigned long max_queue_size;
+        std::atomic_ulong min_ts;
+        std::atomic_ulong min_ts_server_id;
+        unsigned long server_id;
+
+        
+        bool _can_add_req(cache_line_t* cp);
+    
+    public:
+        cacheServerReqQueue(unsigned long max_queue_size,
+                            unsigned long server_id):
+        max_queue_size(max_queue_size), server_id(server_id) {};
+
+        
+        /* this can be blocking */
+        void add_request(cache_line_t* cp);
+        
+        cache_line_t* get_request();
+        cache_line_t* get_request(double max_ts);
+        
+        void synchronize_time(double t, unsigned long min_ts_ind);
+        
+    };
+    
+    
+    
+    
     
     class cacheLayerThread{
         
         int layer_id;
-        int num_of_servers;
+        unsigned long num_of_servers;
         cacheLayer *cache_layer;
         
         unsigned long last_log_output_time;
@@ -81,23 +117,26 @@ namespace akamaiSimulator {
         
         double *cache_server_timestamps;
         
-        // used to limit the number of request from a cache server
-        // this is not used
-        int *cache_server_req_counter;
         
         
         
         
         
         bool all_server_finished;
-        std::atomic<double> minimal_timestamp;
+        double minimal_timestamp;
+//        std::atomic<double> minimal_timestamp;
         
         // the index of the server that has the minimal ts
         long minimal_ts_server_ind;
+//        std::atomic_long minimal_ts_server_ind;
         
 
-        std::priority_queue<cache_line_t*,
-        std::vector<cache_line_t*>, cp_comparator> *req_pq;
+        
+        cacheServerReqQueue **cache_server_req_queue;
+        
+        
+//        std::priority_queue<cache_line_t*,
+//                std::vector<cache_line_t*>, cp_comparator> *req_pq;
 
         
         

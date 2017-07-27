@@ -7,21 +7,28 @@
 //
 
 #include "utils.h"
-#include <math.h>
-#include "const.h" 
-
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
+#include "const.h"
 
 
 
 
 
 
+int set_thread_affinity(pthread_t tid){
+    static int last_core_id = -1;
+    int num_cores = sysconf(_SC_NPROCESSORS_ONLN);
 
-#ifdef __cplusplus
+    last_core_id ++;
+    last_core_id %= num_cores;
+    DEBUG_MSG("assign thread affinity %d/%d\n", last_core_id, num_cores);
+    
+    
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(last_core_id, &cpuset);
+    
+    int rc = pthread_setaffinity_np(tid, sizeof(cpu_set_t), &cpuset);
+    if (rc != 0) {
+        WARNING("Error calling pthread_setaffinity_np: %d\n", rc);
+    }
 }
-#endif
