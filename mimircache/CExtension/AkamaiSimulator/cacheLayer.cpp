@@ -136,10 +136,15 @@ namespace akamaiSimulator {
     
     
     void cacheLayer::cal_weight(){
-        
-        warning("I don't understand why we need to adjust the "
-                "weight of cache server in simulation\n");
-//        abort();
+        static bool first_flag = true;
+        if (first_flag){
+            first_flag = false;
+        }
+        else{
+            warning("I don't understand why we need to adjust the "
+                    "weight of cache server in simulation\n");
+            abort();
+        }
         
         
         std::vector<cacheServer*>::const_iterator it = this->cache_servers.cbegin();

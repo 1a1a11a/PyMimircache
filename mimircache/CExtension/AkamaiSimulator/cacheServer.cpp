@@ -77,13 +77,13 @@ namespace akamaiSimulator {
     /******************* constructor *******************/
     
     cacheServer::cacheServer(const unsigned long server_id,
+                             akamaiStat* const akamai_stat,
                              const gint64 size,
                              const double* const boundaries,
                              const cache_type cache_alg,
                              const char data_type,
                              const int block_size,
                              void *params,
-                             akamaiStat* const akamai_stat,
                              const std::string server_name){
         
         

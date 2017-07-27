@@ -29,9 +29,7 @@ extern "C"
 
 
 #include <atomic> 
-#include <constAkamaiSimulator.hpp> 
-#include <cacheLayer.hpp> 
-#include <cacheServer.hpp> 
+#include "constAkamaiSimulator.hpp"
 
 
 
@@ -57,10 +55,10 @@ namespace akamaiSimulator {
         std::atomic_ullong hit[NUM_CACHE_LAYERS];
         
         
+        unsigned long L1_latency;
+        unsigned long L2_latency;
+        unsigned long origin_latency;
         unsigned long layer_latency[NUM_CACHE_LAYERS];
-        const unsigned long L1_latency;
-        const unsigned long L2_latency;
-        const unsigned long origin_latency;
         
         
         akamaiStat(const unsigned long L1_latency,

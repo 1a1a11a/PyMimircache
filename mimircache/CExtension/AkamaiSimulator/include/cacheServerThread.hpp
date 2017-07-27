@@ -30,6 +30,7 @@ extern "C"
     
 #include "cacheHeader.h"
 #include "reader.h"
+#include "logging.h"
 #include <sys/stat.h>
 #include <sys/types.h>
 

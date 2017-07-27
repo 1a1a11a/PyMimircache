@@ -28,7 +28,9 @@ namespace akamaiSimulator {
         for (int i=0; i<NUM_CACHE_LAYERS-1; i++)
             this->cache_layer_threads[i] = cache_layer_threads[i];
         this->trace_reader = reader;
-        this->use_real_time = use_real_time;        
+        this->use_real_time = use_real_time;
+        info("server %lu initialized\n", cache_server->get_server_id());
+        
     }
     
     
@@ -40,6 +42,7 @@ namespace akamaiSimulator {
     
     
     void cacheServerThread::run(unsigned int log_interval){
+        info("server %lu began running\n", this->cache_server->get_server_id());
         if (this->trace_reader == NULL)
             throw std::runtime_error("trace reader is not set\n");
         if (this->trace_reader->base->type == PLAIN)
@@ -63,10 +66,11 @@ namespace akamaiSimulator {
         cp->block_unit_size = (size_t) this->trace_reader->base->block_unit_size;
         cp->disk_sector_size = (size_t) this->trace_reader->base->disk_sector_size;
         
-        
         read_one_element(this->trace_reader, cp);
         while (cp->valid) {
+
             this->add_original_request(cp);
+
             
             if (cp->real_time - this->last_log_output_time > log_interval){
                 this->log_server_stat((unsigned long) cp->real_time);
@@ -108,7 +112,7 @@ namespace akamaiSimulator {
         // THIS PART ONLY WORKS on TWO LAYER CACHE, seems cacheLayerThread has solved this problem? 
         // THIS PART CURRENTLY DOES NOT CONSIDER OBJ SIZE
         // OBJ SIZE SHOULD BE TURNED OVER TO CACHE TO HANDLE
-        
+
         int layer_id = 1;
         
         /** keep adding to layer x of cache if it is a miss on x-1 layer of cache,

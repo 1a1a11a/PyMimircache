@@ -44,6 +44,8 @@ extern "C"
 
 namespace akamaiSimulator {
     
+    class akamaiStat;
+    
     
     class cacheServerStat{
     public:
@@ -90,13 +92,13 @@ namespace akamaiSimulator {
 
         
         cacheServer(const unsigned long id,
+                    akamaiStat* const akamai_stat,
                     const gint64 size,
                     const double* const boundaries,
                     const cache_type cache_alg,
                     const char data_type,
                     const int block_size=0,
                     void *params=NULL,
-                    akamaiStat* const akamai_stat,
                     const std::string server_name="default server");
         
         cacheServer(const unsigned long id,

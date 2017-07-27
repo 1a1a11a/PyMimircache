@@ -27,17 +27,19 @@ namespace akamaiSimulator {
     
     
     void log_akamai_stat(akamaiStat *akamai_stat, bool *stop_flag){
-        std::ofstream ofs(std::string(LOG_FOLDER)+"akamai_stat", std::ios::out);
+        std::ofstream ofs(std::string(LOG_FOLDER)+"/akamai_stat", std::ios::out);
+        char buf[1024];
         
         while (! *stop_flag){
             std::this_thread::sleep_for(std::chrono::seconds(2));
-
-            ofs << akamai_stat->get_avg_latency() << "\t" <<
-            akamai_stat->get_avg_latency_L1() << "\t" <<
-            akamai_stat->get_avg_latency_L2() << "\t" <<
-            akamai_stat->get_traffic_to_origin() << "\t" <<
-            akamai_stat->get_traffic_between_first_second_layer() << "\n";
+            sprintf(buf, "%lf\t%lf\t%lf\t%lf\t%lf\n", akamai_stat->get_avg_latency(),
+                    akamai_stat->get_avg_latency_L1(),
+                    akamai_stat->get_avg_latency_L2(),
+                    akamai_stat->get_traffic_to_origin(),
+                    akamai_stat->get_traffic_between_first_second_layer());
+            ofs << buf;
         }
+        ofs.close(); 
     }
     
     
@@ -46,7 +48,7 @@ namespace akamaiSimulator {
     void akamai_run(std::vector<std::string> traces,
                     double *boundaries,
                     unsigned long* cache_sizes,
-                    int akamai_data_type){
+                    unsigned long akamai_data_type){
         
         unsigned int i;
         unsigned long num_servers = traces.size();
@@ -54,11 +56,22 @@ namespace akamaiSimulator {
         reader_t *readers[num_servers];
 
         csvReader_init_params* reader_init_params;
-        if (akamai_data_type == 3)
+        if (akamai_data_type == 3){
+            info("read data using akamai dataType 3\n");
             reader_init_params = AKAMAI3_CSV_PARAM_INIT;
-        else
-            reader_init_params = AKAMAI_CSV_PARAM_INIT;
-
+        }
+        else if (akamai_data_type == 0){
+            info("read data using akamai dataType 0\n");
+            reader_init_params = AKAMAI0_CSV_PARAM_INIT;
+        }
+        else if (akamai_data_type == 1 || akamai_data_type == 2){
+            reader_init_params = AKAMAI1_CSV_PARAM_INIT;
+            info("read data using akamai dataType 1\n");
+        }
+        else {
+            error_msg("unknown traceType %lu\n", akamai_data_type);
+            abort(); 
+        }
         
         /* threads for cacheServerThread and cacheLayerThread */
         std::thread *t;
@@ -76,9 +89,10 @@ namespace akamaiSimulator {
         akamaiSimulator::cacheServer* cache_servers[num_servers];
         akamaiSimulator::cacheServerThread *cache_server_threads[num_servers];
         for (i=0; i<num_servers; i++){
-            cache_servers[i] = new akamaiSimulator::cacheServer(i, cache_sizes[i],
+            cache_servers[i] = new akamaiSimulator::cacheServer(i, akamai_stat,
+                                                                cache_sizes[i],
                                                                 boundaries, e_LRU,
-                                                                'c', 0, akamai_stat, NULL);
+                                                                'c', 0, NULL);
             readers[i] = setup_reader(traces.at(i).c_str(), CSV, 'c', 0, 0,
                                       (void*) reader_init_params);
         }
@@ -94,6 +108,7 @@ namespace akamaiSimulator {
         /* build threads for cacheLayerThread */
         for (i=0; i<NUM_CACHE_LAYERS-1; i++){
             t = new std::thread(&akamaiSimulator::cacheLayerThread::run, cache_layer_threads[i], 120);
+            set_thread_affinity(t->native_handle());
             threads.push_back(t);
         }
         
@@ -103,6 +118,7 @@ namespace akamaiSimulator {
                                                                              cache_layer_threads,
                                                                              readers[i], true);
             t = new std::thread(&akamaiSimulator::cacheServerThread::run, cache_server_threads[i], 120);
+            set_thread_affinity(t->native_handle());
             threads.push_back(t);
         }
         

@@ -34,8 +34,10 @@ extern "C"
 
 
 typedef struct {
+    double boundary; 
     std::string config_loc;
     unsigned long cache_size; 
+    unsigned long trace_type;
     
 }simulator_arg_t;
 
