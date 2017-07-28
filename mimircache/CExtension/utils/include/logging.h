@@ -44,9 +44,9 @@ void log_lock(int);
 #endif
 
 #if LOGLEVEL <= DEBUG_LEVEL
-    #define deubg(FMT, ...) LOGGING(DEBUG_LEVEL, FMT, ##__VA_ARGS__)
+    #define debug(FMT, ...) LOGGING(DEBUG_LEVEL, FMT, ##__VA_ARGS__)
 #else
-    #define deubg(FMT, ...)
+    #define debug(FMT, ...)
 #endif
 
 #if LOGLEVEL <= INFO_LEVEL

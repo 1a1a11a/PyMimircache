@@ -14,44 +14,6 @@ extern "C"
 #endif
 
 
-/** priority queue structs and def
- */
-
-//typedef struct node_pq_LRUProfiler
-//{
-//    pqueue_pri_t pri;
-//    guint data;
-//    size_t pos;
-//} node_pq_LRUProfiler;
-//
-//
-//static inline int
-//cmp_pri(pqueue_pri_t next, pqueue_pri_t curr){
-//    return (next.pri1 < curr.pri1);
-//}
-//
-//
-//static inline pqueue_pri_t
-//get_pri(void *a){
-//    return ((node_pq_LRUProfiler *) a)->pri;
-//}
-//
-//
-//static inline void
-//set_pri(void *a, pqueue_pri_t pri){
-//    ((node_pq_LRUProfiler *) a)->pri = pri;
-//}
-//
-//static inline size_t
-//get_pos(void *a){
-//    return ((node_pq_LRUProfiler *) a)->pos;
-//}
-//
-//
-//static inline void
-//set_pos(void *a, size_t pos){
-//    ((node_pq_LRUProfiler *) a)->pos = pos;
-//}
 
 
 
@@ -129,13 +91,11 @@ guint64* get_hit_count_seq(reader_t* reader,
     // create hashtable
     GHashTable * hash_table;
     if (reader->base->data_type == 'l'){
-        //        cp->type = 'l';
         hash_table = g_hash_table_new_full(g_int64_hash, g_int64_equal, \
                                            (GDestroyNotify)simple_g_key_value_destroyer, \
                                            (GDestroyNotify)simple_g_key_value_destroyer);
     }
     else if (reader->base->data_type == 'c' ){
-        //        cp->type = 'c';
         hash_table = g_hash_table_new_full(g_str_hash, g_str_equal, \
                                            (GDestroyNotify)simple_g_key_value_destroyer, \
                                            (GDestroyNotify)simple_g_key_value_destroyer);
