@@ -52,8 +52,6 @@ extern "C"
 #include "cacheLayer.hpp"
 
 
-#define SYNCHRONIZE_TIME_DIFF 10 
-
 
 namespace akamaiSimulator {
     
@@ -115,7 +113,8 @@ namespace akamaiSimulator {
         std::mutex mtx_add_req;
         
         
-        double *cache_server_timestamps;
+//        volatile double *cache_server_timestamps;
+        std::atomic<double> *cache_server_timestamps;
         
         
         
@@ -123,12 +122,12 @@ namespace akamaiSimulator {
         
         
         bool all_server_finished;
-        double minimal_timestamp;
-//        std::atomic<double> minimal_timestamp;
+//        double minimal_timestamp;
+        std::atomic<double> minimal_timestamp;
         
         // the index of the server that has the minimal ts
-        long minimal_ts_server_ind;
-//        std::atomic_long minimal_ts_server_ind;
+//        long minimal_ts_server_ind;
+        std::atomic_long minimal_ts_server_ind;
         
 
         
@@ -147,7 +146,7 @@ namespace akamaiSimulator {
          *  the size of the layer in cache servers */ 
         cacheLayerThread(cacheLayer *cache_layer);
         
-        void run(unsigned int log_interval=0);
+        void run(unsigned int log_interval, const std::string log_folder);
         
         void add_request(unsigned long cache_server_id, cache_line_t *cp);
         void cache_server_finish(unsigned long cache_server_id);

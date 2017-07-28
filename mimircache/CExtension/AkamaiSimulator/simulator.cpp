@@ -26,20 +26,25 @@
 namespace akamaiSimulator {
     
     
-    void log_akamai_stat(akamaiStat *akamai_stat, bool *stop_flag){
-        std::ofstream ofs(std::string(LOG_FOLDER)+"/akamai_stat", std::ios::out);
+    void log_akamai_stat(akamaiStat *akamai_stat, bool *stop_flag,
+                         const std::string log_folder){
+        std::ofstream ofs;
+        ofs.open(std::string(log_folder)+"/akamai_stat");
         char buf[1024];
-        
+        info("akamai_stat_log thread started, output %s\n",
+                (std::string(log_folder)+"/akamai_stat").c_str());
         while (! *stop_flag){
             std::this_thread::sleep_for(std::chrono::seconds(2));
-            sprintf(buf, "%lf\t%lf\t%lf\t%lf\t%lf\n", akamai_stat->get_avg_latency(),
-                    akamai_stat->get_avg_latency_L1(),
-                    akamai_stat->get_avg_latency_L2(),
+            sprintf(buf, "%lf\t%lf\t%lf\t%lf\t%lf\n",
+                    akamai_stat->get_avg_latency(),
+                    akamai_stat->get_hr_L1(),
+                    akamai_stat->get_hr_L2(),
                     akamai_stat->get_traffic_to_origin(),
                     akamai_stat->get_traffic_between_first_second_layer());
             ofs << buf;
         }
-        ofs.close(); 
+        info("akamai_stat_log thread finished\n");
+        ofs.close();
     }
     
     
@@ -48,25 +53,36 @@ namespace akamaiSimulator {
     void akamai_run(std::vector<std::string> traces,
                     double *boundaries,
                     unsigned long* cache_sizes,
-                    unsigned long akamai_data_type){
+                    unsigned long akamai_data_type, 
+                    const std::string log_folder){
         
         unsigned int i;
         unsigned long num_servers = traces.size();
+        
+#ifdef TIME_SYNCHRONIZATION
+        info("time synchronization between layers are enabled, "
+             "with max time difference %d\nPAY ATTENTION: "
+             "if the trace log is not cleaned and have beginning time difference "
+             "larger than max time difference, this will cause deadlock\n",
+             SYNCHRONIZATION_TIME_DIFF);
+        
+#endif 
+        
         
         reader_t *readers[num_servers];
 
         csvReader_init_params* reader_init_params;
         if (akamai_data_type == 3){
-            info("read data using akamai dataType 3\n");
+            debug("read data using akamai dataType 3\n");
             reader_init_params = AKAMAI3_CSV_PARAM_INIT;
         }
         else if (akamai_data_type == 0){
-            info("read data using akamai dataType 0\n");
+            debug("read data using akamai dataType 0\n");
             reader_init_params = AKAMAI0_CSV_PARAM_INIT;
         }
         else if (akamai_data_type == 1 || akamai_data_type == 2){
             reader_init_params = AKAMAI1_CSV_PARAM_INIT;
-            info("read data using akamai dataType 1\n");
+            debug("read data using akamai dataType 1\n");
         }
         else {
             error_msg("unknown traceType %lu\n", akamai_data_type);
@@ -82,7 +98,8 @@ namespace akamaiSimulator {
             new akamaiSimulator::akamaiStat(L1_LATENCY, L2_LATENCY, ORIGIN_LATENCY);
         std::thread log_akamai_stat_thread(log_akamai_stat,
                                            akamai_stat,
-                                           &thread_stop_flag);
+                                           &thread_stop_flag,
+                                           log_folder);
         
         
         /* initialize cacheServers and readers */
@@ -107,8 +124,10 @@ namespace akamaiSimulator {
             
         /* build threads for cacheLayerThread */
         for (i=0; i<NUM_CACHE_LAYERS-1; i++){
-            t = new std::thread(&akamaiSimulator::cacheLayerThread::run, cache_layer_threads[i], 120);
+            t = new std::thread(&akamaiSimulator::cacheLayerThread::run, cache_layer_threads[i], 120, log_folder);
+#ifdef THREAD_AFFINITY
             set_thread_affinity(t->native_handle());
+#endif
             threads.push_back(t);
         }
         
@@ -117,8 +136,10 @@ namespace akamaiSimulator {
             cache_server_threads[i] = new akamaiSimulator::cacheServerThread(cache_servers[i],
                                                                              cache_layer_threads,
                                                                              readers[i], true);
-            t = new std::thread(&akamaiSimulator::cacheServerThread::run, cache_server_threads[i], 120);
+            t = new std::thread(&akamaiSimulator::cacheServerThread::run, cache_server_threads[i], 120, log_folder);
+#ifdef THREAD_AFFINITY
             set_thread_affinity(t->native_handle());
+#endif
             threads.push_back(t);
         }
         

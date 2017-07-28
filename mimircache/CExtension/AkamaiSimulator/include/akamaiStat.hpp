@@ -21,7 +21,7 @@ extern "C"
     
 #include <stdio.h>
 #include <glib.h>
-    
+#include "logging.h" 
     
 #ifdef __cplusplus
 }
@@ -63,21 +63,18 @@ namespace akamaiSimulator {
         
         akamaiStat(const unsigned long L1_latency,
                    const unsigned long L2_latency,
-                   const unsigned long origin_latency): \
-        L1_latency(L1_latency), L2_latency(L2_latency), origin_latency(origin_latency),\
-        layer_latency{L1_latency, L2_latency} {};
+                   const unsigned long origin_latency); 
         
         // akamaiStat(unsigned long num_servers);
 
-        double get_avg_latency_L1();
-        double get_avg_latency_L2();
+        double get_hr_L1();
+        double get_hr_L2();
         double get_avg_latency();
         
         double get_traffic_to_origin();
         double get_traffic_between_first_second_layer();
         
         
-//        ~akamaiStat(){};
     };
 }
 

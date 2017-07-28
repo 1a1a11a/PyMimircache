@@ -28,9 +28,7 @@ namespace akamaiSimulator {
         for (int i=0; i<NUM_CACHE_LAYERS-1; i++)
             this->cache_layer_threads[i] = cache_layer_threads[i];
         this->trace_reader = reader;
-        this->use_real_time = use_real_time;
-        info("server %lu initialized\n", cache_server->get_server_id());
-        
+        this->use_real_time = use_real_time;        
     }
     
     
@@ -41,7 +39,7 @@ namespace akamaiSimulator {
     
     
     
-    void cacheServerThread::run(unsigned int log_interval){
+    void cacheServerThread::run(unsigned int log_interval, const std::string log_folder){
         info("server %lu began running\n", this->cache_server->get_server_id());
         if (this->trace_reader == NULL)
             throw std::runtime_error("trace reader is not set\n");
@@ -49,8 +47,8 @@ namespace akamaiSimulator {
             this->use_real_time = false;
         
         if (log_interval != 0){
-            mkdir(LOG_FOLDER, 0770);
-            this->log_file_loc = std::string(LOG_FOLDER) + std::string("/server")
+            mkdir(log_folder.c_str(), 0770);
+            this->log_file_loc = std::string(log_folder) + std::string("/server")
                                     + std::to_string(this->cache_server_id);
             this->log_filestream.open(this->log_file_loc);
         }

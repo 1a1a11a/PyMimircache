@@ -40,13 +40,14 @@ void parse_cmd_arg(int argc, char* argv[], simulator_arg_t* sargs){
         std::cerr << "usage: " << argv[0] << "-c config -s size -t traceType\n";
         exit(0);
     }
+    (*sargs).log_folder = "log";
     
     int opt;
     extern char *optarg;
     // extern int optind, optopt;
     
     // Retrieve the options:
-    while ( (opt = getopt(argc, argv, "b:c:s:t:")) != -1 ) {  // for each option...
+    while ( (opt = getopt(argc, argv, "b:c:o:s:t:")) != -1 ) {  // for each option...
         switch ( opt ) {
             case 'b':
                 (*sargs).boundary = atof(optarg);
@@ -54,6 +55,10 @@ void parse_cmd_arg(int argc, char* argv[], simulator_arg_t* sargs){
             case 'c':
                 (*sargs).config_loc = std::string(optarg);
                 break;
+            case 'o':
+                printf("get option o %s\n", optarg);
+                (*sargs).log_folder = std::string(optarg);
+                break; 
             case 's':
                 (*sargs).cache_size = (unsigned long) atol(optarg);
                 break;
@@ -94,7 +99,7 @@ int main(int argc, char* argv[]){
     //        "/home/jason/ALL_DATA/Akamai/dataCenterSplitted/csv/temp3/sample/60.14.244.163",
     //        "/home/jason/ALL_DATA/Akamai/dataCenterSplitted/csv/temp3/sample/60.14.244.176"};
 //    arg.cache_size = 10000;
-    
+
     auto traces = get_traces_from_config(arg.config_loc);
     
     double boundaries[NUM_CACHE_LAYERS];
@@ -103,7 +108,7 @@ int main(int argc, char* argv[]){
     unsigned long cache_sizes[traces.size()];
     std::fill_n(cache_sizes, traces.size(), arg.cache_size);
 
-    akamaiSimulator::akamai_run(traces, boundaries, cache_sizes, arg.trace_type);
+    akamaiSimulator::akamai_run(traces, boundaries, cache_sizes, arg.trace_type, arg.log_folder);
     
     
     return 1;

@@ -26,23 +26,23 @@ namespace akamaiSimulator {
     
     bool cacheServerReqQueue::_can_add_req(cache_line_t* cp){
         
+#ifndef TIME_SYNCHRONIZATION
         /* no synchronization between layers */
-//        return this->dq.size() < this->max_queue_size;
-        
+        return this->dq.size() < this->max_queue_size;
+#else
         /** synchronization between layers with max_time_dfff
-         *  equals SYNCHRONIZE_TIME_DIFF */ 
+         *  equals SYNCHRONIZATION_TIME_DIFF */
         return this->dq.size() < this->max_queue_size &&
         (this->server_id == this->min_ts_server_id.load() ||
-         std::abs((long) (cp->real_time - this->min_ts.load())) < SYNCHRONIZE_TIME_DIFF);
+         std::abs((long) (cp->real_time - this->min_ts.load())) < SYNCHRONIZATION_TIME_DIFF);
+#endif
+
     }
     
     
     void cacheServerReqQueue::add_request(cache_line_t *cp){
         
         std::unique_lock<std::mutex> ulock(this->mtx);
-//        while (this->dq.size() >= this->max_queue_size){
-//            this->condt.wait(ulock);
-//        }
         this->condt.wait(ulock, std::bind(&cacheServerReqQueue::_can_add_req, this, cp));
         this->dq.push_back(cp);
     }
@@ -92,9 +92,9 @@ namespace akamaiSimulator {
     
     void cacheLayerThread::init(){
         this->layer_id = -1;
-        this->minimal_timestamp = -1;
+        this->minimal_timestamp.store(-1);
         this->last_log_output_time = 0; 
-        this->minimal_ts_server_ind = -1;
+        this->minimal_ts_server_ind.store(0);
         this->all_server_finished = false;
     }
     
@@ -104,22 +104,20 @@ namespace akamaiSimulator {
         this->layer_id = cache_layer->get_layer_id();
         this->cache_layer = cache_layer;
         this->num_of_servers = (unsigned long) cache_layer->get_num_server();
-        this->cache_server_timestamps = new double[this->num_of_servers];
+//        this->cache_server_timestamps = new double[this->num_of_servers];
+        this->cache_server_timestamps = new std::atomic<double>[this->num_of_servers];
 
         
         this->cache_server_req_queue = new cacheServerReqQueue*[this->num_of_servers];
         for (unsigned long i=0; i<this->num_of_servers; i++){
             this->cache_server_req_queue[i] = new cacheServerReqQueue(MAX_SERVER_REQ_QUEUE_SIZE, i);
-            this->cache_server_timestamps[i] = 0;
+//            this->cache_server_timestamps[i] = 0;
+            this->cache_server_timestamps[i].store(0);
         }
         
 //        this->req_pq = new std::priority_queue<
 //            cache_line_t*, std::vector<cache_line_t*>, cp_comparator> ();
 
-        
-        
-        for (unsigned long i=0; i<this->num_of_servers; i++)
-            this->cache_server_timestamps[i] = 0;
     }
     
     cacheLayer* cacheLayerThread::get_cache_layer(){
@@ -128,7 +126,7 @@ namespace akamaiSimulator {
     
     
     double cacheLayerThread::get_minimal_timestamp(){
-        return this->minimal_timestamp;
+        return this->minimal_timestamp.load();
     }
     
     cacheLayerStat* cacheLayerThread::get_layer_stat(){
@@ -206,7 +204,7 @@ namespace akamaiSimulator {
 //    }
 
     
-    void cacheLayerThread::run(unsigned int log_interval){
+    void cacheLayerThread::run(unsigned int log_interval, const std::string log_folder){
         bool all_server_finished_local = false;
         gboolean hit;
         cacheLayer *next_layer = this->cache_layer->get_next_layer();
@@ -222,8 +220,8 @@ namespace akamaiSimulator {
         std::priority_queue<cache_line_t*, std::vector<cache_line_t*>, cp_comparator> req_pq;
         
         if (log_interval != 0){
-            mkdir(LOG_FOLDER, 0770);
-            this->log_file_loc = std::string(LOG_FOLDER) + std::string("/layer")
+            mkdir(log_folder.c_str(), 0770);
+            this->log_file_loc = std::string(log_folder) + std::string("/layer")
             + std::to_string(this->layer_id);
             this->log_filestream.open(log_file_loc);
             system("cp /home/jason/pycharm/mimircache/CExtension/bin/*.sh log/");
@@ -279,7 +277,7 @@ namespace akamaiSimulator {
             if (found_no_new_req){
                 all_server_finished_local = true;
                 for (i=0; i<this->num_of_servers; i++){
-                    if ( std::abs(LONG_MAX - (long) this->cache_server_timestamps[i]) > 1 ){
+                    if ( std::abs(LONG_MAX - (long) this->cache_server_timestamps[i].load()) > 1 ){
                         all_server_finished_local = false;
                         break;
                     }
@@ -343,10 +341,10 @@ namespace akamaiSimulator {
         cache_line_t * const cp_new = copy_cache_line(cp);
         cp_new->cache_server_id = cache_server_id;
 
-        
-        std::unique_lock<std::mutex> ulock(this->mtx_add_req);
+        /* using lock is too expensive */
+//        std::unique_lock<std::mutex> ulock(this->mtx_add_req);
 
-        this->cache_server_timestamps[cache_server_id] = cp->real_time;
+        this->cache_server_timestamps[cache_server_id].store(cp->real_time);
         
         /** copy is done outside of mtx to reduce the time of lock
          *  if the function failed, then this memory will not be released */
@@ -354,33 +352,61 @@ namespace akamaiSimulator {
         
         
         /** this is not exactly mt-safe
-         *  reading from cache_server_timestamps can be dangerous */
-        if (this->minimal_ts_server_ind == (long) cache_server_id ||
-            this->minimal_ts_server_ind == -1){
+         *  reading from cache_server_timestamps can be dangerous 
+         *  however, using lock here is too expensive, so prefer removing lock */
+        if (this->minimal_ts_server_ind.load() == (long) cache_server_id){
+            /** during this time, this->cache_server_timestamps may change 
+             *  but this->cache_server_timestamps[cache_server_id] will not 
+             *  change. 
+             *  What this means is that, you find a min_ts_ind,
+             *  but the one you find may not be the smallest at the time 
+             *  you retrieve its value as it is updated during the search. 
+             *  To solve this problem, we do a manual search, and store the true 
+             *  min_ts, even though it may not be the smallest at the time of func return,
+             *  but as long as the min_ts is smaller than true min_ts and it is making progress
+             *  then it is OK */
+            
+            /** Jason: need to cache_server_timestamps to atomic */
 
+            unsigned long min_ts_ind = 0;
+            double ts, min_ts = this->cache_server_timestamps[0].load();
+//            std::cout<<"initialize min_ts: " << min_ts;
+            
             /* now need to find out the new minimal ts */
-            this->minimal_ts_server_ind = std::min_element(this->cache_server_timestamps,
-                                    this->cache_server_timestamps +
-                                    this->num_of_servers)
-                   - this->cache_server_timestamps;
+            for (unsigned long i=1; i<this->num_of_servers; i++){
+                /** it is important the final value is the same as the one 
+                 *  when we check for minimal value */
+                ts = this->cache_server_timestamps[i].load();
+//                std::cout<<", load more min_ts" << i <<": " <<min_ts;
+                if (ts < min_ts){
+                    min_ts = ts;
+                    min_ts_ind = i;
+                }
+            }
+//            min_ts_ind = std::min_element(this->cache_server_timestamps,
+//                                    this->cache_server_timestamps +
+//                                    this->num_of_servers)
+//                   - this->cache_server_timestamps;
 
-            this->minimal_timestamp = this->cache_server_timestamps[this->minimal_ts_server_ind];
+//            min_ts = this->cache_server_timestamps[this->minimal_ts_server_ind];
 
 
+            this->minimal_ts_server_ind.store(min_ts_ind);
+            this->minimal_timestamp.store(min_ts);
+            
 //            verbose("new min ts %lf at index %lu, from %lu, ts %lf %lf\n", min_ts,
 //                    min_ts_ind, cache_server_id,
-//                    this->cache_server_timestamps[0], this->cache_server_timestamps[1]);
+//                    this->cache_server_timestamps[0].load(),
+//                    this->cache_server_timestamps[1].load());
 
             // synchronize cache servers
             for (unsigned long i=0; i<this->num_of_servers; i++){
-                this->cache_server_req_queue[i]->synchronize_time(this->minimal_timestamp,
-                                                                  this->minimal_ts_server_ind);
-                
+                this->cache_server_req_queue[i]->synchronize_time(min_ts, min_ts_ind);
             }
         }
         
         /* unlock before adding req, because it is blocking */
-        ulock.unlock();
+//        ulock.unlock();
         
         /* this needs to be after time synchronization */
         this->cache_server_req_queue[cache_server_id]->add_request(cp_new);
@@ -389,24 +415,40 @@ namespace akamaiSimulator {
     
     
     void cacheLayerThread::cache_server_finish(unsigned long cache_server_id){
-        this->cache_server_timestamps[cache_server_id] = (double) (LONG_MAX);
+        this->cache_server_timestamps[cache_server_id].store((double) (LONG_MAX));
         /** when minimal_ts_server_ind is current server, then it won't change
          *  in other threads, because only current server can change it, 
          *  threrefore it is thread-safe */
-        if (this->minimal_ts_server_ind == (long) cache_server_id){
+        if (this->minimal_ts_server_ind.load() == (long) cache_server_id){
             /* now need to find out the new minimal ts */
-            this->minimal_ts_server_ind = std::min_element(this->cache_server_timestamps,
-                                    this->cache_server_timestamps +
-                                    this->num_of_servers)
-                                    - this->cache_server_timestamps;
-            this->minimal_timestamp = this->cache_server_timestamps[this->minimal_ts_server_ind]; 
+//            this->minimal_ts_server_ind = std::min_element(this->cache_server_timestamps,
+//                                    this->cache_server_timestamps +
+//                                    this->num_of_servers)
+//                                    - this->cache_server_timestamps;
+//            this->minimal_timestamp = this->cache_server_timestamps[this->minimal_ts_server_ind]; 
 
-//            verbose("trace finish, new min ts %lf from %lu\n", min_ts, cache_server_id);
   
+            
+            unsigned long min_ts_ind = 0;
+            double min_ts = this->cache_server_timestamps[0].load(), ts;
+            
+            /* now need to find out the new minimal ts */
+            for (unsigned long i=1; i<this->num_of_servers; i++){
+                ts = this->cache_server_timestamps[i].load();
+                if (ts < min_ts){
+                    min_ts = ts;
+                    min_ts_ind = i;
+                }
+            }
+            
+            this->minimal_ts_server_ind.store(min_ts_ind);
+            this->minimal_timestamp.store(min_ts);
+//            verbose("trace finish, new min ts %lf from %lu\n", min_ts, cache_server_id);
+            
+            
             // synchronize cache servers
             for (unsigned long i=0; i<this->num_of_servers; i++)
-                this->cache_server_req_queue[i]->synchronize_time(this->minimal_timestamp,
-                                                                  this->minimal_ts_server_ind);
+                this->cache_server_req_queue[i]->synchronize_time(min_ts, min_ts_ind);
         }
     }
     

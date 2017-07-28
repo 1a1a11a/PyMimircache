@@ -38,7 +38,7 @@ typedef struct {
     std::string config_loc;
     unsigned long cache_size; 
     unsigned long trace_type;
-    
+    std::string log_folder;
 }simulator_arg_t;
 
 

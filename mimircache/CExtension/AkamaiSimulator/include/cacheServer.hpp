@@ -78,6 +78,8 @@ namespace akamaiSimulator {
         std::string cache_server_name;
         unsigned long cache_server_id;
         
+//        bool dynamic_boundary;
+        
         
         gint64 cache_size;
         double boundaries[NUM_CACHE_LAYERS];                      // ATTENTION change boundary on cacheServer won't affect weight in consistentHashRing

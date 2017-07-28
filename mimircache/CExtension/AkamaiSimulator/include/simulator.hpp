@@ -55,7 +55,8 @@ namespace akamaiSimulator {
     void akamai_run(std::vector<std::string> traces,
                     double *boundaries,
                     unsigned long* cache_sizes,
-                    unsigned long akamai_data_type);
+                    unsigned long akamai_data_type,
+                    const std::string log_folder);
 
 }
 

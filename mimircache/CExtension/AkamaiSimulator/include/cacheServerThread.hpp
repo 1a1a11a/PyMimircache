@@ -65,7 +65,8 @@ namespace akamaiSimulator {
         
     public:
 
-        cacheServerThread(cacheServer *cache_server, cacheLayerThread **cache_layer_threads,
+        cacheServerThread(cacheServer *cache_server,
+                          cacheLayerThread **cache_layer_threads,
                           reader_t *reader, bool use_real_time=true);
         
         
@@ -73,7 +74,7 @@ namespace akamaiSimulator {
         void set_trace_reader(reader_t* reader);
 
         
-        void run(unsigned int log_interval=0);
+        void run(unsigned int log_interval, const std::string log_folder);
         
         
         
