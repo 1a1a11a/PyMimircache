@@ -51,7 +51,7 @@ class binaryReader(cacheReaderAbstract):
         """
         super().read_one_element()
         b = self.trace_file.read(self.record_size)
-        if len(b):
+        if b and len(b):
             ret = self.structIns.unpack(b)[self.label_column -1]
             if self.data_type == 'l':
                 if ret and self.block_unit_size != 0 and self.disk_sector_size != 0:
@@ -109,7 +109,7 @@ class binaryReader(cacheReaderAbstract):
                 else:
                     return time, obj
             except Exception as e:
-                print("ERROR reading data: {}, current line: {}".format(e, ret))
+                print("ERROR binaryReader reading data: {}, current line: {}".format(e, ret))
 
         else:
             return None

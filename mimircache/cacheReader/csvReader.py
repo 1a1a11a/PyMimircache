@@ -87,7 +87,7 @@ class csvReader(cacheReaderAbstract):
         :return:
         """
         super().read_one_element()
-        line = self.trace_file.readline()
+        line = self.trace_file.readline().strip()
         if line:
             line = line.split(self.delimiter)
             try:
@@ -100,7 +100,7 @@ class csvReader(cacheReaderAbstract):
 
                 return time, lbn
             except Exception as e:
-                print("ERROR reading data: {}, current line: {}".format(e, line))
+                print("ERROR csvReader reading data: {}, current line: {}".format(e, line))
 
         else:
             return None
