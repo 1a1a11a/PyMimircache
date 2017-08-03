@@ -20,6 +20,7 @@ extern "C"
     
 #include "cache.h"
 #include "cacheHeader.h"
+#include "splay.h" 
 #include "ketama.h"
 #include "logging.h"
     
@@ -32,6 +33,7 @@ extern "C"
 #include <ostream> 
 #include <sstream>
 #include <fstream> 
+#include <stdexcept>
 
 #include "constAkamaiSimulator.hpp"
 #include "consistentHashRing.hpp"
@@ -51,7 +53,7 @@ namespace akamaiSimulator {
     public:
         unsigned long cache_server_id;
         unsigned long cache_size;
-        unsigned long layer_size[NUM_CACHE_LAYERS];
+        unsigned long *layer_size;      // points the array inside cacheServer
 
         unsigned long num_req;
         unsigned long num_hit;
@@ -62,7 +64,7 @@ namespace akamaiSimulator {
         
         cacheServerStat(const unsigned long server_id,
                         const unsigned long cache_size,
-                        const double* const boundary);
+                        unsigned long* layer_size);
         
         cacheServerStat(const cacheServerStat& stat);
         ~cacheServerStat();
@@ -70,23 +72,170 @@ namespace akamaiSimulator {
         // copy constructor
         cacheServerStat& operator= (const cacheServerStat& stat);
         
-        void set_new_boundaries(double *boundaries);
+//        void set_new_boundaries(double *boundaries);
 
     };
+    
+    
+    
+    
+    
+    
+    class cacheProfiler{
+        
+        unsigned long long max_cache_size;
+        unsigned char data_type;
+        unsigned long L1_latency;
+        unsigned long L2_latency;
+        unsigned long Lo_latency;
+
+        unsigned long layer_size[NUM_CACHE_LAYERS];
+        
+        /* ts is also the request count */
+        unsigned long ts[NUM_CACHE_LAYERS];
+        /* ts when last time boundary shift suggestion is given */
+        unsigned long last_adjust_ts;
+        
+        GHashTable *hashtable[NUM_CACHE_LAYERS];
+        sTree *splay_tree[NUM_CACHE_LAYERS];
+        
+        /** this uses a lot of mem, but we don't care here
+         *  the last element of the array is cold miss count 
+         *  the second to last is the count of req with 
+         *  rd > max_cache_size */
+        unsigned long long *rd_count_array[NUM_CACHE_LAYERS];
+        unsigned long long rd_count_array_size[NUM_CACHE_LAYERS];
+        
+        unsigned long adjust_interval;
+        
+        
+        /* the logic how to adjust boundary */
+        int __how_to_adjust();
+
+    public:
+        
+        cacheProfiler(const unsigned long max_cache_size,
+                      const unsigned char data_type,
+                      const unsigned long *layer_size,
+                      const unsigned long adjust_interval=20000,
+                      const unsigned long L1_latency=10,
+                      const unsigned long L2_latency=20,
+                      const unsigned long Lo_latency=50);
+
+        void __init(const unsigned long max_cache_size,
+                    const unsigned char data_type,
+                    const unsigned long *layer_size,
+                    const unsigned long adjust_interval,
+                    const unsigned long L1_latency,
+                    const unsigned long L2_latency,
+                    const unsigned long Lo_latency);
+
+        void set_new_boundaries(unsigned long* layer_size);
+        
+        /** add request to profiler and get back boundary adjustment decision
+         *  if return 1,  L1 increases, L2 decreases,
+         *  if return -1, L1 decreases, L2 increases 
+         *  if return 0,  no change */
+        int add_request(const cache_line_t* const cp,
+                        const unsigned long layer_id);
+        
+        
+        
+        /* clear all data, begin fresh */
+        void clear();
+        
+        ~cacheProfiler();
+        
+        
+        /*-----------------------------------------------------------------------------
+         *
+         * process_one_element --
+         *      this function is used for computing reuse distance for each request
+         *      it maintains a hashmap and a splay tree,
+         *      time complexity is O(log(N)), N is the number of unique elements
+         *
+         *
+         * Input:
+         *      cp           the cache line struct contains input data (request label)
+         *      splay_tree   the splay tree struct
+         *      hash_table   hashtable for remember last request timestamp (virtual)
+         *      ts           current timestamp
+         *      reuse_dist   the calculated reuse distance
+         *
+         * Return:
+         *      splay tree struct pointer, because splay tree is modified every time,
+         *      so it is essential to update the splay tree
+         *
+         *-----------------------------------------------------------------------------
+         */
+        static inline sTree* process_one_element(const cache_line* const cp,
+                                                 sTree* splay_tree,
+                                                 GHashTable* hash_table,
+                                                 unsigned long ts,
+                                                 long long* reuse_dist){
+            gpointer gp;
+            
+            gp = g_hash_table_lookup(hash_table, cp->item_p);
+            
+            sTree* newtree;
+            if (gp == NULL){
+                // first time access
+                newtree = insert(ts, splay_tree);
+                gint64 *value = g_new(gint64, 1);
+                if (value == NULL){
+                    ERROR("not enough memory\n");
+                    exit(1);
+                }
+                *value = ts;
+                if (cp->type == 'c')
+                    g_hash_table_insert(hash_table, g_strdup((gchar*)(cp->item_p)), (gpointer)value);
+                
+                else if (cp->type == 'l'){
+                    gint64* key = g_new(gint64, 1);
+                    *key = *(guint64*)(cp->item_p);
+                    g_hash_table_insert(hash_table, (gpointer)(key), (gpointer)value);
+                }
+                else{
+                    ERROR("unknown cache line content type: %c\n", cp->type);
+                    exit(1);
+                }
+                *reuse_dist = -1;
+            }
+            else{
+                // not first time access
+                guint64 old_ts = *(guint64*)gp;
+                newtree = splay(old_ts, splay_tree);
+                *reuse_dist = node_value(newtree->right);
+                *(guint64*)gp = ts;
+                
+                newtree = splay_delete(old_ts, newtree);
+                newtree = insert(ts, newtree);
+                
+            }
+            return newtree;
+        }
+    };
+    
+    
+    
+    
     
     class cacheServer {
         std::string cache_server_name;
         unsigned long cache_server_id;
         
-//        bool dynamic_boundary;
+        /* related to dynamic boundary change */
+        bool dynamic_boundary_flag;
+        cacheProfiler *cache_profiler;
         
         
-        gint64 cache_size;
-        double boundaries[NUM_CACHE_LAYERS];                      // ATTENTION change boundary on cacheServer won't affect weight in consistentHashRing
+        unsigned long cache_size;
+//        double boundaries[NUM_CACHE_LAYERS];                      // ATTENTION change boundary on cacheServer won't affect weight in consistentHashRing
+        unsigned long layer_size[NUM_CACHE_LAYERS];
         cache_t *caches[NUM_CACHE_LAYERS];
         
         
-        gboolean adjust_caches();
+        bool adjust_caches();
         
     public:
         cacheServerStat *server_stat;
@@ -95,44 +244,44 @@ namespace akamaiSimulator {
         
         cacheServer(const unsigned long id,
                     akamaiStat* const akamai_stat,
-                    const gint64 size,
+                    bool dynamic_boundary_flag,
+                    const unsigned long size,
                     const double* const boundaries,
                     const cache_type cache_alg,
-                    const char data_type,
+                    const unsigned char data_type,
                     const int block_size=0,
                     void *params=NULL,
                     const std::string server_name="default server");
         
         cacheServer(const unsigned long id,
                     const cache_t ** const caches,
+                    bool dynamic_boundary_flag,
                     akamaiStat* const akamai_stat,
                     const std::string server_name="default server");
         
         
-        gboolean set_L1cache(const cache_t * const cache);
-        gboolean set_L2cache(const cache_t * const cache);
-        gboolean set_Lncache(int n, const cache_t* const cache);
-        gboolean set_caches(const cache_t ** const caches);
+        bool set_L1cache(const cache_t * const cache);
+        bool set_L2cache(const cache_t * const cache);
+        bool set_Lncache(int n, const cache_t* const cache);
+        bool set_caches(const cache_t ** const caches);
         
-        gboolean set_boundary(const double* const boundaries);
-        gboolean set_size(const gint64 size);
+        bool set_size(const unsigned long size);
         
         
-        gboolean add_request(const cache_line_t* const cp,
-                             const unsigned long layer_id);
-        
+        bool add_request(const cache_line_t* const cp,
+                         const unsigned long layer_id);
         
         
         
         
-        double *get_boundary();
-        gint64 get_cache_size();
-        unsigned long get_server_id();
+        
+        unsigned long get_cache_size();
         unsigned long* get_layer_size();
+        unsigned long get_server_id();
 
         
         
-        gboolean verify();
+        bool verify();
         
         ~cacheServer();
 

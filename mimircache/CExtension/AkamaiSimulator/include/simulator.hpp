@@ -21,6 +21,7 @@ extern "C"
     
 #include <stdio.h>
 #include <glib.h>
+#include <string.h> 
     
 #include "cache.h"
 #include "cacheHeader.h"
@@ -56,7 +57,8 @@ namespace akamaiSimulator {
                     double *boundaries,
                     unsigned long* cache_sizes,
                     unsigned long akamai_data_type,
-                    const std::string log_folder);
+                    const std::string log_folder,
+                    bool dynamic_boundary_flag);
 
 }
 

@@ -28,8 +28,12 @@ namespace akamaiSimulator {
     
     void log_akamai_stat(akamaiStat *akamai_stat, bool *stop_flag,
                          const std::string log_folder){
-        std::ofstream ofs;
-        ofs.open(std::string(log_folder)+"/akamai_stat");
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        std::ofstream ofs(std::string(log_folder)+"/akamai_stat");
+        FILE* ofile = fopen((std::string(log_folder)+"/akamai_stat2").c_str(), "w");
+        if (ofile == NULL)
+            printf("error %s\n", strerror(errno));
+        
         char buf[1024];
         info("akamai_stat_log thread started, output %s\n",
                 (std::string(log_folder)+"/akamai_stat").c_str());
@@ -41,9 +45,13 @@ namespace akamaiSimulator {
                     akamai_stat->get_hr_L2(),
                     akamai_stat->get_traffic_to_origin(),
                     akamai_stat->get_traffic_between_first_second_layer());
-            ofs << buf;
+//            std::cout<<"akamai stat: "<<buf;
+            fprintf(ofile, "%s", buf);
+            ofs << std::string(buf);
+            memset(buf, 0, 1024);
         }
         info("akamai_stat_log thread finished\n");
+        fclose(ofile);
         ofs.close();
     }
     
@@ -54,7 +62,8 @@ namespace akamaiSimulator {
                     double *boundaries,
                     unsigned long* cache_sizes,
                     unsigned long akamai_data_type, 
-                    const std::string log_folder){
+                    const std::string log_folder,
+                    bool dynamic_boundary_flag){
         
         unsigned int i;
         unsigned long num_servers = traces.size();
@@ -101,12 +110,13 @@ namespace akamaiSimulator {
                                            &thread_stop_flag,
                                            log_folder);
         
-        
+
         /* initialize cacheServers and readers */
         akamaiSimulator::cacheServer* cache_servers[num_servers];
         akamaiSimulator::cacheServerThread *cache_server_threads[num_servers];
         for (i=0; i<num_servers; i++){
             cache_servers[i] = new akamaiSimulator::cacheServer(i, akamai_stat,
+                                                                dynamic_boundary_flag, 
                                                                 cache_sizes[i],
                                                                 boundaries, e_LRU,
                                                                 'c', 0, NULL);
@@ -122,6 +132,7 @@ namespace akamaiSimulator {
             cache_layer_threads[i] = new akamaiSimulator::cacheLayerThread(cache_layers[i]);
         }
             
+
         /* build threads for cacheLayerThread */
         for (i=0; i<NUM_CACHE_LAYERS-1; i++){
             t = new std::thread(&akamaiSimulator::cacheLayerThread::run, cache_layer_threads[i], 120, log_folder);
@@ -143,16 +154,7 @@ namespace akamaiSimulator {
             threads.push_back(t);
         }
         
-        
-        if (/* DISABLES CODE */ (false)){
-            akamaiSimulator::cacheLayerStat *stat;
-            for (i=0; i<3; i++){
-                stat = cache_layer_threads[0]->get_layer_stat();
-                akamaiSimulator::cacheLayer::print_stat(stat);
-                std::this_thread::sleep_for(std::chrono::seconds(2));
-            }
-        }
-        
+                
         /* wait for cache server and cache layer to finish computation */
         for (auto it=threads.begin(); it<threads.end(); it++){
             (**it).join();

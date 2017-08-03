@@ -108,7 +108,7 @@ int main(int argc, char* argv[]){
     unsigned long cache_sizes[traces.size()];
     std::fill_n(cache_sizes, traces.size(), arg.cache_size);
 
-    akamaiSimulator::akamai_run(traces, boundaries, cache_sizes, arg.trace_type, arg.log_folder);
+    akamaiSimulator::akamai_run(traces, boundaries, cache_sizes, arg.trace_type, arg.log_folder, false);
     
     
     return 1;
