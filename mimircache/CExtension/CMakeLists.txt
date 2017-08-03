@@ -68,7 +68,7 @@ add_executable(akamaiSimulatorBin ${dirAkamaiSimulator})
 
 # 添加链接库
 target_link_libraries(mimircache cache cacheReader profiler utils m ${LIBS} ${CMAKE_THREAD_LIBS_INIT} -lpthread)
-target_link_libraries(akamaiSimulatorBin libketama cache cacheReader utils m ${LIBS} ${CMAKE_THREAD_LIBS_INIT} -lpthread)
+target_link_libraries(akamaiSimulatorBin libketama cache cacheReader profiler utils m ${LIBS} ${CMAKE_THREAD_LIBS_INIT} -lpthread)
 
 
 

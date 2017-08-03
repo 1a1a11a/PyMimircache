@@ -1,5 +1,5 @@
 # coding=utf-8
-import sys
+import sys, time, traceback
 
 COLOR_RED = '\033[91m'
 COLOR_GREEN = '\033[92m'
@@ -38,16 +38,16 @@ def printList(l, num_in_one_line=20):
             counter = 0
 
 def DEBUG(s):
-    print('[DEBUG]: {}{}{}'.format(COLOR_LIGHT_PURPLE, s, COLOR_END))
+    print('[DEBUG]: {}: {}{}{}'.format(time.time(), COLOR_LIGHT_PURPLE, s, COLOR_END))
 
 def INFO(s):
-    print('[INFO]: {}{}{}'.format(COLOR_YELLOW, s, COLOR_END))
+    print('[INFO]: {}: {}{}{}'.format(time.time(), COLOR_YELLOW, s, COLOR_END))
 
 def WARNING(s):
-    print('[WARNING]: {}{}{}'.format(COLOR_PURPLE, s, COLOR_END))
+    print('[WARNING]: {}: {}{}{}'.format(time.time(), COLOR_PURPLE, s, COLOR_END, file=sys.stderr))
 
 def ERROR(s):
-    print('[ERROR]: {}{}{}'.format(COLOR_RED, s, COLOR_END))
+    print('[ERROR]: {}: {}{}{}'.format(time.time(), COLOR_RED, s, COLOR_END), file=sys.stderr)
 
 
 

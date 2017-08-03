@@ -450,6 +450,7 @@ class cHeatmap:
 
             # , vmin=0, vmax=1
             cb = plt.colorbar(img)
+            plt.tight_layout()
 
             plt.savefig(filename, dpi=600)
             plt.show()

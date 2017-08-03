@@ -1,10 +1,6 @@
 # coding=utf-8
 import os
 import mimircache.c_LRUProfiler as c_LRUProfiler
-
-from mimircache.const import *
-from mimircache.cacheReader.plainReader import plainReader
-from mimircache.cacheReader.vscsiReader import vscsiReader
 from mimircache.cacheReader.abstractReader import cacheReaderAbstract
 import matplotlib.pyplot as plt
 from mimircache.utils.printing import *
