@@ -17,6 +17,7 @@ extern "C"
     
 #include <stdio.h>
 #include <glib.h>
+#include <stdlib.h> 
     
 #include "cache.h"
 #include "cacheHeader.h"
@@ -52,11 +53,13 @@ namespace akamaiSimulator {
     
     class consistantHashRing{
         ketama_continuum c_hash_ring;
-
+        int identifier;
+        char identifier_path[128]; 
         
     public:
-        consistantHashRing() {this->c_hash_ring=NULL;}
+        consistantHashRing();
         consistantHashRing(int num_servers, const double* const weight=NULL);
+        void find_avail_identifier();
         void build_ring(int num_servers, const double* const weight);
         int get_server_index(cache_line_t *cp);
         

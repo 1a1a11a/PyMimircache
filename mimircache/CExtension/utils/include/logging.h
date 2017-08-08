@@ -2,9 +2,13 @@
 #define LOGGING_H
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 #include <pthread.h>
 #include <sys/time.h>
+#include <execinfo.h>
+
 
 #define NORMAL  "\x1B[0m"
 #define RED     "\x1B[31m"
@@ -66,5 +70,9 @@ void log_lock(int);
 #else
     #define error_msg(FMT, ...)
 #endif
+
+
+
+void print_stack_trace(); 
 
 #endif
