@@ -72,7 +72,7 @@ class cHeatmapTest(unittest.TestCase):
 
     def test3_cReader_v(self):
         reader = csvReader("{}/trace.csv".format(DAT_FOLDER),
-                           init_params={"header":True, "label_column":5})
+                           init_params={"header":True, "label":5})
         cH = cHeatmap()
         bpv = cH.getBreakpoints(reader, 'v', time_interval=1000)
         self.assertEqual(bpv[10], 10000)
@@ -97,7 +97,7 @@ class cHeatmapTest(unittest.TestCase):
 
     def test4_cReader_r(self):
         reader = csvReader("{}/trace.csv".format(DAT_FOLDER),
-                           init_params={"header":True, "label_column":5, 'real_time_column':2})
+                           init_params={"header":True, "label":5, 'real_time':2})
         cH = cHeatmap()
         bpr = cH.getBreakpoints(reader, 'r', time_interval=1000000)
         self.assertEqual(bpr[10], 53)

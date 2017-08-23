@@ -68,7 +68,7 @@ class cGeneralProfilerTest(unittest.TestCase):
 
 
         reader = csvReader("{}/trace.csv".format(DAT_FOLDER),
-                           init_params={"header":True, 'label_column':5, 'delimiter':','})
+                           init_params={"header":True, 'label':5, 'delimiter':','})
         p = cGeneralProfiler(reader, "Optimal", cache_size=2000, num_of_threads=4)
         hr = p.get_hit_rate()
         self.assertAlmostEqual(hr[0], 0.0)
@@ -130,7 +130,7 @@ class cGeneralProfilerTest(unittest.TestCase):
 
     def test_LFU_LFUFast(self):
         reader = csvReader("{}/trace.csv".format(DAT_FOLDER),
-                           init_params={"header":True, 'label_column':5, 'delimiter':','})
+                           init_params={"header":True, 'label':5, 'delimiter':','})
         p  = cGeneralProfiler(reader, "LFU", cache_size=2000, num_of_threads=4)
         p2 = cGeneralProfiler(reader, "LFUFast", cache_size=2000, num_of_threads=4)
 

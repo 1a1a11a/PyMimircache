@@ -19,7 +19,7 @@ class cachecowTest(unittest.TestCase):
         c = cachecow()
         # c.open('../data/trace.txt')
         c.csv("{}/trace.csv".format(DAT_FOLDER),
-              init_params={"header" :True, 'label_column' :5, 'real_time_column':2})
+              init_params={"header" :True, 'label' :5, 'real_time':2})
         # c.vscsi('{}/trace.vscsi'.format(DAT_FOLDER))
 
         p = c.profiler("LRU")

@@ -60,19 +60,19 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
                     *py_header, *py_delimiter, *py_traceID;
         csvReader_init_params* csv_init_params = init_params;
         
-        if ( (py_label = PyDict_GetItemString(py_init_params, "label_column")) != NULL){
+        if ( (py_label = PyDict_GetItemString(py_init_params, "label")) != NULL){
             csv_init_params->label_column = (gint)PyLong_AsLong(py_label);
         }
         
-        if ( (py_size = PyDict_GetItemString(py_init_params, "size_column")) != NULL) {
+        if ( (py_size = PyDict_GetItemString(py_init_params, "size")) != NULL) {
             csv_init_params->size_column = (gint)PyLong_AsLong(py_size);
         }
         
-        if ( (py_op = PyDict_GetItemString(py_init_params, "op_column")) != NULL) {
+        if ( (py_op = PyDict_GetItemString(py_init_params, "op")) != NULL) {
             csv_init_params->op_column = (gint)PyLong_AsLong(py_op);
         }
         
-        if ( (py_real_time = PyDict_GetItemString(py_init_params, "real_time_column")) != NULL) {
+        if ( (py_real_time = PyDict_GetItemString(py_init_params, "real_time")) != NULL) {
             csv_init_params->real_time_column = (gint)PyLong_AsLong(py_real_time);
         }
         
@@ -84,7 +84,7 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
             csv_init_params->delimiter = *((unsigned char*)PyUnicode_AsUTF8(py_delimiter));
         }
         
-        if ( (py_traceID = PyDict_GetItemString(py_init_params, "traceID_column")) != NULL) {
+        if ( (py_traceID = PyDict_GetItemString(py_init_params, "traceID")) != NULL) {
             csv_init_params->traceID_column = (gint)PyLong_AsLong(py_traceID);
         }
         

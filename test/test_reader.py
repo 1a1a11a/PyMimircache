@@ -47,7 +47,7 @@ class cReaderTest(unittest.TestCase):
 
     def test_reader_csv(self):
         reader = c_cacheReader.setup_reader("{}/trace.csv".format(DAT_FOLDER), 'c', data_type='c',
-                                            init_params={"header":True, "delimiter":",", "label_column":5, "size_column":4})
+                                            init_params={"header":True, "delimiter":",", "label":5, "size":4})
         lines = c_cacheReader.get_num_of_lines(reader)
         self.assertEqual(lines, 113872)
         first_request = c_cacheReader.read_one_element(reader)
@@ -95,7 +95,7 @@ class cReaderTest(unittest.TestCase):
     def test_potpourri(self):
         vReader = c_cacheReader.setup_reader("{}/trace.vscsi".format(DAT_FOLDER), 'v')
         cReader = c_cacheReader.setup_reader("{}/trace.csv".format(DAT_FOLDER), 'c', data_type='l',
-                                            init_params={"header":True, "delimiter":",", "label_column":5, "size_column":4})
+                                            init_params={"header":True, "delimiter":",", "label":5, "size":4})
         e1 = c_cacheReader.read_one_element(vReader)
         e2 = c_cacheReader.read_one_element(cReader)
         while e1 and e2:

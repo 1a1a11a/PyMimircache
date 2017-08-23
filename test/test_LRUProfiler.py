@@ -79,7 +79,7 @@ class LRUProfilerTest(unittest.TestCase):
 
     def test_reader_c(self):
         reader = csvReader("{}/trace.csv".format(DAT_FOLDER),
-                           init_params={"header":True, "label_column":5})
+                           init_params={"header":True, "label":5})
         p = LRUProfiler(reader)
 
         rd = p.get_reuse_distance()

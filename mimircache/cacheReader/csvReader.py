@@ -12,15 +12,15 @@ class csvReader(cacheReaderAbstract):
                 open_c_reader=True):
         super(csvReader, self).__init__(file_loc, data_type, block_unit_size, disk_sector_size)
         assert init_params is not None, "please provide init_param for csvReader"
-        assert "label_column" in init_params, "please provide label_column for csv reader"
+        assert "label" in init_params, "please provide label for csv reader"
 
         self.trace_file = open(file_loc, 'r', encoding='utf-8', errors='ignore')
         self.init_params = init_params
-        self.label_column = init_params['label_column']
-        self.time_column = init_params.get("real_time_column", -1)
+        self.label_column = init_params['label']
+        self.time_column = init_params.get("real_time", -1)
 
         if block_unit_size != 0:
-            assert "size_column" in init_params, "please provide size_column option to consider request size"
+            assert "size" in init_params, "please provide size_column option to consider request size"
 
         self.header_bool = init_params.get('header', False)
         self.delimiter = init_params.get('delimiter', ',')
