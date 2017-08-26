@@ -47,9 +47,7 @@ namespace akamaiSimulator {
          *  instead of placing them inside serverThread and layerThread */
         
         /* number of requests */
-        
-//        unsigned long req[NUM_CACHE_LAYERS];
-//        unsigned long hit2[NUM_CACHE_LAYERS];
+
         
         std::atomic_ullong req[NUM_CACHE_LAYERS];
         std::atomic_ullong hit[NUM_CACHE_LAYERS];

@@ -35,6 +35,7 @@ extern "C"
 #include <fstream> 
 #include <stdexcept>
 #include <mutex>
+#include <atomic>
 
 #include "constAkamaiSimulator.hpp"
 #include "consistentHashRing.hpp"
@@ -56,10 +57,18 @@ namespace akamaiSimulator {
         unsigned long cache_size;
         unsigned long *layer_size;      // points the array inside cacheServer
 
-        unsigned long num_req;
-        unsigned long num_hit;
-        unsigned long num_req_per_layer[NUM_CACHE_LAYERS];
-        unsigned long num_hit_per_layer[NUM_CACHE_LAYERS];
+        
+        std::atomic_ulong num_req;
+        std::atomic_ulong num_hit;
+        std::atomic_ulong num_req_per_layer[NUM_CACHE_LAYERS];
+        std::atomic_ulong num_hit_per_layer[NUM_CACHE_LAYERS];
+        
+        
+        
+//        unsigned long num_req;
+//        unsigned long num_hit;
+//        unsigned long num_req_per_layer[NUM_CACHE_LAYERS];
+//        unsigned long num_hit_per_layer[NUM_CACHE_LAYERS];
 
         
         
@@ -314,9 +323,9 @@ namespace akamaiSimulator {
             std::stringstream ss;
             ss.precision(8);
             ss << "CACHE SERVER " << stat->cache_server_id << " stat, size " <<
-                stat->cache_size << ", " << stat->num_req << " req, " <<
-                stat->num_hit << " hit, " << "overall hit ratio " <<
-                static_cast<double>(stat->num_hit)/(stat->num_req==0?1:stat->num_req) <<
+                stat->cache_size << ", " << stat->num_req.load() << " req, " <<
+                stat->num_hit.load() << " hit, " << "overall hit ratio " <<
+                static_cast<double>(stat->num_hit)/(stat->num_req.load()==0?1:stat->num_req.load()) <<
                 "\nper server stat " <<
                 "(layerID, layer size, num of req, num of hit, hit ratio)\n";
             
@@ -324,10 +333,10 @@ namespace akamaiSimulator {
                 if (i != 0 && i%1 == 0)
                     ss << "\n";
                 ss << "(" << i+1 << ", " << stat->layer_size[i] << ", " <<
-                    stat->num_req_per_layer[i] << ", " <<
-                    stat->num_hit_per_layer[i] << ", " <<
-                    static_cast<double>(stat->num_hit_per_layer[i])/
-                    (stat->num_req_per_layer[i]==0 ? 1 : stat->num_req_per_layer[i]) << ")";
+                    stat->num_req_per_layer[i].load() << ", " <<
+                    stat->num_hit_per_layer[i].load() << ", " <<
+                    static_cast<double>(stat->num_hit_per_layer[i].load())/
+                    (stat->num_req_per_layer[i].load()==0 ? 1 : stat->num_req_per_layer[i].load()) << ")";
             }
             ss << "\n"; 
             return ss.str();
@@ -336,15 +345,15 @@ namespace akamaiSimulator {
         static std::string build_stat_str_short(cacheServerStat* stat){
             std::stringstream ss;
             ss.precision(8);
-            ss << "overall\t" << stat->num_req << "\t" << stat->num_hit << "\t" <<
-            static_cast<double>(stat->num_hit)/(stat->num_req==0?1:stat->num_req);
+            ss << "overall\t" << stat->num_req.load() << "\t" << stat->num_hit.load() << "\t" <<
+            static_cast<double>(stat->num_hit.load())/(stat->num_req.load()==0?1:stat->num_req.load());
             
             for (unsigned int i=0; i<NUM_CACHE_LAYERS; i++){
                 ss << "\tlayer" << i+1 << "\t" << stat->layer_size[i] << "\t" <<
-                stat->num_req_per_layer[i] << "\t" <<
-                stat->num_hit_per_layer[i] << "\t" <<
-                static_cast<double>(stat->num_hit_per_layer[i])/
-                (stat->num_req_per_layer[i]==0 ? 1 : stat->num_req_per_layer[i]);
+                stat->num_req_per_layer[i].load() << "\t" <<
+                stat->num_hit_per_layer[i].load() << "\t" <<
+                static_cast<double>(stat->num_hit_per_layer[i].load())/
+                (stat->num_req_per_layer[i].load()==0 ? 1 : stat->num_req_per_layer[i].load()); 
             }
             ss << "\n";
             return ss.str();

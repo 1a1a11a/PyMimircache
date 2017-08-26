@@ -26,14 +26,18 @@ namespace akamaiSimulator {
         
         this->cache_server_id = server_id;
         this->cache_size = cache_size;
-        this->num_req = 0;
-        this->num_hit = 0;
+//        this->num_req = 0;
+//        this->num_hit = 0;
+        this->num_req.store(0);
+        this->num_hit.store(0);
         this->layer_size = layer_size;
         
         for (i=0; i<NUM_CACHE_LAYERS; i++){
-//            this->layer_size[i] = layer_size[i];
-            this->num_req_per_layer[i] = 0;
-            this->num_hit_per_layer[i] = 0;
+//            this->num_req_per_layer[i] = 0;
+//            this->num_hit_per_layer[i] = 0;
+            
+            this->num_req_per_layer[i].store(0);
+            this->num_hit_per_layer[i].store(0);
         }
     }
     
@@ -55,14 +59,20 @@ namespace akamaiSimulator {
             return *this;
         this->cache_server_id = stat.cache_server_id;
         this->cache_size = stat.cache_size;
-        this->num_req = stat.num_req;
-        this->num_hit = stat.num_hit;
+//        this->num_req = stat.num_req;
+//        this->num_hit = stat.num_hit;
+        
+        this->num_req.store(stat.num_req.load());
+        this->num_hit.store(stat.num_hit.load());
+        
         this->layer_size = stat.layer_size;
         
         for (unsigned int i=0; i<NUM_CACHE_LAYERS; i++){
-//            this->layer_size[i] = stat.layer_size[i];
-            this->num_req_per_layer[i] = stat.num_req_per_layer[i];
-            this->num_hit_per_layer[i] = stat.num_hit_per_layer[i];
+//            this->num_req_per_layer[i] = stat.num_req_per_layer[i];
+//            this->num_hit_per_layer[i] = stat.num_hit_per_layer[i];
+            
+            this->num_req_per_layer[i].store(stat.num_req_per_layer[i].load());
+            this->num_hit_per_layer[i].store(stat.num_hit_per_layer[i].load());
         }
         
         return *this;
@@ -550,6 +560,8 @@ namespace akamaiSimulator {
      */
     bool cacheServer::add_request(const cache_line_t *const cp,
                                   const unsigned long layer_id){
+            
+        
         /* log server stat */
         this->server_stat->num_req_per_layer[layer_id-1] ++;
         this->server_stat->num_req ++;

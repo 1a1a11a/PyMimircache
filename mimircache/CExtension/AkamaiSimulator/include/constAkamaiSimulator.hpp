@@ -29,7 +29,7 @@
 //#define SYNCHRONIZATION_TIME_DIFF 120
 
 
-#define L2_COPY 1 
+#define L2_COPY 2 
 
 
 #undef DEBUG_DEADLOCK 

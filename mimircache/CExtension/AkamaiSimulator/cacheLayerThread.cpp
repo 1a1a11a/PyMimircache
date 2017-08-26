@@ -43,14 +43,13 @@ namespace akamaiSimulator {
 #else
         /** synchronization between layers with max_time_dfff
          *  equals SYNCHRONIZATION_TIME_DIFF */
-//        if (cp->real_time > 9600)
-        debug("server %lu, real time %ld, %d (%lu, %lu): %d: %d (%ld, %d)\n",
-              this->server_id, cp->real_time,
-              this->dq.size() < this->max_queue_size,
-              this->dq.size(), this->max_queue_size,
-              this->server_id == this->min_ts_server_id.load(),
-              std::abs((long) (cp->real_time - this->min_ts.load())) < SYNCHRONIZATION_TIME_DIFF,
-              std::abs((long) (cp->real_time - this->min_ts.load())), SYNCHRONIZATION_TIME_DIFF);
+//        debug("server %lu, real time %ld, %d (%lu, %lu): %d: %d (%ld, %d)\n",
+//              this->server_id, cp->real_time,
+//              this->dq.size() < this->max_queue_size,
+//              this->dq.size(), this->max_queue_size,
+//              this->server_id == this->min_ts_server_id.load(),
+//              std::abs((long) (cp->real_time - this->min_ts.load())) < SYNCHRONIZATION_TIME_DIFF,
+//              std::abs((long) (cp->real_time - this->min_ts.load())), SYNCHRONIZATION_TIME_DIFF);
         
         return this->dq.size() < this->max_queue_size &&
         (this->server_id == this->min_ts_server_id.load() ||
@@ -69,7 +68,7 @@ namespace akamaiSimulator {
         this->current_ts = (unsigned long) cp->real_time;
         std::unique_lock<std::mutex> ulock(this->mtx);
         this->condt.wait(ulock, std::bind(&cacheServerReqQueue::_can_add_req, this, cp));
-        debug("passed check, server %lu, real time %ld\n", this->server_id, cp->real_time);
+//        debug("passed check, server %lu, real time %ld\n", this->server_id, cp->real_time);
         if (real_add)
             this->dq.push_back(cp);
     }
@@ -126,7 +125,7 @@ namespace akamaiSimulator {
     }
     
     void cacheServerReqQueue::queue_size_change(){
-        debug("server %lu queue size change notified\n", this->server_id);
+//        debug("server %lu queue size change notified\n", this->server_id);
         this->condt.notify_all();
     }
     
