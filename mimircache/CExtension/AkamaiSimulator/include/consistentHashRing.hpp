@@ -34,7 +34,6 @@ extern "C"
 #include "constAkamaiSimulator.hpp"
 
 
-#define CONSISTENT_HASHRING_KEY_IDENTIFIER 2
 
 
 
@@ -62,6 +61,7 @@ namespace akamaiSimulator {
         void find_avail_identifier();
         void build_ring(int num_servers, const double* const weight);
         int get_server_index(cache_line_t *cp);
+        int get_server_index(char *cp);
         
         
         ~consistantHashRing();

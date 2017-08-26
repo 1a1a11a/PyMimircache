@@ -37,17 +37,18 @@ void parse_cmd_arg(int argc, char* argv[], simulator_arg_t* sargs){
 
     (*sargs).cache_size = 0;
     if (argc < 7){
-        std::cerr << "usage: " << argv[0] << "-c config -s size -t traceType\n";
+        std::cerr << "usage: " << argv[0] << "-c config -s size -t traceType -o outputFolder -b boundary\n";
         exit(0);
     }
     (*sargs).log_folder = "log";
+    (*sargs).dynamic_boundary = false;
     
     int opt;
     extern char *optarg;
-    // extern int optind, optopt;
+    extern int optopt;      // optind
     
     // Retrieve the options:
-    while ( (opt = getopt(argc, argv, "b:c:o:s:t:")) != -1 ) {  // for each option...
+    while ( (opt = getopt(argc, argv, "b:c:do:s:t:")) != -1 ) {  // for each option...
         switch ( opt ) {
             case 'b':
                 (*sargs).boundary = atof(optarg);
@@ -55,6 +56,9 @@ void parse_cmd_arg(int argc, char* argv[], simulator_arg_t* sargs){
             case 'c':
                 (*sargs).config_loc = std::string(optarg);
                 break;
+            case 'd':
+                (*sargs).dynamic_boundary = true;
+                break; 
             case 'o':
                 printf("get option o %s\n", optarg);
                 (*sargs).log_folder = std::string(optarg);
@@ -64,6 +68,9 @@ void parse_cmd_arg(int argc, char* argv[], simulator_arg_t* sargs){
                 break;
             case 't':
                 (*sargs).trace_type = (unsigned long) atoi(optarg);
+                break;
+            case ':':
+                std::cerr<<"unknown option " << optopt;
                 break;
         }
     }
@@ -77,7 +84,7 @@ void parse_cmd_arg(int argc, char* argv[], simulator_arg_t* sargs){
 
 
 
-int main(int argc, char* argv[]){
+int time_as_x(int argc, char* argv[]){
     
     
     
@@ -91,25 +98,45 @@ int main(int argc, char* argv[]){
         return 0; 
     }
     
-//    std::vector<std::string> traces = {"/home/jason/ALL_DATA/Akamai/dataCenterSplitted/csv/temp3/sample2/a",
-//        "/home/jason/ALL_DATA/Akamai/dataCenterSplitted/csv/temp3/sample2/b"}; //,
-    //    std::vector<std::string> traces = {"/home/jason/ALL_DATA/Akamai/dataCenterSplitted/csv/temp3/sample/60.14.244.130",
-    //        "/home/jason/ALL_DATA/Akamai/dataCenterSplitted/csv/temp3/sample/60.14.244.144"}; //,
-    //        "/home/jason/ALL_DATA/Akamai/dataCenterSplitted/csv/temp3/sample/60.14.244.159",
-    //        "/home/jason/ALL_DATA/Akamai/dataCenterSplitted/csv/temp3/sample/60.14.244.163",
-    //        "/home/jason/ALL_DATA/Akamai/dataCenterSplitted/csv/temp3/sample/60.14.244.176"};
-//    arg.cache_size = 10000;
 
     auto traces = get_traces_from_config(arg.config_loc);
     
     double boundaries[NUM_CACHE_LAYERS];
-//    std::fill_n(boundaries, NUM_CACHE_LAYERS, (double)1/NUM_CACHE_LAYERS);
-    std::fill_n(boundaries, NUM_CACHE_LAYERS, arg.boundary);
+    
+    
+    if (NUM_CACHE_LAYERS != 2){
+        error_msg("only support two layers\n");
+        exit(0);
+    }
+    boundaries[0] = arg.boundary;
+    boundaries[1] = 1 - arg.boundary;
+    
     unsigned long cache_sizes[traces.size()];
     std::fill_n(cache_sizes, traces.size(), arg.cache_size);
 
-    akamaiSimulator::akamai_run(traces, boundaries, cache_sizes, arg.trace_type, arg.log_folder, false);
+    akamaiSimulator::akamai_run(traces, boundaries, cache_sizes, arg.trace_type, arg.log_folder, arg.dynamic_boundary);
     
     
     return 1;
 }
+
+
+
+
+
+int main(int argc, char* argv[]){
+    
+    try{
+        time_as_x(argc, argv);
+    }catch (std::exception &e) {
+        std::cerr<<e.what()<<std::endl;
+        print_stack_trace();
+    }
+    
+//    return boundary_as_x(argc, argv);
+    return 1;
+}
+
+
+
+

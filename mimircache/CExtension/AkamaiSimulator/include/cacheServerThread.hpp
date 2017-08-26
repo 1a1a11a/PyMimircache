@@ -40,8 +40,6 @@ extern "C"
 #endif
 
 
-#define DEFAULT_CACHE_SERVER_THREAD_QUEUE_SIZE 1024
-
 
 
 namespace akamaiSimulator {

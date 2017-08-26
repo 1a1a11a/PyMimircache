@@ -34,6 +34,7 @@ extern "C"
 #include <sstream>
 #include <fstream> 
 #include <stdexcept>
+#include <mutex>
 
 #include "constAkamaiSimulator.hpp"
 #include "consistentHashRing.hpp"
@@ -83,13 +84,16 @@ namespace akamaiSimulator {
     
     class cacheProfiler{
         
+        /** max_cache_size is the max possible layer cache size
+         *  this is used for array allocation during initialization 
+         *  currently using server cache size is good enough */
         unsigned long long max_cache_size;
         unsigned char data_type;
         unsigned long L1_latency;
         unsigned long L2_latency;
         unsigned long Lo_latency;
 
-        unsigned long layer_size[NUM_CACHE_LAYERS];
+        unsigned long *layer_size;
         
         /* ts is also the request count */
         unsigned long ts[NUM_CACHE_LAYERS];
@@ -107,25 +111,38 @@ namespace akamaiSimulator {
         unsigned long long rd_count_array_size[NUM_CACHE_LAYERS];
         
         unsigned long adjust_interval;
+        unsigned long space_optimize_interval;
+        
+        std::mutex mtx; 
+        
         
         
         /* the logic how to adjust boundary */
         int __how_to_adjust();
+        
+        /** if we don't optimize profiler space usage,
+         *  the maximal reuse distance can be infinity 
+         *  which is huge in memory usagee */ 
+        void __optimize_profiler_space(unsigned long i);
 
+        
+        
     public:
         
         cacheProfiler(const unsigned long max_cache_size,
                       const unsigned char data_type,
-                      const unsigned long *layer_size,
+                      unsigned long *layer_size,
                       const unsigned long adjust_interval=20000,
+                      const unsigned long space_optimize_interval=1000000,
                       const unsigned long L1_latency=10,
                       const unsigned long L2_latency=20,
                       const unsigned long Lo_latency=50);
 
         void __init(const unsigned long max_cache_size,
                     const unsigned char data_type,
-                    const unsigned long *layer_size,
+                    unsigned long *layer_size,
                     const unsigned long adjust_interval,
+                    const unsigned long space_optimize_interval,
                     const unsigned long L1_latency,
                     const unsigned long L2_latency,
                     const unsigned long Lo_latency);
@@ -140,6 +157,9 @@ namespace akamaiSimulator {
                         const unsigned long layer_id);
         
         
+        
+//        gboolean __check_hashtable_entry(gpointer key, gpointer value, gpointer data);
+
         
         /* clear all data, begin fresh */
         void clear();
@@ -183,8 +203,8 @@ namespace akamaiSimulator {
                 newtree = insert(ts, splay_tree);
                 gint64 *value = g_new(gint64, 1);
                 if (value == NULL){
-                    ERROR("not enough memory\n");
-                    exit(1);
+                    error_msg("not enough memory\n");
+                    abort();
                 }
                 *value = ts;
                 if (cp->type == 'c')
@@ -196,8 +216,8 @@ namespace akamaiSimulator {
                     g_hash_table_insert(hash_table, (gpointer)(key), (gpointer)value);
                 }
                 else{
-                    ERROR("unknown cache line content type: %c\n", cp->type);
-                    exit(1);
+                    error_msg("unknown cache line content type: %c\n", cp->type);
+                    abort();
                 }
                 *reuse_dist = -1;
             }
@@ -234,6 +254,10 @@ namespace akamaiSimulator {
         unsigned long layer_size[NUM_CACHE_LAYERS];
         cache_t *caches[NUM_CACHE_LAYERS];
         
+        /** all cache size related lock,
+         *  current usage: prevent dynamic boundary size chage 
+         *  from affecting adding requests */ 
+        std::mutex mtx_layer_size;
         
         bool adjust_caches();
         

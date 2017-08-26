@@ -83,8 +83,10 @@ namespace akamaiSimulator {
     
     
     cacheLayer::cacheLayer(std::vector<cacheServer*> cache_servers,
+                           akamaiStat *akamai_stat,
                            int layer_id, enum hashType hash_type){
         
+        this->akamai_stat = akamai_stat;
         this->layer_id = layer_id;
         this->cache_servers = cache_servers;
         this->next_layer = NULL;
@@ -108,8 +110,10 @@ namespace akamaiSimulator {
     
     cacheLayer::cacheLayer(cacheServer** cache_servers,
                            const unsigned long num_servers,
+                           akamaiStat *akamai_stat,
                            int layer_id, enum hashType hash_type){
         
+        this->akamai_stat = akamai_stat;
         this->layer_id = layer_id;
         this->cache_servers = std::vector<cacheServer*>();
         for (unsigned long i =0; i<num_servers; i++)
@@ -169,27 +173,46 @@ namespace akamaiSimulator {
      *  This is NON-BLOCKING for now, all requests directly go to cache server and 
      *  being added to corresponding cache 
      */
-    gboolean cacheLayer::add_request(const unsigned long cache_server_id,
+    void cacheLayer::add_request(const unsigned long cache_server_id,
                                      cache_line_t * const cp){
         
         /** first get the index of the cacheServer which 
          *  this request will be sent to using consistent hashing */
         
-        unsigned long server_ind = this->ring.get_server_index(cp);
-        gboolean cache_hit = this->cache_servers.at(server_ind)->add_request(cp, this->layer_id);
+        unsigned long server_ind;
+        gboolean cache_hit = FALSE;
+        gboolean cache_hit_current_server;
+        char temp[CACHE_LINE_LABEL_SIZE];
+        
+        memcpy(temp, cp->item, CACHE_LINE_LABEL_SIZE);
+        
+        for (unsigned long i=0; i<L2_COPY; i++){
+            size_t len = strlen(temp);
+            len = len<=CACHE_LINE_LABEL_SIZE-2 ? len: CACHE_LINE_LABEL_SIZE-2;
+            temp[len] = i;
+            temp[len+1] = 0;
+            server_ind = this->ring.get_server_index(temp);
+            
+            cache_hit_current_server = this->cache_servers.at(server_ind)->add_request(cp, this->layer_id);
+            this->layer_stat->num_req_to_server[server_ind] ++;
+            
+            if (cache_hit_current_server){
+                cache_hit = TRUE;
+                this->layer_stat->per_server_hit_count[server_ind] ++;
+            }
+        }
+        
         
         /* update layer stat */
         this->layer_stat->num_req_from_server[cache_server_id] ++;
-        this->layer_stat->layer_req_count ++;
-        this->layer_stat->num_req_to_server[server_ind] ++;
-
         if (cache_hit){
             this->layer_stat->layer_hit_count ++;
-            this->layer_stat->per_server_hit_count[server_ind] ++;
         }
-        /* end of layer stat update */
         
-        return cache_hit;
+        this->layer_stat->layer_req_count ++; 
+//        this->layer_stat->layer_req_count += L2_COPY;
+
+        /* end of layer stat update */
     }
     
     

@@ -30,6 +30,7 @@ extern "C"
 #include <algorithm> 
 
 #include "simulator.hpp"
+#include "akamaiStat.hpp" 
 
 
 
@@ -39,6 +40,7 @@ typedef struct {
     unsigned long cache_size; 
     unsigned long trace_type;
     std::string log_folder;
+    bool dynamic_boundary; 
 }simulator_arg_t;
 
 

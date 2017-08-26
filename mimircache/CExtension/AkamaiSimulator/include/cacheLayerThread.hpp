@@ -80,19 +80,24 @@ namespace akamaiSimulator {
         bool _can_add_req(cache_line_t* cp);
     
     public:
+        unsigned long current_ts; 
+        
         cacheServerReqQueue(unsigned long max_queue_size,
-                            unsigned long server_id):
-        max_queue_size(max_queue_size), server_id(server_id) {};
+                            unsigned long server_id);
+        
 
         
         /* this can be blocking */
-        void add_request(cache_line_t* cp);
+        void add_request(cache_line_t* cp, bool real_add);
         
         cache_line_t* get_request();
         cache_line_t* get_request(double max_ts);
+        size_t get_size();
+        unsigned long get_min_ts();
+        unsigned long get_min_ts_server_id();
         
         void synchronize_time(double t, unsigned long min_ts_ind);
-        
+        void queue_size_change();
     };
     
     
@@ -111,6 +116,7 @@ namespace akamaiSimulator {
         
         // to control simultaneous add_request
         std::mutex mtx_add_req;
+        std::mutex mtx_sync_time; 
         
         
 //        volatile double *cache_server_timestamps;
@@ -148,7 +154,13 @@ namespace akamaiSimulator {
         
         void run(unsigned int log_interval, const std::string log_folder);
         
-        void add_request(unsigned long cache_server_id, cache_line_t *cp);
+        void add_request(unsigned long cache_server_id,
+                         cache_line_t *cp, bool real_add);
+
+        /** update the server ts in the layer, this is needed because sometimes
+         *  a server may not hit higher layer for a long time */
+//        void update_layer_ts(unsigned long cache_server_id, cache_line_t *cp);
+        
         void cache_server_finish(unsigned long cache_server_id);
         
         

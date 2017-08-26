@@ -79,7 +79,9 @@ namespace akamaiSimulator {
         return ::ketama_get_server_index( this->c_hash_ring, (const char*)(cp->item_p) );
     }
 
-    
+    int consistantHashRing::get_server_index(char* content){
+        return ::ketama_get_server_index( this->c_hash_ring, (const char*)content );
+    }
     
     
     

@@ -96,16 +96,18 @@ namespace akamaiSimulator {
         
     public:
         cacheLayerStat *layer_stat;
-        
+        akamaiStat *akamai_stat; 
         
         /** initialize cache layer, layer id is used to obtain
          *  the size of the layer in cache servers */ 
         cacheLayer(std::vector<cacheServer*> cache_servers,
+                   akamaiStat* akamai_stat,
                    const int layer_id,
                    enum hashType hash_type=MD5);
 
         cacheLayer(cacheServer** cache_servers,
                    const unsigned long num_servers,
+                   akamaiStat* akamai_stat, 
                    const int layer_id,
                    enum hashType hash_type=MD5);
 
@@ -119,7 +121,7 @@ namespace akamaiSimulator {
          *  adjusted cache size or boundary */
         void rebalance();
         
-        gboolean add_request(const unsigned long cache_server_id,
+        void add_request(const unsigned long cache_server_id,
                              cache_line_t * const cp);
         cacheServer& get_server(const int index);
         cacheLayer* get_next_layer(); 
