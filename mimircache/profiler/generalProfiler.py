@@ -27,12 +27,18 @@ class generalProfiler(profilerAbstract):
         self.cache_params = cache_params
         self.num_of_threads = num_of_threads
 
+
+        self.get_hit_rate = self.get_hit_ratio
+        self.get_miss_rate = self.get_miss_ratio
+
+
         if bin_size == -1:
             self.bin_size = int(self.cache_size / DEFAULT_BIN_NUM_PROFILER)
         else:
             self.bin_size = bin_size
         self.num_of_threads = num_of_threads
 
+        self.num_of_blocks = -1
         if self.cache_size != -1:
 
             self.num_of_blocks = math.ceil(self.cache_size / self.bin_size)
@@ -70,7 +76,7 @@ class generalProfiler(profilerAbstract):
 
         self.calculated = False
 
-    all = ["get_hit_count", "get_hit_rate", "get_miss_rate", "plotMRC", "plotHRC"]
+    all = ["get_hit_count", "get_hit_ratio", "get_miss_ratio", "plotMRC", "plotHRC"]
 
 
     def addOneTraceElement(self, element):
@@ -167,12 +173,12 @@ class generalProfiler(profilerAbstract):
 
         return HC
 
-    def get_hit_rate(self):
+    def get_hit_ratio(self):
         if not self.calculated:
             self.run()
         return self.HRC
 
-    def get_miss_rate(self):
+    def get_miss_ratio(self):
         if not self.calculated:
             self.run()
         return self.MRC

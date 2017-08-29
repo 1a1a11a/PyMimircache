@@ -120,6 +120,7 @@ guint64* get_hit_count_seq(reader_t* reader,
         else if (reuse_dist>=size)
             hit_count_array[size+1] += 1;
         else
+            /* why + 1 here ? */ 
             hit_count_array[reuse_dist+1] += 1;
         if (ts >= (guint64)end-begin)
             break;

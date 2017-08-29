@@ -1,13 +1,14 @@
 # coding=utf-8
 import os
 import mimircache.c_LRUProfiler as c_LRUProfiler
+from mimircache.cacheReader.binaryReader import binaryReader
 from mimircache.cacheReader.abstractReader import cacheReaderAbstract
 import matplotlib.pyplot as plt
 from mimircache.utils.printing import *
 from matplotlib.ticker import FuncFormatter
 
 class LRUProfiler:
-    all = ["get_hit_count", "get_hit_rate", "get_miss_rate", "get_reuse_distance",
+    all = ["get_hit_count", "get_hit_ratio", "get_miss_ratio", "get_reuse_distance",
            "plotMRC", "plotHRC", "get_best_cache_sizes"]
 
     def __init__(self, reader, cache_size=-1, cache_params=None):
@@ -18,6 +19,9 @@ class LRUProfiler:
             self.block_unit_size = cache_params["block_unit_size"]
         else:
             self.with_size = False
+
+        self.get_hit_rate = self.get_hit_ratio
+        self.get_miss_rate = self.get_miss_ratio
 
         assert isinstance(reader, cacheReaderAbstract), \
             "you provided an invalid cacheReader: {}".format(reader)
@@ -51,7 +55,7 @@ class LRUProfiler:
             hit_count = c_LRUProfiler.get_hit_count_seq(self.reader.cReader, **kargs)
         return hit_count
 
-    def get_hit_rate(self, **kwargs):
+    def get_hit_ratio(self, **kwargs):
         """
 
         :param kwargs:
@@ -70,14 +74,14 @@ class LRUProfiler:
             kargs['end'] = kwargs['end']
 
         if self.with_size:
-            hit_rate = c_LRUProfiler.get_hit_rate_with_size(self.reader.cReader,
+            hit_ratio = c_LRUProfiler.get_hit_ratio_with_size(self.reader.cReader,
                                                             block_unit_size=self.block_unit_size, **kargs)
         else:
-            hit_rate = c_LRUProfiler.get_hit_rate_seq(self.reader.cReader, **kargs)
-        return hit_rate
+            hit_ratio = c_LRUProfiler.get_hit_ratio_seq(self.reader.cReader, **kargs)
+        return hit_ratio
 
 
-    def get_hit_rate_shards(self, sample_ratio=0.01, **kwargs):
+    def get_hit_ratio_shards(self, sample_ratio=0.01, **kwargs):
         from mimircache.cacheReader.tracePreprocesser import tracePreprocessor
         kargs = {}
         if 'cache_size' not in kwargs:
@@ -96,19 +100,19 @@ class LRUProfiler:
             print("not supported yet")
             return None
         else:
-            hit_rate = c_LRUProfiler.get_hit_rate_seq_shards(tempReader.cReader, sample_ratio=sample_ratio,
+            hit_ratio = c_LRUProfiler.get_hit_ratio_seq_shards(tempReader.cReader, sample_ratio=sample_ratio,
                                                        correction=correction, **kargs)
-        return hit_rate
+        return hit_ratio
 
-    def get_miss_rate(self, **kargs):
+    def get_miss_ratio(self, **kargs):
         if 'cache_size' not in kargs:
             kargs['cache_size'] = self.cache_size
         if self.with_size:
             print("not supported yet")
             return None
         else:
-            miss_rate = c_LRUProfiler.get_miss_rate_seq(self.reader.cReader, **kargs)
-        return miss_rate
+            miss_ratio = c_LRUProfiler.get_miss_ratio_seq(self.reader.cReader, **kargs)
+        return miss_ratio
 
     def get_reuse_distance(self, **kargs):
         if self.with_size:
@@ -129,7 +133,7 @@ class LRUProfiler:
     def plotMRC(self, figname="MRC.png", auto_resize=False, threshold=0.98, **kwargs):
         print("not updated")
         EXTENTION_LENGTH = 1024
-        MRC = self.get_miss_rate(**kwargs)
+        MRC = self.get_miss_ratio(**kwargs)
         try:
             stop_point = len(MRC) - 3
             if self.cache_size == -1 and 'cache_size' not in kwargs and auto_resize:
@@ -161,7 +165,7 @@ class LRUProfiler:
 
     def plotHRC(self, figname="HRC.png", auto_resize=False, threshold=0.98, **kwargs):
         EXTENTION_LENGTH = 1024
-        HRC = self.get_hit_rate(**kwargs)
+        HRC = self.get_hit_ratio(**kwargs)
         try:
             stop_point = len(HRC) - 3
             if self.cache_size == -1 and 'cache_size' not in kwargs and auto_resize:
@@ -201,8 +205,8 @@ class LRUProfiler:
     def plotHRC_withShards(self, figname="HRC.png", auto_resize=False, threshold=0.98, **kwargs):
         print("not updated yet")
         EXTENTION_LENGTH = 1024
-        HRC = self.get_hit_rate(**kwargs)
-        HRC_shards = self.get_hit_rate_shards(**kwargs)
+        HRC = self.get_hit_ratio(**kwargs)
+        HRC_shards = self.get_hit_ratio_shards(**kwargs)
         try:
             stop_point = len(HRC) - 3
             if self.cache_size == -1 and 'cache_size' not in kwargs and auto_resize:

@@ -468,10 +468,10 @@ static PyMethodDef c_LRUProfiler_funcs[] = {
     {"get_hit_count_seq", (PyCFunction)LRUProfiler_get_hit_count_seq,
         METH_VARARGS | METH_KEYWORDS, "get hit count array in the form of numpy array, \
         the last one is cold miss, the second to last is out of cache_size"},
-    {"get_hit_rate_seq", (PyCFunction)LRUProfiler_get_hit_rate_seq,
+    {"get_hit_ratio_seq", (PyCFunction)LRUProfiler_get_hit_rate_seq,
         METH_VARARGS | METH_KEYWORDS, "get hit rate array in the form of numpy array, \
         the last one is cold miss, the second to last is out of cache_size"},
-    {"get_miss_rate_seq", (PyCFunction)LRUProfiler_get_miss_rate_seq,
+    {"get_miss_ratio_seq", (PyCFunction)LRUProfiler_get_miss_rate_seq,
         METH_VARARGS | METH_KEYWORDS, "get miss rate array in the form of numpy array, \
         the last one is cold miss, the second to last is out of cache_size"},
     {"get_future_reuse_dist", (PyCFunction)LRUProfiler_get_future_reuse_dist,
@@ -486,9 +486,9 @@ static PyMethodDef c_LRUProfiler_funcs[] = {
     
     
     
-    {"get_hit_rate_seq_shards", (PyCFunction)LRUProfiler_get_hit_rate_seq_shards,
+    {"get_hit_ratio_seq_shards", (PyCFunction)LRUProfiler_get_hit_rate_seq_shards,
         METH_VARARGS | METH_KEYWORDS, "shards version"},
-    {"get_hit_rate_with_size", (PyCFunction)LRUProfiler_get_hit_rate_withsize_seq,
+    {"get_hit_ratio_with_size", (PyCFunction)LRUProfiler_get_hit_rate_withsize_seq,
         METH_VARARGS | METH_KEYWORDS, "LRU profiler consider request size"},
     {"get_hit_count_with_size", (PyCFunction)LRUProfiler_get_hit_count_withsize_seq,
         METH_VARARGS | METH_KEYWORDS, "LRU profiler consider request size"},

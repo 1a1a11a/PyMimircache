@@ -438,11 +438,11 @@ static PyObject* generalProfiler_get_partition_hit_rate(PyObject* self,
 
 
 static PyMethodDef c_generalProfiler_funcs[] = {
-    {"get_hit_rate", (PyCFunction)generalProfiler_get_hit_rate,
+    {"get_hit_ratio", (PyCFunction)generalProfiler_get_hit_rate,
         METH_VARARGS | METH_KEYWORDS, "get hit rate numpy array"},
     {"get_hit_count", (PyCFunction)generalProfiler_get_hit_count,
         METH_VARARGS | METH_KEYWORDS, "get hit count numpy array"},
-    {"get_miss_rate", (PyCFunction)generalProfiler_get_miss_rate,
+    {"get_miss_ratio", (PyCFunction)generalProfiler_get_miss_rate,
         METH_VARARGS | METH_KEYWORDS, "get miss rate numpy array"},
     {"get_err", (PyCFunction)generalProfiler_get_evict_err_rate,
         METH_VARARGS | METH_KEYWORDS, "get err rate numpy array"},
@@ -450,7 +450,7 @@ static PyMethodDef c_generalProfiler_funcs[] = {
         METH_VARARGS | METH_KEYWORDS, "get hit rate and prefetching efficiency"},
     {"get_partition", (PyCFunction)generalProfiler_get_partition,
         METH_VARARGS | METH_KEYWORDS, "get partition results with given alg"},
-    {"get_partition_hit_rate", (PyCFunction)generalProfiler_get_partition_hit_rate,
+    {"get_partition_hit_ratio", (PyCFunction)generalProfiler_get_partition_hit_rate,
         METH_VARARGS | METH_KEYWORDS, "get partition hit rate numpy array"},
     
     

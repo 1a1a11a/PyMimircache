@@ -54,7 +54,10 @@ class cGeneralProfiler:
         if need_convert:
             self.prepare_file()
 
-    all = ["get_hit_count", "get_hit_rate", "get_miss_rate", "plotMRC", "plotHRC"]
+        self.get_hit_rate = self.get_hit_ratio
+        self.get_miss_rate = self.get_miss_ratio
+
+    all = ["get_hit_count", "get_hit_ratio", "get_miss_ratio", "plotMRC", "plotHRC"]
 
     def prepare_file(self):
         self.num_of_lines = 0
@@ -91,7 +94,7 @@ class cGeneralProfiler:
             return c_generalProfiler.get_hit_count(self.reader.cReader, self.cache_name, cache_size,
                                                    self.bin_size, cache_params=self.cache_params, **sanity_kwargs)
 
-    def get_hit_rate(self, **kwargs):
+    def get_hit_ratio(self, **kwargs):
         """
 
         :return: a numpy array, with hit rate corresponding to size [0, bin_size, bin_size*2 ...]
@@ -110,12 +113,12 @@ class cGeneralProfiler:
         if 'end' in kwargs:
             sanity_kwargs['end'] = kwargs['end']
         # handles both withsize and no size
-        return c_generalProfiler.get_hit_rate(self.reader.cReader, self.cache_name, cache_size,
+        return c_generalProfiler.get_hit_ratio(self.reader.cReader, self.cache_name, cache_size,
                                                         self.bin_size, cache_params=self.cache_params, **sanity_kwargs)
 
 
 
-    def get_miss_rate(self, **kwargs):
+    def get_miss_ratio(self, **kwargs):
         """
 
         :return: a numpy array, with miss rate corresponding to size [0, bin_size, bin_size*2 ...]
@@ -135,12 +138,12 @@ class cGeneralProfiler:
         if self.with_size:
             print("not supported yet")
         else:
-            return c_generalProfiler.get_miss_rate(self.reader.cReader, self.cache_name, cache_size,
+            return c_generalProfiler.get_miss_ratio(self.reader.cReader, self.cache_name, cache_size,
                                                    self.bin_size, cache_params=self.cache_params, **sanity_kwargs)
 
     def plotMRC(self, figname="MRC.png", **kwargs):
         print("function not updated")
-        MRC = self.get_miss_rate(**kwargs)
+        MRC = self.get_miss_ratio(**kwargs)
         try:
             # tick = ticker.FuncFormatter(lambda x, pos: '{:2.0f}'.format(x * self.bin_size))
             # plt.gca().xaxis.set_major_formatter(tick)
@@ -159,7 +162,7 @@ class cGeneralProfiler:
             WARNING("the plotting function is not wrong, is this a headless server? {}".format(e))
 
     def plotHRC(self, figname="HRC.png", **kwargs):
-        HRC = self.get_hit_rate(**kwargs)
+        HRC = self.get_hit_ratio(**kwargs)
         try:
             plt.xlim(0, self.cache_size)
             plt.plot(range(0, self.cache_size + 1, self.bin_size), HRC)
