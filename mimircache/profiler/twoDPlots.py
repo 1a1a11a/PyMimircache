@@ -11,8 +11,10 @@ import matplotlib.ticker as ticker
 from matplotlib import pyplot as plt
 from mimircache.utils.printing import *
 from mimircache.profiler.cHeatmap import cHeatmap
+from mimircache.profiler.LRUProfiler import LRUProfiler
 import os
 import numpy as np
+from collections import defaultdict
 
 
 def request_num_2d(reader, mode, time_interval, figname="request_num.png"):
@@ -96,46 +98,6 @@ def cold_miss_ratio_2d(reader, mode, time_interval, figname="cold_miss_ratio2d.p
     reader.reset()
 
 
-def draw2d(l, **kwargs):
-    """
-    given a list l, plot it
-    :param l:
-    :param kwargs:
-    :return:
-    """
-    if 'figname' in kwargs:
-        filename = kwargs['figname']
-    else:
-        filename = '2d_plot.png'
-
-    plt.plot(l)
-
-    if 'xlabel' in kwargs:
-        plt.xlabel(kwargs['xlabel'])
-    if 'ylabel' in kwargs:
-        plt.ylabel(kwargs['ylabel'])
-    if 'xticks' in kwargs:
-        plt.gca().xaxis.set_major_formatter(kwargs['xticks'])
-    if 'yticks' in kwargs:
-        plt.gca().yaxis.set_major_formatter(kwargs['yticks'])
-    if 'title' in kwargs:
-        plt.title(kwargs['title'])
-    if 'logX' in kwargs:
-        plt.gca().set_xscale("log")
-    if 'logY' in kwargs:
-        plt.gca().set_yscale("log")
-
-    plt.xlim((0, len(l)+1))
-
-    plt.savefig(filename, dpi=600)
-    try:
-        plt.show()
-    except:
-        pass
-    INFO("plot is saved at the same directory")
-    plt.clf()
-
-
 def nameMapping_2d(reader, partial_ratio=0.1, figname=None):
     """
     rename all the IDs for items in the trace for visualization of trace
@@ -194,3 +156,116 @@ def nameMapping_2d(reader, partial_ratio=0.1, figname=None):
     plt.clf()
     INFO("plot is saved at the same directory")
     reader.reset()
+
+
+def popularity_2d(reader, logX=True, logY=True, cdf=False, figname="popularity.png"):
+    """
+    plot the popularity curve of the obj in the trace
+    :param reader:
+    :param logX:
+    :param logY:
+    :param cdf:
+    :param figname:
+    :return:
+    """
+    req_freq_dict = reader.get_req_freq_distribution()
+    freq_count_dict = defaultdict(int)
+    max_freq = -1
+    for _, v in req_freq_dict.items():
+        freq_count_dict[v] += 1
+        if v > max_freq:
+            max_freq = v
+
+    l = [0] * max_freq
+    xlabel = "obj frequency"
+    if not cdf:
+        ylabel = "num of obj"
+        for k, v in freq_count_dict.items():
+            l[k-1] = v
+    else:
+        ylabel = "num of obj (CDF)"
+        for k, v in freq_count_dict.items():
+            l[-k] = v
+        for i in range(1, len(l)):
+            l[i] = l[i-1]+l[i]
+        for i in range(0, len(l)):
+            l[i] = l[i] / l[-1]
+
+    draw2d(l, xlabel=xlabel, ylabel=ylabel, logX=logX, logY=logY, figname=figname,
+           xticks=ticker.FuncFormatter(lambda x, _: '{:.0%}'.format((x + 1) / len(l))))
+    reader.reset()
+
+
+
+def rd_distribution_2d(reader, logX=True, logY=True, cdf=False, figname="rd_distribution_2d.png"):
+    rd_list = LRUProfiler(reader).get_reuse_distance()
+    rd_dict = defaultdict(int)
+    for rd in rd_list:
+        rd_dict[rd] += 1
+
+    rd_count_dict = defaultdict(int)
+    max_freq = -1
+    for _, v in rd_dict.items():
+        rd_count_dict[v] += 1
+        if v > max_freq:
+            max_freq = v
+
+    l = [0] * max_freq
+    xlabel = "reuse distance frequency"
+    if not cdf:
+        ylabel = "num of requests"
+        for k, v in rd_count_dict.items():
+            l[k-1] = v
+    else:
+        ylabel = "num of requests (CDF)"
+        for k, v in rd_count_dict.items():
+            l[-k] = v
+        for i in range(1, len(l)):
+            l[i] = l[i-1]+l[i]
+        for i in range(0, len(l)):
+            l[i] = l[i] / l[-1]
+
+    draw2d(l, xlabel=xlabel, ylabel=ylabel, logX=logX, logY=logY, figname=figname,
+           xticks=ticker.FuncFormatter(lambda x, _: '{:.0%}'.format((x + 1) / len(l))))
+    reader.reset()
+
+
+
+def draw2d(l, **kwargs):
+    """
+    given a list l, plot it
+    :param l:
+    :param kwargs:
+    :return:
+    """
+    if 'figname' in kwargs:
+        filename = kwargs['figname']
+    else:
+        filename = '2d_plot.png'
+
+    plt.plot(l)
+
+    if 'xlabel' in kwargs:
+        plt.xlabel(kwargs['xlabel'])
+    if 'ylabel' in kwargs:
+        plt.ylabel(kwargs['ylabel'])
+    if 'xticks' in kwargs:
+        plt.gca().xaxis.set_major_formatter(kwargs['xticks'])
+    if 'yticks' in kwargs:
+        plt.gca().yaxis.set_major_formatter(kwargs['yticks'])
+    if 'title' in kwargs:
+        plt.title(kwargs['title'])
+    if 'logX' in kwargs and kwargs["logX"]:
+        plt.gca().set_xscale("log")
+    if 'logY' in kwargs and kwargs["logY"]:
+        plt.gca().set_yscale("log")
+
+    plt.xlim((0, len(l)+1))
+
+    plt.savefig(filename, dpi=600)
+    try:
+        plt.show()
+    except:
+        pass
+    INFO("plot is saved at the same directory")
+    plt.clf()

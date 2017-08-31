@@ -359,8 +359,16 @@ class cachecow:
             assert "time_interval" in kwargs, "you need to provide time_interval for plotting request_num2d"
             request_num_2d(self.reader, kwargs['mode'], kwargs['time_interval'], figname=figname)
 
+        elif plot_type == "popularity":
+            popularity_2d(self.reader, kwargs.get("logX", True),
+                          kwargs.get("logY", True), kwargs.get("cdf", False), figname=figname)
+
+        elif plot_type == "rd_distribution":
+            rd_distribution_2d(self.reader, kwargs.get("logX", True),
+                          kwargs.get("logY", True), kwargs.get("cdf", False), figname=figname)
+
         elif plot_type == 'mapping':
-            nameMapping_2d(self.reader, kwargs.get('ratio', 0.1), figname=figname)
+            nameMapping_2d(self.reader, partial_ratio=kwargs.get('partial_ratio', 0.1), figname=figname)
 
         else:
             print("currently don't support your specified plot_type: " + str(plot_type))
