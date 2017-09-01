@@ -1,0 +1,253 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Get Profiler/Do Profiling &#8212; mimircache 0.0.2.69 documentation</title>
+    <link rel="stylesheet" href="../_static/pyramid.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.0.2.69',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Basic Plotting" href="basic_plotting.html" />
+    <link rel="prev" title="How to Open Different Traces" href="open_trace.html" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Neuton&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nobile:regular,italic,bold,bolditalic&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
+<!--[if lte IE 6]>
+<link rel="stylesheet" href="../_static/ie6.css" type="text/css" media="screen" charset="utf-8" />
+<![endif]-->
+
+  </head>
+  <body>
+
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="basic_plotting.html" title="Basic Plotting"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="open_trace.html" title="How to Open Different Traces"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mimircache 0.0.2.69 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="get-profiler-do-profiling">
+<span id="profiling"></span><h1>Get Profiler/Do Profiling<a class="headerlink" href="#get-profiler-do-profiling" title="Permalink to this headline">¶</a></h1>
+<p>Profiler is one component of mimircache, which can be used for profiling and plotting, including getting reuse distance, hit ratio curve plotting.</p>
+<div class="section" id="profiling-with-lru">
+<h2>Profiling with LRU<a class="headerlink" href="#profiling-with-lru" title="Permalink to this headline">¶</a></h2>
+<p>First, let’s try LRU(least recently used), here is how to get a LRUprofiler:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">profiler_LRU</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">profiler</span><span class="p">(</span><span class="s1">&#39;LRU&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>To get reuse distance for each request, simply call the functions below, the returned result is a numpy array:</li>
+</ul>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">reuse_dist</span> <span class="o">=</span> <span class="n">profiler_LRU</span><span class="o">.</span><span class="n">get_reuse_distance</span><span class="p">()</span>
+<span class="go">array([-1, -1, -1, ..., -1, -1, -1], dtype=int64)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>To get hit count, hit ratio, miss ratio, we can do the following:</li>
+</ul>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">profiler_LRU</span><span class="o">.</span><span class="n">get_hit_count</span><span class="p">()</span>
+<span class="go">array([0,  2685,  662, ...,   0,   0,  48974], dtype=int64)</span>
+</pre></div>
+</div>
+<p>Hit count is a numpy array, the nth element of the array means among all requests, how many requests will be able to fit in the cache if we increase cache size from n-1 to n. The last two elements of the array are different from all others, the second to the last element indicates the number of requests that needs larger cache size(if you didn’t specify cache_size parameter, then it is 0), the last element says the number of cold misses, meaning the number of unique requests.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">profiler_LRU</span><span class="o">.</span><span class="n">get_hit_ratio</span><span class="p">()</span>
+<span class="go">array([ 0,  0.02357911,  0.02939265, ...,  0.56992061,   0,  0.43007939])</span>
+</pre></div>
+</div>
+<p>Hit ratio is a numpy array, the nth element of the array means the hit ratio we can achieve given cache size of n.
+Similar to hit count, the last two elements says the ratio of requests that needs larger cache size and the ratio of requests that are unique.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">profiler_LRU</span><span class="o">.</span><span class="n">get_miss_ratio</span><span class="p">()</span>
+<span class="go">array([ 1,  0.97642089,  0.97060735, ...,  0.43007939,   0,  0.43007939])</span>
+</pre></div>
+</div>
+<p>Miss ratio is a numpy array, the nth element of the array means the miss ratio we will have given cache size of n.
+The last two elements of the array are the same as that of hit ratio array.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">for reuse distance, hit count, hit ratio, miss ratio,
+if you don’t specify a cache_size parameter or specify cache_size=-1, it will use the largest possible size automatically.</p>
+</div>
+<ul class="simple">
+<li>With the data calculated from profiler, you can do plotting yourself, or any other calculation. But for your convenience, we have also provided several plotting functions for you to use. For plotting hit ratio curve(HRC):</li>
+</ul>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">profiler_LRU</span><span class="o">.</span><span class="n">plotHRC</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="align-center figure" id="id1">
+<a class="reference internal image-reference" href="../_images/example_HRC.png"><img alt="example HRC" src="../_images/example_HRC.png" style="width: 50%;" /></a>
+<p class="caption"><span class="caption-text">Hit ratio curve(HRC) of the trace</span></p>
+</div>
+<ul class="simple">
+<li>Similarly, we can plot miss ratio curve(MRC):</li>
+</ul>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">profiler_LRU</span><span class="o">.</span><span class="n">plotMRC</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="align-center figure" id="id2">
+<a class="reference internal image-reference" href="../_images/example_MRC.png"><img alt="example HRC" src="../_images/example_MRC.png" style="width: 50%;" /></a>
+<p class="caption"><span class="caption-text">Miss ratio curve(MRC) of the trace</span></p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Upon testing, using keyword arguments might cause error in some of 32-bit platform, if you get an error, please try not using keyword arguments.</p>
+</div>
+</div>
+<div class="section" id="profiling-with-non-lru">
+<h2>Profiling with non-LRU<a class="headerlink" href="#profiling-with-non-lru" title="Permalink to this headline">¶</a></h2>
+<p>Apart from LRU, we have also provided a varieties of other cache replacement algorithms for you to play with,
+including Optimal, FIFO, LRU-2, LRU-K, MRU, LFU, LFU_Fast, Random, SLRU, S4LRU, clock, adaptive SLRU.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Check <a class="reference internal" href="algorithms.html#algorithms"><span class="std std-ref">here</span></a> for detailed information about each cache replacement algorithms.</p>
+</div>
+<p>To play with these cache replacement algorithms, you just substitue ‘FIFO’ in the examples below with the cache replacement algorithm you want,
+then give a cache_size and bin_size (how fine you want the profiling going to, the smaller, the slower).
+The reason why we need cache_size and bin_size is that for a general cache replacement algorithm,
+the profiling is done by sampling at certain points among all cache size,
+in other words, the nth element in numpy arrays returned represents the result at cache size of n*bin_size.
+Some examples are shown below:</p>
+<ul class="simple">
+<li>Obtaining a profiler:</li>
+</ul>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">profiler_FIFO</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">profiler</span><span class="p">(</span><span class="s1">&#39;FIFO&#39;</span><span class="p">,</span> <span class="n">cache_size</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">bin_size</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Several other parameters and their default values are listed below, use_general_profiler is only used when cache replacement algorithm is LRU, the reason why we want to use a general profiler for LRU is that, profiling for LRU using a LRU profiler has time complexity of O(NlogN), while general profiler with sampling has time complexity of O(N), they will have a large time difference on big data.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="40%" />
+<col width="27%" />
+<col width="33%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Keyword Argument</th>
+<th class="head">Default Value</th>
+<th class="head">Required</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>cache_size</td>
+<td>No default value</td>
+<td>YES</td>
+</tr>
+<tr class="row-odd"><td>bin_size</td>
+<td>cache_size//100</td>
+<td>No</td>
+</tr>
+<tr class="row-even"><td>cache_params</td>
+<td>None</td>
+<td>Depend on algorithm</td>
+</tr>
+<tr class="row-odd"><td>num_of_threads</td>
+<td>4</td>
+<td>No</td>
+</tr>
+<tr class="row-even"><td>use_general_profiler</td>
+<td>False</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<ul class="simple">
+<li>After obtaining the profiler, everything else is the same as above with LRUProfiler, you can obtain hit_count, hit_ratio, miss_ratio, you can plotHRC, plotMRC, the only difference is the returned hit_count array, hit_ratio array, miss_ratio array do not have the last two special elements as above.</li>
+</ul>
+<p>Some examples are shown below:
+&gt;&gt;&gt; profiler_FIFO.get_hit_count()
+&gt;&gt;&gt; profiler_FIFO.get_hit_ratio()
+&gt;&gt;&gt; profiler_FIFO.get_miss_ratio()
+&gt;&gt;&gt; profiler_FIFO.plotHRC()</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Reuse distance related operation is only allowed on LRU, so don’t call get_reuse_distance on non-LRU cache replacement algorithms.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you want to test your own cache replacement algorithms, check <a class="reference internal" href="advanced_usage.html#create-new-cache-replacement-algorithms"><span class="std std-ref">here</span></a>.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Get Profiler/Do Profiling</a><ul>
+<li><a class="reference internal" href="#profiling-with-lru">Profiling with LRU</a></li>
+<li><a class="reference internal" href="#profiling-with-non-lru">Profiling with non-LRU</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="open_trace.html"
+                        title="previous chapter">How to Open Different Traces</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="basic_plotting.html"
+                        title="next chapter">Basic Plotting</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="basic_plotting.html" title="Basic Plotting"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="open_trace.html" title="How to Open Different Traces"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mimircache 0.0.2.69 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016-2017, Juncheng Yang.
+    </div>
+  </body>
+</html>

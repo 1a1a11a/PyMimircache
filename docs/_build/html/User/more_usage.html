@@ -1,0 +1,257 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Intermediate Usages &#8212; mimircache 0.0.2.69 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.0.2.69',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="intermediate-usages">
+<span id="advanced-usages"></span><h1>Intermediate Usages<a class="headerlink" href="#intermediate-usages" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="mimircache-and-its-components">
+<h2>mimircache and its components<a class="headerlink" href="#mimircache-and-its-components" title="Permalink to this headline">¶</a></h2>
+<p>Current version of mimircache is composed of three main components, the first one is cache, which simulates corresponding cache replacement algorithm,
+the second one is cacheReader, which provides all the necessary functions for reading and examing trace data file, and most important of all, for extracting data for profiling.
+The third type of objects are the profilers. Currently, we have three kinds of profilers, the first one is LRU profiler, specially tailored for LRU;
+the second one is a general profiler for profiling all non-LRU cache replacement algorithms;
+the third profiler is heatmap plot engine, currently supports a variety of heatmap.
+LRUProfiler is in C, so it is pretty fast, the rest two profilers have corresponding C implementation (cGeneralProfiler and cHeatmap) used for caches available in C.</p>
+<p>Each components have some more functions than described in tutorial, read the source code or raise a new issue in github
+if you want to know more or have questions.</p>
+</div>
+<div class="section" id="write-your-own-cachereader">
+<h2>Write your own cacheReader<a class="headerlink" href="#write-your-own-cachereader" title="Permalink to this headline">¶</a></h2>
+<p id="create-new-cache-reader">Writing your own cacheReader is not difficult, just inherit abstractCacheReader.py.
+Here is an example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mimircache.cacheReader.abstractReader</span> <span class="k">import</span> <span class="n">cacheReaderAbstract</span>
+
+<span class="k">class</span> <span class="nc">plainCacheReader</span><span class="p">(</span><span class="n">cacheReaderAbstract</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_loc</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">plainCacheReader</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">file_loc</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trace_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_loc</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">read_one_element</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">read_one_element</span><span class="p">()</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">trace_file</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">line</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">__next__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__next__</span><span class="p">()</span>
+        <span class="n">element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">trace_file</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">element</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">element</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">StopIteration</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;basic cache reader, cache trace separated by line, </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>After writing your own cache reader, you can use it on generalProfiler and heatmap, for example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">reader</span> <span class="o">=</span> <span class="n">vscsiCacheReader</span><span class="p">(</span><span class="n">PATH</span><span class="o">/</span><span class="n">TO</span><span class="o">/</span><span class="n">DATA</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">generalProfiler</span><span class="p">(</span><span class="n">reader</span><span class="p">,</span> <span class="s2">&quot;FIFO&quot;</span><span class="p">,</span> <span class="n">cache_size</span><span class="p">,</span> <span class="n">bin_size</span><span class="o">=</span><span class="n">bin_size</span><span class="p">,</span> <span class="n">num_of_process</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>the first parameter is the cacheReader object of your own, the second is the cache replacement algorithm,
+the third parameter is cache size, the fourth parameter is bin_size, and it can be omitted, in which case, the default bin_size if cache_size/100.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hm</span> <span class="o">=</span> <span class="n">heatmap</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hm</span><span class="o">.</span><span class="n">heatmap</span><span class="p">(</span><span class="n">reader</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">TIME_INTERVAL</span><span class="p">,</span> <span class="s2">&quot;hit_rate_start_time_end_time&quot;</span><span class="p">,</span> <span class="n">cache_size</span><span class="o">=</span><span class="n">CACHE_SIZE</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="write-your-own-cache-replacement-algorithm">
+<h2>Write your own cache replacement algorithm<a class="headerlink" href="#write-your-own-cache-replacement-algorithm" title="Permalink to this headline">¶</a></h2>
+<p id="create-new-cache-replacement-algorithms">Writing your own cache in Python is not difficult, just inherit abstractCache.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mimircache.cache.abstractCache</span> <span class="k">import</span> <span class="n">cache</span>
+
+<span class="k">class</span> <span class="nc">Random</span><span class="p">(</span><span class="n">cache</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cache_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">cache_size</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cacheDict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>  <span class="c1"># key -&gt; linked list node (in reality, it should also contains value)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache_line_list</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># to save all the keys, otherwise needs to populate from cache_dict every time</span>
+
+    <span class="k">def</span> <span class="nf">checkElement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param element: the key of cache request</span>
+<span class="sd">        :return: whether the given key is in the cache or not</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">element</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cacheDict</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">_updateElement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; the given element is in the cache, when it is requested again,</span>
+<span class="sd">         usually we need to update it to new location, but in random, we don&#39;t need to do that</span>
+<span class="sd">        :param element: the key of cache request</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">_insertElement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        the given element is not in the cache, now insert it into cache</span>
+<span class="sd">        :param element: the key of cache request</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cacheDict</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_size</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_evictOneElement</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cacheDict</span><span class="p">[</span><span class="n">element</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache_line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_printCacheLine</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cacheDict</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_evictOneElement</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        evict one element from the cache line</span>
+<span class="sd">        if we delete one element from list every time, it would be O(N) on every request, which is too expensive,</span>
+<span class="sd">        so we choose to put a hole on the list every time we delete it, when there are too many holes we re-generate the cache line list</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">rand_num</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randrange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_line_list</span><span class="p">))</span>
+        <span class="n">element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_line_list</span><span class="p">[</span><span class="n">rand_num</span><span class="p">]</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">element</span><span class="p">:</span>
+            <span class="n">rand_num</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randrange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_line_list</span><span class="p">))</span>
+            <span class="n">element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_line_list</span><span class="p">[</span><span class="n">rand_num</span><span class="p">]</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># mark this element as deleted, put a hole on it</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache_line_list</span><span class="p">[</span><span class="n">rand_num</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">:</span>
+            <span class="c1"># if there are too many holes, then we need to resize the list</span>
+            <span class="n">new_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_line_list</span> <span class="k">if</span> <span class="n">e</span><span class="p">]</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_line_list</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cache_line_list</span> <span class="o">=</span> <span class="n">new_list</span>
+
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">cacheDict</span><span class="p">[</span><span class="n">element</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">addElement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param element: the key of cache request, it can be in the cache, or not in the cache</span>
+<span class="sd">        :return: True if element in the cache</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkElement</span><span class="p">(</span><span class="n">element</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_updateElement</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_insertElement</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;Random Replacement, given size: </span><span class="si">{}</span><span class="s2">, current size: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_size</span><span class="p">,</span>
+                                                                             <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cacheDict</span><span class="p">),</span>
+                                                                             <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>The usage of new cache replacement algorithm is the same as the one in last section, just replace the algorithm string
+with your algorithm class.</p>
+<p>Profiling in python is only applicable on small data set, so you can use it to verify your idea, when running on large
+dataset, we suggested implemented the algorithms in C, check the source code to find out how to implement in C.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Intermediate Usages</a><ul>
+<li><a class="reference internal" href="#mimircache-and-its-components">mimircache and its components</a></li>
+<li><a class="reference internal" href="#write-your-own-cachereader">Write your own cacheReader</a></li>
+<li><a class="reference internal" href="#write-your-own-cache-replacement-algorithm">Write your own cache replacement algorithm</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/User/more_usage.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Juncheng Yang.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/User/more_usage.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

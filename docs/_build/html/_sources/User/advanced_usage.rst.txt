@@ -1,0 +1,172 @@
+.. _advanced_usages:
+
+Advanced Usages
+===============
+
+mimircache and its components
+-----------------------------
+Current version of mimircache is composed of three main components, the first one is cache, which simulates corresponding cache replacement algorithm,
+the second one is cacheReader, which provides all the necessary functions for reading and examing trace data file, and most important of all, for extracting data for profiling.
+The third type of objects are the profilers. Currently, we have three kinds of profilers, the first one is LRU profiler, specially tailored for LRU;
+the second one is a general profiler for profiling all non-LRU cache replacement algorithms;
+the third profiler is heatmap plot engine, currently supports a variety of heatmap.
+LRUProfiler is in C, so it is pretty fast, the rest two profilers have corresponding C implementation (cGeneralProfiler and cHeatmap) used for caches available in C.
+
+Each components have some more functions than described in tutorial, read the source code or raise a new issue in github
+if you want to know more or have questions.
+
+
+.. _create_new_cache_reader:
+
+Write your own cacheReader
+--------------------------
+
+Writing your own cacheReader is not difficult, just inherit abstractCacheReader.py.
+Here is an example::
+
+    from mimircache.cacheReader.abstractReader import cacheReaderAbstract
+
+    class plainCacheReader(cacheReaderAbstract):
+        def __init__(self, file_loc):
+            super(plainCacheReader, self).__init__(file_loc)
+            self.trace_file = open(file_loc, 'r')
+
+        def read_one_element(self):
+            super().read_one_element()
+            line = self.trace_file.readline()
+            if line:
+                return line.strip()
+            else:
+                return None
+
+        def __next__(self):
+            super().__next__()
+            element = self.trace_file.readline().strip()
+            if element:
+                return element
+            else:
+                raise StopIteration
+
+        def __repr__(self):
+            return "basic cache reader, cache trace separated by line, %s" % super().__repr__()
+
+
+After writing your own cache reader, you can use it on generalProfiler and heatmap, for example:
+
+    >>> reader = vscsiCacheReader(PATH/TO/DATA)
+    >>> p = generalProfiler(reader, "FIFO", cache_size, bin_size=bin_size, num_of_process=8)
+
+the first parameter is the cacheReader object of your own, the second is the cache replacement algorithm,
+the third parameter is cache size, the fourth parameter is bin_size, and it can be omitted, in which case, the default bin_size if cache_size/100.
+
+
+    >>> hm = heatmap()
+    >>> hm.heatmap(reader, 'r', TIME_INTERVAL, "hit_rate_start_time_end_time", cache_size=CACHE_SIZE)
+
+
+
+.. _create_new_cache_replacement_algorithms:
+
+Write your own cache replacement algorithm
+------------------------------------------
+
+Writing your own cache in Python is not difficult, just inherit abstractCache.py::
+
+    from mimircache.cache.abstractCache import cache
+
+    class Random(cache):
+        def __init__(self, cache_size=1000):
+            super().__init__(cache_size)
+            self.cacheDict = dict()  # key -> linked list node (in reality, it should also contains value)
+            self.cache_line_list = []  # to save all the keys, otherwise needs to populate from cache_dict every time
+
+        def checkElement(self, element):
+            """
+            :param element: the key of cache request
+            :return: whether the given key is in the cache or not
+            """
+            if element in self.cacheDict:
+                return True
+            else:
+                return False
+
+        def _updateElement(self, element):
+            """ the given element is in the cache, when it is requested again,
+             usually we need to update it to new location, but in random, we don't need to do that
+            :param element: the key of cache request
+            :return: None
+            """
+
+            pass
+
+        def _insertElement(self, element):
+            """
+            the given element is not in the cache, now insert it into cache
+            :param element: the key of cache request
+            :return: None
+            """
+            if len(self.cacheDict) >= self.cache_size:
+                self._evictOneElement()
+            self.cacheDict[element] = ""
+            self.cache_line_list.append(element)
+
+        def _printCacheLine(self):
+            for i in self.cacheDict:
+                try:
+                    print(i.content, end='\t')
+                except:
+                    print(i.content)
+
+            print(' ')
+
+        def _evictOneElement(self):
+            """
+            evict one element from the cache line
+            if we delete one element from list every time, it would be O(N) on every request, which is too expensive,
+            so we choose to put a hole on the list every time we delete it, when there are too many holes we re-generate the cache line list
+            :return: None
+            """
+            rand_num = random.randrange(0, len(self.cache_line_list))
+            element = self.cache_line_list[rand_num]
+            count = 0
+            while not element:
+                rand_num = random.randrange(0, len(self.cache_line_list))
+                element = self.cache_line_list[rand_num]
+                count += 1
+
+            # mark this element as deleted, put a hole on it
+            self.cache_line_list[rand_num] = None
+
+            if count > 10:
+                # if there are too many holes, then we need to resize the list
+                new_list = [e for e in self.cache_line_list if e]
+                del self.cache_line_list
+                self.cache_line_list = new_list
+
+            del self.cacheDict[element]
+
+        def addElement(self, element):
+            """
+            :param element: the key of cache request, it can be in the cache, or not in the cache
+            :return: True if element in the cache
+            """
+            if self.checkElement(element):
+                self._updateElement(element)
+                return True
+            else:
+                self._insertElement(element)
+                return False
+
+        def __repr__(self):
+            return "Random Replacement, given size: {}, current size: {}".format(self.cache_size,
+                                                                                 len(self.cacheDict),
+                                                                                 super().__repr__())
+
+The usage of new cache replacement algorithm is the same as the one in last section, just replace the algorithm string
+with your algorithm class.
+
+Profiling in python is only applicable on small data set, so you can use it to verify your idea, when running on large
+dataset, we suggested implemented the algorithms in C, check the source code to find out how to implement in C.
+
+
+

@@ -1,0 +1,270 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Heatmap Plotting &#8212; mimircache 0.0.2.69 documentation</title>
+    <link rel="stylesheet" href="../_static/pyramid.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.0.2.69',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Algorithms" href="algorithms.html" />
+    <link rel="prev" title="Basic Plotting" href="basic_plotting.html" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Neuton&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nobile:regular,italic,bold,bolditalic&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
+<!--[if lte IE 6]>
+<link rel="stylesheet" href="../_static/ie6.css" type="text/css" media="screen" charset="utf-8" />
+<![endif]-->
+
+  </head>
+  <body>
+
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="algorithms.html" title="Algorithms"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="basic_plotting.html" title="Basic Plotting"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mimircache 0.0.2.69 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="heatmap-plotting">
+<span id="id1"></span><h1>Heatmap Plotting<a class="headerlink" href="#heatmap-plotting" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="plotting-heatmaps">
+<h2>Plotting Heatmaps<a class="headerlink" href="#plotting-heatmaps" title="Permalink to this headline">¶</a></h2>
+<p>Another great feature of mimircache is that it allows you to incorporate time component into consideration, making cache analysis from static to dynamic.
+Currently six types of heatmaps are supported (only hit_ratio_start_time_end_time and rd_distribution are frequently used and tested, others may have a bug, please file a bug at <a class="reference external" href="http://github.com/1a1a11a/mimircache">http://github.com/1a1a11a/mimircache</a>):</p>
+<div class="section" id="plot-types">
+<h3>Plot Types<a class="headerlink" href="#plot-types" title="Permalink to this headline">¶</a></h3>
+<p>For all the plot types, the X-axis is the time in percent (either real or virtual).</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="15%" />
+<col width="18%" />
+<col width="68%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>plot type</td>
+<td>Y-axis</td>
+<td>plot detail</td>
+</tr>
+<tr class="row-even"><td>hit_ratio_start_time_end_time</td>
+<td>end time (real or virtual) in percent</td>
+<td>pixel (x, y) means the hit ratio from time x to time y.</td>
+</tr>
+<tr class="row-odd"><td>rd_distribution</td>
+<td>reuse distance</td>
+<td>reuse distance distribution graph, pixel (x, y) represents at time x+time_interval, the number of requests have reuse distance of y (shown in color).</td>
+</tr>
+<tr class="row-even"><td>rd_distribution_CDF</td>
+<td>reuse distance</td>
+<td>similar to reuse distance distribution graph, but each points (x, y) represents the percent of requests have reuse distance less than or equal to y.</td>
+</tr>
+<tr class="row-odd"><td>future_rd_distribution</td>
+<td>future reuse distance</td>
+<td>future reuse distance distribution graph, future reuse distance is defined as how far in the future, it will be accessed again.</td>
+</tr>
+<tr class="row-even"><td>hit_ratio_start_time_cache_size</td>
+<td>cache size</td>
+<td>each vertical line x=t is a hit ratio curve of trace starting at t</td>
+</tr>
+<tr class="row-odd"><td>avg_rd_start_time_end_time</td>
+<td>end time (real or virtual) in percent</td>
+<td>pixel (x, y) means average reuse distance of requests from time x to time y</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="how-to-plot">
+<h3>How to Plot<a class="headerlink" href="#how-to-plot" title="Permalink to this headline">¶</a></h3>
+<p>Plotting heatmaps are easy, just calling the following function on cachecow,</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">heatmap</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">plot_type</span><span class="p">,</span> <span class="n">time_interval</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_of_pixels</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+<span class="go">                algorithm=&quot;LRU&quot;, cache_params=None, cache_size=-1, **kwargs)</span>
+</pre></div>
+</div>
+<p>The first two parameters are mode and plot_type, time mode is either r or v for real time or virtual time, the types of plot(see table above)
+The following keyword arguments are optional, however, you must provide one of time_interval and number_of_pixels, which controls fine the graph will look like and also determines the amount of computation.
+The time_interval variable implies the time span of a single pixel in the plot, sometimes it is not easy to estimate time_interval, so instead you can provide the number of pixels you want in one dimension.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you do not want the computation time to be very long, then specify a big time_interval or small num_of_pixels.</p>
+</div>
+<table border="1" class="docutils">
+<colgroup>
+<col width="14%" />
+<col width="11%" />
+<col width="32%" />
+<col width="43%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>Keyword Arguments</td>
+<td>Default Value</td>
+<td>Possible Values</td>
+<td>Necessary</td>
+</tr>
+<tr class="row-even"><td>time_interval</td>
+<td>“-1”</td>
+<td>a time interval</td>
+<td>provide this value or num_of_pixels</td>
+</tr>
+<tr class="row-odd"><td>num_of_pixels</td>
+<td>“-1”</td>
+<td>the number of pixels on one dimension</td>
+<td>provide this value or time_interval</td>
+</tr>
+<tr class="row-even"><td>algorithm</td>
+<td>“LRU”</td>
+<td>All available cache replacement algorithms</td>
+<td>No</td>
+</tr>
+<tr class="row-odd"><td>cache_params</td>
+<td>None</td>
+<td>Depends on cache replacement algorithms</td>
+<td>Depends on cache replacement algorithms, for example LRU_K</td>
+</tr>
+<tr class="row-even"><td>cache_size</td>
+<td>-1</td>
+<td>Positive integer</td>
+<td><strong>Necessary for plot “hit_ratio_start_time_end_time”</strong></td>
+</tr>
+<tr class="row-odd"><td>figname</td>
+<td>heatmap.png</td>
+<td>Any string, remember to include suffix</td>
+<td>No</td>
+</tr>
+<tr class="row-even"><td>num_of_threads</td>
+<td>4</td>
+<td>Positive integer except 0</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attention</strong>: cache_size is necessary for hit_ratio_start_time_end_time graph.</p>
+</div>
+<div class="section" id="ploting-examples">
+<h3>Ploting Examples<a class="headerlink" href="#ploting-examples" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">heatmap</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s2">&quot;hit_ratio_start_time_end_time&quot;</span><span class="p">,</span> <span class="n">num_of_pixels</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">cache_size</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">figname</span><span class="o">=</span><span class="s2">&quot;heatmap1.png&quot;</span><span class="p">,</span> <span class="n">num_of_threads</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="align-center figure" id="id2">
+<a class="reference internal image-reference" href="../_images/example_heatmap.png"><img alt="example hit_ratio_start_time_end_time" src="../_images/example_heatmap.png" style="width: 50%;" /></a>
+<p class="caption"><span class="caption-text">Hit ratio of varying start time and end time</span></p>
+</div>
+<p>Another example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">heatmap</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s2">&quot;rd_distribution&quot;</span><span class="p">,</span> <span class="n">time_interval</span><span class="o">=</span><span class="mi">10000000</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="align-center figure" id="id3">
+<a class="reference internal image-reference" href="../_images/example_heatmap_rd_distibution.png"><img alt="reuse distance distribution graph" src="../_images/example_heatmap_rd_distibution.png" style="width: 50%;" /></a>
+<p class="caption"><span class="caption-text">Reuse distance distribution graph</span></p>
+</div>
+</div>
+</div>
+<div class="section" id="plotting-differential-heatmaps">
+<h2>Plotting Differential Heatmaps<a class="headerlink" href="#plotting-differential-heatmaps" title="Permalink to this headline">¶</a></h2>
+<p>Want to know which algorithm is better? Not satisfied with hit ratio curve or miss ratio curve because they only show you the result over the whole trace?
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.</p>
+<p>Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">diffHeatmap</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">plot_type</span><span class="p">,</span> <span class="n">algorithm1</span><span class="p">,</span> <span class="n">time_interval</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_of_pixels</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+<span class="go">                    algorithm2=&quot;Optimal&quot;, cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)</span>
+</pre></div>
+</div>
+<p>The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,</p>
+<p>Example:
+&gt;&gt;&gt; c.diffHeatmap(‘r’, “hit_ratio_start_time_end_time”, time_interval=1000000, algorithm1=”LRU”, cache_size=2000)</p>
+<div class="align-center figure" id="id4">
+<a class="reference internal image-reference" href="../_images/example_differential_heatmap.png"><img alt="example differential_heatmap" src="../_images/example_differential_heatmap.png" style="width: 50%;" /></a>
+<p class="caption"><span class="caption-text">Differential heatmap, the value of each pixel is (hit_ratio_of_algorithm2 - hit_ratio_of_algorithm1)/hit_ratio_of_algorithm1</span></p>
+</div>
+<p>Congratulations! You have finished the basic tutorial! Check <a class="reference internal" href="advanced_usage.html#advanced-usages"><span class="std std-ref">Advanced Usage</span></a> Part if you need.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Heatmap Plotting</a><ul>
+<li><a class="reference internal" href="#plotting-heatmaps">Plotting Heatmaps</a><ul>
+<li><a class="reference internal" href="#plot-types">Plot Types</a></li>
+<li><a class="reference internal" href="#how-to-plot">How to Plot</a></li>
+<li><a class="reference internal" href="#ploting-examples">Ploting Examples</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#plotting-differential-heatmaps">Plotting Differential Heatmaps</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="basic_plotting.html"
+                        title="previous chapter">Basic Plotting</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="algorithms.html"
+                        title="next chapter">Algorithms</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="algorithms.html" title="Algorithms"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="basic_plotting.html" title="Basic Plotting"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mimircache 0.0.2.69 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016-2017, Juncheng Yang.
+    </div>
+  </body>
+</html>

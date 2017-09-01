@@ -1,0 +1,213 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>How to Open Different Traces &#8212; mimircache 0.0.2.69 documentation</title>
+    <link rel="stylesheet" href="../_static/pyramid.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.0.2.69',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Get Profiler/Do Profiling" href="profiling.html" />
+    <link rel="prev" title="Quick Start" href="quick_start.html" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Neuton&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nobile:regular,italic,bold,bolditalic&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
+<!--[if lte IE 6]>
+<link rel="stylesheet" href="../_static/ie6.css" type="text/css" media="screen" charset="utf-8" />
+<![endif]-->
+
+  </head>
+  <body>
+
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="profiling.html" title="Get Profiler/Do Profiling"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="quick_start.html" title="Quick Start"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mimircache 0.0.2.69 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="how-to-open-different-traces">
+<span id="open-trace"></span><h1>How to Open Different Traces<a class="headerlink" href="#how-to-open-different-traces" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="supported-trace-file-type">
+<h2>Supported Trace File Type<a class="headerlink" href="#supported-trace-file-type" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>plain Text</li>
+<li>csv file</li>
+<li>binary file</li>
+<li>vscsi trace</li>
+</ul>
+</div>
+<div class="section" id="how-to-open-a-trace-file">
+<h2>How to Open a Trace File<a class="headerlink" href="#how-to-open-a-trace-file" title="Permalink to this headline">¶</a></h2>
+<p>Now let’s open a trace file, your have three choices for opening different types of trace files, choose the one suits your need.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">mimircache</span> <span class="k">as</span> <span class="nn">m</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">cachecow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;path/to/trace&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">csv</span><span class="p">(</span><span class="s2">&quot;path/to/trace&quot;</span><span class="p">,</span> <span class="n">init_params</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span><span class="n">x</span><span class="p">})</span>  <span class="c1"># specify which column contains the request key(label)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">binary</span><span class="p">(</span><span class="s2">&quot;path/to/trace&quot;</span><span class="p">,</span> <span class="n">init_params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span> <span class="s2">&quot;fmt&quot;</span><span class="p">:</span> <span class="n">xxx</span><span class="p">})</span>   <span class="c1"># use same format as python struct</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">vscsi</span><span class="p">(</span><span class="s2">&quot;path/to/trace&quot;</span><span class="p">)</span>                          <span class="c1"># for vscsi format data</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>for csv and binary data, the column/field number begins from 1, so the first column(field) is 1, the second is 2, etc.
+In the init_params, other possible parameters are listed in the table below</p>
+<table border="1" class="last docutils">
+<colgroup>
+<col width="12%" />
+<col width="15%" />
+<col width="15%" />
+<col width="16%" />
+<col width="43%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Keyword Argument</th>
+<th class="head">relavant file type</th>
+<th class="head">Possible Value</th>
+<th class="head">Default Value</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>label</td>
+<td>csv/binary</td>
+<td>int</td>
+<td>this is required</td>
+<td>the column of label of the request</td>
+</tr>
+<tr class="row-odd"><td>fmt</td>
+<td>binary</td>
+<td>string</td>
+<td>this is required</td>
+<td>fmt string of binary data, same as python struct</td>
+</tr>
+<tr class="row-even"><td>header</td>
+<td>csv</td>
+<td>True/False</td>
+<td>False</td>
+<td>whether csv data has header</td>
+</tr>
+<tr class="row-odd"><td>delimiter</td>
+<td>csv</td>
+<td>char</td>
+<td>“,”</td>
+<td>the delimiter separating fields in the csv file</td>
+</tr>
+<tr class="row-even"><td>real_time</td>
+<td>csv/binary</td>
+<td>int</td>
+<td>NA</td>
+<td>the column of real time</td>
+</tr>
+<tr class="row-odd"><td>op</td>
+<td>csv/binary</td>
+<td>int</td>
+<td>NA</td>
+<td>the column of operation (read/write)</td>
+</tr>
+<tr class="row-even"><td>size</td>
+<td>csv/binary</td>
+<td>int</td>
+<td>NA</td>
+<td>the column of block/request size</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>OK, data is ready, now let’s play!</p>
+<p>If you want to read your data from cachecow, you can simply use cachecow as an iterator, for example, doing the following:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">request</span> <span class="ow">in</span> <span class="n">c</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="nb">print</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you have a special data format, you can write your own reader in a few lines, see <a class="reference internal" href="advanced_usage.html#advanced-usages"><span class="std std-ref">here</span></a> about how to write your own cache reader.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">How to Open Different Traces</a><ul>
+<li><a class="reference internal" href="#supported-trace-file-type">Supported Trace File Type</a></li>
+<li><a class="reference internal" href="#how-to-open-a-trace-file">How to Open a Trace File</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="quick_start.html"
+                        title="previous chapter">Quick Start</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="profiling.html"
+                        title="next chapter">Get Profiler/Do Profiling</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="profiling.html" title="Get Profiler/Do Profiling"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="quick_start.html" title="Quick Start"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mimircache 0.0.2.69 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016-2017, Juncheng Yang.
+    </div>
+  </body>
+</html>

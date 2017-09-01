@@ -1,0 +1,326 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Basic Plotting &#8212; mimircache 0.0.2.69 documentation</title>
+    <link rel="stylesheet" href="../_static/pyramid.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.0.2.69',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Heatmap Plotting" href="heatmap_plotting.html" />
+    <link rel="prev" title="Get Profiler/Do Profiling" href="profiling.html" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Neuton&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nobile:regular,italic,bold,bolditalic&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
+<!--[if lte IE 6]>
+<link rel="stylesheet" href="../_static/ie6.css" type="text/css" media="screen" charset="utf-8" />
+<![endif]-->
+
+  </head>
+  <body>
+
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="heatmap_plotting.html" title="Heatmap Plotting"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="profiling.html" title="Get Profiler/Do Profiling"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mimircache 0.0.2.69 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="basic-plotting">
+<span id="id1"></span><h1>Basic Plotting<a class="headerlink" href="#basic-plotting" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id2">
+<h2>Basic Plotting<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>mimircache allows you to plot a variety graphs, including basic graphs to help you get better visualizing and understanding of your data.
+Before plotting, let’s talk about the concept of time, there are two types of time concept in mimircache.</p>
+<p>The first one is called <strong>virtual time</strong>, which basically is the order in the request sequence, so the first request has virtual time 1, the second request has virtual time 2, etc.</p>
+<p>The other is <strong>real time</strong>, which is the wall clock time and it is used only when you have specified the field/column of real_time in the data.</p>
+<p>Current supported plot types are listed in the table below</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>plot type</td>
+<td>description</td>
+</tr>
+<tr class="row-even"><td>cold_miss</td>
+<td>cold miss count VS time, how many cold miss every x seconds (real time and unit is the same as the unit in trace file) or every x requests (virtual time)</td>
+</tr>
+<tr class="row-odd"><td>cold_miss_ratio</td>
+<td>similar to cold miss plot, the difference is it shows the ratio of cold miss instead of count of cold miss</td>
+</tr>
+<tr class="row-even"><td>request_num</td>
+<td>the number of requests per x seconds (real time and unit is the same as the unit in trace file), virtual time does not make sense here</td>
+</tr>
+<tr class="row-odd"><td>popularity</td>
+<td>the popularity curve of the obj in the trace, it shows how many objects have how many hits</td>
+</tr>
+<tr class="row-even"><td>mapping</td>
+<td>map from obj to a uniq id and plot the requests, this is used to identify scan in the requests</td>
+</tr>
+<tr class="row-odd"><td>rd_distribution</td>
+<td>the reuse distribution 2d plot, it shows how many requests have reuse distance of X</td>
+</tr>
+</tbody>
+</table>
+<p>To plot these figures, you can invoke twoDPlot function on cachecow obj:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">twoDPlot</span><span class="p">(</span><span class="n">plot_type</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>All optional kwargs all listed in the table below.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="10%" />
+<col width="22%" />
+<col width="68%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>arguments</td>
+<td>supported plot types</td>
+<td>description</td>
+</tr>
+<tr class="row-even"><td>mode</td>
+<td>cold_miss/request_num
+cold_miss_ratio</td>
+<td>time mode used in plotting, “v” for virtual time, “r” for real time.</td>
+</tr>
+<tr class="row-odd"><td>time_interval</td>
+<td>cold_miss/request_num
+cold_miss_ratio</td>
+<td>the time interval/span of each sample.</td>
+</tr>
+<tr class="row-even"><td>logX</td>
+<td>popularity/rd_distribution</td>
+<td>whether we use log scale X-axis</td>
+</tr>
+<tr class="row-odd"><td>logY</td>
+<td>popularity/rd_distribution</td>
+<td>whether we use log scale Y-axis</td>
+</tr>
+<tr class="row-even"><td>cdf</td>
+<td>popularity/rd_distribution</td>
+<td>whether we want to plot CDF</td>
+</tr>
+<tr class="row-odd"><td>partial_ratio</td>
+<td>mapping</td>
+<td>the zoom in ratio, if it is 1, then no zoom in, see below for further explanation.</td>
+</tr>
+<tr class="row-even"><td>figname</td>
+<td>all plots</td>
+<td>the name of the figure</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="cold-miss-plot">
+<h3>Cold miss plot<a class="headerlink" href="#cold-miss-plot" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Cold miss plot: the count of cold misses in the given interval.</li>
+</ul>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">twoDPlot</span><span class="p">(</span><span class="s1">&#39;cold_miss&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;v&quot;</span><span class="p">,</span> <span class="n">time_interval</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>   <span class="c1"># the number of cold misses every 1000 requests</span>
+</pre></div>
+</div>
+<div class="align-center figure" id="id3">
+<a class="reference internal image-reference" href="../_images/example_cold_miss2d.png"><img alt="example cold miss" src="../_images/example_cold_miss2d.png" style="width: 50%;" /></a>
+<p class="caption"><span class="caption-text">Cold miss count in virtual time</span></p>
+</div>
+</div>
+<div class="section" id="request-number-plot">
+<h3>Request number plot<a class="headerlink" href="#request-number-plot" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Request number plot: the number of requests in the given interval.</li>
+</ul>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">twoDPlot</span><span class="p">(</span><span class="s1">&#39;request_num&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">time_interval</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>   <span class="c1"># the number of requests every 10000 seconds</span>
+</pre></div>
+</div>
+<div class="align-center figure" id="id4">
+<a class="reference internal image-reference" href="../_images/example_request_num.png"><img alt="example request num" src="../_images/example_request_num.png" style="width: 50%;" /></a>
+<p class="caption"><span class="caption-text">Request number count in real time</span></p>
+</div>
+</div>
+<div class="section" id="mapping-plot">
+<h3>Mapping plot<a class="headerlink" href="#mapping-plot" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Mapping plot: it renames each obj with sequence 1~N, then plot the time of each request.</li>
+<li>a pixel (X, Y) in the figure means obj Y is requested at virtual time X, a horizontal line y=Y plots the all the requests of a single obj Y.</li>
+<li>The default setting will plot two figures, the first figure plots all the requests with sampling, the second figure takes first partial_ratio (0.1) of all requests and do the same plotting, which can been thought as a zoom in for the first 10% of the trace.</li>
+<li>This plot is very useful when you are dealing with block level trace, we can see the scan very easily even if the scan if not scanning consecutive blocks.</li>
+</ul>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">twoDPlot</span><span class="p">(</span><span class="s1">&#39;mapping&#39;</span><span class="p">,</span> <span class="n">partial_ratio</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>     <span class="c1"># mapping plot</span>
+</pre></div>
+</div>
+<div class="align-center figure" id="id5">
+<a class="reference internal image-reference" href="../_images/example_mappingplot.png"><img alt="example mapping plot" src="../_images/example_mappingplot.png" style="width: 50%;" /></a>
+<p class="caption"><span class="caption-text">Mapping plot</span></p>
+</div>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="hit-ratio-curve-plotting">
+<h2>Hit Ratio Curve Plotting<a class="headerlink" href="#hit-ratio-curve-plotting" title="Permalink to this headline">¶</a></h2>
+<p>To plot hit ratio curve(HRC), you can either get a profiler and plot like the ones shown in <a class="reference internal" href="profiling.html#profiling"><span class="std std-ref">profiling</span></a>, or you can use cachecow to directly plot hit ratio curves.</p>
+<p>Using cachecow to plot HRC is easy, you just call plotHRC and pass in a list of algorithms you want to plot with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">plotHRCs</span><span class="p">(</span><span class="n">algorithm_list</span><span class="p">,</span> <span class="n">cache_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cache_size</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">bin_size</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+<span class="go">                auto_size=True, num_of_threads=4, use_general_profiler=False,</span>
+<span class="go">                save_gradually=False, figname=&quot;HRC.png&quot;, **kwargs)</span>
+</pre></div>
+</div>
+<p>A detailed explanation of each arguments can be found in the table below:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="11%" />
+<col width="13%" />
+<col width="76%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>arguments</td>
+<td>Value type or possile value</td>
+<td>description</td>
+</tr>
+<tr class="row-even"><td>algorithm_list</td>
+<td>a list of algorithm</td>
+<td>All supported algorithms can be found <a class="reference internal" href="algorithms.html#algorithms"><span class="std std-ref">here</span></a>.</td>
+</tr>
+<tr class="row-odd"><td>cache_params</td>
+<td>a list of cache alg parameters</td>
+<td>It is a list of the same size of algorithm_list, use <cite>None</cite> if an algorithm does not require parameters.
+If the list is all <cite>None</cite>, then cache_params is optional.</td>
+</tr>
+<tr class="row-even"><td>cache_size</td>
+<td>int</td>
+<td>The max size of cache, if -1, then cachecow will find the largest one for you automatically.</td>
+</tr>
+<tr class="row-odd"><td>bin_size</td>
+<td>int</td>
+<td>cachecow will profiling at bin_size, bin_size*2 … cache_size, if bin_size=-1, cachecow will use cache_size//100 as default.</td>
+</tr>
+<tr class="row-even"><td>auto_size</td>
+<td>True/False</td>
+<td>Whether cachecow should chnage cache_size to avoid plateau at the end of HRC curve.</td>
+</tr>
+<tr class="row-odd"><td>num_of_threads</td>
+<td>int</td>
+<td>Control concurrency in the application, default is 4.</td>
+</tr>
+<tr class="row-even"><td>use_general_profiler</td>
+<td>True/False</td>
+<td>Only Used for LRU profiling, the default profiler is LRUProfiler, which gives high accuracy, but has time complexity of O(NlogN), which can be time consuming on big data,
+if use_general_profiler=True, then cachecow will use a generalProfiler for LRU as well, which has time complexity of O(N).</td>
+</tr>
+<tr class="row-odd"><td>save_gradually</td>
+<td>True/False</td>
+<td>On big data, the hit ratio curve plotting can be very time consuming, save_gradually will save the plot everytime when one algorithm is finished.</td>
+</tr>
+<tr class="row-even"><td>figname</td>
+<td>string</td>
+<td>The name of the figure, filename should contain suffix</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="example">
+<h3>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">plotHRCs</span><span class="p">([</span><span class="s2">&quot;LRU&quot;</span><span class="p">,</span> <span class="s2">&quot;LFUFast&quot;</span><span class="p">,</span> <span class="s2">&quot;ARC&quot;</span><span class="p">,</span> <span class="s2">&quot;SLRU&quot;</span><span class="p">,</span> <span class="s2">&quot;Optimal&quot;</span><span class="p">],</span>
+<span class="go">            cache_params=[None, None, None, {&quot;N&quot;:2}, None],</span>
+<span class="go">            save_gradually=True)</span>
+</pre></div>
+</div>
+<div class="align-center figure" id="id6">
+<a class="reference internal image-reference" href="../_images/basicPlotting_HRCs.png"><img alt="example HRCs" src="../_images/basicPlotting_HRCs.png" style="width: 50%;" /></a>
+<p class="caption"><span class="caption-text">Hit Ratio Curves</span></p>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Basic Plotting</a><ul>
+<li><a class="reference internal" href="#id2">Basic Plotting</a><ul>
+<li><a class="reference internal" href="#cold-miss-plot">Cold miss plot</a></li>
+<li><a class="reference internal" href="#request-number-plot">Request number plot</a></li>
+<li><a class="reference internal" href="#mapping-plot">Mapping plot</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#hit-ratio-curve-plotting">Hit Ratio Curve Plotting</a><ul>
+<li><a class="reference internal" href="#example">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="profiling.html"
+                        title="previous chapter">Get Profiler/Do Profiling</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="heatmap_plotting.html"
+                        title="next chapter">Heatmap Plotting</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="heatmap_plotting.html" title="Heatmap Plotting"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="profiling.html" title="Get Profiler/Do Profiling"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mimircache 0.0.2.69 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016-2017, Juncheng Yang.
+    </div>
+  </body>
+</html>

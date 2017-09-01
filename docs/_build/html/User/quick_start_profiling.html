@@ -1,0 +1,1209 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Quick Start &#8212; mimircache 0.0.2.69 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.0.2.69',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="quick-start">
+<span id="id1"></span><h1>Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="get-profiler-do-profiling">
+<h2>Get Profiler/Do Profiling<a class="headerlink" href="#get-profiler-do-profiling" title="Permalink to this headline">¶</a></h2>
+<p>Before we calculate/plot something, let’s make one thing clear, the calculation and plotting is carried out by something called profiler, so we need to obtain a profiler first.</p>
+<div class="section" id="profiling-with-lru">
+<h3>Profiling with LRU<a class="headerlink" href="#profiling-with-lru" title="Permalink to this headline">¶</a></h3>
+<dl class="docutils">
+<dt>First, let’s try LRU(least recently used), we need to get a profiler:</dt>
+<dd><div class="first last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">profiler_LRU</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">profiler</span><span class="p">(</span><span class="s1">&#39;LRU&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<ul>
+<li><dl class="first docutils">
+<dt>To get reuse distance for each request, simply call the functions below, the returned result is a numpy array:</dt>
+<dd><div class="first last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">reuse_dist</span> <span class="o">=</span> <span class="n">profiler_LRU</span><span class="o">.</span><span class="n">get_reuse_distance</span><span class="p">()</span>
+<span class="go">array([-1, -1, -1, ..., -1, -1, -1], dtype=int64)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+<li><p class="first">To get hit count, hit rate, miss rate, we can do the following:</p>
+</li>
+<li><dl class="first docutils">
+<dt>Hit count is a numpy array, the nth element of the array means among all requests, how many requests will be able to fit in the cache if we increase cache size from n-1 to n. The last two elements of the array are different from all others, the second to the last element means the number of requests that needs larger cache size(if you specified cache_size parameter, otherwise it is 0), the last element says the number of cold misses, meaning the number of unique requests.</dt>
+<dd><div class="first last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">profiler_LRU</span><span class="o">.</span><span class="n">get_hit_count</span><span class="p">()</span>
+<span class="go">array([0,  2685,  662, ...,   0,   0,  48974], dtype=int64)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Hit rate is a numpy array, the nth element of the array means the hit rate we can achieve given cache size of n. Similar to hit count, the last two elements says the ratio of requests that needs larger cache size and the ratio of requests that are unique.</dt>
+<dd><div class="first last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">profiler_LRU</span><span class="o">.</span><span class="n">get_hit_rate</span><span class="p">()</span>
+<span class="go">array([ 0,  0.02357911,  0.02939265, ...,  0.56992061,   0,  0.43007939])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Miss rate is a numpy array, the nth element of the array means the miss rate we will have given cache size of n. The last two elements of the array are the same as that of hit rate array.</dt>
+<dd><div class="first last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">profiler_LRU</span><span class="o">.</span><span class="n">get_miss_rate</span><span class="p">()</span>
+<span class="go">array([ 1,  0.97642089,  0.97060735, ...,  0.43007939,   0,  0.43007939])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">for reuse distance, hit count, hit rate, miss rate, if you don’t specify a cache_size parameter or specify cache_size=-1, it will use the largest possible size.</p>
+</div>
+<ul>
+<li><dl class="first docutils">
+<dt>With the data calculated from profiler, you can do plotting yourself, or any other calculation. But for your convenience, we have also provided several plotting functions for you to use. For plotting hit rate curve(HRC):</dt>
+<dd><div class="first last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">profiler_LRU</span><span class="o">.</span><span class="n">plotHRC</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+</ul>
+<div class="align-center figure" id="id2">
+<a class="reference internal image-reference" href="../_images/example_HRC.png"><img alt="example HRC" src="../_images/example_HRC.png" style="width: 50%;" /></a>
+<p class="caption"><span class="caption-text">Hit rate curve(HRC) of the trace</span></p>
+</div>
+<ul>
+<li><dl class="first docutils">
+<dt>Similarly, we can plot miss rate curve(MRC):</dt>
+<dd><div class="first last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">profiler_LRU</span><span class="o">.</span><span class="n">plotMRC</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+</ul>
+<div class="align-center figure" id="id3">
+<a class="reference internal image-reference" href="../_images/example_MRC.png"><img alt="example HRC" src="../_images/example_MRC.png" style="width: 50%;" /></a>
+<p class="caption"><span class="caption-text">Miss rate curve(MRC) of the trace</span></p>
+</div>
+<p>Except all the default parameter we used for profiling above, you can also provide other keyword arguments, supported keyword arguments are listed below.</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">functions/arguments</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>&#160;</td>
+<td>the size of cache, default is -1, which is the largest possible size</td>
+</tr>
+<tr class="row-odd"><td>get_reuse_distance</td>
+<td>return an array of reuse distance</td>
+</tr>
+<tr class="row-even"><td>get_hit_count</td>
+<td><blockquote class="first">
+<div>return an array of size cacheSize+3, 0~size(included) are for
+counting rd=0~cacheSize, size+1 is for count of req that</div></blockquote>
+<dl class="last docutils">
+<dt>have reuse distance &gt; cacheSize, size+2 is the number of cold miss,</dt>
+<dd>so total is size+3 buckets</dd>
+</dl>
+</td>
+</tr>
+<tr class="row-odd"><td>get_hit_rate</td>
+<td>Yes</td>
+</tr>
+<tr class="row-even"><td>get_miss_rate</td>
+<td>Yes</td>
+</tr>
+<tr class="row-odd"><td>plotHRC</td>
+<td>Yes</td>
+</tr>
+<tr class="row-even"><td>plotMRC</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<ul>
+<li><dl class="first docutils">
+<dt>An example for how to use these keyword arguments:</dt>
+<dd><div class="first last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">profiler_LRU</span><span class="o">.</span><span class="n">get_hit_rate</span><span class="p">(</span><span class="n">cache_size</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">begin</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+</ul>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Upon testing, using keyword arguments will cause error in some of 32-bit platform, if you get an error, please try not using keyword arguments.</p>
+</div>
+</div>
+<div class="section" id="profiling-with-non-lru">
+<h3>Profiling with non-LRU<a class="headerlink" href="#profiling-with-non-lru" title="Permalink to this headline">¶</a></h3>
+<p>Apart from LRU, we have also provided a varieties of other cache replacement algorithms for you to play with, including Optimal, FIFO, LRU-2, LRU-K, MRU, LFU_RR, LFU_MRU, LFU_LRU, Random, SLRU, S4LRU, clock, adaptive SLRU.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Check <a class="reference internal" href="algorithms.html#algorithms"><span class="std std-ref">here</span></a> for detailed information about each cache replacement algorithms.</p>
+</div>
+<p>To play with these cache replacement algorithms, you just substitue ‘LRU’ in the examples above with cache replacement algorithm you want, then give a cache_size and bin_size. This e reason why we need cache_size and bin_size is that for a general cache replacement algorithm, the profiling is done by sampling at certain points among all cache size, in other words, the nth element in numpy arrays returned represents the result at cache size of n*bin_size.
+Some examples are shown below:</p>
+<ul>
+<li><dl class="first docutils">
+<dt>Obtaining a profiler:</dt>
+<dd><div class="first last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">profiler_FIFO</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">profiler</span><span class="p">(</span><span class="s1">&#39;FIFO&#39;</span><span class="p">,</span> <span class="n">cache_size</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">bin_size</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+</ul>
+<p>several other parameters and their default values are listed below,</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="31%" />
+<col width="31%" />
+<col width="38%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Keyword Argument</th>
+<th class="head">Default Value</th>
+<th class="head">Necessary</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>cache_size</td>
+<td>No default value</td>
+<td>YES</td>
+</tr>
+<tr class="row-odd"><td>bin_size</td>
+<td>cache_size/100</td>
+<td>No</td>
+</tr>
+<tr class="row-even"><td>cache_params</td>
+<td>None</td>
+<td>Depends on algorithm</td>
+</tr>
+<tr class="row-odd"><td>num_of_threads</td>
+<td>4</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><dl class="first docutils">
+<dt>After obtaining the profiler, everything else is the same as above with LRUProfiler, you can obtain hit_count, hit_rate, miss_rate, you can plotHRC, plotMRC, the only difference is the returned hit_count array, hit_rate array, miss_rate array does not have the last two special elements as above. Some examples are shown below:</dt>
+<dd><div class="first last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">profiler_FIFO</span><span class="o">.</span><span class="n">get_hit_count</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">profiler_FIFO</span><span class="o">.</span><span class="n">get_hit_rate</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">profiler_FIFO</span><span class="o">.</span><span class="n">get_miss_rate</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Reuse distance related operation is only allowed on LRU, so don’t call get_reuse_distance on non-LRU cache replacement algorithms.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you want to test your own cache replacement algorithms, check <a class="reference internal" href="more_usage.html#create-new-cache-replacement-algorithms"><span class="std std-ref">here</span></a>.</p>
+</div>
+</div>
+</div>
+<div class="section" id="two-dimension-plotting">
+<h2>Two Dimension Plotting<a class="headerlink" href="#two-dimension-plotting" title="Permalink to this headline">¶</a></h2>
+<p>Mimircache allows you to plot a variety graphs, including some two diemension graphs to help you get better understanding of your data.
+Before plotting, we shall talk about the concept of time, there are two types of time concept in mimircache,
+the first one is called virtual time, which basically is the order in the request sequence.
+Real time, opposite to virtual time is the wall clock time, which is available in some data, for example, vscsi format data.</p>
+<dl class="docutils">
+<dt>There are currently two types of 2D plots are supported, Cold miss plot and request num plot, you can plot them by calling:</dt>
+<dd><div class="first last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">twoDPlot</span><span class="p">(</span><span class="n">time_mode</span><span class="p">,</span> <span class="n">time_interval</span><span class="p">,</span> <span class="n">plot_type</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<p>The axis is starting time t, the y axis is the number of cold miss/request number in time <em>t+time_interval</em>.</p>
+<div class="section" id="cold-miss-plot">
+<h3>Cold miss plot<a class="headerlink" href="#cold-miss-plot" title="Permalink to this headline">¶</a></h3>
+<ul>
+<li><dl class="first docutils">
+<dt>Cold miss plot: the number of cold misses in the given interval.</dt>
+<dd><div class="first last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">twoDPlot</span><span class="p">(</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="s1">&#39;cold_miss&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+</ul>
+<div class="align-center figure" id="id4">
+<a class="reference internal image-reference" href="../_images/example_cold_miss2d.png"><img alt="example cold miss" src="../_images/example_cold_miss2d.png" style="width: 50%;" /></a>
+<p class="caption"><span class="caption-text">Cold miss count in virtual time</span></p>
+</div>
+</div>
+<div class="section" id="request-number-plot">
+<h3>Request number plot<a class="headerlink" href="#request-number-plot" title="Permalink to this headline">¶</a></h3>
+<ul>
+<li><dl class="first docutils">
+<dt>Request number plot: the number of requests in the given interval.</dt>
+<dd><div class="first last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">twoDPlot</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="mi">10000</span><span class="p">,</span> <span class="s1">&#39;request_num&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+</ul>
+<div class="align-center figure" id="id5">
+<a class="reference internal image-reference" href="../_images/example_request_num.png"><img alt="example request num" src="../_images/example_request_num.png" style="width: 50%;" /></a>
+<p class="caption"><span class="caption-text">Request number count in real time</span></p>
+</div>
+</div>
+</div>
+<div class="section" id="plotting-heatmaps">
+<h2>Plotting Heatmaps<a class="headerlink" href="#plotting-heatmaps" title="Permalink to this headline">¶</a></h2>
+<p>Another great feature about mimircache is that it allows you to incorporate time component of a cache trace file into consideration, make the cache analysis from static to dynamic.
+Currently six types of heatmaps are supported:</p>
+<div class="section" id="plot-types">
+<h3>Plot Types<a class="headerlink" href="#plot-types" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="docutils">
+<colgroup>
+<col width="11%" />
+<col width="14%" />
+<col width="13%" />
+<col width="50%" />
+<col width="13%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>plot type</td>
+<td>x axis</td>
+<td>y axis</td>
+<td>plot detail</td>
+<td>Other</td>
+</tr>
+<tr class="row-even"><td>hit_rate_start_time_end_time</td>
+<td>start time (real or virtual) in percent</td>
+<td>end time (real or virtual) in percent</td>
+<td>pixel (x, y) means the hit rate from time x to time y</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>rd_distribution</td>
+<td>start time (real or virtual) in percent</td>
+<td>reuse distance</td>
+<td>reuse distance distribution graph, pixel (x, y) represents at time x+time_interval, the number of requests have reuse distance of y (shown in color)</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>rd_distribution_CDF</td>
+<td>start time (real or virtual) in percent</td>
+<td>reuse distance</td>
+<td>similar to reuse distance distribution graph, but each points (x, y) represents the percent of requests have reuse distance less than or equal to y</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>future_rd_distribution</td>
+<td>start time (real or virtual) in percent</td>
+<td>reuse distance</td>
+<td>future reuse distance distribution graph, future reuse distance is defined as how far in the future, it will be accessed again.</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>hit_rate_start_time_cache_size</td>
+<td>start time (real or virtual) in percent</td>
+<td>cache size</td>
+<td>each vertical line x=t is a hit rate curve of trace starting at t</td>
+<td>currently not tested, might have bugs</td>
+</tr>
+<tr class="row-odd"><td>avg_rd_start_time_end_time</td>
+<td>start time (real or virtual) in percent</td>
+<td>end time (real or virtual) in percent</td>
+<td>pixel (x, y) means average reuse distance of requests from time x to time y</td>
+<td>currently not tested, might have bugs</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="how-to-plot">
+<h3>How to Plot<a class="headerlink" href="#how-to-plot" title="Permalink to this headline">¶</a></h3>
+<dl class="docutils">
+<dt>Plotting heatmaps are easy, just calling the following function on cachecow,</dt>
+<dd><div class="first last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">heatmap</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">plot_type</span><span class="o">...</span><span class="p">):</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<p>The first three parameters are the same as before, which are time mode (r or v), time interval, the types of plot(see table above)
+Besides these three parameters, there are several keywords arguments listed below.
+<strong>Attention</strong>: cache_size is necessary for hit_rate_start_time_end_time graph.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="14%" />
+<col width="11%" />
+<col width="32%" />
+<col width="43%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>Keyword Arguments</td>
+<td>Default Value</td>
+<td>Possible Values</td>
+<td>Necessary</td>
+</tr>
+<tr class="row-even"><td>time_interval</td>
+<td>“-1”</td>
+<td>a time interval</td>
+<td>give this value or num_of_pixels</td>
+</tr>
+<tr class="row-odd"><td>num_of_pixels</td>
+<td>“-1”</td>
+<td>the number of pixels on one dimension</td>
+<td>give this value or time_interval</td>
+</tr>
+<tr class="row-even"><td>algorithm</td>
+<td>“LRU”</td>
+<td>All available cache replacement algorithms</td>
+<td>No</td>
+</tr>
+<tr class="row-odd"><td>cache_params</td>
+<td>None</td>
+<td>Depends on cache replacement algorithms</td>
+<td>Depends on cache replacement algorithms, for example LRU_K</td>
+</tr>
+<tr class="row-even"><td>cache_size</td>
+<td>-1</td>
+<td>Positive integer</td>
+<td>Necessary for plot “hit_rate_start_time_end_time”</td>
+</tr>
+<tr class="row-odd"><td>figname</td>
+<td>heatmap.png</td>
+<td>Any, remember to include suffix</td>
+<td>No</td>
+</tr>
+<tr class="row-even"><td>num_of_threads</td>
+<td>4</td>
+<td>Positive integer except 0</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="ploting-examples">
+<h3>Ploting Examples<a class="headerlink" href="#ploting-examples" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">heatmap</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s2">&quot;hit_rate_start_time_end_time&quot;</span><span class="p">,</span> <span class="n">num_of_pixels</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">cache_size</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">figname</span><span class="o">=</span><span class="s2">&quot;heatmap1.png&quot;</span><span class="p">,</span> <span class="n">num_of_threads</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="align-center figure" id="id6">
+<a class="reference internal image-reference" href="../_images/example_heatmap.png"><img alt="example hit_rate_start_time_end_time" src="../_images/example_heatmap.png" style="width: 50%;" /></a>
+<p class="caption"><span class="caption-text">Hit rate of varying start time and end time</span></p>
+</div>
+<p>Another example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">heatmap</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s2">&quot;rd_distribution&quot;</span><span class="p">,</span> <span class="n">time_interval</span><span class="o">=</span><span class="mi">10000000</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="align-center figure" id="id7">
+<a class="reference internal image-reference" href="../_images/example_heatmap_rd_distibution.png"><img alt="reuse distance distribution graph" src="../_images/example_heatmap_rd_distibution.png" style="width: 50%;" /></a>
+<p class="caption"><span class="caption-text">Reuse distance distribution graph</span></p>
+</div>
+</div>
+</div>
+<div class="section" id="plotting-differential-heatmaps">
+<h2>Plotting Differential Heatmaps<a class="headerlink" href="#plotting-differential-heatmaps" title="Permalink to this headline">¶</a></h2>
+<p>Want to know which algorithm is better? Not satisfied with hit rate curve or miss rate curve because they only show you the result over the whole trace?
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.</p>
+<p>Currently we only support differential heatmap of hit_rate_start_time_end_time, and the function to plot is shown below:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">diffHeatmap</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">plot_type</span><span class="p">,</span> <span class="n">algorithm1</span><span class="p">,</span> <span class="n">cache_size</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The first three parameters are the same as before, which are time mode (r or v), time interval, the types of plot(only support hit_rate_start_time_end_time for now)
+algorithm1 is the first algorithm, algorithm2 is the second algorithm (default to be Optimal), cache_size is a
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.</p>
+<p>Currently we only support differential heatmap of hit_rate_start_time_end_time, and the function to plot is shown below:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">diffHeatmap</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">plot_type</span><span class="p">,</span> <span class="n">algorithm1</span><span class="p">,</span> <span class="n">cache_size</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The first three parameters are the same as before, which are time mode (r or v), time interval, the types of plot(only support hit_rate_start_time_end_time for now)
+algorithm1 is the first algorithm, algorithm2 is the second algorithm (default to be Optimal), cache_size is a
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.</p>
+<p>Currently we only support differential heatmap of hit_rate_start_time_end_time, and the function to plot is shown below:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">diffHeatmap</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">plot_type</span><span class="p">,</span> <span class="n">algorithm1</span><span class="p">,</span> <span class="n">cache_size</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The first three parameters are the same as before, which are time mode (r or v), time interval, the types of plot(only support hit_rate_start_time_end_time for now)
+algorithm1 is the first algorithm, algorithm2 is the second algorithm (default to be Optimal), cache_size is a
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.</p>
+<p>Currently we only support differential heatmap of hit_rate_start_time_end_time, and the function to plot is shown below:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">diffHeatmap</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">plot_type</span><span class="p">,</span> <span class="n">algorithm1</span><span class="p">,</span> <span class="n">cache_size</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The first three parameters are the same as before, which are time mode (r or v), time interval, the types of plot(only support hit_rate_start_time_end_time for now)
+algorithm1 is the first algorithm, algorithm2 is the second algorithm (default to be Optimal), cache_size is a
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.</p>
+<p>Currently we only support differential heatmap of hit_rate_start_time_end_time, and the function to plot is shown below:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">diffHeatmap</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">plot_type</span><span class="p">,</span> <span class="n">algorithm1</span><span class="p">,</span> <span class="n">cache_size</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The first three parameters are the same as before, which are time mode (r or v), time interval, the types of plot(only support hit_rate_start_time_end_time for now)
+algorithm1 is the first algorithm, algorithm2 is the second algorithm (default to be Optimal), cache_size is a
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.</p>
+<p>Currently we only support differential heatmap of hit_rate_start_time_end_time, and the function to plot is shown below:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">diffHeatmap</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">plot_type</span><span class="p">,</span> <span class="n">algorithm1</span><span class="p">,</span> <span class="n">cache_size</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The first three parameters are the same as before, which are time mode (r or v), time interval, the types of plot(only support hit_rate_start_time_end_time for now)
+algorithm1 is the first algorithm, algorithm2 is the second algorithm (default to be Optimal), cache_size is a
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.</p>
+<p>Currently we only support differential heatmap of hit_rate_start_time_end_time, and the function to plot is shown below:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">diffHeatmap</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">plot_type</span><span class="p">,</span> <span class="n">algorithm1</span><span class="p">,</span> <span class="n">cache_size</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The first three parameters are the same as before, which are time mode (r or v), time interval, the types of plot(only support hit_rate_start_time_end_time for now)
+algorithm1 is the first algorithm, algorithm2 is the second algorithm (default to be Optimal), cache_size is a
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.</p>
+<p>Currently we only support differential heatmap of hit_rate_start_time_end_time, and the function to plot is shown below:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">diffHeatmap</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">plot_type</span><span class="p">,</span> <span class="n">algorithm1</span><span class="p">,</span> <span class="n">cache_size</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The first three parameters are the same as before, which are time mode (r or v), time interval, the types of plot(only support hit_rate_start_time_end_time for now)
+algorithm1 is the first algorithm, algorithm2 is the second algorithm (default to be Optimal), cache_size is a
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.</p>
+<p>Currently we only support differential heatmap of hit_rate_start_time_end_time, and the function to plot is shown below:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">differential_heatmap</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">plot_type</span><span class="p">,</span> <span class="n">algorithm1</span><span class="p">,</span> <span class="n">cache_size</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The first three parameters are the same as before, which are time mode (r or v), time interval, the types of plot(only support hit_rate_start_time_end_time for now)
+algorithm1 is the first algorithm, algorithm2 is the second algorithm (default to be Optimal), cache_size is a <strong>necessary</strong> parameter here and it can only be used as keyword argument.
+Besides these parameters, there are several keywords arguments listed below.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="13%" />
+<col width="17%" />
+<col width="30%" />
+<col width="40%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>Keyword Arguments</td>
+<td>Default Value</td>
+<td>Possible Values</td>
+<td>Necessary</td>
+</tr>
+<tr class="row-even"><td>time_interval</td>
+<td>“-1”</td>
+<td>a time interval</td>
+<td>give this value or num_of_pixels</td>
+</tr>
+<tr class="row-odd"><td>num_of_pixels</td>
+<td>“-1”</td>
+<td>the number of pixels on one dimension</td>
+<td>give this value or time_interval</td>
+</tr>
+<tr class="row-even"><td>algorithm1</td>
+<td>“LRU”</td>
+<td>All available cache replacement algorithms</td>
+<td>Yes</td>
+</tr>
+<tr class="row-odd"><td>cache_params1</td>
+<td>None</td>
+<td>Depends on cache replacement algorithms</td>
+<td>Depends on cache replacement algorithms, for example LRU_K</td>
+</tr>
+<tr class="row-even"><td>algorithm2</td>
+<td>“Optimal”</td>
+<td>All available cache replacement algorithms</td>
+<td>No</td>
+</tr>
+<tr class="row-odd"><td>cache_params2</td>
+<td>None</td>
+<td>Depends on cache replacement algorithms</td>
+<td>Depends on cache replacement algorithms, for example LRU_K</td>
+</tr>
+<tr class="row-even"><td>cache_size</td>
+<td>No Default Value</td>
+<td>Positive integer</td>
+<td>Yes</td>
+</tr>
+<tr class="row-odd"><td>figname</td>
+<td>differential_heatmap.png</td>
+<td>Any name, remember to include suffix</td>
+<td>No</td>
+</tr>
+<tr class="row-even"><td>num_of_threads</td>
+<td>4</td>
+<td>Positive integers except 0</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Example:</dt>
+<dd><div class="first last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">diffHeatmap</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s2">&quot;hit_rate_start_time_end_time&quot;</span><span class="p">,</span> <span class="n">time_interval</span><span class="o">=</span><span class="mi">1000000</span><span class="p">,</span> <span class="n">algorithm1</span><span class="o">=</span><span class="s2">&quot;LRU&quot;</span><span class="p">,</span> <span class="n">cache_size</span><span class="o">=</span><span class="mi">2000</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<p>Besides these parameters, there are several keywords arguments listed below.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="13%" />
+<col width="17%" />
+<col width="30%" />
+<col width="40%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>Keyword Arguments</td>
+<td>Default Value</td>
+<td>Possible Values</td>
+<td>Necessary</td>
+</tr>
+<tr class="row-even"><td>time_interval</td>
+<td>“-1”</td>
+<td>a time interval</td>
+<td>give this value or num_of_pixels</td>
+</tr>
+<tr class="row-odd"><td>num_of_pixels</td>
+<td>“-1”</td>
+<td>the number of pixels on one dimension</td>
+<td>give this value or time_interval</td>
+</tr>
+<tr class="row-even"><td>algorithm1</td>
+<td>“LRU”</td>
+<td>All available cache replacement algorithms</td>
+<td>Yes</td>
+</tr>
+<tr class="row-odd"><td>cache_params1</td>
+<td>None</td>
+<td>Depends on cache replacement algorithms</td>
+<td>Depends on cache replacement algorithms, for example LRU_K</td>
+</tr>
+<tr class="row-even"><td>algorithm2</td>
+<td>“Optimal”</td>
+<td>All available cache replacement algorithms</td>
+<td>No</td>
+</tr>
+<tr class="row-odd"><td>cache_params2</td>
+<td>None</td>
+<td>Depends on cache replacement algorithms</td>
+<td>Depends on cache replacement algorithms, for example LRU_K</td>
+</tr>
+<tr class="row-even"><td>cache_size</td>
+<td>No Default Value</td>
+<td>Positive integer</td>
+<td>Yes</td>
+</tr>
+<tr class="row-odd"><td>figname</td>
+<td>differential_heatmap.png</td>
+<td>Any name, remember to include suffix</td>
+<td>No</td>
+</tr>
+<tr class="row-even"><td>num_of_threads</td>
+<td>4</td>
+<td>Positive integers except 0</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Example:</dt>
+<dd><div class="first last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">diffHeatmap</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s2">&quot;hit_rate_start_time_end_time&quot;</span><span class="p">,</span> <span class="n">time_interval</span><span class="o">=</span><span class="mi">1000000</span><span class="p">,</span> <span class="n">algorithm1</span><span class="o">=</span><span class="s2">&quot;LRU&quot;</span><span class="p">,</span> <span class="n">cache_size</span><span class="o">=</span><span class="mi">2000</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<p>Besides these parameters, there are several keywords arguments listed below.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="13%" />
+<col width="17%" />
+<col width="30%" />
+<col width="40%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>Keyword Arguments</td>
+<td>Default Value</td>
+<td>Possible Values</td>
+<td>Necessary</td>
+</tr>
+<tr class="row-even"><td>time_interval</td>
+<td>“-1”</td>
+<td>a time interval</td>
+<td>give this value or num_of_pixels</td>
+</tr>
+<tr class="row-odd"><td>num_of_pixels</td>
+<td>“-1”</td>
+<td>the number of pixels on one dimension</td>
+<td>give this value or time_interval</td>
+</tr>
+<tr class="row-even"><td>algorithm1</td>
+<td>“LRU”</td>
+<td>All available cache replacement algorithms</td>
+<td>Yes</td>
+</tr>
+<tr class="row-odd"><td>cache_params1</td>
+<td>None</td>
+<td>Depends on cache replacement algorithms</td>
+<td>Depends on cache replacement algorithms, for example LRU_K</td>
+</tr>
+<tr class="row-even"><td>algorithm2</td>
+<td>“Optimal”</td>
+<td>All available cache replacement algorithms</td>
+<td>No</td>
+</tr>
+<tr class="row-odd"><td>cache_params2</td>
+<td>None</td>
+<td>Depends on cache replacement algorithms</td>
+<td>Depends on cache replacement algorithms, for example LRU_K</td>
+</tr>
+<tr class="row-even"><td>cache_size</td>
+<td>No Default Value</td>
+<td>Positive integer</td>
+<td>Yes</td>
+</tr>
+<tr class="row-odd"><td>figname</td>
+<td>differential_heatmap.png</td>
+<td>Any name, remember to include suffix</td>
+<td>No</td>
+</tr>
+<tr class="row-even"><td>num_of_threads</td>
+<td>4</td>
+<td>Positive integers except 0</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Example:</dt>
+<dd><div class="first last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">diffHeatmap</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s2">&quot;hit_rate_start_time_end_time&quot;</span><span class="p">,</span> <span class="n">time_interval</span><span class="o">=</span><span class="mi">1000000</span><span class="p">,</span> <span class="n">algorithm1</span><span class="o">=</span><span class="s2">&quot;LRU&quot;</span><span class="p">,</span> <span class="n">cache_size</span><span class="o">=</span><span class="mi">2000</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<p>Besides these parameters, there are several keywords arguments listed below.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="13%" />
+<col width="17%" />
+<col width="30%" />
+<col width="40%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>Keyword Arguments</td>
+<td>Default Value</td>
+<td>Possible Values</td>
+<td>Necessary</td>
+</tr>
+<tr class="row-even"><td>time_interval</td>
+<td>“-1”</td>
+<td>a time interval</td>
+<td>give this value or num_of_pixels</td>
+</tr>
+<tr class="row-odd"><td>num_of_pixels</td>
+<td>“-1”</td>
+<td>the number of pixels on one dimension</td>
+<td>give this value or time_interval</td>
+</tr>
+<tr class="row-even"><td>algorithm1</td>
+<td>“LRU”</td>
+<td>All available cache replacement algorithms</td>
+<td>Yes</td>
+</tr>
+<tr class="row-odd"><td>cache_params1</td>
+<td>None</td>
+<td>Depends on cache replacement algorithms</td>
+<td>Depends on cache replacement algorithms, for example LRU_K</td>
+</tr>
+<tr class="row-even"><td>algorithm2</td>
+<td>“Optimal”</td>
+<td>All available cache replacement algorithms</td>
+<td>No</td>
+</tr>
+<tr class="row-odd"><td>cache_params2</td>
+<td>None</td>
+<td>Depends on cache replacement algorithms</td>
+<td>Depends on cache replacement algorithms, for example LRU_K</td>
+</tr>
+<tr class="row-even"><td>cache_size</td>
+<td>No Default Value</td>
+<td>Positive integer</td>
+<td>Yes</td>
+</tr>
+<tr class="row-odd"><td>figname</td>
+<td>differential_heatmap.png</td>
+<td>Any name, remember to include suffix</td>
+<td>No</td>
+</tr>
+<tr class="row-even"><td>num_of_threads</td>
+<td>4</td>
+<td>Positive integers except 0</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Example:</dt>
+<dd><div class="first last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">diffHeatmap</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s2">&quot;hit_rate_start_time_end_time&quot;</span><span class="p">,</span> <span class="n">time_interval</span><span class="o">=</span><span class="mi">1000000</span><span class="p">,</span> <span class="n">algorithm1</span><span class="o">=</span><span class="s2">&quot;LRU&quot;</span><span class="p">,</span> <span class="n">cache_size</span><span class="o">=</span><span class="mi">2000</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<p>Besides these parameters, there are several keywords arguments listed below.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="13%" />
+<col width="17%" />
+<col width="30%" />
+<col width="40%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>Keyword Arguments</td>
+<td>Default Value</td>
+<td>Possible Values</td>
+<td>Necessary</td>
+</tr>
+<tr class="row-even"><td>time_interval</td>
+<td>“-1”</td>
+<td>a time interval</td>
+<td>give this value or num_of_pixels</td>
+</tr>
+<tr class="row-odd"><td>num_of_pixels</td>
+<td>“-1”</td>
+<td>the number of pixels on one dimension</td>
+<td>give this value or time_interval</td>
+</tr>
+<tr class="row-even"><td>algorithm1</td>
+<td>“LRU”</td>
+<td>All available cache replacement algorithms</td>
+<td>Yes</td>
+</tr>
+<tr class="row-odd"><td>cache_params1</td>
+<td>None</td>
+<td>Depends on cache replacement algorithms</td>
+<td>Depends on cache replacement algorithms, for example LRU_K</td>
+</tr>
+<tr class="row-even"><td>algorithm2</td>
+<td>“Optimal”</td>
+<td>All available cache replacement algorithms</td>
+<td>No</td>
+</tr>
+<tr class="row-odd"><td>cache_params2</td>
+<td>None</td>
+<td>Depends on cache replacement algorithms</td>
+<td>Depends on cache replacement algorithms, for example LRU_K</td>
+</tr>
+<tr class="row-even"><td>cache_size</td>
+<td>No Default Value</td>
+<td>Positive integer</td>
+<td>Yes</td>
+</tr>
+<tr class="row-odd"><td>figname</td>
+<td>differential_heatmap.png</td>
+<td>Any name, remember to include suffix</td>
+<td>No</td>
+</tr>
+<tr class="row-even"><td>num_of_threads</td>
+<td>4</td>
+<td>Positive integers except 0</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Example:</dt>
+<dd><div class="first last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">diffHeatmap</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s2">&quot;hit_rate_start_time_end_time&quot;</span><span class="p">,</span> <span class="n">time_interval</span><span class="o">=</span><span class="mi">1000000</span><span class="p">,</span> <span class="n">algorithm1</span><span class="o">=</span><span class="s2">&quot;LRU&quot;</span><span class="p">,</span> <span class="n">cache_size</span><span class="o">=</span><span class="mi">2000</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<p>Besides these parameters, there are several keywords arguments listed below.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="13%" />
+<col width="17%" />
+<col width="30%" />
+<col width="40%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>Keyword Arguments</td>
+<td>Default Value</td>
+<td>Possible Values</td>
+<td>Necessary</td>
+</tr>
+<tr class="row-even"><td>time_interval</td>
+<td>“-1”</td>
+<td>a time interval</td>
+<td>give this value or num_of_pixels</td>
+</tr>
+<tr class="row-odd"><td>num_of_pixels</td>
+<td>“-1”</td>
+<td>the number of pixels on one dimension</td>
+<td>give this value or time_interval</td>
+</tr>
+<tr class="row-even"><td>algorithm1</td>
+<td>“LRU”</td>
+<td>All available cache replacement algorithms</td>
+<td>Yes</td>
+</tr>
+<tr class="row-odd"><td>cache_params1</td>
+<td>None</td>
+<td>Depends on cache replacement algorithms</td>
+<td>Depends on cache replacement algorithms, for example LRU_K</td>
+</tr>
+<tr class="row-even"><td>algorithm2</td>
+<td>“Optimal”</td>
+<td>All available cache replacement algorithms</td>
+<td>No</td>
+</tr>
+<tr class="row-odd"><td>cache_params2</td>
+<td>None</td>
+<td>Depends on cache replacement algorithms</td>
+<td>Depends on cache replacement algorithms, for example LRU_K</td>
+</tr>
+<tr class="row-even"><td>cache_size</td>
+<td>No Default Value</td>
+<td>Positive integer</td>
+<td>Yes</td>
+</tr>
+<tr class="row-odd"><td>figname</td>
+<td>differential_heatmap.png</td>
+<td>Any name, remember to include suffix</td>
+<td>No</td>
+</tr>
+<tr class="row-even"><td>num_of_threads</td>
+<td>4</td>
+<td>Positive integers except 0</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Example:</dt>
+<dd><div class="first last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">diffHeatmap</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s2">&quot;hit_rate_start_time_end_time&quot;</span><span class="p">,</span> <span class="n">time_interval</span><span class="o">=</span><span class="mi">1000000</span><span class="p">,</span> <span class="n">algorithm1</span><span class="o">=</span><span class="s2">&quot;LRU&quot;</span><span class="p">,</span> <span class="n">cache_size</span><span class="o">=</span><span class="mi">2000</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<p>Besides these parameters, there are several keywords arguments listed below.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="13%" />
+<col width="17%" />
+<col width="30%" />
+<col width="40%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>Keyword Arguments</td>
+<td>Default Value</td>
+<td>Possible Values</td>
+<td>Necessary</td>
+</tr>
+<tr class="row-even"><td>time_interval</td>
+<td>“-1”</td>
+<td>a time interval</td>
+<td>give this value or num_of_pixels</td>
+</tr>
+<tr class="row-odd"><td>num_of_pixels</td>
+<td>“-1”</td>
+<td>the number of pixels on one dimension</td>
+<td>give this value or time_interval</td>
+</tr>
+<tr class="row-even"><td>algorithm1</td>
+<td>“LRU”</td>
+<td>All available cache replacement algorithms</td>
+<td>Yes</td>
+</tr>
+<tr class="row-odd"><td>cache_params1</td>
+<td>None</td>
+<td>Depends on cache replacement algorithms</td>
+<td>Depends on cache replacement algorithms, for example LRU_K</td>
+</tr>
+<tr class="row-even"><td>algorithm2</td>
+<td>“Optimal”</td>
+<td>All available cache replacement algorithms</td>
+<td>No</td>
+</tr>
+<tr class="row-odd"><td>cache_params2</td>
+<td>None</td>
+<td>Depends on cache replacement algorithms</td>
+<td>Depends on cache replacement algorithms, for example LRU_K</td>
+</tr>
+<tr class="row-even"><td>cache_size</td>
+<td>No Default Value</td>
+<td>Positive integer</td>
+<td>Yes</td>
+</tr>
+<tr class="row-odd"><td>figname</td>
+<td>differential_heatmap.png</td>
+<td>Any name, remember to include suffix</td>
+<td>No</td>
+</tr>
+<tr class="row-even"><td>num_of_threads</td>
+<td>4</td>
+<td>Positive integers except 0</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Example:</dt>
+<dd><div class="first last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">diffHeatmap</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s2">&quot;hit_rate_start_time_end_time&quot;</span><span class="p">,</span> <span class="n">time_interval</span><span class="o">=</span><span class="mi">1000000</span><span class="p">,</span> <span class="n">algorithm1</span><span class="o">=</span><span class="s2">&quot;LRU&quot;</span><span class="p">,</span> <span class="n">cache_size</span><span class="o">=</span><span class="mi">2000</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<p>Besides these parameters, there are several keywords arguments listed below.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="13%" />
+<col width="17%" />
+<col width="30%" />
+<col width="40%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>Keyword Arguments</td>
+<td>Default Value</td>
+<td>Possible Values</td>
+<td>Necessary</td>
+</tr>
+<tr class="row-even"><td>time_interval</td>
+<td>“-1”</td>
+<td>a time interval</td>
+<td>give this value or num_of_pixels</td>
+</tr>
+<tr class="row-odd"><td>num_of_pixels</td>
+<td>“-1”</td>
+<td>the number of pixels on one dimension</td>
+<td>give this value or time_interval</td>
+</tr>
+<tr class="row-even"><td>algorithm1</td>
+<td>“LRU”</td>
+<td>All available cache replacement algorithms</td>
+<td>Yes</td>
+</tr>
+<tr class="row-odd"><td>cache_params1</td>
+<td>None</td>
+<td>Depends on cache replacement algorithms</td>
+<td>Depends on cache replacement algorithms, for example LRU_K</td>
+</tr>
+<tr class="row-even"><td>algorithm2</td>
+<td>“Optimal”</td>
+<td>All available cache replacement algorithms</td>
+<td>No</td>
+</tr>
+<tr class="row-odd"><td>cache_params2</td>
+<td>None</td>
+<td>Depends on cache replacement algorithms</td>
+<td>Depends on cache replacement algorithms, for example LRU_K</td>
+</tr>
+<tr class="row-even"><td>cache_size</td>
+<td>No Default Value</td>
+<td>Positive integer</td>
+<td>Yes</td>
+</tr>
+<tr class="row-odd"><td>figname</td>
+<td>differential_heatmap.png</td>
+<td>Any name, remember to include suffix</td>
+<td>No</td>
+</tr>
+<tr class="row-even"><td>num_of_threads</td>
+<td>4</td>
+<td>Positive integers except 0</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Example:</dt>
+<dd><div class="first last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">diffHeatmap</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s2">&quot;hit_rate_start_time_end_time&quot;</span><span class="p">,</span> <span class="n">time_interval</span><span class="o">=</span><span class="mi">1000000</span><span class="p">,</span> <span class="n">algorithm1</span><span class="o">=</span><span class="s2">&quot;LRU&quot;</span><span class="p">,</span> <span class="n">cache_size</span><span class="o">=</span><span class="mi">2000</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<p>Besides these parameters, there are several keywords arguments listed below.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="13%" />
+<col width="17%" />
+<col width="30%" />
+<col width="40%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>Keyword Arguments</td>
+<td>Default Value</td>
+<td>Possible Values</td>
+<td>Necessary</td>
+</tr>
+<tr class="row-even"><td>time_interval</td>
+<td>“-1”</td>
+<td>a time interval</td>
+<td>give this value or num_of_pixels</td>
+</tr>
+<tr class="row-odd"><td>num_of_pixels</td>
+<td>“-1”</td>
+<td>the number of pixels on one dimension</td>
+<td>give this value or time_interval</td>
+</tr>
+<tr class="row-even"><td>algorithm1</td>
+<td>“LRU”</td>
+<td>All available cache replacement algorithms</td>
+<td>Yes</td>
+</tr>
+<tr class="row-odd"><td>cache_params1</td>
+<td>None</td>
+<td>Depends on cache replacement algorithms</td>
+<td>Depends on cache replacement algorithms, for example LRU_K</td>
+</tr>
+<tr class="row-even"><td>algorithm2</td>
+<td>“Optimal”</td>
+<td>All available cache replacement algorithms</td>
+<td>No</td>
+</tr>
+<tr class="row-odd"><td>cache_params2</td>
+<td>None</td>
+<td>Depends on cache replacement algorithms</td>
+<td>Depends on cache replacement algorithms, for example LRU_K</td>
+</tr>
+<tr class="row-even"><td>cache_size</td>
+<td>No Default Value</td>
+<td>Positive integer</td>
+<td>Yes</td>
+</tr>
+<tr class="row-odd"><td>figname</td>
+<td>differential_heatmap.png</td>
+<td>Any name, remember to include suffix</td>
+<td>No</td>
+</tr>
+<tr class="row-even"><td>num_of_threads</td>
+<td>4</td>
+<td>Positive integers except 0</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Example:</dt>
+<dd><div class="first last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">differential_heatmap</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s2">&quot;hit_rate_start_time_end_time&quot;</span><span class="p">,</span> <span class="n">time_interval</span><span class="o">=</span><span class="mi">1000000</span><span class="p">,</span> <span class="n">algorithm1</span><span class="o">=</span><span class="s2">&quot;LRU&quot;</span><span class="p">,</span> <span class="n">cache_size</span><span class="o">=</span><span class="mi">2000</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<div class="align-center figure" id="id8">
+<a class="reference internal image-reference" href="../_images/example_differential_heatmap.png"><img alt="example differential_heatmap" src="../_images/example_differential_heatmap.png" style="width: 50%;" /></a>
+<p class="caption"><span class="caption-text">Differential heatmap, the value of each pixel is (hit_rate_of_algorithm2 - hit_rate_of_algorithm1)/hit_rate_of_algorithm1</span></p>
+</div>
+<p>Congratulations! You have finished the basic tutorial! Check Advanced Usage Part if you need.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Quick Start</a><ul>
+<li><a class="reference internal" href="#get-profiler-do-profiling">Get Profiler/Do Profiling</a><ul>
+<li><a class="reference internal" href="#profiling-with-lru">Profiling with LRU</a></li>
+<li><a class="reference internal" href="#profiling-with-non-lru">Profiling with non-LRU</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#two-dimension-plotting">Two Dimension Plotting</a><ul>
+<li><a class="reference internal" href="#cold-miss-plot">Cold miss plot</a></li>
+<li><a class="reference internal" href="#request-number-plot">Request number plot</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#plotting-heatmaps">Plotting Heatmaps</a><ul>
+<li><a class="reference internal" href="#plot-types">Plot Types</a></li>
+<li><a class="reference internal" href="#how-to-plot">How to Plot</a></li>
+<li><a class="reference internal" href="#ploting-examples">Ploting Examples</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#plotting-differential-heatmaps">Plotting Differential Heatmaps</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/User/quick_start_profiling.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Juncheng Yang.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/User/quick_start_profiling.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
