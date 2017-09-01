@@ -78,4 +78,4 @@ See :ref:`here<heatmap_plotting>` for details.
 
 
 
-Congratulations! You have finished the basic tutorial! Check Advanced Usage Part if you need.
+Congratulations! You have finished the basic tutorial! Check :ref:`Advanced Usage<advanced_usages>` part if you need.
