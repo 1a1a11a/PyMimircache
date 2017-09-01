@@ -15,7 +15,7 @@ Another great usage of mimircache is to use mimircache to **analyze and visulize
 
 Besides plugging in new reader for reading your specialized trace files, your own cache replacement algorithms for comparing with existing ones, you can even add a sampling layer for fast analysis. 
 
-Our progress on mimircache: 
+Our progress on mimircache
 +++++++++++++++++++++++++++
-Currently, most time-consuming components are being re-implemented in C, but python part is also kept for reader and cache replacement extensions. However, if you want your reader and cache replacement algorithm to be even faster, you have to implement them in C, check the source code and you will have clue. 
+Currently, most time-consuming components have being re-implemented in C, but python part is also kept for reader and cache replacement extensions. However, if you want your reader and cache replacement algorithm to be even faster, you have to implement them in C, check the source code and you will have clue.
 

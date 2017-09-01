@@ -1,10 +1,10 @@
 /*
- * default.css_t
+ * classic.css_t
  * ~~~~~~~~~~~~~
  *
- * Sphinx stylesheet -- default theme.
+ * Sphinx stylesheet -- classic theme.
  *
- * :copyright: Copyright 2007-2016 by the Sphinx team, see AUTHORS.
+ * :copyright: Copyright 2007-2017 by the Sphinx team, see AUTHORS.
  * :license: BSD, see LICENSE for details.
  *
  */
@@ -113,6 +113,8 @@ div.sphinxsidebar input {
     font-size: 1em;
 }
 
+
+
 /* -- hyperlink styles ------------------------------------------------------ */
 
 a {
@@ -128,6 +130,8 @@ a:visited {
 a:hover {
     text-decoration: underline;
 }
+
+
 
 /* -- body styles ----------------------------------------------------------- */
 
@@ -146,30 +150,12 @@ div.body h6 {
     padding: 3px 0 3px 10px;
 }
 
-div.body h1 {
-    margin-top: 0;
-    font-size: 200%;
-}
-
-div.body h2 {
-    font-size: 160%;
-}
-
-div.body h3 {
-    font-size: 140%;
-}
-
-div.body h4 {
-    font-size: 120%;
-}
-
-div.body h5 {
-    font-size: 110%;
-}
-
-div.body h6 {
-    font-size: 100%;
-}
+div.body h1 { margin-top: 0; font-size: 200%; }
+div.body h2 { font-size: 160%; }
+div.body h3 { font-size: 140%; }
+div.body h4 { font-size: 120%; }
+div.body h5 { font-size: 110%; }
+div.body h6 { font-size: 100%; }
 
 a.headerlink {
     color: #c60f0f;

@@ -31,6 +31,10 @@ The User Guide
         User/intro
         User/installation
         User/quick_start
+        User/open_trace
+        User/profiling
+        User/basic_plotting
+        User/heatmap_plotting
         User/algorithms
         User/advanced_usage
         User/API
@@ -41,11 +45,11 @@ The User Guide
 
 Supported Features
 ------------------ 
-* Cache replacement algorithms simulation
+* Cache replacement algorithms simulation and trace visualization.
 * A variety of cache replacement algorithms support, including LRU, LFU, MRU, FIFO, Clock, Random, ARC, SLRU, optimal and etc. 
-* Hit/miss rate curve(HRC/MRC) plotting 
-* Reuse distance calculation for LRU 
-* Heatmap plotting for visulizing hit/miss rate change over time, average reuse distance over time, etc.
+* Hit/miss ratio curve(HRC/MRC) plotting.
+* Efficient reuse distance calculation for LRU.
+* Heatmap plotting for visulizing hit/miss ratio change over time, average reuse distance over time, etc.
 * Reuse distance distribution plotting. 
 * Cache replacement algorithm comparison.
 

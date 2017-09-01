@@ -16,9 +16,10 @@ Each components have some more functions than described in tutorial, read the so
 if you want to know more or have questions.
 
 
+.. _create_new_cache_reader:
+
 Write your own cacheReader
 --------------------------
-.. _create_new_cache_reader:
 
 Writing your own cacheReader is not difficult, just inherit abstractCacheReader.py.
 Here is an example::
@@ -64,9 +65,10 @@ the third parameter is cache size, the fourth parameter is bin_size, and it can 
 
 
 
+.. _create_new_cache_replacement_algorithms:
+
 Write your own cache replacement algorithm
 ------------------------------------------
-.. _create_new_cache_replacement_algorithms:
 
 Writing your own cache in Python is not difficult, just inherit abstractCache.py::
 

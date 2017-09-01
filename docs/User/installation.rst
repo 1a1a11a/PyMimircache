@@ -20,7 +20,7 @@ Second Step: Install Python Dependencies
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Using pip3 to install python dependencies::
 
-$ sudo pip3 install matplotlib
+$ sudo pip3 install matplotlib heapdict
 
 
 Third Step: Pip Install mimircache
@@ -66,8 +66,8 @@ Since Ubuntu 12 does not come with Python3 or above and some related components 
 Add the following two lines to the top of /etc/apt/source.list
 ::
 
-deb http://us.archive.ubuntu.com/ubuntu/ trusty main restricted universe multiverse
-deb-src http://us.archive.ubuntu.com/ubuntu/ trusty main restricted universe multiverse
+    deb http://us.archive.ubuntu.com/ubuntu/ trusty main restricted universe multiverse
+    deb-src http://us.archive.ubuntu.com/ubuntu/ trusty main restricted universe multiverse
 
 Then update your repository by::
 

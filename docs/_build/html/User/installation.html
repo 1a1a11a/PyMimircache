@@ -1,23 +1,21 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Installation &#8212; mimircache 0.0.2.65 documentation</title>
-    
-    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <title>Installation &#8212; mimircache 0.0.2.69 documentation</title>
+    <link rel="stylesheet" href="../_static/pyramid.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.0.2.65',
+        VERSION:     '0.0.2.69',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
@@ -25,18 +23,32 @@
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="top" title="mimircache 0.0.2.65 documentation" href="../index.html" />
     <link rel="next" title="Quick Start" href="quick_start.html" />
     <link rel="prev" title="Introduction" href="intro.html" />
-   
-  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Neuton&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nobile:regular,italic,bold,bolditalic&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
+<!--[if lte IE 6]>
+<link rel="stylesheet" href="../_static/ie6.css" type="text/css" media="screen" charset="utf-8" />
+<![endif]-->
 
   </head>
-  <body role="document">
-  
+  <body>
+
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="quick_start.html" title="Quick Start"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="intro.html" title="Introduction"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mimircache 0.0.2.69 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
 
     <div class="document">
       <div class="documentwrapper">
@@ -58,13 +70,13 @@
 <p>The first step is to use any package management software to install pkg-config and glib.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last"><strong>Mac Users</strong>: if you don&#8217;t know how to install these packages, try macports or homebrew, google will help you.</p>
+<p class="last"><strong>Mac Users</strong>: if you don’t know how to install these packages, try macports or homebrew, google will help you.</p>
 </div>
 </div>
 <div class="section" id="second-step-install-python-dependencies">
 <h3>Second Step: Install Python Dependencies<a class="headerlink" href="#second-step-install-python-dependencies" title="Permalink to this headline">¶</a></h3>
 <p>Using pip3 to install python dependencies:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ sudo pip3 install matplotlib
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ sudo pip3 install matplotlib heapdict
 </pre></div>
 </div>
 </div>
@@ -78,7 +90,7 @@
 </div>
 <div class="section" id="install-from-source">
 <h2>Install From Source<a class="headerlink" href="#install-from-source" title="Permalink to this headline">¶</a></h2>
-<p>This is an alternative method, only use this one when you can&#8217;t install using the methods above, or you want to try the newest feature of mimircache, notice that, it might have bugs in newest version, we highly recommend you to use the stable version from pip3.</p>
+<p>This is an alternative method, only use this one when you can’t install using the methods above, or you want to try the newest feature of mimircache, notice that, it might have bugs in newest version, we highly recommend you to use the stable version from pip3.</p>
 <div class="section" id="install-all-dependencies">
 <h3>Install All Dependencies<a class="headerlink" href="#install-all-dependencies" title="Permalink to this headline">¶</a></h3>
 <p>Installing all dependencies is the same as the one described above.</p>
@@ -108,8 +120,10 @@ always available <a class="reference external" href="https://github.com/1a1a11a/
 <p>However, if you are using Ubuntu 12, you need to do the first step.
 Since Ubuntu 12 does not come with Python3 or above and some related components like pip. You can either compile python3 from source or add the repository from Ubuntu 14 into your source list. Below is the instructions for using Ubuntu 14 repository to install python3 and pip.</p>
 <p>Add the following two lines to the top of /etc/apt/source.list</p>
-<p>deb <a class="reference external" href="http://us.archive.ubuntu.com/ubuntu/">http://us.archive.ubuntu.com/ubuntu/</a> trusty main restricted universe multiverse
-deb-src <a class="reference external" href="http://us.archive.ubuntu.com/ubuntu/">http://us.archive.ubuntu.com/ubuntu/</a> trusty main restricted universe multiverse</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">deb</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">us</span><span class="o">.</span><span class="n">archive</span><span class="o">.</span><span class="n">ubuntu</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">ubuntu</span><span class="o">/</span> <span class="n">trusty</span> <span class="n">main</span> <span class="n">restricted</span> <span class="n">universe</span> <span class="n">multiverse</span>
+<span class="n">deb</span><span class="o">-</span><span class="n">src</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">us</span><span class="o">.</span><span class="n">archive</span><span class="o">.</span><span class="n">ubuntu</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">ubuntu</span><span class="o">/</span> <span class="n">trusty</span> <span class="n">main</span> <span class="n">restricted</span> <span class="n">universe</span> <span class="n">multiverse</span>
+</pre></div>
+</div>
 <p>Then update your repository by:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>$ sudo apt-get update
 </pre></div>
@@ -158,22 +172,13 @@ deb-src <a class="reference external" href="http://us.archive.ubuntu.com/ubuntu/
 </ul>
 </li>
 </ul>
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="intro.html" title="previous chapter">Introduction</a></li>
-      <li>Next: <a href="quick_start.html" title="next chapter">Quick Start</a></li>
-  </ul></li>
-</ul>
-</div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="../_sources/User/installation.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="intro.html"
+                        title="previous chapter">Introduction</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="quick_start.html"
+                        title="next chapter">Quick Start</a></p>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
@@ -188,20 +193,23 @@ deb-src <a class="reference external" href="http://us.archive.ubuntu.com/ubuntu/
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="footer">
-      &copy;2016, Juncheng Yang.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.8</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
-      
-      |
-      <a href="../_sources/User/installation.txt"
-          rel="nofollow">Page source</a>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="quick_start.html" title="Quick Start"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="intro.html" title="Introduction"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mimircache 0.0.2.69 documentation</a> &#187;</li> 
+      </ul>
     </div>
-
-    
-
-    
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016-2017, Juncheng Yang.
+    </div>
   </body>
 </html>

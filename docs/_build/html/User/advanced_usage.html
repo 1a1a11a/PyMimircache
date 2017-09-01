@@ -1,23 +1,21 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Advanced Usages &#8212; mimircache 0.0.2.65 documentation</title>
-    
-    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <title>Advanced Usages &#8212; mimircache 0.0.2.69 documentation</title>
+    <link rel="stylesheet" href="../_static/pyramid.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.0.2.65',
+        VERSION:     '0.0.2.69',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
@@ -25,18 +23,32 @@
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="top" title="mimircache 0.0.2.65 documentation" href="../index.html" />
     <link rel="next" title="API" href="API.html" />
     <link rel="prev" title="Algorithms" href="algorithms.html" />
-   
-  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Neuton&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nobile:regular,italic,bold,bolditalic&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
+<!--[if lte IE 6]>
+<link rel="stylesheet" href="../_static/ie6.css" type="text/css" media="screen" charset="utf-8" />
+<![endif]-->
 
   </head>
-  <body role="document">
-  
+  <body>
+
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="API.html" title="API"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="algorithms.html" title="Algorithms"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mimircache 0.0.2.69 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
 
     <div class="document">
       <div class="documentwrapper">
@@ -57,14 +69,14 @@ LRUProfiler is in C, so it is pretty fast, the rest two profilers have correspon
 if you want to know more or have questions.</p>
 </div>
 <div class="section" id="write-your-own-cachereader">
-<h2>Write your own cacheReader<a class="headerlink" href="#write-your-own-cachereader" title="Permalink to this headline">¶</a></h2>
-<p id="create-new-cache-reader">Writing your own cacheReader is not difficult, just inherit abstractCacheReader.py.
+<span id="create-new-cache-reader"></span><h2>Write your own cacheReader<a class="headerlink" href="#write-your-own-cachereader" title="Permalink to this headline">¶</a></h2>
+<p>Writing your own cacheReader is not difficult, just inherit abstractCacheReader.py.
 Here is an example:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mimircache.cacheReader.abstractReader</span> <span class="k">import</span> <span class="n">cacheReaderAbstract</span>
 
 <span class="k">class</span> <span class="nc">plainCacheReader</span><span class="p">(</span><span class="n">cacheReaderAbstract</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_loc</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">plainCacheReader</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">file_loc</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">plainCacheReader</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">file_loc</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">trace_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_loc</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">read_one_element</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -76,7 +88,7 @@ Here is an example:</p>
             <span class="k">return</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">__next__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__next__</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__next__</span><span class="p">()</span>
         <span class="n">element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">trace_file</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">element</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">element</span>
@@ -84,7 +96,7 @@ Here is an example:</p>
             <span class="k">raise</span> <span class="ne">StopIteration</span>
 
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;basic cache reader, cache trace separated by line, </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__repr__</span><span class="p">()</span>
+        <span class="k">return</span> <span class="s2">&quot;basic cache reader, cache trace separated by line, </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>After writing your own cache reader, you can use it on generalProfiler and heatmap, for example:</p>
@@ -100,13 +112,13 @@ the third parameter is cache size, the fourth parameter is bin_size, and it can 
 </div>
 </div>
 <div class="section" id="write-your-own-cache-replacement-algorithm">
-<h2>Write your own cache replacement algorithm<a class="headerlink" href="#write-your-own-cache-replacement-algorithm" title="Permalink to this headline">¶</a></h2>
-<p id="create-new-cache-replacement-algorithms">Writing your own cache in Python is not difficult, just inherit abstractCache.py:</p>
+<span id="create-new-cache-replacement-algorithms"></span><h2>Write your own cache replacement algorithm<a class="headerlink" href="#write-your-own-cache-replacement-algorithm" title="Permalink to this headline">¶</a></h2>
+<p>Writing your own cache in Python is not difficult, just inherit abstractCache.py:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mimircache.cache.abstractCache</span> <span class="k">import</span> <span class="n">cache</span>
 
 <span class="k">class</span> <span class="nc">Random</span><span class="p">(</span><span class="n">cache</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cache_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">cache_size</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">cache_size</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cacheDict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>  <span class="c1"># key -&gt; linked list node (in reality, it should also contains value)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cache_line_list</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># to save all the keys, otherwise needs to populate from cache_dict every time</span>
 
@@ -190,7 +202,7 @@ the third parameter is cache size, the fourth parameter is bin_size, and it can 
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;Random Replacement, given size: </span><span class="si">{}</span><span class="s2">, current size: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_size</span><span class="p">,</span>
                                                                              <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cacheDict</span><span class="p">),</span>
-                                                                             <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__repr__</span><span class="p">())</span>
+                                                                             <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">())</span>
 </pre></div>
 </div>
 <p>The usage of new cache replacement algorithm is the same as the one in last section, just replace the algorithm string
@@ -215,22 +227,13 @@ dataset, we suggested implemented the algorithms in C, check the source code to 
 </ul>
 </li>
 </ul>
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="algorithms.html" title="previous chapter">Algorithms</a></li>
-      <li>Next: <a href="API.html" title="next chapter">API</a></li>
-  </ul></li>
-</ul>
-</div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="../_sources/User/advanced_usage.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="algorithms.html"
+                        title="previous chapter">Algorithms</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="API.html"
+                        title="next chapter">API</a></p>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
@@ -245,20 +248,23 @@ dataset, we suggested implemented the algorithms in C, check the source code to 
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="footer">
-      &copy;2016, Juncheng Yang.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.8</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
-      
-      |
-      <a href="../_sources/User/advanced_usage.txt"
-          rel="nofollow">Page source</a>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="API.html" title="API"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="algorithms.html" title="Algorithms"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mimircache 0.0.2.69 documentation</a> &#187;</li> 
+      </ul>
     </div>
-
-    
-
-    
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016-2017, Juncheng Yang.
+    </div>
   </body>
 </html>
