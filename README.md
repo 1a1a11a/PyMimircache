@@ -1,7 +1,8 @@
 mimircache
 ==========
 
-<https://travis-ci.org/1a1a11a/mimircache>
+[![Build Status](https://travis-ci.org/1a1a11a/mimircache.svg?branch=master)](https://travis-ci.org/1a1a11a/mimircache)
+
 
 Mimircache is a cache trace analysis platform that supports
 
