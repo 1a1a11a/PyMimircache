@@ -27,7 +27,7 @@ draw_dict* heatmap_nonLRU(reader_t* reader,
                           heatmap_type_e plot_type,
                           int num_of_threads);
 
-draw_dict* heatmap_hit_rate_start_time_end_time(reader_t* reader,
+draw_dict* heatmap_hit_ratio_start_time_end_time(reader_t* reader,
                                                 struct_cache* cache,
                                                 char mode,
                                                 heatmap_type_e plot_type,
@@ -127,7 +127,7 @@ draw_dict* heatmap_LRU(reader_t* reader,
             get_reuse_dist_seq(reader, 0, -1);
     }
     
-    if (plot_type == hit_rate_start_time_end_time){
+    if (plot_type == hit_ratio_start_time_end_time){
         GSList* last_access_gslist = get_last_access_dist_seq(reader, read_one_element);
         if (reader->sdata->last_access != NULL){
             g_free(reader->sdata->last_access);
@@ -142,12 +142,12 @@ draw_dict* heatmap_LRU(reader_t* reader,
             reader->sdata->last_access[counter--] = GPOINTER_TO_INT(sl_node->data);
         }
         g_slist_free(last_access_gslist);
-        return heatmap_hit_rate_start_time_end_time(reader, cache, mode, plot_type, num_of_threads);
+        return heatmap_hit_ratio_start_time_end_time(reader, cache, mode, plot_type, num_of_threads);
     }
     
     
     
-    else if (plot_type == hit_rate_start_time_cache_size){
+    else if (plot_type == hit_ratio_start_time_cache_size){
         
         
         
@@ -214,7 +214,7 @@ draw_dict* heatmap_LRU(reader_t* reader,
         return dd;
     }
     
-    else if (plot_type == hit_rate_start_time_cache_size){
+    else if (plot_type == hit_ratio_start_time_cache_size){
         
         
         
@@ -234,11 +234,11 @@ draw_dict* heatmap_nonLRU(reader_t* reader,
                           heatmap_type_e plot_type,
                           int num_of_threads){
     
-    if (plot_type == hit_rate_start_time_end_time){
-        return heatmap_hit_rate_start_time_end_time(reader, cache, mode,
+    if (plot_type == hit_ratio_start_time_end_time){
+        return heatmap_hit_ratio_start_time_end_time(reader, cache, mode,
                                                     plot_type, num_of_threads);
     }
-    else if (plot_type == hit_rate_start_time_cache_size){
+    else if (plot_type == hit_ratio_start_time_cache_size){
         
         
         
@@ -256,7 +256,7 @@ draw_dict* heatmap_nonLRU(reader_t* reader,
         
     }
 
-    else if (plot_type == hit_rate_start_time_cache_size){
+    else if (plot_type == hit_ratio_start_time_cache_size){
         
         
         
@@ -272,7 +272,7 @@ draw_dict* heatmap_nonLRU(reader_t* reader,
 
 
 
-draw_dict* heatmap_hit_rate_start_time_end_time(reader_t* reader,
+draw_dict* heatmap_hit_ratio_start_time_end_time(reader_t* reader,
                                                 struct_cache* cache,
                                                 char mode,
                                                 heatmap_type_e plot_type,
@@ -307,10 +307,10 @@ draw_dict* heatmap_hit_rate_start_time_end_time(reader_t* reader,
     // build the thread pool
     GThreadPool * gthread_pool;
     if (cache->core->type == e_LRU)
-        gthread_pool = g_thread_pool_new ( (GFunc) heatmap_LRU_hit_rate_start_time_end_time_thread,
+        gthread_pool = g_thread_pool_new ( (GFunc) heatmap_LRU_hit_ratio_start_time_end_time_thread,
                                           (gpointer)params, num_of_threads, TRUE, NULL);
     else
-        gthread_pool = g_thread_pool_new ( (GFunc) heatmap_nonLRU_hit_rate_start_time_end_time_thread,
+        gthread_pool = g_thread_pool_new ( (GFunc) heatmap_nonLRU_hit_ratio_start_time_end_time_thread,
                                           (gpointer)params, num_of_threads, TRUE, NULL);
     
     if (gthread_pool == NULL)

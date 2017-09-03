@@ -59,8 +59,8 @@ typedef struct _multithreading_params_heatmap{
 
 
 typedef enum _heatmap_type{
-    hit_rate_start_time_end_time,
-    hit_rate_start_time_cache_size,
+    hit_ratio_start_time_end_time,
+    hit_ratio_start_time_cache_size,
     avg_rd_start_time_end_time,
     cold_miss_count_start_time_end_time,
     rd_distribution,
@@ -103,9 +103,9 @@ GArray* gen_breakpoints_realtime(reader_t* reader, gint64 time_interval,
 
 
 /* heatmap_thread */
-void heatmap_LRU_hit_rate_start_time_end_time_thread(gpointer data,
+void heatmap_LRU_hit_ratio_start_time_end_time_thread(gpointer data,
                                                      gpointer user_data);
-void heatmap_nonLRU_hit_rate_start_time_end_time_thread(gpointer data,
+void heatmap_nonLRU_hit_ratio_start_time_end_time_thread(gpointer data,
                                                         gpointer user_data);
 void heatmap_rd_distribution_thread(gpointer data, gpointer user_data);
 void heatmap_rd_distribution_CDF_thread(gpointer data, gpointer user_data);

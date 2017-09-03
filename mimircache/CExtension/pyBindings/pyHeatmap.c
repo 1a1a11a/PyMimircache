@@ -181,10 +181,10 @@ static PyObject* heatmap_computation(PyObject* self,
         cache = build_cache(reader, cache_size, algorithm, cache_params, 0);
 
     
-    if (strcmp(plot_type_s, "hit_rate_start_time_end_time") == 0)
-        plot_type = hit_rate_start_time_end_time;
-    else if (strcmp(plot_type_s, "hit_rate_start_time_cache_size") == 0)
-        plot_type = hit_rate_start_time_cache_size;
+    if (strcmp(plot_type_s, "hit_ratio_start_time_end_time") == 0)
+        plot_type = hit_ratio_start_time_end_time;
+    else if (strcmp(plot_type_s, "hit_ratio_start_time_cache_size") == 0)
+        plot_type = hit_ratio_start_time_cache_size;
     else if (strcmp(plot_type_s, "avg_rd_start_time_end_time") == 0)
         plot_type = avg_rd_start_time_end_time;
     else if (strcmp(plot_type_s, "cold_miss_count_start_time_end_time") == 0)
@@ -283,10 +283,10 @@ static PyObject* differential_heatmap_with_Optimal(PyObject* self,
         cache = build_cache(reader, cache_size, algorithm, cache_params, 0);
 
     
-    if (strcmp(plot_type_s, "hit_rate_start_time_end_time") == 0)
-        plot_type = hit_rate_start_time_end_time;
-    else if (strcmp(plot_type_s, "hit_rate_start_time_cache_size") == 0)
-        plot_type = hit_rate_start_time_cache_size;
+    if (strcmp(plot_type_s, "hit_ratio_start_time_end_time") == 0)
+        plot_type = hit_ratio_start_time_end_time;
+    else if (strcmp(plot_type_s, "hit_ratio_start_time_cache_size") == 0)
+        plot_type = hit_ratio_start_time_cache_size;
     else if (strcmp(plot_type_s, "avg_rd_start_time_end_time") == 0)
         plot_type = avg_rd_start_time_end_time;
     else if (strcmp(plot_type_s, "cold_miss_count_start_time_end_time") == 0)
@@ -391,10 +391,10 @@ static PyObject* differential_heatmap_py(PyObject* self,
             cache[i] = build_cache(reader, cache_size, algorithm[i], cache_params[i], 0);
     }
     
-    if (strcmp(plot_type_s, "hit_rate_start_time_end_time") == 0)
-        plot_type = hit_rate_start_time_end_time;
-    else if (strcmp(plot_type_s, "hit_rate_start_time_cache_size") == 0)
-        plot_type = hit_rate_start_time_cache_size;
+    if (strcmp(plot_type_s, "hit_ratio_start_time_end_time") == 0)
+        plot_type = hit_ratio_start_time_end_time;
+    else if (strcmp(plot_type_s, "hit_ratio_start_time_cache_size") == 0)
+        plot_type = hit_ratio_start_time_cache_size;
     else if (strcmp(plot_type_s, "avg_rd_start_time_end_time") == 0)
         plot_type = avg_rd_start_time_end_time;
     else if (strcmp(plot_type_s, "cold_miss_count_start_time_end_time") == 0)

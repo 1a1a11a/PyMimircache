@@ -5,7 +5,7 @@ from mimircache import *
 from mimircache.cache.Optimal import Optimal
 
 
-def calc_hit_rate_start_time_end_time_subprocess_general(order, cache, break_points_share_array, reader, q, **kwargs):
+def calc_hit_ratio_start_time_end_time_subprocess_general(order, cache, break_points_share_array, reader, q, **kwargs):
     """
     the child process for calculating hit rate for a general cache replacement algorithm,
     each child process will calculate for a column with fixed starting time
@@ -14,11 +14,11 @@ def calc_hit_rate_start_time_end_time_subprocess_general(order, cache, break_poi
     :param break_points_share_array:
     :param reader:
     :param q
-    :return: nothing, but add to the queue a list of result in the form of (x, y, hit_rate) with x as fixed value
+    :return: nothing, but add to the queue a list of result in the form of (x, y, hit_ratio) with x as fixed value
     """
 
     # new for optimal using c_generalProfiler
-    # c_generalProfiler.get_hit_rate()
+    # c_generalProfiler.get_hit_ratio()
 
     cache_size = kwargs['cache_size']
     # if cache == 'Random':
@@ -86,7 +86,7 @@ def calc_hit_rate_start_time_end_time_subprocess_general(order, cache, break_poi
 
 # LRU
 
-def calc_hit_rate_start_time_cache_size_subprocess(order, break_points_share_array, reuse_dist_share_array, q,
+def calc_hit_ratio_start_time_cache_size_subprocess(order, break_points_share_array, reuse_dist_share_array, q,
                                                    **kwargs):
     """
     the child process for calculating hit rate of different cache size with different starting time, but fixed end time,
@@ -95,7 +95,7 @@ def calc_hit_rate_start_time_cache_size_subprocess(order, break_points_share_arr
     :param reuse_dist_share_array:
     :param break_points_share_array:
     :param order: the order of column the child is working on
-    :return: a list of result in the form of (x, y, hit_rate) with x as fixed value(starting time), y as cache size
+    :return: a list of result in the form of (x, y, hit_ratio) with x as fixed value(starting time), y as cache size
     """
 
     max_rd = kwargs['max_rd']
@@ -118,10 +118,10 @@ def calc_hit_rate_start_time_cache_size_subprocess(order, break_points_share_arr
     q.put(result_list)
 
 
-def _hit_rate_start_time_end_time_calc_hit_count(reuse_dist_array, last_access_array, cache_size, begin_pos, end_pos,
+def _hit_ratio_start_time_end_time_calc_hit_count(reuse_dist_array, last_access_array, cache_size, begin_pos, end_pos,
                                                  real_start, **kwargs):
     """
-    called by hit_rate_start_time_end_time to calculate hit count
+    called by hit_ratio_start_time_end_time to calculate hit count
     :rtype: count of hit
     :param reuse_dist_array:
     :param cache_size:
@@ -150,7 +150,7 @@ def _hit_rate_start_time_end_time_calc_hit_count(reuse_dist_array, last_access_a
     return hit_count
 
 
-def calc_hit_rate_start_time_end_time_subprocess(order, break_points_share_array, reuse_dist_share_array, q,
+def calc_hit_ratio_start_time_end_time_subprocess(order, break_points_share_array, reuse_dist_share_array, q,
                                                  **kwargs):
     """
     the child process for calculating hit rate, each child process will calculate for
@@ -159,7 +159,7 @@ def calc_hit_rate_start_time_end_time_subprocess(order, break_points_share_array
     :param reuse_dist_share_array:
     :param break_points_share_array:
     :param order: the order of column the child is working on
-    :return: a list of result in the form of (x, y, hit_rate) with x as fixed value
+    :return: a list of result in the form of (x, y, hit_ratio) with x as fixed value
     """
 
     cache_size = kwargs['cache_size']
@@ -168,7 +168,7 @@ def calc_hit_rate_start_time_end_time_subprocess(order, break_points_share_array
     result_list = []
     total_hc = 0
     for i in range(order + 1, len(break_points_share_array)):
-        hc = _hit_rate_start_time_end_time_calc_hit_count(reuse_dist_share_array, last_access_array, cache_size,
+        hc = _hit_ratio_start_time_end_time_calc_hit_count(reuse_dist_share_array, last_access_array, cache_size,
                                                           break_points_share_array[i - 1],
                                                           break_points_share_array[i],
                                                           break_points_share_array[order])
@@ -186,7 +186,7 @@ def calc_avg_rd_start_time_end_time_subprocess(order, break_points_share_array, 
     :param reuse_dist_share_array:
     :param break_points_share_array:
     :param order: the order of column the child is working on
-    :return: a list of result in the form of (x, y, hit_rate) with x as fixed value
+    :return: a list of result in the form of (x, y, hit_ratio) with x as fixed value
     """
 
     result_list = []
@@ -245,7 +245,7 @@ def calc_rd_distribution_subprocess_deprecated(order, break_points_share_array, 
     :param reuse_dist_share_array:
     :param break_points_share_array:
     :param order: the order of column the child is working on
-    :return: a list of result in the form of (x, y, hit_rate) with x as fixed value
+    :return: a list of result in the form of (x, y, hit_ratio) with x as fixed value
     """
 
     LOG_NUM = kwargs['log_num']

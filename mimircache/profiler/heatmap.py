@@ -6,8 +6,8 @@ currently, it only support LRU
 the mechanism it works is it gets reuse distance from LRU profiler (parda for now)
 currently supported plot type:
 
-        # 1. hit_rate_start_time_end_time
-        # 2. hit_rate_start_time_cache_size
+        # 1. hit_ratio_start_time_end_time
+        # 2. hit_ratio_start_time_cache_size
         # 3. avg_rd_start_time_end_time
         # 4. cold_miss_count_start_time_end_time
         # 5. rd_distribution
@@ -92,7 +92,7 @@ class heatmap:
 
         kwargs_subprocess = {}  # kw dictionary for passing parameters to subprocess
         kwargs_plot = {}  # kw dictionary passed to plotting functions
-        if plot_type == "hit_rate_start_time_cache_size":
+        if plot_type == "hit_ratio_start_time_cache_size":
             max_rd = max(kwargs['reuse_dist'])
             kwargs_subprocess['max_rd'] = max_rd
             if 'bin_size' in kwargs:
@@ -102,7 +102,7 @@ class heatmap:
 
             result = np.zeros((len(break_points) - 1, max_rd // kwargs_subprocess['bin_size'] + 1), dtype=np.float32)
             result[:] = np.nan
-            func_pointer = calc_hit_rate_start_time_cache_size_subprocess
+            func_pointer = calc_hit_ratio_start_time_cache_size_subprocess
             kwargs_plot['yticks'] = ticker.FuncFormatter(
                 lambda x, pos: '{:2.0f}'.format(kwargs_subprocess['bin_size'] * x))
             kwargs_plot['xlabel'] = 'time({})'.format(mode)
@@ -113,7 +113,7 @@ class heatmap:
             # plt.gca().yaxis.set_major_formatter(
             #     ticker.FuncFormatter(lambda x, pos: '{:2.0f}'.format(kwargs_subprocess['bin_size'] * x)))
 
-        elif plot_type == "hit_rate_start_time_end_time":
+        elif plot_type == "hit_ratio_start_time_end_time":
             # (x,y) means from time x to time y
             assert 'reader' in kwargs, 'please provide reader as keyword argument'
             assert 'cache_size' in kwargs, 'please provide cache_size as keyword argument'
@@ -123,13 +123,13 @@ class heatmap:
             array_len = len(break_points) - 1
             result = np.zeros((array_len, array_len), dtype=np.float32)
             # result[:] = np.nan
-            func_pointer = calc_hit_rate_start_time_end_time_subprocess
+            func_pointer = calc_hit_ratio_start_time_end_time_subprocess
 
             kwargs_plot['xlabel'] = 'time({})'.format(mode)
             kwargs_plot['ylabel'] = 'time({})'.format(mode)
             kwargs_plot['yticks'] = ticker.FuncFormatter(
                 lambda x, pos: '{:2.0f}%'.format(x * 100 / len(break_points)))
-            kwargs_plot['title'] = "hit_rate_start_time_end_time"
+            kwargs_plot['title'] = "hit_ratio_start_time_end_time"
 
             last_access = c_heatmap.get_last_access_dist(reader.cReader)
             last_access_array = Array('l', len(last_access), lock=False)
@@ -179,8 +179,8 @@ class heatmap:
         :param mode: mode can be either virtual time(v) or real time(r)
         :param reader: for reading the trace file
         :param plot_type: the type of heatmap to generate, possible choices are:
-        1. hit_rate_start_time_end_time
-        2. hit_rate_start_time_cache_size
+        1. hit_ratio_start_time_end_time
+        2. hit_ratio_start_time_cache_size
         3. avg_rd_start_time_end_time
         4. cold_miss_count_start_time_end_time
         5. rd_distribution
@@ -252,7 +252,7 @@ class heatmap:
                                 kwargs=kwargs_subprocess)
                 else:
 
-                    p = Process(target=calc_hit_rate_start_time_end_time_subprocess_general,
+                    p = Process(target=calc_hit_ratio_start_time_end_time_subprocess_general,
                                 args=(map_list[map_list_pos], algorithm, break_points_share_array, reader, q),
                                 kwargs=kwargs_subprocess)
 
@@ -273,7 +273,7 @@ class heatmap:
 
         # old 0510
         # with Pool(processes=self.num_of_threads) as p:
-        #     for ret_list in p.imap_unordered(_calc_hit_rate_subprocess, map_list,
+        #     for ret_list in p.imap_unordered(_calc_hit_ratio_subprocess, map_list,
         #                                      chunksize=10):
         #         count += 1
         #         print("%2.2f%%" % (count / len(map_list) * 100), end='\r')
@@ -437,9 +437,9 @@ def server_plot_all():
             if os.path.exists("0601/" + filename + "LRU_Optimal_" + str(mem_size) + "_r.png"):
                 continue
 
-            # hm.run('r', 1000000000, "hit_rate_start_time_cache_size", reader, num_of_threads=48, cache_size=mem_size,
+            # hm.run('r', 1000000000, "hit_ratio_start_time_cache_size", reader, num_of_threads=48, cache_size=mem_size,
             #        save=True, bin_size=1000, text="size = " + str(mem_size), fixed_range=True,
-            #        figname='0601/' + filename + '_hit_rate_start_time_cache_size_r.png')
+            #        figname='0601/' + filename + '_hit_ratio_start_time_cache_size_r.png')
             # # ,change_label='False'     ,   10000000
             #
             #
@@ -468,13 +468,13 @@ def localtest():
     from mimircache.cache.FIFO import FIFO
 
     # LRU
-    # hm.heatmap(reader, 'r', TIME_INTERVAL, "hit_rate_start_time_end_time", num_of_threads=1, cache_size=CACHE_SIZE,
+    # hm.heatmap(reader, 'r', TIME_INTERVAL, "hit_ratio_start_time_end_time", num_of_threads=1, cache_size=CACHE_SIZE,
     #            save=True, text="size = " + str(CACHE_SIZE), fixed_range=True,
-    #            figname='test_hit_rate_start_time_end_time_r.png')
+    #            figname='test_hit_ratio_start_time_end_time_r.png')
     #
-    # hm.heatmap(reader, 'r', TIME_INTERVAL, "hit_rate_start_time_cache_size", num_of_threads=8, cache_size=CACHE_SIZE,
+    # hm.heatmap(reader, 'r', TIME_INTERVAL, "hit_ratio_start_time_cache_size", num_of_threads=8, cache_size=CACHE_SIZE,
     #            save=True, bin_size=1000, fixed_range=True,
-    #            figname='test_hit_rate_start_time_cache_size_r.png')
+    #            figname='test_hit_ratio_start_time_cache_size_r.png')
     #
     # hm.heatmap(reader, 'r', TIME_INTERVAL, "avg_rd_start_time_end_time", num_of_threads=8,
     #            calculated=True, cache_size=CACHE_SIZE,
@@ -485,9 +485,9 @@ def localtest():
     #            figname="test_cold_miss_count_start_time_end_time_r.png")
 
     # Non-LRU
-    hm.heatmap(reader, 'r', TIME_INTERVAL, "hit_rate_start_time_end_time", num_of_threads=8, cache_size=CACHE_SIZE,
+    hm.heatmap(reader, 'r', TIME_INTERVAL, "hit_ratio_start_time_end_time", num_of_threads=8, cache_size=CACHE_SIZE,
                save=True, text="size = " + str(CACHE_SIZE), fixed_range=True, algorithm=FIFO,  # "FIFO",
-               figname='test_hit_rate_start_time_end_time_r.png')
+               figname='test_hit_ratio_start_time_end_time_r.png')
 
 
 

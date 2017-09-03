@@ -21,7 +21,7 @@ extern "C"
  * @param data: contains order+1 
  * @param user_data: passed in param 
  */
-void heatmap_nonLRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer user_data){
+void heatmap_nonLRU_hit_ratio_start_time_end_time_thread(gpointer data, gpointer user_data){
     guint64 i, j, hit_count, miss_count;
     mt_params_hm_t* params = (mt_params_hm_t*) user_data;
     reader_t* reader_thread = clone_reader(params->reader);
@@ -84,7 +84,7 @@ void heatmap_nonLRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer 
  * @param data: contains order+1 
  * @param user_data: passed in param 
  */
-void heatmap_LRU_hit_rate_start_time_end_time_thread(gpointer data, gpointer user_data){
+void heatmap_LRU_hit_ratio_start_time_end_time_thread(gpointer data, gpointer user_data){
 
     guint64 i, j, hit_count, miss_count;
     mt_params_hm_t* params = (mt_params_hm_t*) user_data;

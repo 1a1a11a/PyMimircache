@@ -246,36 +246,15 @@ extensions.append(Extension(
     language="c"))
 
 
-# --------------------- parda module in c_lib---------------------------
-# parda_include = []
-# for i in extra_compile_args:
-#     if i.startswith('-I'):
-#         parda_include.append(i[2:])
-# parda_include.append("mimircache/profiler/parda/src/h/")
-# print(parda_include)
 
-# libparda = ("mimircache.profiler.libparda", dict(
-#     sources = glob("mimircache/profiler/parda/src/*.c"),
-#     include_dirs = parda_include,
-#     extra_compile_args = extra_compile_args,
-#     # extra_link_args = extra_link_args,
-#     language = "c"
-#     ))
-
-# --------------------- vscsi module in c_lib---------------------------
-# libvscsi = ("mimircache.cacheReader.libvscsi", dict(
-#     sources = glob("mimircache/cacheReader/vscsi/src/*.c"),
-#     include_dirs = ["mimircache/cacheReader/vscsi/src/"],
-#     language = "c"
-#     ))
 
 
 # extensions.append(cythonize("mimircache/cache/RR.pyx"))
 
 
 
-print("find packages: " + str(
-    find_packages(exclude=(['mimircache.bin', 'mimircache.test', 'mimircache.data', 'mimircache.A1a1a11a']))))
+# print("find packages: " + str(
+#     find_packages(exclude=(['mimircache.bin', 'mimircache.test', 'mimircache.data', 'mimircache.A1a1a11a']))))
 
 print("Extension: " + str(extensions))
 # long_description = read('README.md', 'CHANGES')
@@ -285,17 +264,17 @@ setup(
     name="mimircache",
     version=__version__,
     # package_dir = {'':'src'},
-    # packages = ['cache', 'cacheReader', 'profiler', 'utils'],
-    packages=find_packages(exclude=(['mimircache.bin', 'mimircache.test', 'mimircache.data', 'mimircache.A1a1a11a'])),
+    packages = ['mimircache', 'mimircache.cache', 'mimircache.cacheReader', 'mimircache.profiler', 'mimircache.profiler.abstract', 'mimircache.utils', 'mimircache.top'],
+    # packages=find_packages(exclude=(['mimircache.bin', 'mimircache.test', 'mimircache.data', 'mimircache.A1a1a11a'])),
     # modules = 
-    package_data={'plain': ['mimircache/data/trace.txt'],
-                  'csv': ['mimircache/data/trace.csv'],
-                  'vscsi': ['mimircache/data/trace.vscsi'],
-                  'conf': ['mimircache/conf']},
-    include_package_data=True,
+    # package_data={'plain': ['mimircache/data/trace.txt'],
+    #               'csv': ['mimircache/data/trace.csv'],
+    #               'vscsi': ['mimircache/data/trace.vscsi'],
+    #               'conf': ['mimircache/conf']},
+    # include_package_data=True,
     author="Juncheng Yang",
     author_email="peter.waynechina@gmail.com",
-    description="mimircache platform for analyzing cache traces, developed by Ymir group @ Emory University",
+    description="mimircache platform for analyzing cache traces, developed by Juncheng Yang in Ymir group @ Emory University",
     license="GPLv3",
     keywords="mimircache cache Ymir",
     url="http://mimircache.info",
@@ -310,13 +289,11 @@ setup(
 
         # 'Topic :: Operating System :: cache analysis'
 
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
     ],
-    install_requires=['heapdict', 'mmh3'],      # 'numpy', 'matplotlib', 'scipy',
+    install_requires=['heapdict', 'mmh3']      # 'numpy', 'matplotlib', 'scipy',
     # long_description=long_description
 )
 

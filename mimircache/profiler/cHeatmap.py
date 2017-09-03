@@ -151,9 +151,9 @@ class cHeatmap:
             else:
                 mode_string = "virtual time"
 
-            if plot_type == "hit_rate_start_time_end_time":
+            if plot_type == "hit_ratio_start_time_end_time":
                 # assert algorithm!=None, "please specify your cache replacement algorithm in heatmap plotting"
-                assert cache_size != -1, "please provide cache_size parameter for plotting hit_rate_start_time_end_time"
+                assert cache_size != -1, "please provide cache_size parameter for plotting hit_ratio_start_time_end_time"
 
                 if algorithm.lower() in const.c_available_cache:
                     xydict = c_heatmap.heatmap(reader.cReader, mode, plot_type,
@@ -191,7 +191,7 @@ class cHeatmap:
 
 
 
-            elif plot_type == "hit_rate_start_time_cache_size":
+            elif plot_type == "hit_ratio_start_time_cache_size":
                 pass
 
 
@@ -354,8 +354,8 @@ class cHeatmap:
             else:
                 mode_string = "virtual time"
 
-            if plot_type == "hit_rate_start_time_end_time":
-                assert cache_size != -1, "please provide cache_size for plotting hit_rate_start_time_end_time"
+            if plot_type == "hit_ratio_start_time_end_time":
+                assert cache_size != -1, "please provide cache_size for plotting hit_ratio_start_time_end_time"
 
                 xydict = c_heatmap.diffHeatmap(reader.cReader, mode,
                                                plot_type, cache_size,
@@ -387,7 +387,7 @@ class cHeatmap:
 
 
 
-            elif plot_type == "hit_rate_start_time_cache_size":
+            elif plot_type == "hit_ratio_start_time_cache_size":
                 pass
 
 

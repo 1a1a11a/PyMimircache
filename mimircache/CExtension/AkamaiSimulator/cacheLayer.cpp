@@ -189,7 +189,7 @@ namespace akamaiSimulator {
         for (unsigned long i=0; i<L2_COPY; i++){
             size_t len = strlen(temp);
             len = len<=CACHE_LINE_LABEL_SIZE-2 ? len: CACHE_LINE_LABEL_SIZE-2;
-            temp[len] = i;
+            temp[len] = i+1;
             temp[len+1] = 0;
             server_ind = this->ring.get_server_index(temp);
             

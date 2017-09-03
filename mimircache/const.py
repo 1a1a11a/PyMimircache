@@ -1,5 +1,4 @@
 # coding=utf-8
-import configparser
 import os, sys
 
 from mimircache.cache.ARC import ARC
@@ -27,7 +26,25 @@ from mimircache.cacheReader.binaryReader import binaryReader
 
 
 # global c_available_cache
-c_available_cache = []
+c_available_cache = ["lru"
+, "lfufast"
+, "fifo"
+, "optimal"
+, "lru_k"
+, "lru_2"
+, "lfu"
+, "mru"
+, "random"
+, "lrfu"
+, "arc"
+, "slru"
+, "mimir"
+, "amp"
+, "pg "
+, "slruml"
+, "scoreml"
+]
+
 c_available_cacheReader = [plainReader, vscsiReader, csvReader, binaryReader]
 cache_alg_mapping = {}
 BASE_DIR = os.path.dirname(__file__)
@@ -37,25 +54,7 @@ DEFAULT_NUM_OF_THREADS = 4
 
 
 def init():
-    _init_C_available_modules()
     _init_cache_alg_mapping()
-
-
-def _init_C_available_modules():
-    config = configparser.ConfigParser()
-    # print(BASE_DIR + '/conf')
-    config.read(BASE_DIR + '/conf')
-    if 'C_available_cache' in config.sections():
-        c_available_cache.extend(config['C_available_cache'])
-    else:
-        raise RuntimeWarning("cannot find any cache module in C")
-
-        # if 'C_available_reader' in config.sections():
-        #     c_available_cacheReader.extend(config['C_available_reader'])
-        # else:
-        #     raise RuntimeWarning("cannot find any cacheReader module in C")
-
-
 
 
 
