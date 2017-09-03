@@ -13,7 +13,7 @@ Welcome to the documentation of mimircache, a Python3 cache trace analysis platf
     >>> p.get_reuse_dist()
     [-1 -1 -1 -1 -1 -1 11  7 11  8  8  8 -1  8]
     >>> p.plotMRC()
-    >>> c.heatmap('r', "hit_rate_start_time_end_time", time_interval=10000000)
+    >>> c.heatmap('r', "hit_ratio_start_time_end_time", time_interval=10000000)
 
 .. image::  images/example_MRC.png
     :width: 45%

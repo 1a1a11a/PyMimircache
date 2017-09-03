@@ -11,7 +11,6 @@ Mimircache is a cache trace analysis platform that supports
 
 -   **easy plugging in your own cache replacement algorithm**
 
- 
 
 Current support algorithms include Least Recent Used(LRU), Least Frequent
 Used(LFU), Most Recent Used(MRU), First In First Out(FIFO), Segmented LRU(SLRU),
@@ -21,13 +20,12 @@ And we are actively adding more cache replacement algorithms.
 
 Best of all is that you can easily and quickly **implement your own cache
 replacement algorithm**. [See more information here](http://mimircache.info)
-
- 
+ 
 
 Dependency and Installation
 ---------------------------
 
-### System-wide library: glib, python3-pip, python3-matplotlib
+#### System-wide library: glib, python3-pip, python3-matplotlib
 
 On Ubuntu using the following command to install
 
@@ -35,24 +33,21 @@ On Ubuntu using the following command to install
 jason@myMachine: ~$ sudo apt-get install libglib2.0-dev python3-pip, python3-matplotlib 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-### Python Dependency: numpy, scipy, matplotlib, heapdict, mmh3
-
-Install using:
+#### Python Dependency: numpy, scipy, matplotlib, heapdict, mmh3
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 jason@myMachine: ~$ sudo pip3 install heapdict mmh3
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-### After installing all dependencies, running
+#### Installing mimircache 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 jason@myMachine: ~$ sudo pip3 install mimircache
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-### Compatibility
+#### Compatibility
 
 *mimircache only support Python3 and 64bit platform*
-
  
 
 Alternative using docker
@@ -60,7 +55,7 @@ Alternative using docker
 
 As an alternative, you can using mimircache in a docker container,
 
-### Using interactive shell
+### Use interactive shell
 
 To enter an interactive shell and do plotting, you can use
 
@@ -72,7 +67,6 @@ After you run this command, you will be in a shell with everything ready, your
 current directory is mapped to `/mimircache/scripts/` and your data directory is
 mapped to `/mimircache/data`. In addition, we have prepared a test dataset for
 you at `/mimircache/testData`.
-
  
 
 ### Run scripts directly
@@ -86,7 +80,7 @@ docker run --rm -v $(pwd):/mimircache/scripts -v PATH/TO/DATA:/mimircache/data 1
 
 However, if you are new here or you have trouble using docker to run scripts
 directly, we suggest using interactive shell which can help you debug.
-
+ 
 
 mimircache Tutorial
 -------------------
@@ -105,21 +99,9 @@ p = c.profiler('LRU')
 p.get_reuse_dist()
 [-1 -1 -1 -1 -1 -1 11 7 11 8 8 8 -1 8]
 p.plotMRC()
-c.heatmap('r', "hit_rate_start_time_end_time", time_interval=10000000)
+c.heatmap('r', "hit_ratio_start_time_end_time", time_interval=10000000)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-![Miss Ratio Curve](https://github.com/1a1a11a/mimircache/blob/develop/docs/images/example_MRC.png) 
+<img src="https://github.com/1a1a11a/mimircache/blob/develop/docs/images/example_heatmap.png" alt="Hit Ratio Heatmap" width="38%">
 
-![Miss Ratio Curve](https://github.com/1a1a11a/mimircache/blob/develop/docs/images/example_MRC.png){:height="50%" width="50%"}
-
-![Miss Ratio Curve]
-(https://github.com/1a1a11a/mimircache/blob/develop/docs/images/example_MRC.png)
-
-
-<div style="width:38%"> ![Miss Ratio Curve](https://github.com/1a1a11a/mimircache/blob/develop/docs/images/example_MRC.png) </div> 
-
-<div style="width:38%"> ![Hit Ratio Heatmap](https://github.com/1a1a11a/mimircache/blob/develop/docs/images/example_heatmap.png) </div> 
-
-<div style="width:50%">![Chilling](https://www.w3schools.com/w3images/fjords.jpg)</div>
-
-An example of MRC plot and hit ratio heatmap.
+An example of hit ratio heatmap.
