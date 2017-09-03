@@ -54,7 +54,7 @@ jason@myMachine: ~$ sudo pip3 install mimircache
 Alternative using docker
 ------------------------
 
-As an alternative, you can using mimircache in a docker container,
+As an alternative, you can using mimircache in a docker container, according to our simple benchmark, the performance difference between using a bare metal and a docker container is less than 10%.
 
 ### Use interactive shell
 
