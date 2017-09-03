@@ -32,7 +32,7 @@ Dependency and Installation
 On Ubuntu using the following command to install
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-$jason@myMachine: ~$ sudo apt-get install libglib2.0-dev python3-pip, python3-matplotlib 
+jason@myMachine: ~$ sudo apt-get install libglib2.0-dev python3-pip, python3-matplotlib 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ### Python Dependency: numpy, scipy, matplotlib, heapdict, mmh3
@@ -40,13 +40,13 @@ $jason@myMachine: ~$ sudo apt-get install libglib2.0-dev python3-pip, python3-ma
 Install using:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-$jason@myMachine: ~$ sudo pip3 install heapdict mmh3
+jason@myMachine: ~$ sudo pip3 install heapdict mmh3
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ### After installing all dependencies, running
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-$jason@myMachine: ~$ sudo pip3 install mimircache
+jason@myMachine: ~$ sudo pip3 install mimircache
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ### Compatibility
@@ -87,9 +87,6 @@ docker run --rm -v $(pwd):/mimircache/scripts -v PATH/TO/DATA:/mimircache/data 1
 However, if you are new here or you have trouble using docker to run scripts
 directly, we suggest using interactive shell which can help you debug.
 
- 
-
- 
 
 mimircache Tutorial
 -------------------
@@ -111,8 +108,18 @@ p.plotMRC()
 c.heatmap('r', "hit_rate_start_time_end_time", time_interval=10000000)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-<div style="width:38%"> ![Miss Ratio Curve](docs/images/example_MRC.png) </div> 
+![Miss Ratio Curve](https://github.com/1a1a11a/mimircache/blob/develop/docs/images/example_MRC.png) 
 
-<div style="width:38%"> ![Hit Ratio Heatmap](docs/images/example_heatmap.png) </div> 
+![Miss Ratio Curve](https://github.com/1a1a11a/mimircache/blob/develop/docs/images/example_MRC.png){:height="50%" width="50%"}
+
+![Miss Ratio Curve]
+(https://github.com/1a1a11a/mimircache/blob/develop/docs/images/example_MRC.png)
+
+
+<div style="width:38%"> ![Miss Ratio Curve](https://github.com/1a1a11a/mimircache/blob/develop/docs/images/example_MRC.png) </div> 
+
+<div style="width:38%"> ![Hit Ratio Heatmap](https://github.com/1a1a11a/mimircache/blob/develop/docs/images/example_heatmap.png) </div> 
+
+<div style="width:50%">![Chilling](https://www.w3schools.com/w3images/fjords.jpg)</div>
 
 An example of MRC plot and hit ratio heatmap.
