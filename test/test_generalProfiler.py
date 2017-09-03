@@ -25,14 +25,14 @@ class generalProfilerTest(unittest.TestCase):
         # print(reader.get_num_total_req())
         p = generalProfiler(reader, "Optimal", cache_size=CACHE_SIZE, bin_size=BIN_SIZE,
                             cache_params={"reader": reader}, num_of_threads=1)
-        hr = p.get_hit_rate()
+        hr = p.get_hit_ratio()
         self.assertEqual(hr[0], 0)
         print(hr)
         self.assertAlmostEqual(hr[8], 0.26610580300688491)
 
         cg = cGeneralProfiler(reader, "Optimal", cache_size=CACHE_SIZE, bin_size=BIN_SIZE,
                                   cache_params={"reader": reader}, num_of_threads=1)
-        hr2 = cg.get_hit_rate()
+        hr2 = cg.get_hit_ratio()
         self.assertAlmostEqual(hr2[8], 0.26610580300688491)
         for i,j in zip(hr, hr2):
             self.assertAlmostEqual(i, j)

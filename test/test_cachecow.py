@@ -23,21 +23,21 @@ class cachecowTest(unittest.TestCase):
         # c.vscsi('{}/trace.vscsi'.format(DAT_FOLDER))
 
         p = c.profiler("LRU")
-        hr = p.get_hit_rate()
+        hr = p.get_hit_ratio()
         self.assertAlmostEqual(hr[2000], 0.172851974146)
 
         p = c.profiler("LRU_K", cache_size=CACHE_SIZE, cache_params={"K": 2}, num_of_threads=8)
-        hr = p.get_hit_rate()
+        hr = p.get_hit_ratio()
         self.assertAlmostEqual(hr[0], 0.0)
         self.assertAlmostEqual(hr[100], 0.16544891893863678)
 
-        c.heatmap('v', "hit_rate_start_time_end_time",
+        c.heatmap('v', "hit_ratio_start_time_end_time",
                   time_interval=1000, num_of_threads=8, cache_size=2000)
-        c.heatmap('v', "hit_rate_start_time_end_time",
+        c.heatmap('v', "hit_ratio_start_time_end_time",
                   num_of_pixels=100, num_of_threads=8, cache_size=2000)
         c.heatmap('v', "rd_distribution", time_interval=1000, num_of_threads=8)
 
-        c.diffHeatmap(TIME_MODE, "hit_rate_start_time_end_time",
+        c.diffHeatmap(TIME_MODE, "hit_ratio_start_time_end_time",
                       time_interval=TIME_INTERVAL,
                       cache_size=CACHE_SIZE,
                       algorithm1="LRU", algorithm2="MRU",

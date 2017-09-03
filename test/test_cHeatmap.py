@@ -33,16 +33,16 @@ class cHeatmapTest(unittest.TestCase):
         bpv = cH.getBreakpoints(reader, 'v', time_interval=1000)
         self.assertEqual(bpv[10], 10000)
 
-        cH.heatmap(reader, 'r', "hit_rate_start_time_end_time",
+        cH.heatmap(reader, 'r', "hit_ratio_start_time_end_time",
                    time_interval=10000000, num_of_threads=4, cache_size=200)
         cH.heatmap(reader, 'r', "rd_distribution",
                    time_interval=10000000, num_of_threads=4)
         cH.heatmap(reader, 'r', "future_rd_distribution",
                    time_interval=10000000, num_of_threads=4)
-        cH.heatmap(reader, 'r', "hit_rate_start_time_end_time",
+        cH.heatmap(reader, 'r', "hit_ratio_start_time_end_time",
                    time_interval=10000000, algorithm="FIFO",
                    num_of_threads=4, cache_size=2000)
-        cH.diffHeatmap(reader, 'r', "hit_rate_start_time_end_time",
+        cH.diffHeatmap(reader, 'r', "hit_ratio_start_time_end_time",
                        cache_size=200, time_interval=100000000,
                        algorithm1="LRU", algorithm2="Optimal",
                        cache_params2=None, num_of_threads=4)
@@ -54,17 +54,17 @@ class cHeatmapTest(unittest.TestCase):
         bpv = cH.getBreakpoints(reader, 'v', time_interval=1000)
         self.assertEqual(bpv[10], 10000)
 
-        cH.heatmap(reader, 'v', "hit_rate_start_time_end_time",
+        cH.heatmap(reader, 'v', "hit_ratio_start_time_end_time",
                    time_interval=1000, num_of_threads=4, cache_size=2000)
         cH.heatmap(reader, 'v', "rd_distribution",
                    time_interval=1000, num_of_threads=4)
         cH.heatmap(reader, 'v', "future_rd_distribution",
                    time_interval=1000, num_of_threads=4)
-        cH.heatmap(reader, 'v', "hit_rate_start_time_end_time",
+        cH.heatmap(reader, 'v', "hit_ratio_start_time_end_time",
                    time_interval=10000, algorithm="FIFO",
                    num_of_threads=4, cache_size=2000)
 
-        cH.diffHeatmap(reader, 'v', "hit_rate_start_time_end_time",
+        cH.diffHeatmap(reader, 'v', "hit_ratio_start_time_end_time",
                        time_interval=10000, cache_size=200,
                        algorithm1="LFU", algorithm2="Optimal",
                        cache_params2=None, num_of_threads=4)
@@ -77,7 +77,7 @@ class cHeatmapTest(unittest.TestCase):
         bpv = cH.getBreakpoints(reader, 'v', time_interval=1000)
         self.assertEqual(bpv[10], 10000)
 
-        cH.heatmap(reader, 'v', "hit_rate_start_time_end_time",
+        cH.heatmap(reader, 'v', "hit_ratio_start_time_end_time",
                    num_of_pixels=24, num_of_threads=4, cache_size=2000)
         cH.heatmap(reader, 'v', "rd_distribution",
                    num_of_pixels=1000, num_of_threads=4)
@@ -85,11 +85,11 @@ class cHeatmapTest(unittest.TestCase):
                    num_of_pixels=1000, num_of_threads=4)
         cH.heatmap(reader, 'v', "future_rd_distribution",
                    num_of_pixels=1000, num_of_threads=4)
-        cH.heatmap(reader, 'v', "hit_rate_start_time_end_time",
+        cH.heatmap(reader, 'v', "hit_ratio_start_time_end_time",
                    num_of_pixels=24, algorithm="FIFO",
                    num_of_threads=4, cache_size=2000)
 
-        cH.diffHeatmap(reader, 'v', "hit_rate_start_time_end_time",
+        cH.diffHeatmap(reader, 'v', "hit_ratio_start_time_end_time",
                        time_interval=10000, cache_size=200,
                        algorithm1="SLRU", algorithm2="Optimal",
                        cache_params2=None, num_of_threads=4)
@@ -102,19 +102,19 @@ class cHeatmapTest(unittest.TestCase):
         bpr = cH.getBreakpoints(reader, 'r', time_interval=1000000)
         self.assertEqual(bpr[10], 53)
 
-        cH.heatmap(reader, 'r', "hit_rate_start_time_end_time",
+        cH.heatmap(reader, 'r', "hit_ratio_start_time_end_time",
                    num_of_pixels=24, num_of_threads=4, cache_size=2000)
-        cH.heatmap(reader, 'r', "hit_rate_start_time_end_time",
+        cH.heatmap(reader, 'r', "hit_ratio_start_time_end_time",
                    num_of_threads=4, cache_size=2000)
         cH.heatmap(reader, 'r', "rd_distribution",
                    num_of_pixels=1000, num_of_threads=4)
         cH.heatmap(reader, 'r', "future_rd_distribution",
                    num_of_pixels=1000, num_of_threads=4)
-        cH.heatmap(reader, 'r', "hit_rate_start_time_end_time",
+        cH.heatmap(reader, 'r', "hit_ratio_start_time_end_time",
                    num_of_pixels=100, algorithm="FIFO",
                    num_of_threads=4, cache_size=2000)
 
-        cH.diffHeatmap(reader, 'r', "hit_rate_start_time_end_time",
+        cH.diffHeatmap(reader, 'r', "hit_ratio_start_time_end_time",
                        time_interval=100000000, cache_size=200,
                        algorithm1="LFUFast", algorithm2="Optimal",
                        cache_params2=None, num_of_threads=4)
@@ -131,19 +131,19 @@ class cHeatmapTest(unittest.TestCase):
         bpv = cH.getBreakpoints(reader, 'v', time_interval=1000)
         self.assertEqual(bpv[10], 10000)
 
-        cH.heatmap(reader, 'r', "hit_rate_start_time_end_time",
+        cH.heatmap(reader, 'r', "hit_ratio_start_time_end_time",
                    num_of_pixels=100, num_of_threads=4, cache_size=2000)
-        cH.heatmap(reader, 'r', "hit_rate_start_time_end_time",
+        cH.heatmap(reader, 'r', "hit_ratio_start_time_end_time",
                    num_of_threads=4, cache_size=2000)
         cH.heatmap(reader, 'r', "rd_distribution",
                    num_of_pixels=1000, num_of_threads=4)
         cH.heatmap(reader, 'r', "future_rd_distribution",
                    num_of_pixels=1000, num_of_threads=4)
-        cH.heatmap(reader, 'r', "hit_rate_start_time_end_time",
+        cH.heatmap(reader, 'r', "hit_ratio_start_time_end_time",
                    num_of_pixels=100, algorithm="FIFO",
                    num_of_threads=4, cache_size=200)
 
-        cH.diffHeatmap(reader, 'r', "hit_rate_start_time_end_time",
+        cH.diffHeatmap(reader, 'r', "hit_ratio_start_time_end_time",
                        num_of_pixels=24, cache_size=200,
                        algorithm1="LRU", algorithm2="Optimal",
                        cache_params2=None, num_of_threads=4)
