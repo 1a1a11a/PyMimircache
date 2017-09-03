@@ -3,39 +3,50 @@ mimircache
 
 <https://travis-ci.org/1a1a11a/mimircache>
 
-Mimircache is a cache trace analysis platform that supports **comparison of
-different cache replacement algorithms**, including Least Recent Used(LRU),
-Least Frequent Used(LFU), Most Recent Used(MRU), First In First Out(FIFO),
-Clock, Random, Segmented Least Recent Used(SLRU), optimal, Adaptive Replacement
-Cache(ARC) and we are currently adding more cache replacement algorithms. Best
-of all is that you can easily and quickly **implement your own cache replacement
-algorithm**. [See more information here](http://mimircache.info)
+Mimircache is a cache trace analysis platform that supports
+
+-   **comparison of different cache replacement algorithms**
+
+-   **visualization of cache traces**
+
+-   **easy plugging in your own cache replacement algorithm**
 
  
 
-Dependency and Installation 
-----------------------------
+Current support algorithms include Least Recent Used(LRU), Least Frequent
+Used(LFU), Most Recent Used(MRU), First In First Out(FIFO), Segmented LRU(SLRU),
+Clock, Random, Optimal, Adaptive Replacement Cache(ARC).
 
-### System-wide library: glib, python3-pip, python3-matplotlib 
+And we are actively adding more cache replacement algorithms.
+
+Best of all is that you can easily and quickly **implement your own cache
+replacement algorithm**. [See more information here](http://mimircache.info)
+
+ 
+
+Dependency and Installation
+---------------------------
+
+### System-wide library: glib, python3-pip, python3-matplotlib
 
 On Ubuntu using the following command to install
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-apt-get install libglib2.0-dev python3-pip, python3-matplotlib 
+$jason@myMachine: ~$ sudo apt-get install libglib2.0-dev python3-pip, python3-matplotlib 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-### Python Dependency: numpy, scipy, matplotlib, heapdict, mmh3 
+### Python Dependency: numpy, scipy, matplotlib, heapdict, mmh3
 
 Install using:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-pip3 install heapdict mmh3
+$jason@myMachine: ~$ sudo pip3 install heapdict mmh3
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-### After installing all dependencies, running 
+### After installing all dependencies, running
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-pip3 install mimircache
+$jason@myMachine: ~$ sudo pip3 install mimircache
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ### Compatibility
@@ -47,18 +58,61 @@ pip3 install mimircache
 Alternative using docker
 ------------------------
 
-As an alternative, you can using mimircache in docker container,
+As an alternative, you can using mimircache in a docker container,
+
+### Using interactive shell
+
+To enter an interactive shell and do plotting, you can use
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-docker run --rm -v $(pwd):/opt/mimircache/user/ 1a1a11a/mimircache python3 /opt/mimircache/user/YOUR_PYTHON_FILE.py 
+sudo docker run -it --rm -v $(pwd):/mimircache/scripts -v PATH/TO/DATA:/mimircache/data 1a1a11a/mimircache /bin/bash
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-*As a reminder, please use absolute path(/opt/mimircache/user/YOUDATA) when
-using container.*
+After you run this command, you will be in a shell with everything ready, your
+current directory is mapped to `/mimircache/scripts/` and your data directory is
+mapped to `/mimircache/data`. In addition, we have prepared a test dataset for
+you at `/mimircache/testData`.
+
+ 
+
+### Run scripts directly
+
+If you don't want to use an interactive shell and you have your script ready,
+then you can do
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+docker run --rm -v $(pwd):/mimircache/scripts -v PATH/TO/DATA:/mimircache/data 1a1a11a/mimircache python3 /mimircache/scripts/YOUR_PYTHON_SCRIPT.py 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+However, if you are new here or you have trouble using docker to run scripts
+directly, we suggest using interactive shell which can help you debug.
+
+ 
 
  
 
 mimircache Tutorial
 -------------------
 
-[Check here for tutorial](http://mimircacheemory.readthedocs.io/en/latest/)
+We have prepared a wonderful tutorial here. [Check here for tutorial](http://mimircacheemory.readthedocs.io)
+
+### mimircache Power
+
+**The power of mimircache**
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+import mimircache as m
+c = m.cachecow()
+c.open("trace.txt")
+p = c.profiler('LRU')
+p.get_reuse_dist()
+[-1 -1 -1 -1 -1 -1 11 7 11 8 8 8 -1 8]
+p.plotMRC()
+c.heatmap('r', "hit_rate_start_time_end_time", time_interval=10000000)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+<div style="width:38%"> ![Miss Ratio Curve](docs/images/example_MRC.png) </div> 
+
+<div style="width:38%"> ![Hit Ratio Heatmap](docs/images/example_heatmap.png) </div> 
+
+An example of MRC plot and hit ratio heatmap.

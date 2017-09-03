@@ -56,6 +56,34 @@ Once you have a copy of the source, you can install it into your site-packages e
     $ sudo python3 setup.py install
 
 
+Using Docker Container
+----------------------
+As an alternative, you can using mimircache in a docker container,
+
+Using interactive shell
+^^^^^^^^^^^^^^^^^^^^^^^
+
+To enter an interactive shell and do plotting, you can use::
+
+    sudo docker run -it --rm -v $(pwd):/mimircache/scripts -v PATH/TO/DATA:/mimircache/data 1a1a11a/mimircache /bin/bash
+
+After you run this command, you will be in a shell with everything ready, your current directory is mapped to `/mimircache/scripts/` and your data directory is mapped to `/mimircache/data`. In addition, we have prepared a test dataset for you at `/mimircache/testData`.
+
+ 
+
+Run scripts directly
+^^^^^^^^^^^^^^^^^^^^
+
+If you don't want to use an interactive shell and you have your script ready, then you can do::
+
+    docker run --rm -v $(pwd):/mimircache/scripts -v PATH/TO/DATA:/mimircache/data 1a1a11a/mimircache python3 /mimircache/scripts/YOUR_PYTHON_SCRIPT.py
+
+However, if you are new here or you have trouble using docker to run scripts directly, we suggest using interactive shell which can help you debug.
+
+
+
+
+
 Special Instructions for Installing on Ubuntu
 ---------------------------------------------
 

@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Installation &#8212; mimircache 0.0.2.69 documentation</title>
+    <title>Installation &#8212; mimircache 0.0.2.76 documentation</title>
     <link rel="stylesheet" href="../_static/pyramid.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.0.2.69',
+        VERSION:     '0.0.2.76',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -46,7 +46,7 @@
         <li class="right" >
           <a href="intro.html" title="Introduction"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">mimircache 0.0.2.69 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">mimircache 0.0.2.76 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -104,6 +104,26 @@ always available <a class="reference external" href="https://github.com/1a1a11a/
 </div>
 </div>
 </div>
+<div class="section" id="using-docker-container">
+<h2>Using Docker Container<a class="headerlink" href="#using-docker-container" title="Permalink to this headline">¶</a></h2>
+<p>As an alternative, you can using mimircache in a docker container,</p>
+<div class="section" id="using-interactive-shell">
+<h3>Using interactive shell<a class="headerlink" href="#using-interactive-shell" title="Permalink to this headline">¶</a></h3>
+<p>To enter an interactive shell and do plotting, you can use:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>sudo docker run -it --rm -v $(pwd):/mimircache/scripts -v PATH/TO/DATA:/mimircache/data 1a1a11a/mimircache /bin/bash
+</pre></div>
+</div>
+<p>After you run this command, you will be in a shell with everything ready, your current directory is mapped to <cite>/mimircache/scripts/</cite> and your data directory is mapped to <cite>/mimircache/data</cite>. In addition, we have prepared a test dataset for you at <cite>/mimircache/testData</cite>.</p>
+</div>
+<div class="section" id="run-scripts-directly">
+<h3>Run scripts directly<a class="headerlink" href="#run-scripts-directly" title="Permalink to this headline">¶</a></h3>
+<p>If you don’t want to use an interactive shell and you have your script ready, then you can do:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>docker run --rm -v $(pwd):/mimircache/scripts -v PATH/TO/DATA:/mimircache/data 1a1a11a/mimircache python3 /mimircache/scripts/YOUR_PYTHON_SCRIPT.py
+</pre></div>
+</div>
+<p>However, if you are new here or you have trouble using docker to run scripts directly, we suggest using interactive shell which can help you debug.</p>
+</div>
+</div>
 <div class="section" id="special-instructions-for-installing-on-ubuntu">
 <h2>Special Instructions for Installing on Ubuntu<a class="headerlink" href="#special-instructions-for-installing-on-ubuntu" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="first-step-install-python3-pip-and-all-dependencies">
@@ -159,6 +179,11 @@ Since Ubuntu 12 does not come with Python3 or above and some related components 
 <li><a class="reference internal" href="#get-the-source-code">Get the Source Code</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#using-docker-container">Using Docker Container</a><ul>
+<li><a class="reference internal" href="#using-interactive-shell">Using interactive shell</a></li>
+<li><a class="reference internal" href="#run-scripts-directly">Run scripts directly</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#special-instructions-for-installing-on-ubuntu">Special Instructions for Installing on Ubuntu</a><ul>
 <li><a class="reference internal" href="#first-step-install-python3-pip-and-all-dependencies">First Step: Install Python3, pip and all dependencies</a></li>
 <li><a class="reference internal" href="#second-step-install-mimircache">Second Step: Install mimircache</a></li>
@@ -200,7 +225,7 @@ Since Ubuntu 12 does not come with Python3 or above and some related components 
         <li class="right" >
           <a href="intro.html" title="Introduction"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">mimircache 0.0.2.69 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">mimircache 0.0.2.76 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

@@ -3,7 +3,7 @@ mimircache: a cache trace analysis platform
 
 Release v\ |version|. 
 
-Welcome to the documentation of mimircache, a python3 cache trace analysis platform.
+Welcome to the documentation of mimircache, a Python3 cache trace analysis platform.
 
 **The power of mimircache**::
     >>> import mimircache as m 
@@ -20,7 +20,7 @@ Welcome to the documentation of mimircache, a python3 cache trace analysis platf
 .. image::  images/example_heatmap.png
     :width: 48%
     
-An example of MRC plot and hit rate heatmap.
+An example of MRC plot and hit ratio heatmap.
 
 
 The User Guide 
