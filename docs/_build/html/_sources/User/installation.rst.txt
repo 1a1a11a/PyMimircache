@@ -11,7 +11,7 @@ mimircache has been tested on python3.4 and python3.5. Theoretically, python3.3 
 **Mac Users**: if you don't know how to install these packages, try macports or homebrew, google will help you.
 
 
-General Installation(Pip)
+General Installation(pip)
 -------------------------
 Using pip3 is the preferred way for installing mimiracache, notice that mimircache does not support python2.
 
@@ -27,7 +27,7 @@ Using pip3 to install python dependencies::
 $ sudo pip3 install matplotlib heapdict
 
 
-Third Step: Pip Install mimircache
+Third Step: pip Install mimircache
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 To install mimircache, simply run this command in your terminal of choice::
 
@@ -56,11 +56,11 @@ Once you have a copy of the source, you can install it into your site-packages e
     $ sudo python3 setup.py install
 
 
-Using Docker Container
+Use Docker Container
 ----------------------
 As an alternative, you can using mimircache in a docker container,
 
-Using interactive shell
+Use interactive shell
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 To enter an interactive shell and do plotting, you can use::
