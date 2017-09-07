@@ -18,7 +18,7 @@ from mimircache.const import *
 
 
 class cGeneralProfiler:
-    def __init__(self, reader, cache_name, cache_size, bin_size=-1, cache_params=None,
+    def __init__(self, reader, cache_name, cache_size, bin_size=-1, cache_params={},
                  num_of_threads=DEFAULT_NUM_OF_THREADS):
         assert cache_name.lower() in cache_alg_mapping, "please check your cache replacement algorithm: " + cache_name
         assert cache_name.lower() in c_available_cache, \
@@ -141,9 +141,11 @@ class cGeneralProfiler:
             return c_generalProfiler.get_miss_ratio(self.reader.cReader, self.cache_name, cache_size,
                                                    self.bin_size, cache_params=self.cache_params, **sanity_kwargs)
 
-    def plotMRC(self, figname="MRC.png", **kwargs):
+    def plotMRC(self, figname="MRC.png", with_print=False, **kwargs):
         print("function not updated")
         MRC = self.get_miss_ratio(**kwargs)
+        if with_print:
+            print(MRC)
         try:
             # tick = ticker.FuncFormatter(lambda x, pos: '{:2.0f}'.format(x * self.bin_size))
             # plt.gca().xaxis.set_major_formatter(tick)
@@ -153,16 +155,18 @@ class cGeneralProfiler:
             plt.ylabel("Miss Rate")
             plt.title('Miss Rate Curve', fontsize=18, color='black')
             plt.savefig(figname, dpi=600)
-            INFO("plot is saved at the same directory")
+            INFO("plot is saved")
             plt.show()
             plt.clf()
             del MRC
         except Exception as e:
             plt.savefig(figname)
-            WARNING("the plotting function is not wrong, is this a headless server? {}".format(e))
+            WARNING("the plotting function reports error, maybe this is a headless server? ERROR: {}".format(e))
 
-    def plotHRC(self, figname="HRC.png", **kwargs):
+    def plotHRC(self, figname="HRC.png", with_print=False, **kwargs):
         HRC = self.get_hit_ratio(**kwargs)
+        if with_print:
+            print(HRC)
         try:
             plt.xlim(0, self.cache_size)
             plt.plot(range(0, self.cache_size + 1, self.bin_size), HRC)
@@ -175,13 +179,13 @@ class cGeneralProfiler:
             plt.ylabel("Hit Ratio")
             plt.title('Hit Ratio Curve', fontsize=18, color='black')
             plt.savefig(figname, dpi=600)
-            INFO("plot is saved at the same directory")
+            INFO("plot is saved")
             # plt.show()
             plt.clf()
             del HRC
         except Exception as e:
             plt.savefig(figname)
-            WARNING("the plotting function is not wrong, is this a headless server? {}".format(e))
+            WARNING("the plotting function reports error, maybe this is a headless server? ERROR: {}".format(e))
 
 
 

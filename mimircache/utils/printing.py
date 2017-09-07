@@ -18,6 +18,7 @@ import sys
 import time
 import traceback
 from threading import Lock
+from pprint import pprint, pformat
 
 COLOR_RED           = '\033[91m'
 COLOR_GREEN         = '\033[92m'
@@ -34,11 +35,31 @@ bcolor_dict = {'red': '\033[41m', 'green': '\033[42m', 'yellow': '\033[43m',
                 'blue': '\033[44m', 'purple': '\033[45m',
                'cyan': '\033[46m', 'white': '\033[47m', 'end': '\033[49m'}
 
+print_level_dict = {"debug": 2, "info": 3, "warning": 4, "error": 5}
 
-if "print_level" not in globals():
-    # default level: INFO
-    print_level = 3
+# default level: INFO
+print_level = 3
+
+
 printing_lock = Lock()
+
+
+def set_print_level(s):
+    global print_level
+    if isinstance(s, int):
+        print_level = s
+    else:
+        # if not found, then set to info
+        print_level = print_level_dict.get(s.lower(), 3)
+
+def get_print_level():
+    global print_level
+    return print_level
+
+def print_print_level():
+    global print_level
+    print("current print level {}".format(print_level))
+
 
 def colorful_print(color, s):
     """ print a message with color
@@ -75,52 +96,44 @@ def print_list(l, num_per_line=20):
     printing_lock.release()
 
 
-def DEBUG(s):
+def DEBUG(s, end="\n"):
     """
     level 2
     """
-    if print_level >= 2:
+    if print_level <= 2:
         printing_lock.acquire()
-        print('[DEBUG]: {}: {}{}{}'.format(time.strftime("%H:%M:%S", time.localtime(time.time())),
-                                           COLOR_LIGHT_PURPLE, s, COLOR_END))
+        print('[DEBUG]:   {}: {}{}{}'.format(time.strftime("%H:%M:%S", time.localtime(time.time())),
+                                           COLOR_LIGHT_PURPLE, s, COLOR_END), end=end)
         printing_lock.release()
 
-def INFO(s):
+def INFO(s, end="\n"):
     """
     level 3
     """
-    if print_level >= 3:
+    if print_level <= 3:
         printing_lock.acquire()
-        print('[INFO]: {}: {}{}{}'.format(time.strftime("%H:%M:%S", time.localtime(time.time())),
-                                          COLOR_YELLOW, s, COLOR_END))
+        print('[INFO]:    {}: {}{}{}'.format(time.strftime("%H:%M:%S", time.localtime(time.time())),
+                                              COLOR_YELLOW, s, COLOR_END), end=end)
         printing_lock.release()
 
-def WARNING(s):
+def WARNING(s, end="\n"):
     """
     level 4
     """
-    if print_level >= 4:
+    if print_level <= 4:
         printing_lock.acquire()
         print('[WARNING]: {}: {}{}{}'.format(time.strftime("%H:%M:%S", time.localtime(time.time())),
-                                             COLOR_PURPLE, s, COLOR_END, file=sys.stderr))
+                                             COLOR_PURPLE, s, COLOR_END), file=sys.stderr, end=end)
         printing_lock.release()
 
-def ERROR(s):
+def ERROR(s, end="\n"):
     """
     level 5
     """
-    if print_level >= 5:
+    if print_level <= 5:
         printing_lock.acquire()
-        print('[ERROR]: {}: {}{}{}'.format(time.strftime("%H:%M:%S", time.localtime(time.time())),
-                                           COLOR_RED, s, COLOR_END), file=sys.stderr)
+        print('[ERROR]:   {}: {}{}{}'.format(time.strftime("%H:%M:%S", time.localtime(time.time())),
+                                           COLOR_RED, s, COLOR_END), file=sys.stderr, end=end)
         printing_lock.release()
 
-
-
-
-if __name__ == "__main__":
-    colorful_print("purple", "T")
-    colorful_print_with_background("yellow", 'blue', 'text')
-    print('normal')
-    DEBUG("debug")
 
