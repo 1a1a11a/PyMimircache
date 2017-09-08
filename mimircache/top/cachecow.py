@@ -8,6 +8,8 @@ import mimircache.c_heatmap as c_heatmap
 from mimircache.profiler.evictionStat import *
 from mimircache.profiler.twoDPlots import *
 from mimircache.utils.prepPlotParams import *
+from mimircache.cacheReader.traceStat import traceStat
+from multiprocessing import cpu_count
 
 
 class cachecow:
@@ -354,10 +356,10 @@ class cachecow:
             assert "time_interval" in kwargs, "you need to provide time_interval for plotting cold_miss2d"
             cold_miss_ratio_2d(self.reader, kwargs['mode'], kwargs['time_interval'], figname=figname)
 
-        elif plot_type == 'request_num':
+        elif plot_type == 'request_num' or plot_type == "request_rate":
             assert "mode" in kwargs, "you need to provide mode(r/v) for plotting request_num2d"
             assert "time_interval" in kwargs, "you need to provide time_interval for plotting request_num2d"
-            request_num_2d(self.reader, kwargs['mode'], kwargs['time_interval'], figname=figname)
+            request_rate_2d(self.reader, kwargs['mode'], kwargs['time_interval'], figname=figname)
 
         elif plot_type == "popularity":
             popularity_2d(self.reader, kwargs.get("logX", True),
@@ -371,7 +373,7 @@ class cachecow:
             nameMapping_2d(self.reader, partial_ratio=kwargs.get('partial_ratio', 0.1), figname=figname)
 
         else:
-            print("currently don't support your specified plot_type: " + str(plot_type))
+            WARNING("currently don't support your specified plot_type: " + str(plot_type))
 
     def evictionPlot(self, mode, time_interval, plot_type, algorithm, cache_size, cache_params=None, **kwargs):
         """
@@ -401,7 +403,7 @@ class cachecow:
                 plot_type, "reuse_dist, freq, accumulative_freq"
             ))
 
-    def plotHRCs(self, algorithm_list, cache_params=None, cache_size=-1, bin_size=-1, auto_size=True, figname="HRC.png", **kwargs):
+    def plotHRCs(self, algorithm_list, cache_params=[], cache_size=-1, bin_size=-1, auto_size=True, figname="HRC.png", **kwargs):
         """
         
         :param algorithm_list: 
@@ -567,8 +569,95 @@ class cachecow:
             pass
         plt.clf()
 
+    def characterize(self, type, cache_size=-1):
+        # TODO: jason: allow one single function call to obtain the most useful information and would be better to give time estimation while running
+
+        if type not in ["short", "medium", "long"]:
+            WARNING("unknown type {}, supported types: short, medium, long".format(type))
+            return
+
+        INFO("trace information ")
+        trace_stat = traceStat(self.reader)
+        print(trace_stat)
+        if cache_size == -1:
+            cache_size = trace_stat.num_of_uniq_obj//100
+
+        if type == "short":
+            # short should support [basic stat, HRC of LRU, OPT, cold miss ratio, popularity]
+            INFO("now begin to plot cold miss ratio curve")
+            self.twoDPlot("cold_miss_ratio", mode="v", time_interval=trace_stat.num_of_requests//100)
+
+            INFO("now begin to plot popularity curve")
+            self.twoDPlot("popularity")
+
+            INFO("now begin to plot hit ratio curves")
+            self.plotHRCs(["LRU", "Optimal"], cache_size=cache_size, bin_size=cache_size//cpu_count()+1,
+                          num_of_threads=cpu_count(),
+                          use_general_profiler=True, save_gradually=True)
+
+        elif type == "medium":
+            # medium should support [
+            if trace_stat.time_span != 0:
+                INFO("now begin to plot request rate curve")
+                self.twoDPlot("request_rate", mode="r", time_interval=trace_stat.time_span//100)
+
+            INFO("now begin to plot cold miss ratio curve")
+            self.twoDPlot("cold_miss_ratio", mode="v", time_interval=trace_stat.num_of_requests//100)
+
+            INFO("now begin to plot popularity curve")
+            self.twoDPlot("popularity")
+
+            INFO("now begin to plot mapping plot")
+            self.twoDPlot("mapping")
+
+            INFO("now begin to plot hit ratio curves")
+            self.plotHRCs(["LRU", "Optimal", "LFU"], cache_size=cache_size,
+                          bin_size=cache_size//cpu_count()//4+1,
+                          num_of_threads=cpu_count(),
+                          use_general_profiler=True, save_gradually=True)
+
+
+        elif type == "long":
+            if trace_stat.time_span != 0:
+                INFO("now begin to plot request rate curve")
+                self.twoDPlot("request_rate", mode="r", time_interval=trace_stat.time_span//100)
+
+            INFO("now begin to plot cold miss ratio curve")
+            self.twoDPlot("cold_miss_ratio", mode="v", time_interval=trace_stat.num_of_requests//100)
+
+            INFO("now begin to plot popularity curve")
+            self.twoDPlot("popularity")
+
+            INFO("now begin to plot rd distribution popularity")
+            self.twoDPlot("rd_distribution")
+
+            INFO("now begin to plot mapping plot")
+            self.twoDPlot("mapping")
+
+            INFO("now begin to plot rd distribution heatmap")
+            self.heatmap("v", "rd_distribution", time_interval=trace_stat.num_of_requests//100)
+
+
+            INFO("now begin to plot hit ratio curves")
+            self.plotHRCs(["LRU", "Optimal", "LFU", "ARC"], cache_size=cache_size,
+                          bin_size=cache_size//cpu_count()//16+1,
+                          num_of_threads=cpu_count(),
+                          save_gradually=True)
+
+            INFO("now begin to plot hit_ratio_start_time_end_time heatmap")
+            self.heatmap("v", "hit_ratio_start_time_end_time",
+                         time_interval=trace_stat.num_of_requests//100,
+                         cache_size=cache_size)
+
+
+        pass
+
+    def stat(self):
+        assert self.reader, "you haven't provided a data file"
+        return traceStat(self.reader).get_stat()
+
     def __len__(self):
-        assert self.reader is not None, "you must open a trace to call len"
+        assert self.reader, "you haven't provided a data file"
         return len(self.reader)
 
     def __iter__(self):
