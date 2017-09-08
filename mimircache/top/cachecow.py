@@ -572,8 +572,9 @@ class cachecow:
     def characterize(self, type, cache_size=-1):
         # TODO: jason: allow one single function call to obtain the most useful information and would be better to give time estimation while running
 
-        if type not in ["short", "medium", "long"]:
-            WARNING("unknown type {}, supported types: short, medium, long".format(type))
+        supported_types = ["short", "medium", "long", "all"]
+        if type not in supported_types:
+            WARNING("unknown type {}, supported types: {}".format(type, supported_types))
             return
 
         INFO("trace information ")
@@ -650,7 +651,38 @@ class cachecow:
                          cache_size=cache_size)
 
 
-        pass
+        elif type == "all":
+            if trace_stat.time_span != 0:
+                INFO("now begin to plot request rate curve")
+                self.twoDPlot("request_rate", mode="r", time_interval=trace_stat.time_span//200)
+
+            INFO("now begin to plot cold miss ratio curve")
+            self.twoDPlot("cold_miss_ratio", mode="v", time_interval=trace_stat.num_of_requests//200)
+
+            INFO("now begin to plot popularity curve")
+            self.twoDPlot("popularity")
+
+            INFO("now begin to plot rd distribution popularity")
+            self.twoDPlot("rd_distribution")
+
+            INFO("now begin to plot mapping plot")
+            self.twoDPlot("mapping")
+
+            INFO("now begin to plot rd distribution heatmap")
+            self.heatmap("v", "rd_distribution", time_interval=trace_stat.num_of_requests//200)
+
+
+            INFO("now begin to plot hit ratio curves")
+            self.plotHRCs(["LRU", "Optimal", "LFU", "ARC"], cache_size=cache_size,
+                          bin_size=cache_size//cpu_count()//60+1,
+                          num_of_threads=cpu_count(),
+                          save_gradually=True)
+
+            INFO("now begin to plot hit_ratio_start_time_end_time heatmap")
+            self.heatmap("v", "hit_ratio_start_time_end_time",
+                         time_interval=trace_stat.num_of_requests//200,
+                         cache_size=cache_size)
+
 
     def stat(self):
         assert self.reader, "you haven't provided a data file"

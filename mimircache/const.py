@@ -23,7 +23,7 @@ from mimircache.cacheReader.csvReader import csvReader
 from mimircache.cacheReader.plainReader import plainReader
 from mimircache.cacheReader.vscsiReader import vscsiReader
 from mimircache.cacheReader.binaryReader import binaryReader
-
+from multiprocessing import cpu_count
 
 # global c_available_cache
 c_available_cache = ["lru"
@@ -50,7 +50,7 @@ cache_alg_mapping = {}
 BASE_DIR = os.path.dirname(__file__)
 
 DEFAULT_BIN_NUM_PROFILER = 100
-DEFAULT_NUM_OF_THREADS = 4
+DEFAULT_NUM_OF_THREADS = cpu_count()
 
 
 def init():
