@@ -29,11 +29,17 @@ class binaryReader(cacheReaderAbstract):
         self.fmt = init_params['fmt']
         self.label_column = init_params['label']
         self.time_column = init_params.get("real_time", -1)
+        self.size_column = init_params.get("size", -1)
         self.trace_file = open(file_loc, 'rb')
         self.structIns = struct.Struct(self.fmt)
         self.record_size = struct.calcsize(self.fmt)
         self.data_type = data_type
         self.init_params = init_params
+
+        if self.time_column != -1:
+            self.support_real_time = True
+        if self.size_column != -1:
+            self.support_size = True
 
         if open_c_reader:
             # the data type here is not real data type, it will auto correct in C

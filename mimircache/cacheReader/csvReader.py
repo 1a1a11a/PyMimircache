@@ -18,6 +18,13 @@ class csvReader(cacheReaderAbstract):
         self.init_params = init_params
         self.label_column = init_params['label']
         self.time_column = init_params.get("real_time", -1)
+        self.size_column = init_params.get("size", -1)
+
+        if self.time_column != -1:
+            self.support_real_time = True
+
+        if self.size_column != -1:
+            self.support_size = True
 
         if block_unit_size != 0:
             assert "size" in init_params, "please provide size_column option to consider request size"

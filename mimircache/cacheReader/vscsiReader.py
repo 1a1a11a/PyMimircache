@@ -15,6 +15,8 @@ class vscsiReader(cacheReaderAbstract):
             self.cReader = c_cacheReader.setup_reader(file_loc, 'v', data_type=data_type,
                                                       block_unit_size=block_unit_size,
                                                       disk_sector_size=disk_sector_size)
+        self.support_size = True
+        self.support_real_time = True
 
         self.get_num_total_req()
 

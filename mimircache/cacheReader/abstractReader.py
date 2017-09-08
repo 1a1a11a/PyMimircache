@@ -20,6 +20,11 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
             assert data_type == 'l', "block size option only support on block request(data type l)"
         assert (os.path.exists(file_loc)), "data file({}) does not exist".format(file_loc)
 
+
+        self.support_real_time = False
+        self.support_size = False
+
+
         self.counter = 0
         self.num_of_line = -1
         self.num_of_uniq_req = -1
