@@ -17,7 +17,7 @@ import numpy as np
 from collections import defaultdict
 
 
-def request_num_2d(reader, mode, time_interval, figname="request_num.png"):
+def request_rate_2d(reader, mode, time_interval, figname="request_num.png"):
     """
     plot the number of requests per time_interval vs time
     :param reader:

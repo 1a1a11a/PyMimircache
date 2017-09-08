@@ -162,6 +162,7 @@ class cHeatmap:
                                                num_of_pixels=num_of_pixels,
                                                cache_params=cache_params,
                                                num_of_threads=num_of_threads)
+                    # print("computation finishes {}".format(xydict))
                 else:
                     raise RuntimeError("haven't provided support given algorithm in C yet: " + str(algorithm))
                     pass
@@ -427,14 +428,12 @@ class cHeatmap:
 
         if 'filter_count' in kwargs:
             assert kwargs['filter_count'] > 0, "filter_count must be positive"
-            plot_array = np.ma.array(xydict, mask=(xydict<kwargs))
+            plot_array = np.ma.array(xydict, mask=(xydict<kwargs['filter_count']))
 
-
+        # xydict.dump("xydict2.np")
         cmap = plt.cm.jet
         # cmap = plt.get_cmap("Oranges")
         cmap.set_bad('w', 1.)
-
-        # plt.yscale('log')
 
         plt.title("Heatmap")
 
@@ -448,7 +447,6 @@ class cHeatmap:
                 img = plt.imshow(plot_array, interpolation='nearest', origin='lower', aspect='auto',
                                  cmap=cmap, **self.other_plot_kwargs)
 
-            # , vmin=0, vmax=1
             cb = plt.colorbar(img)
             plt.tight_layout()
 
