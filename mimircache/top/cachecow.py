@@ -414,7 +414,7 @@ class cachecow:
         :param kwargs: block_unit_size, num_of_threads, label, autosize_threshold  
         :return: 
         """
-        plot_dict = prepPlotParams("Hit Ratio Curve", "Cache Size/item.", "Hit Ratio", figname, **kwargs)
+        plot_dict = prepPlotParams("Hit Ratio Curve", "Cache Size(item)", "Hit Ratio", figname, **kwargs)
         num_of_threads = 4
         if 'num_of_threads' in kwargs:
             num_of_threads = kwargs['num_of_threads']
@@ -470,7 +470,10 @@ class cachecow:
             if alg == "LRU":
                 if LRU_HR is None:  # no auto_resize
                     hr = profiler.get_hit_ratio()
-                    plt.plot(hr[:-2], label=label[i])
+                    if use_general_profiler:
+                        plt.plot([i * bin_size for i in range(len(hr))], hr, label=label[i])
+                    else:
+                        plt.plot(hr[:-2], label=label[i])
                 else:
                     plt.plot(LRU_HR, label=label[i])
             else:
@@ -511,7 +514,7 @@ class cachecow:
         :param kwargs: 
         :return: 
         """
-        plot_dict = prepPlotParams("Miss Ratio Curve", "Cache Size/item.", "Miss Ratio", "MRC.png", **kwargs)
+        plot_dict = prepPlotParams("Miss Ratio Curve", "Cache Size(item)", "Miss Ratio", "MRC.png", **kwargs)
         num_of_threads = 4
         if 'num_of_threads' in kwargs:
             num_of_threads = kwargs['num_of_threads']
