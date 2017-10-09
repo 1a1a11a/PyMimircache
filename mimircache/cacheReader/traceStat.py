@@ -14,9 +14,11 @@ class traceStat:
     """
     this class provides stat calculation for a given trace
     """
-    def __init__(self, reader, top_N_popular=8):
+    def __init__(self, reader, top_N_popular=8, keep_access_freq_list=False):
         self.reader = reader
         self.top_N_popular = top_N_popular
+        self.keep_access_freq_list = keep_access_freq_list
+        self.access_freq_list = None
         # stat data representation:
         #       0:  not initialized,
         #       -1: error while obtaining data
@@ -70,6 +72,9 @@ class traceStat:
 
         # l is a list of (obj, freq) in descending order
         l = sorted(d.items(), key=lambda x: x[1], reverse=True)
+        if self.keep_access_freq_list:
+            self.access_freq_list = l
+
         self.top_N_popular_obj = l[:self.top_N_popular]
         for i in range(len(l)-1, -1, -1):
             if l[i][1] == 1:
@@ -79,7 +84,8 @@ class traceStat:
         self.freq_mean = self.num_of_requests / (float) (self.num_of_uniq_obj)
 
 
-
+    def get_access_freq_list(self):
+        return self.access_freq_list
 
 
 
@@ -115,6 +121,10 @@ class traceStat:
         else:
             WARNING("unknown return format, return string instead")
             return s
+
+
+    def get_top_N(self):
+        return self.top_N_popular_obj
 
 
     def __repr__(self):

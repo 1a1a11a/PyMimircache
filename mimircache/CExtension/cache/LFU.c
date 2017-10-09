@@ -11,7 +11,7 @@
  * but this approach saves some memory compared to the other approach, 
  * which uses a hashmap and linkedlist and gives O(1) at each request 
  *
- * this LFU clear the frequenct of an item after evicting from cache 
+ * this LFU clear the frequency of an item after evicting from cache 
  * when there are more than one items with the smallest freq, the behavior is 
  * LRU, but can be tuned to MRU, Random or unstable-pq-decided  
  */ 

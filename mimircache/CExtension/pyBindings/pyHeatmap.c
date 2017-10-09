@@ -194,7 +194,7 @@ static PyObject* heatmap_computation(PyObject* self,
         Py_RETURN_NONE;
     }
     else {
-        printf("unsupported plot type\n");
+        ERROR("unsupported plot type\n");
         exit(1);
     }
     

@@ -51,6 +51,11 @@ class cachecowTest(unittest.TestCase):
 
         c.plotHRCs(["LRU", "Optimal", "LFUFast", "LRU_K", "SLRU"], [None, None, None, {"K":2}])
 
+    def test2(self):
+        c = cachecow()
+        c.csv("{}/trace.csv".format(DAT_FOLDER),
+              init_params={"header" :True, 'label' :5, 'real_time':2})
+        c.characterize("short")
 
 
 if __name__ == "__main__":
