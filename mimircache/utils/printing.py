@@ -38,7 +38,7 @@ bcolor_dict = {'red': '\033[41m', 'green': '\033[42m', 'yellow': '\033[43m',
 print_level_dict = {"debug": 2, "info": 3, "warning": 4, "error": 5}
 
 # default level: INFO
-print_level = 3
+print_level = 2
 
 
 printing_lock = Lock()

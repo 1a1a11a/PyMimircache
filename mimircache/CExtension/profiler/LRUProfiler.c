@@ -957,7 +957,7 @@ void cal_save_reuse_dist(reader_t * const reader,
         abort(); 
     }
         
-
+    // in multi-threading, this might be a problem 
     FILE* file = fopen(save_file_loc, "wb");
     fwrite(rd, sizeof(gint64), reader->base->total_num, file);
     fclose(file);

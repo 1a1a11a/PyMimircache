@@ -131,8 +131,8 @@ class cachecow:
 
         if 'num_of_threads' in kwargs:
             num_of_threads = kwargs['num_of_threads']
-        elif 'num_of_threads' in kwargs:
-            num_of_threads = kwargs['num_of_threads']
+        elif 'num_of_thread' in kwargs:
+            num_of_threads = kwargs['num_of_thread']
         else:
             num_of_threads = DEFAULT_NUM_OF_THREADS
 
@@ -295,8 +295,8 @@ class cachecow:
         :param algorithm:
         :param use_general_profiler: for LRU only, if it is true, then return a cGeneralProfiler for LRU,
                                         otherwise, return a LRUProfiler for LRU 
-                                        Note: LRUProfiler provides does not require cache_size/bin_size params, 
-                                        does not sample and provide a smooth curve, however, it is O(logN) at each step, 
+                                        Note: LRUProfiler does not require cache_size/bin_size params,
+                                        it does not sample thus provides a smooth curve, however, it is O(logN) at each step,
                                         in constrast, cGeneralProfiler samples the curve, but use O(1) at each step 
         :param kwargs:
         :return:
@@ -362,12 +362,16 @@ class cachecow:
             request_rate_2d(self.reader, kwargs['mode'], kwargs['time_interval'], figname=figname)
 
         elif plot_type == "popularity":
-            popularity_2d(self.reader, kwargs.get("logX", True),
-                          kwargs.get("logY", True), kwargs.get("cdf", False), figname=figname)
+            popularity_2d(self.reader, logX=kwargs.get("logX", True),
+                          logY=kwargs.get("logY", True), cdf=kwargs.get("cdf", False), figname=figname)
 
-        elif plot_type == "rd_distribution":
-            rd_distribution_2d(self.reader, kwargs.get("logX", True),
-                          kwargs.get("logY", True), kwargs.get("cdf", False), figname=figname)
+        elif plot_type == "rd_popularity":
+            rd_popularity_2d(self.reader, logX=kwargs.get("logX", True),
+                          logY=kwargs.get("logY", True), cdf=kwargs.get("cdf", False), figname=figname)
+
+        elif plot_type == "rt_popularity":
+            rt_popularity_2d(self.reader, kwargs.get("granularity", 1), logX=kwargs.get("logX", True),
+                            logY=kwargs.get("logY", True), cdf=kwargs.get("cdf", False), figname=figname)
 
         elif plot_type == 'mapping':
             nameMapping_2d(self.reader, partial_ratio=kwargs.get('partial_ratio', 0.1), figname=figname)
@@ -403,24 +407,28 @@ class cachecow:
                 plot_type, "reuse_dist, freq, accumulative_freq"
             ))
 
-    def plotHRCs(self, algorithm_list, cache_params=[], cache_size=-1, bin_size=-1, auto_size=True, figname="HRC.png", **kwargs):
+    def plotHRCs(self, algorithm_list, cache_params=(), cache_size=-1, bin_size=-1, auto_size=True, figname="HRC.png", **kwargs):
         """
-        
-        :param algorithm_list: 
-        :param cache_params: 
-        :param cache_size: 
-        :param bin_size: 
-        :param auto_size: 
-        :param kwargs: block_unit_size, num_of_threads, label, autosize_threshold  
-        :return: 
+
+        :param algorithm_list:
+        :param cache_params:
+        :param cache_size:
+        :param bin_size:
+        :param auto_size:
+        :param figname:
+        :param kwargs: block_unit_size, num_of_threads, label, autosize_threshold, xlimit, ylimit
+
+        :return:
         """
+
         plot_dict = prepPlotParams("Hit Ratio Curve", "Cache Size(item)", "Hit Ratio", figname, **kwargs)
+        hit_ratio_dict = {}
         num_of_threads = 4
         if 'num_of_threads' in kwargs:
             num_of_threads = kwargs['num_of_threads']
 
         use_general_profiler = False
-        if 'use_general_profiler' in kwargs:
+        if 'use_general_profiler' in kwargs and kwargs["use_general_profiler"]:
             use_general_profiler = True
 
         save_gradually = False
@@ -471,13 +479,29 @@ class cachecow:
                 if LRU_HR is None:  # no auto_resize
                     hr = profiler.get_hit_ratio()
                     if use_general_profiler:
+                        # save the computed hit ratio
+                        hit_ratio_dict["LRU"] = {}
+                        for i in range(len(hr)):
+                            hit_ratio_dict["LRU"][i * bin_size] = hr[i]
                         plt.plot([i * bin_size for i in range(len(hr))], hr, label=label[i])
                     else:
+                        # save the computed hit ratio
+                        hit_ratio_dict["LRU"] = {}
+                        for i in range(len(hr)-2):
+                            hit_ratio_dict["LRU"][i] = hr[i]
                         plt.plot(hr[:-2], label=label[i])
                 else:
+                    # save the computed hit ratio
+                    hit_ratio_dict["LRU"] = {}
+                    for i in range(len(LRU_HR)):
+                        hit_ratio_dict["LRU"][i] = LRU_HR[i]
                     plt.plot(LRU_HR, label=label[i])
             else:
                 hr = profiler.get_hit_ratio()
+                # save the computed hit ratio
+                hit_ratio_dict[alg] = {}
+                for i in range(len(hr)):
+                    hit_ratio_dict[alg][i * bin_size] = hr[i]
                 plt.plot([i * bin_size for i in range(len(hr))], hr, label=label[i])
             self.reader.reset()
             INFO("HRC plotting {} computation finished using time {} s".format(alg, time.time() - t1))
@@ -488,6 +512,11 @@ class cachecow:
         plt.xlabel(plot_dict['xlabel'])
         plt.ylabel(plot_dict['ylabel'])
         plt.title(plot_dict['title'], fontsize=18, color='black')
+
+        if "xlimit" in kwargs:
+            plt.xlim(kwargs["xlimit"])
+        if "ylimit" in kwargs:
+            plt.ylim(kwargs["ylimit"])
 
         if profiling_with_size:
             plt.xlabel("Cache Size (MB)")
@@ -502,6 +531,7 @@ class cachecow:
         except:
             pass
         plt.clf()
+        return hit_ratio_dict
 
     def plotMRCs(self, algorithm_list, cache_params=None, cache_size=-1, bin_size=-1, auto_size=True, **kwargs):
         """
@@ -573,7 +603,8 @@ class cachecow:
         plt.clf()
 
     def characterize(self, type, cache_size=-1):
-        # TODO: jason: allow one single function call to obtain the most useful information and would be better to give time estimation while running
+        # TODO: jason: allow one single function call to obtain the most useful information
+        # and would be better to give time estimation while running
 
         supported_types = ["short", "medium", "long", "all"]
         if type not in supported_types:

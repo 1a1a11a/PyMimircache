@@ -108,13 +108,17 @@ class cGeneralProfiler:
             cache_size = kwargs['cache_size']
         else:
             cache_size = self.cache_size
+        if 'bin_size' in kwargs:
+            bin_size = kwargs['bin_size']
+        else:
+            bin_size = self.bin_size
         if 'begin' in kwargs:
             sanity_kwargs['begin'] = kwargs['begin']
         if 'end' in kwargs:
             sanity_kwargs['end'] = kwargs['end']
         # handles both withsize and no size
         return c_generalProfiler.get_hit_ratio(self.reader.cReader, self.cache_name, cache_size,
-                                                        self.bin_size, cache_params=self.cache_params, **sanity_kwargs)
+                                                        bin_size, cache_params=self.cache_params, **sanity_kwargs)
 
 
 
@@ -131,6 +135,10 @@ class cGeneralProfiler:
             cache_size = kwargs['cache_size']
         else:
             cache_size = self.cache_size
+        if 'bin_size' in kwargs:
+            bin_size = kwargs['bin_size']
+        else:
+            bin_size = self.bin_size
         if 'begin' in kwargs:
             sanity_kwargs['begin'] = kwargs['begin']
         if 'end' in kwargs:
@@ -139,7 +147,7 @@ class cGeneralProfiler:
             print("not supported yet")
         else:
             return c_generalProfiler.get_miss_ratio(self.reader.cReader, self.cache_name, cache_size,
-                                                   self.bin_size, cache_params=self.cache_params, **sanity_kwargs)
+                                                    bin_size, cache_params=self.cache_params, **sanity_kwargs)
 
     def plotMRC(self, figname="MRC.png", with_print=False, **kwargs):
         print("function not updated")

@@ -1,5 +1,7 @@
 # coding=utf-8
 import os
+import socket
+from mimircache.const import INTERNAL_USE
 import mimircache.c_LRUProfiler as c_LRUProfiler
 from mimircache.cacheReader.binaryReader import binaryReader
 from mimircache.cacheReader.abstractReader import cacheReaderAbstract
@@ -9,9 +11,10 @@ from matplotlib.ticker import FuncFormatter
 
 class LRUProfiler:
     all = ["get_hit_count", "get_hit_ratio", "get_miss_ratio", "get_reuse_distance",
-           "plotMRC", "plotHRC", "get_best_cache_sizes"]
+           "plotMRC", "plotHRC", "get_best_cache_sizes", "save_reuse_dist", "load_reuse_dist",
+           "use_precomputedRD"]
 
-    def __init__(self, reader, cache_size=-1, cache_params=None):
+    def __init__(self, reader, cache_size=-1, cache_params=None, *args, **kwargs):
         self.cache_size = cache_size
         self.reader = reader
         if cache_params is not None and 'block_unit_size' in cache_params:
@@ -26,6 +29,14 @@ class LRUProfiler:
         assert isinstance(reader, cacheReaderAbstract), \
             "you provided an invalid cacheReader: {}".format(reader)
 
+        # INTERNAL USE to cache intermediate reuse distance
+        self.already_load_rd = False
+        if INTERNAL_USE and not kwargs.get("no_load_rd", False) and \
+                        socket.gethostname().lower() in ["master", "node2", "node3"]:
+            if not reader.already_load_rd:
+                self.use_precomputedRD()
+                self.already_load_rd = True
+
 
     def addOneTraceElement(self, element):
         # do not need this function in this profiler
@@ -38,6 +49,41 @@ class LRUProfiler:
     def load_reuse_dist(self, file_loc, rd_type):
         assert rd_type == 'rd' or rd_type == 'frd', "please provide a valid reuse distance type, currently support rd and frd"
         c_LRUProfiler.load_reuse_dist(self.reader.cReader, file_loc, rd_type)
+        self.reader.already_load_rd = True
+
+    def _del_reuse_dist_file(self):
+        """
+        an internal function that deletes the pre-computed reuse distance
+        """
+
+        assert INTERNAL_USE == True, "this function is only used internally"
+        rd_dat_path = self.reader.file_loc.replace("/home/jason/ALL_DATA/", "/research/jason/preComputedData/RD/")
+        rd_dat_path = rd_dat_path.replace("/home/cloudphysics/traces/", "/research/jason/preComputedData/RD/cphyVscsi")
+
+        if not os.path.exists(rd_dat_path):
+            WARNING("pre-computed reuse distance file does not exist")
+        else:
+            os.remove(rd_dat_path)
+
+
+    def use_precomputedRD(self):
+        """
+        this is an internal used function, it tries to load precomputed reuse distance to avoid the expensive
+        O(NlogN) reuse distance computation, if the data does not exists, then compute it and save it
+        :return:
+        """
+        if not self.already_load_rd and not self.reader.already_load_rd:
+            rd_dat_path = self.reader.file_loc.replace("/home/jason/ALL_DATA/", "/research/jason/preComputedData/RD/")
+            rd_dat_path = rd_dat_path.replace("/home/cloudphysics/traces/", "/research/jason/preComputedData/RD/cphyVscsi")
+
+            if os.path.exists(rd_dat_path):
+                DEBUG("loading reuse distance from {}".format(rd_dat_path))
+                self.load_reuse_dist(rd_dat_path, "rd")
+            else:
+                if not os.path.exists(os.path.dirname(rd_dat_path)):
+                    os.makedirs(os.path.dirname(rd_dat_path))
+                self.save_reuse_dist(rd_dat_path, "rd")
+        return self.get_reuse_distance()
 
     def get_hit_count(self, **kargs):
         """
@@ -105,6 +151,9 @@ class LRUProfiler:
         return hit_ratio
 
     def get_miss_ratio(self, **kargs):
+        """
+        get miss ratio as a np array
+        """
         if 'cache_size' not in kargs:
             kargs['cache_size'] = self.cache_size
         if self.with_size:

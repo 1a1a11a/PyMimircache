@@ -8,6 +8,9 @@ import mimircache.c_cacheReader as c_cacheReader
 
 
 class vscsiReader(cacheReaderAbstract):
+    all = ["reset", "read_one_element", "read_time_request", "read_one_request_full_info",
+           "get_average_size", "get_timestamp_list"]
+
     def __init__(self, file_loc, data_type='l', block_unit_size=0, disk_sector_size=512, open_c_reader=True):
         super().__init__(file_loc, data_type='l', block_unit_size=block_unit_size,
                          disk_sector_size=disk_sector_size)
@@ -19,6 +22,7 @@ class vscsiReader(cacheReaderAbstract):
         self.support_real_time = True
 
         self.get_num_total_req()
+
 
 
     def reset(self):
@@ -68,7 +72,13 @@ class vscsiReader(cacheReaderAbstract):
         self.reset()
         return sizes/counter
 
-
+    def get_timestamp_list(self):
+        ts_list = []
+        r = c_cacheReader.read_time_request(self.cReader)
+        while r:
+            ts_list.append(r[0])
+            r = c_cacheReader.read_time_request(self.cReader)
+        return ts_list
 
     def __next__(self):  # Python 3
         super().__next__()

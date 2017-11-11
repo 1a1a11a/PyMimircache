@@ -41,7 +41,7 @@ class generalProfiler(profilerAbstract):
         self.num_of_blocks = -1
         if self.cache_size != -1:
 
-            self.num_of_blocks = math.ceil(self.cache_size / self.bin_size)
+            self.num_of_blocks = int(math.ceil(self.cache_size / self.bin_size))
 
             self.HRC = np.zeros((self.num_of_blocks + 1,), dtype=np.double)
             self.MRC = np.zeros((self.num_of_blocks + 1,), dtype=np.double)
@@ -189,7 +189,7 @@ class generalProfiler(profilerAbstract):
         try:
             num_of_blocks = self.num_of_blocks + 1
             plt.plot(range(0, self.bin_size * num_of_blocks, self.bin_size), self.MRC[:num_of_blocks])
-            plt.xlabel("cache Size")
+            plt.xlabel("Cache Size")
             plt.ylabel("Miss Ratio")
             plt.title('Miss Ratio Curve', fontsize=18, color='black')
             plt.savefig(figname, dpi=600)
@@ -208,7 +208,7 @@ class generalProfiler(profilerAbstract):
             num_of_blocks = self.num_of_blocks + 1
 
             plt.plot(range(0, self.bin_size * num_of_blocks, self.bin_size), self.HRC[:num_of_blocks])
-            plt.xlabel("cache Size")
+            plt.xlabel("Cache Size")
             plt.ylabel("Hit Ratio")
             plt.title('Hit Ratio Curve', fontsize=18, color='black')
             plt.savefig(figname, dpi=600)

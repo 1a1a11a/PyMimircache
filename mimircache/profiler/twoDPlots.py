@@ -158,7 +158,7 @@ def nameMapping_2d(reader, partial_ratio=0.1, figname=None):
     reader.reset()
 
 
-def popularity_2d(reader, logX=True, logY=True, cdf=False, figname="popularity.png"):
+def popularity_2d(reader, logX=True, logY=False, cdf=True, plot_type="obj", figname=None):
     """
     plot the popularity curve of the obj in the trace
     :param reader:
@@ -168,6 +168,9 @@ def popularity_2d(reader, logX=True, logY=True, cdf=False, figname="popularity.p
     :param figname:
     :return:
     """
+    if figname is None:
+        figname = "popularity_{}.png".format(os.path.basename(reader.file_loc))
+
     req_freq_dict = reader.get_req_freq_distribution()
     freq_count_dict = defaultdict(int)
     max_freq = -1
@@ -177,33 +180,61 @@ def popularity_2d(reader, logX=True, logY=True, cdf=False, figname="popularity.p
             max_freq = v
 
     l = [0] * max_freq
-    xlabel = "obj frequency"
-    if not cdf:
-        ylabel = "num of obj"
-        for k, v in freq_count_dict.items():
-            l[k-1] = v
+    xlabel = "Obj Frequency"
+    if plot_type.lower() == "obj":
+        print(freq_count_dict)
+        if not cdf:
+            ylabel = "Num of Obj"
+            for k, v in freq_count_dict.items():
+                l[k-1] = v
+        else:
+            ylabel = "Num of Obj Percentage (CDF)"
+            for freq, freq_count in freq_count_dict.items():
+                l[freq-1] = freq_count
+            for i in range(1, len(l)):
+                l[i] = l[i-1]+l[i]
+            for i in range(0, len(l)):
+                l[i] = l[i] / l[-1]
+            print(l)
+    elif plot_type.lower() == "req":
+        if not cdf:
+            ylabel = "Num of Req"
+            for freq, freq_count in freq_count_dict.items():
+                l[freq-1] = freq_count * freq
+        else:
+            ylabel = "Num of Req Percentage (CDF)"
+            for freq, freq_count in freq_count_dict.items():
+                l[freq -1] = freq * freq_count
+            for i in range(1, len(l)):
+                l[i] = l[i-1]+l[i]
+            for i in range(0, len(l)):
+                l[i] = l[i] / l[-1]
     else:
-        ylabel = "num of obj (CDF)"
-        for k, v in freq_count_dict.items():
-            l[-k] = v
-        for i in range(1, len(l)):
-            l[i] = l[i-1]+l[i]
-        for i in range(0, len(l)):
-            l[i] = l[i] / l[-1]
+        ERROR("unknown plot type {}".format(plot_type))
+        return
 
-    draw2d(l, xlabel=xlabel, ylabel=ylabel, logX=logX, logY=logY, figname=figname,
-           xticks=ticker.FuncFormatter(lambda x, _: '{:.0%}'.format((x + 1) / len(l))))
+    draw2d(l, xlabel=xlabel, ylabel=ylabel, logX=logX, logY=logY, figname=figname)
+           # , yticks=ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x *100 / len(l))))
     reader.reset()
 
 
 
-def rd_distribution_2d(reader, logX=True, logY=True, cdf=False, figname="rd_distribution_2d.png"):
+def rd_freq_popularity_2d(reader, logX=True, logY=True, cdf=False, figname="rdFreq_popularity_2d.png"):
+    """
+    plot the reuse distance distribution in two dimensional figure
+    :param reader:
+    :param logX:
+    :param logY:
+    :param cdf:
+    :param figname:
+    :return:
+    """
     rd_list = LRUProfiler(reader).get_reuse_distance()
-    rd_dict = defaultdict(int)
+    rd_dict = defaultdict(int)      # rd -> count
     for rd in rd_list:
         rd_dict[rd] += 1
 
-    rd_count_dict = defaultdict(int)
+    rd_count_dict = defaultdict(int)        # rd_count -> count of rd_count
     max_freq = -1
     for _, v in rd_dict.items():
         rd_count_dict[v] += 1
@@ -219,15 +250,176 @@ def rd_distribution_2d(reader, logX=True, logY=True, cdf=False, figname="rd_dist
     else:
         ylabel = "num of requests (CDF)"
         for k, v in rd_count_dict.items():
-            l[-k] = v
+            # l[-k] = v                # this is not necessary
+            l[k-1] = v
         for i in range(1, len(l)):
             l[i] = l[i-1]+l[i]
         for i in range(0, len(l)):
             l[i] = l[i] / l[-1]
 
     draw2d(l, xlabel=xlabel, ylabel=ylabel, logX=logX, logY=logY, figname=figname,
-           xticks=ticker.FuncFormatter(lambda x, _: '{:.0%}'.format((x + 1) / len(l))))
+           xticks=ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / len(l))))
     reader.reset()
+
+
+def rd_popularity_2d(reader, logX=True, logY=False, cdf=True, figname="rd_popularity_2d.png"):
+    """
+    plot the reuse distance distribution in two dimensional figure
+    :param reader:
+    :param logX:
+    :param logY:
+    :param cdf:
+    :param figname:
+    :return:
+    """
+    rd_list = LRUProfiler(reader).get_reuse_distance()
+    rd_dict = defaultdict(int)      # rd -> count
+    for rd in rd_list:
+        rd_dict[rd] += 1
+
+    max_rd = -1
+    for rd, _ in rd_dict.items():
+        if rd > max_rd:
+            max_rd = rd
+
+    if not logX or logY or not cdf:
+        WARNING("recommend using logX without logY with cdf")
+
+    l = [0] * (max_rd + 2)
+    # l = [0] * (int(math.log(max_rd, logX_base)) + 1)
+    xlabel = "reuse distance"
+    if not cdf:
+        ylabel = "num of requests"
+        for rd, rd_count in rd_dict.items():
+            if rd != -1:                         # ignore cold miss
+                # l[int(math.log(rd+1, logX_base))] += rd_count   # rd 0 -> pos 0, rd 1 -> pos 1
+                l[rd + 1] = rd_count
+    else:
+        ylabel = "num of requests (CDF)"
+        for rd, rd_count in rd_dict.items():
+            if rd != -1:
+                # l[int(math.log(rd+1, logX_base))] = v
+                l[rd + 1] = rd_count
+        for i in range(1, len(l)):
+            l[i] = l[i-1]+l[i]
+        for i in range(0, len(l)):
+            l[i] = l[i] / l[-1]
+
+    draw2d(l, xlabel=xlabel, ylabel=ylabel, logX=logX, logY=logY, figname=figname)
+#            xticks=ticker.FuncFormatter(lambda x, _: '{}'.format( int(logX_base ** x - 1))))
+    reader.reset()
+
+
+def rt_popularity_2d(reader, granularity=10, logX=True, logX_base=1.08, logY=False, cdf=True, figname="rt_popularity_2d.png"):
+    """
+        plot the reuse time distribution in two dimensional figure
+
+    :param reader:
+    :param granularity:
+    :param logX:
+    :param logY:
+    :param cdf:
+    :param figname:
+    :return:
+    """
+
+    last_access_time_dic = {}
+    rt_dic = defaultdict(int)           # rt -> count
+    line = reader.read_time_request()
+    while line:
+        time, req = line
+        time_with_granularity = int(time/granularity)
+        if req in last_access_time_dic:
+            rt_dic[time_with_granularity - last_access_time_dic[req]] += 1
+        last_access_time_dic[req] = time_with_granularity
+        line = reader.read_time_request()
+
+    max_rt = -1
+    for rt, _ in rt_dic.items():
+        if rt > max_rt:
+            max_rt = rt
+
+    if not logX or logY or not cdf:
+        WARNING("recommend using logX without logY with cdf")
+
+    l = [0] * (max_rt + 1)
+
+    xlabel = "reuse time (unit: {})".format(granularity)
+    if not cdf:
+        ylabel = "num of requests"
+        for rt, rt_count in rt_dic.items():
+            l[rt] = rt_count
+    else:
+        ylabel = "num of requests (CDF)"
+        for rt, rt_count in rt_dic.items():
+            if rt != -1:
+                l[rt] = rt_count
+        for i in range(1, len(l)):
+            l[i] = l[i-1] + l[i]
+        for i in range(0, len(l)):
+            l[i] = l[i] / l[-1]
+
+    draw2d(l, xlabel=xlabel, ylabel=ylabel, logX=logX, logY=logY,
+           # rotationXAxisLabel=True,
+           figname=figname)
+    reader.reset()
+
+
+def hit_ratio_over_time_2d(reader, cache_size, decay_coef=0.2, time_mode="v", time_interval=10000, figname=None):
+    if figname is None:
+        figname = "hr_time_{}_{}_{}.png".format(os.path.basename(reader.file_loc), cache_size, decay_coef)
+
+
+    p = LRUProfiler(reader)
+    rd_list = p.use_precomputedRD()
+
+    hit_ratio_list = []
+    hit_ratio_overall = 0
+    hit_count_current_interval = 0
+
+    if time_mode == "v":
+        for n, rd in enumerate(rd_list):
+            if rd > cache_size or rd == -1:
+                pass
+            else:
+                hit_count_current_interval += 1
+            if n % time_interval == 0:
+                hit_ratio_current_interval = hit_count_current_interval / time_interval
+                hit_ratio_overall = hit_ratio_overall * decay_coef + hit_ratio_current_interval * (1 - decay_coef)
+                hit_count_current_interval = 0
+                hit_ratio_list.append(hit_ratio_overall)
+
+    elif time_mode == "r":
+        ind = 0
+        req_count_current_interval = 0
+        line = reader.read_time_request()
+        t, req = line
+        last_time_interval_cutoff = line[0]
+
+        while line:
+            last_time = t
+            t, req = line
+            if t - last_time_interval_cutoff > time_interval:
+                hit_ratio_current_interval = hit_count_current_interval / req_count_current_interval
+                hit_ratio_overall = hit_ratio_overall * decay_coef + hit_ratio_current_interval * (1 - decay_coef)
+                hit_count_current_interval = 0
+                req_count_current_interval = 0
+                last_time_interval_cutoff = last_time
+                hit_ratio_list.append(hit_ratio_overall)
+
+            rd = rd_list[ind]
+            req_count_current_interval += 1
+            if rd != -1 and rd <= cache_size:
+                hit_count_current_interval += 1
+
+            line = reader.read_time_request()
+            ind += 1
+
+    draw2d(hit_ratio_list, xlabel="{} time".format({"r": "real", "v": "virtual"}.get(time_mode, "")),
+           ylabel="hit ratio (decay {})".format(decay_coef),
+           logX=False, logY=False, figname=figname,
+           xticks=ticker.FuncFormatter(lambda x, _: '{:.0%}'.format((x ) / len(hit_ratio_list))))
+
 
 
 
@@ -243,7 +435,23 @@ def draw2d(l, **kwargs):
     else:
         filename = '2d_plot.png'
 
-    plt.plot(l)
+    if "plot_type" in kwargs:
+        if kwargs['plot_type'] == "scatter":
+            print("scatter plot")
+            plt.scatter([i+1 for i in range(len(l))], l)
+    else:
+        if 'logX' in kwargs and kwargs["logX"]:
+            if 'logY' in kwargs and kwargs["logY"]:
+                plt.loglog(l)
+            else:
+                plt.semilogx(l)
+        else:
+            if 'logY' in kwargs and kwargs["logY"]:
+                plt.semilogy(l)
+            else:
+                plt.plot(l)
+
+    # plt.xlim((0, len(l)))
 
     if 'xlabel' in kwargs:
         plt.xlabel(kwargs['xlabel'])
@@ -253,19 +461,30 @@ def draw2d(l, **kwargs):
         plt.gca().xaxis.set_major_formatter(kwargs['xticks'])
     if 'yticks' in kwargs:
         plt.gca().yaxis.set_major_formatter(kwargs['yticks'])
+    if 'xlimit' in kwargs:
+        print(plt.xlim())
+        plt.xlim(kwargs["xlimit"])
+        print(plt.xlim())
+    if 'ylimit' in kwargs:
+        plt.ylim(kwargs["ylimit"])
     if 'title' in kwargs:
         plt.title(kwargs['title'])
-    if 'logX' in kwargs and kwargs["logX"]:
-        plt.gca().set_xscale("log")
-    if 'logY' in kwargs and kwargs["logY"]:
-        plt.gca().set_yscale("log")
-
-    plt.xlim((0, len(l)+1))
+    # if 'logX' in kwargs and kwargs["logX"]:
+    #     plt.gca().set_xscale("log")
+    # if 'logY' in kwargs and kwargs["logY"]:
+    #     plt.gca().set_yscale("log")
+    if "rotationXAxisLabel" in kwargs:
+        print("rotate")
+        plt.xticks(rotation="vertical")
+    plt.tight_layout()
 
     plt.savefig(filename, dpi=600)
     try:
         plt.show()
     except:
         pass
-    INFO("plot is saved at the same directory")
+    if 'print_info' in kwargs and not kwargs["print_info"]:
+        pass
+    else:
+        INFO("plot is saved at the same directory")
     plt.clf()

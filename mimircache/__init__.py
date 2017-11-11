@@ -17,8 +17,8 @@ except:
 
 
 CWD = os.getcwd()
-
 sys.path.extend([CWD, CWD[:CWD.rfind('/')]])
+
 
 # from mimircache.cache.LRU import LRU as LRU
 # from mimircache.cacheReader.csvReader import csvReader as csvReader

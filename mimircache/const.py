@@ -12,6 +12,8 @@ from mimircache.cache.SLRU import SLRU
 from mimircache.cache.clock import clock
 
 CExtensionMode = True
+INTERNAL_USE = True
+
 try:
     import mimircache.c_cacheReader
 except:
@@ -43,6 +45,7 @@ c_available_cache = ["lru"
 , "pg "
 , "slruml"
 , "scoreml"
+, "akamai"
 ]
 
 c_available_cacheReader = [plainReader, vscsiReader, csvReader, binaryReader]
@@ -71,31 +74,36 @@ def _init_cache_alg_mapping():
     cache_alg_mapping['random'] = "Random"
 
     cache_alg_mapping['lru'] = "LRU"
+
+    cache_alg_mapping['mru'] = "MRU"
+
     cache_alg_mapping['lfu'] = "LFU"
     cache_alg_mapping['lfu_fast'] = "LFUFast"
     cache_alg_mapping['lfufast'] = "LFUFast"
 
     cache_alg_mapping['fifo'] = "FIFO"
-
-    cache_alg_mapping['arc'] = "ARC"
-    cache_alg_mapping['lrfu'] = "LRFU"
-
     cache_alg_mapping['clock'] = "clock"
 
-    cache_alg_mapping['mru'] = "MRU"
-
-    cache_alg_mapping['slru'] = "SLRU"
-    cache_alg_mapping['s4lru'] = "S4LRU"
-    cache_alg_mapping['slruml'] = "SLRUML"
-    cache_alg_mapping['scoreml'] = "ScoreML"
+    cache_alg_mapping['arc'] = "ARC"
 
     cache_alg_mapping['lru_k'] = "LRU_K"
     cache_alg_mapping['lru_2'] = "LRU_2"
 
+
+    cache_alg_mapping['slru'] = "SLRU"
+    cache_alg_mapping['s4lru'] = "S4LRU"
+
+    cache_alg_mapping['lrfu'] = "LRFU"
+    cache_alg_mapping['slruml'] = "SLRUML"
+    cache_alg_mapping['scoreml'] = "ScoreML"
+
+    cache_alg_mapping["akamai"] = "akamai"
+    cache_alg_mapping["new1"] = "new1"
+    cache_alg_mapping["new2"] = "new2"
+
+
     cache_alg_mapping['mimir'] = 'mimir'
-
     cache_alg_mapping['amp'] = "AMP"
-
     cache_alg_mapping['pg'] = "PG"
 
 

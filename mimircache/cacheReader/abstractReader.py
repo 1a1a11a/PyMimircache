@@ -23,7 +23,7 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
 
         self.support_real_time = False
         self.support_size = False
-
+        self.already_load_rd = False
 
         self.counter = 0
         self.num_of_line = -1

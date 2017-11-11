@@ -31,4 +31,5 @@ int set_thread_affinity(pthread_t tid){
     if (rc != 0) {
         WARNING("Error calling pthread_setaffinity_np: %d\n", rc);
     }
+    return 0;
 }
