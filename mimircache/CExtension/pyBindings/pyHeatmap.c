@@ -145,16 +145,20 @@ static PyObject* heatmap_computation(PyObject* self,
     char* plot_type_s;
     heatmap_type_e plot_type;
     char* mode;
+    double decay_coefficient;
+    int interval_hit_ratio;
     long time_interval = -1;
     long num_of_pixels = 200;
     struct_cache* cache;
 
-    static char *kwlist[] = {"reader", "mode", "plot_type", "cache_size",
-        "algorithm", "time_interval", "num_of_pixels", "cache_params", "num_of_threads", NULL};
+    static char *kwlist[] = {"reader", "mode", "plot_type", "cache_size", "algorithm",
+        "interval_hit_ratio", "decay_coefficient",
+        "time_interval", "num_of_pixels", "cache_params", "num_of_threads", NULL};
     
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Ossls|$llOi", kwlist, &po,
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Ossls|$pdllOi", kwlist, &po,
                                      &mode, &plot_type_s, &cache_size, &algorithm,
+                                     &interval_hit_ratio, &decay_coefficient,
                                      &time_interval, &num_of_pixels, &cache_params,
                                      &num_of_threads)) {
         ERROR("parsing argument failed in heatmap_computation\n");
@@ -164,8 +168,10 @@ static PyObject* heatmap_computation(PyObject* self,
         num_of_pixels = 200;
 
     
-    INFO("plot type: %s, cache size: %ld, mode: %s, time_interval: %ld, "
-           "num_of_pixels: %ld, num_of_threads: %d\n", plot_type_s, cache_size,
+    INFO("plot type: %s, interval hit ratio_bool: %d, decay_coefficient: %.2lf, "
+         "cache size: %ld, mode: %s, time_interval: %ld, "
+           "num_of_pixels: %ld, num_of_threads: %d\n", plot_type_s,
+         interval_hit_ratio, decay_coefficient, cache_size,
            mode, time_interval, num_of_pixels, num_of_threads);
     
     if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
@@ -199,7 +205,7 @@ static PyObject* heatmap_computation(PyObject* self,
     }
     
     draw_dict* dd = heatmap(reader, cache, *mode, time_interval, num_of_pixels,
-                            plot_type, num_of_threads);
+                            plot_type, interval_hit_ratio, decay_coefficient, num_of_threads);
     
     // create numpy array
     npy_intp dims[2] = { dd->ylength, dd->xlength };
@@ -247,16 +253,21 @@ static PyObject* differential_heatmap_with_Optimal(PyObject* self,
     char* mode;
     long time_interval = -1;
     long num_of_pixels = 200;
+    double decay_coefficient;
+    int interval_hit_ratio;
     struct_cache* cache;
 
     
     static char *kwlist[] = {"reader", "mode", "plot_type", "cache_size",
-        "algorithm", "time_interval", "num_of_pixels", "cache_params",
+        "algorithm",
+        "interval_hit_ratio", "decay_coefficient",
+        "time_interval", "num_of_pixels", "cache_params",
         "num_of_threads", NULL};
     
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Ossls|$llOi", kwlist, &po,
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Ossls|$pdllOi", kwlist, &po,
                                      &mode, &plot_type_s, &cache_size, &algorithm,
+                                     &interval_hit_ratio, &decay_coefficient,
                                      &time_interval, &num_of_pixels, &cache_params,
                                      &num_of_threads)) {
         ERROR("parsing argument failed in heatmap_computation\n");
@@ -303,7 +314,9 @@ static PyObject* differential_heatmap_with_Optimal(PyObject* self,
     
     draw_dict* dd = differential_heatmap(reader, cache, optimal, *mode,
                                          time_interval, num_of_pixels,
-                                         plot_type, num_of_threads);
+                                         plot_type,
+                                         interval_hit_ratio, decay_coefficient,
+                                         num_of_threads);
     
     // create numpy array
     npy_intp dims[2] = { dd->ylength, dd->xlength };
@@ -351,16 +364,22 @@ static PyObject* differential_heatmap_py(PyObject* self,
     PyObject* cache_params[2];
     long time_interval = -1;
     long num_of_pixels = 200;
+    int interval_hit_ratio;
+    double decay_coefficient;
     struct_cache* cache[2];
     
     static char *kwlist[] = {"reader", "mode", "plot_type", "cache_size",
-        "algorithm1", "algorithm2", "time_interval", "num_of_pixels",
+        "algorithm1", "algorithm2",
+        "interval_hit_ratio", "decay_coefficient",
+        "time_interval", "num_of_pixels",
         "cache_params1", "cache_params2", "num_of_threads", NULL};
     
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osslss|$llOOi", kwlist, &po,
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osslss|$pdllOOi", kwlist, &po,
                                      &mode, &plot_type_s, &cache_size,
-                                     &algorithm[0], &algorithm[1], &time_interval,
+                                     &algorithm[0], &algorithm[1],
+                                     &time_interval,
+                                     &interval_hit_ratio, &decay_coefficient, 
                                      &num_of_pixels, &(cache_params[0]),
                                      &(cache_params[1]), &num_of_threads)) {
         ERROR("parsing argument failed in heatmap_computation\n");
@@ -406,7 +425,9 @@ static PyObject* differential_heatmap_py(PyObject* self,
     
     draw_dict* dd = differential_heatmap(reader, cache[0], cache[1], *mode,
                                          time_interval, num_of_pixels,
-                                         plot_type, num_of_threads);
+                                         plot_type,
+                                         interval_hit_ratio, decay_coefficient,
+                                         num_of_threads);
     
     // create numpy array
     npy_intp dims[2] = { dd->ylength, dd->xlength };
@@ -471,11 +492,11 @@ static PyObject* heatmap_rd_distribution_py(PyObject* self,
     draw_dict* dd;
     if (CDF){
         dd = heatmap(reader, NULL, *mode, time_interval, num_of_pixels,
-                     rd_distribution_CDF, num_of_threads);
+                     rd_distribution_CDF, 0, 0, num_of_threads);
     }
     else
         dd = heatmap(reader, NULL, *mode, time_interval, num_of_pixels,
-                     rd_distribution, num_of_threads);
+                     rd_distribution, 0, 0, num_of_threads);
     
     // create numpy array
     npy_intp dims[2] = { dd->ylength, dd->xlength };
@@ -557,7 +578,7 @@ static PyObject* heatmap_future_rd_distribution_py(PyObject* self,
 
     
     draw_dict* dd = heatmap(reader, NULL, *mode, time_interval, num_of_pixels,
-                            future_rd_distribution, num_of_threads);
+                            future_rd_distribution, 0, 0, num_of_threads);
     
     // create numpy array
     npy_intp dims[2] = { dd->ylength, dd->xlength };
@@ -625,7 +646,7 @@ static PyObject* heatmap_dist_distribution_py(PyObject* self,
     
     
     draw_dict* dd = heatmap(reader, NULL, *mode, time_interval, num_of_pixels,
-                            dist_distribution, num_of_threads);
+                            dist_distribution, 0, 0, num_of_threads);
     
     // create numpy array
     npy_intp dims[2] = { dd->ylength, dd->xlength };
@@ -678,7 +699,7 @@ static PyObject* heatmap_rt_distribution_py(PyObject* self,
     
     
     draw_dict* dd = heatmap(reader, NULL, *mode, time_interval, num_of_pixels,
-                            rt_distribution, num_of_threads);
+                            rt_distribution, 0, 0, num_of_threads);
     
     // create numpy array
     npy_intp dims[2] = { dd->ylength, dd->xlength };

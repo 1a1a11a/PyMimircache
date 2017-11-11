@@ -19,18 +19,24 @@ draw_dict* heatmap_LRU(reader_t* reader,
                        struct_cache* cache,
                        char mode,
                        heatmap_type_e plot_type,
+                       int interval_hit_ratio_b,
+                       double decay_coefficient_lf,
                        int num_of_threads);
 
 draw_dict* heatmap_nonLRU(reader_t* reader,
                           struct_cache* cache,
                           char mode,
                           heatmap_type_e plot_type,
+                          int interval_hit_ratio_b,
+                          double decay_coefficient_lf,
                           int num_of_threads);
 
 draw_dict* heatmap_hit_ratio_start_time_end_time(reader_t* reader,
                                                 struct_cache* cache,
                                                 char mode,
                                                 heatmap_type_e plot_type,
+                                                 int interval_hit_ratio_b,
+                                                 double decay_coefficient_lf,
                                                 int num_of_threads);
 
 
@@ -46,14 +52,22 @@ draw_dict* heatmap_hit_ratio_start_time_end_time(reader_t* reader,
  *      the entrance for heatmap computation
  *
  * Input:
- *      reader:         the reader for data
- *      cache:          cache which heatmap is based on
- *      mode:           real time (r) or virtual time (v)
- *      time_interval:  real time interval or vritual time interval
- *      num_of_pixels:  the number of pixels in x/y dimension,
- *                      this is optional, if time_interval is specified,
- *                      then this one is not needed
- *      plot_type:      the type of plot
+ *      reader:                 the reader for data
+ *      cache:                  cache which heatmap is based on
+ *      time_mode:              real time (r) or virtual time (v)
+ *      time_interval:          real time interval or vritual time interval
+ *      num_of_pixels:          the number of pixels in x/y dimension,
+ *                                  this is optional, if time_interval is specified,
+ *                                  then this one is not needed
+ *      plot_type:              the type of plot
+ *
+ *      interval_hit_ratio_b:   used in hit_ratio_start_time_end_time,
+ *                                  if it is True, then the hit ratio of each pixel is not 
+ *                                  the average hit ratio from beginning, 
+ *                                  instead it is a combined hit ratio of exponentially decayed 
+ *                                  average hit ratio plus hit ratio in current interval
+ *      decay_coefficient_lf:      used only when interval_hit_ratio_b is True
+ *
  *      num_of_threads: the maximum number of threads can use
  *
  * Return:
@@ -64,28 +78,32 @@ draw_dict* heatmap_hit_ratio_start_time_end_time(reader_t* reader,
 
 draw_dict* heatmap(reader_t* reader,
                    struct_cache* cache,
-                   char mode,
+                   char time_mode,
                    gint64 time_interval,
                    gint64 num_of_pixels,
                    heatmap_type_e plot_type,
+                   int interval_hit_ratio_b,
+                   double decay_coefficient_lf,
                    int num_of_threads){
     
-    if (mode == 'v')
+    if (time_mode == 'v')
         gen_breakpoints_virtualtime(reader, time_interval, num_of_pixels);
-    else if (mode == 'r')
+    else if (time_mode == 'r')
         gen_breakpoints_realtime(reader, time_interval, num_of_pixels);
     else{
-        ERROR("unsupported mode: %c\n", mode);
+        ERROR("unsupported mode: %c\n", time_mode);
         abort();
     }
 
 
     // check cache is LRU or not
     if (cache==NULL || cache->core->type == e_LRU){
-        return heatmap_LRU(reader, cache, mode, plot_type, num_of_threads);
+        return heatmap_LRU(reader, cache, time_mode, plot_type,
+                           interval_hit_ratio_b, decay_coefficient_lf, num_of_threads);
     }
     else{
-        return heatmap_nonLRU(reader, cache, mode, plot_type, num_of_threads);
+        return heatmap_nonLRU(reader, cache, time_mode, plot_type,
+                              interval_hit_ratio_b, decay_coefficient_lf, num_of_threads);
     }
 }
 
@@ -100,12 +118,20 @@ draw_dict* heatmap(reader_t* reader,
  *      reader:         the reader for data
  *      cache:          cache which heatmap is based on, contains information 
  *                      including cache_size, etc.
- *      mode:           real time (r) or virtual time (v)
+ *      time_mode:           real time (r) or virtual time (v)
  *      time_interval:  real time interval or vritual time interval
  *      num_of_pixels:  the number of pixels in x/y dimension,
  *                      this is optional, if time_interval is specified,
  *                      then this one is not needed
  *      plot_type:      the type of plot
+ *
+ *      interval_hit_ratio_b:   used in hit_ratio_start_time_end_time,
+ *                                  if it is True, then the hit ratio of each pixel is not
+ *                                  the average hit ratio from beginning,
+ *                                  instead it is a combined hit ratio of exponentially decayed
+ *                                  average hit ratio plus hit ratio in current interval
+ *      decay_coefficient_lf:      used only when interval_hit_ratio_b is True
+ *
  *      num_of_threads: the maximum number of threads can use
  *
  * Return:
@@ -116,8 +142,10 @@ draw_dict* heatmap(reader_t* reader,
 
 draw_dict* heatmap_LRU(reader_t* reader,
                        struct_cache* cache,
-                       char mode,
+                       char time_mode,
                        heatmap_type_e plot_type,
+                       int interval_hit_ratio_b,
+                       double decay_coefficient_lf,
                        int num_of_threads){
     
     if (plot_type != future_rd_distribution &&
@@ -142,7 +170,8 @@ draw_dict* heatmap_LRU(reader_t* reader,
             reader->sdata->last_access[counter--] = GPOINTER_TO_INT(sl_node->data);
         }
         g_slist_free(last_access_gslist);
-        return heatmap_hit_ratio_start_time_end_time(reader, cache, mode, plot_type, num_of_threads);
+        return heatmap_hit_ratio_start_time_end_time(reader, cache, time_mode, plot_type,
+                                                     interval_hit_ratio_b, decay_coefficient_lf, num_of_threads);
     }
     
     
@@ -165,10 +194,10 @@ draw_dict* heatmap_LRU(reader_t* reader,
         
     }
     else if (plot_type == rd_distribution){
-        return heatmap_rd_distribution(reader, mode, num_of_threads, 0);
+        return heatmap_rd_distribution(reader, time_mode, num_of_threads, 0);
     }
     else if (plot_type == rd_distribution_CDF){
-        return heatmap_rd_distribution(reader, mode, num_of_threads, 1);
+        return heatmap_rd_distribution(reader, time_mode, num_of_threads, 1);
     }
     else if (plot_type == future_rd_distribution){
         if (reader->sdata->reuse_dist_type != FUTURE_REUSE_DISTANCE){
@@ -177,7 +206,7 @@ draw_dict* heatmap_LRU(reader_t* reader,
             reader->sdata->reuse_dist = get_future_reuse_dist(reader, 0, -1);
         }
         
-        draw_dict* dd = heatmap_rd_distribution(reader, mode, num_of_threads, 0);
+        draw_dict* dd = heatmap_rd_distribution(reader, time_mode, num_of_threads, 0);
         
         reader->sdata->max_reuse_dist = 0;
         g_free(reader->sdata->reuse_dist);
@@ -192,7 +221,7 @@ draw_dict* heatmap_LRU(reader_t* reader,
             reader->sdata->reuse_dist = get_dist_to_last_access(reader);
         }
         
-        draw_dict* dd = heatmap_rd_distribution(reader, mode, num_of_threads, 0);
+        draw_dict* dd = heatmap_rd_distribution(reader, time_mode, num_of_threads, 0);
         reader->sdata->max_reuse_dist = 0;
         g_free(reader->sdata->reuse_dist);
         reader->sdata->reuse_dist = NULL;
@@ -206,7 +235,7 @@ draw_dict* heatmap_LRU(reader_t* reader,
             reader->sdata->reuse_dist = get_reuse_time(reader);
         }
         
-        draw_dict* dd = heatmap_rd_distribution(reader, mode, num_of_threads, 0);
+        draw_dict* dd = heatmap_rd_distribution(reader, time_mode, num_of_threads, 0);
         reader->sdata->max_reuse_dist = 0;
         g_free(reader->sdata->reuse_dist);
         reader->sdata->reuse_dist = NULL;
@@ -232,11 +261,15 @@ draw_dict* heatmap_nonLRU(reader_t* reader,
                           struct_cache* cache,
                           char mode,
                           heatmap_type_e plot_type,
+                          int interval_hit_ratio_b,
+                          double decay_coefficient_lf,
                           int num_of_threads){
     
     if (plot_type == hit_ratio_start_time_end_time){
         return heatmap_hit_ratio_start_time_end_time(reader, cache, mode,
-                                                    plot_type, num_of_threads);
+                                                     plot_type, interval_hit_ratio_b,
+                                                     decay_coefficient_lf,
+                                                     num_of_threads);
     }
     else if (plot_type == hit_ratio_start_time_cache_size){
         
@@ -276,7 +309,9 @@ draw_dict* heatmap_hit_ratio_start_time_end_time(reader_t* reader,
                                                 struct_cache* cache,
                                                 char mode,
                                                 heatmap_type_e plot_type,
-                                                int num_of_threads){
+                                                 int interval_hit_ratio_b,
+                                                 double decay_coefficient_lf,
+                                                 int num_of_threads){
 
     guint i;
     guint64 progress = 0;
@@ -300,6 +335,8 @@ draw_dict* heatmap_hit_ratio_start_time_end_time(reader_t* reader,
     params->break_points = break_points;
     params->cache = cache;
     params->dd = dd;
+    params->interval_hit_ratio_b = interval_hit_ratio_b;
+    params->decay_coefficient_lf = decay_coefficient_lf; 
     params->progress = &progress;
     g_mutex_init(&(params->mtx));
 
@@ -425,6 +462,8 @@ draw_dict* differential_heatmap(reader_t* reader,
                                 gint64 time_interval,
                                 gint64 num_of_pixels,
                                 heatmap_type_e plot_type,
+                                int interval_hit_ratio_b,
+                                double decay_coefficient_lf,
                                 int num_of_threads){
     
     if (mode == 'v')
@@ -439,17 +478,21 @@ draw_dict* differential_heatmap(reader_t* reader,
     draw_dict *draw_dict1, *draw_dict2;
     // check cache is LRU or not
     if (cache1 == NULL || cache1->core->type == e_LRU){
-        draw_dict1 = heatmap_LRU(reader, cache1, mode, plot_type, num_of_threads);
+        draw_dict1 = heatmap_LRU(reader, cache1, mode, plot_type,
+                                 interval_hit_ratio_b, decay_coefficient_lf, num_of_threads);
     }
     else{
-        draw_dict1 = heatmap_nonLRU(reader, cache1, mode, plot_type, num_of_threads);
+        draw_dict1 = heatmap_nonLRU(reader, cache1, mode, plot_type,
+                                    interval_hit_ratio_b, decay_coefficient_lf, num_of_threads);
     }
 
     if (cache2 == NULL || cache2->core->type == e_LRU){
-        draw_dict2 = heatmap_LRU(reader, cache2, mode, plot_type, num_of_threads);
+        draw_dict2 = heatmap_LRU(reader, cache2, mode, plot_type,
+                                 interval_hit_ratio_b, decay_coefficient_lf, num_of_threads);
     }
     else{
-        draw_dict2 = heatmap_nonLRU(reader, cache2, mode, plot_type, num_of_threads);
+        draw_dict2 = heatmap_nonLRU(reader, cache2, mode, plot_type,
+                                    interval_hit_ratio_b, decay_coefficient_lf, num_of_threads); 
     }
 
     

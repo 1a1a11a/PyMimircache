@@ -22,7 +22,7 @@ extern "C"
  * @param user_data: passed in param 
  */
 void heatmap_nonLRU_hit_ratio_start_time_end_time_thread(gpointer data, gpointer user_data){
-    guint64 i, j, hit_count, miss_count;
+    guint64 i, j, hit_count_all, miss_count_all, hit_count_interval, miss_count_interval;
     mt_params_hm_t* params = (mt_params_hm_t*) user_data;
     reader_t* reader_thread = clone_reader(params->reader);
     GArray* break_points = params->break_points;
@@ -33,10 +33,12 @@ void heatmap_nonLRU_hit_ratio_start_time_end_time_thread(gpointer data, gpointer
                                                           params->cache->core->block_unit_size, 
                                                           params->cache->core->cache_init_params);
     
-    int order = GPOINTER_TO_INT(data)-1;
+    guint64 order = GPOINTER_TO_INT(data)-1;
+    int interval_hit_ratio_b = params->interval_hit_ratio_b;
+    double decay_coefficient_lf = params->decay_coefficient_lf;
     
-    hit_count = 0;
-    miss_count = 0;
+    hit_count_all = 0;
+    miss_count_all = 0;
 
 
     // create cache lize struct and initialization
@@ -55,14 +57,28 @@ void heatmap_nonLRU_hit_ratio_start_time_end_time_thread(gpointer data, gpointer
         ((struct optimal_params*)(cache->cache_params))->ts = g_array_index(break_points, guint64, order);
     
     for (i=order; i<break_points->len-1; i++){
+        hit_count_interval = 0;
+        miss_count_interval = 0;
         for(j=0; j< g_array_index(break_points, guint64, i+1) - g_array_index(break_points, guint64, i); j++){
             read_one_element(reader_thread, cp);
             if (cache->core->add_element(cache, cp))
-                hit_count++;
+                hit_count_interval++;
             else
-                miss_count++;
+                miss_count_interval++;
         }
-        dd->matrix[order][i] = (double)(hit_count)/(hit_count+miss_count);
+        hit_count_all += hit_count_interval;
+        miss_count_all += miss_count_interval;
+        if (interval_hit_ratio_b){
+            if (i == order)
+                // no decay for first pixel
+                dd->matrix[order][i] = (double)(hit_count_all)/(hit_count_all + miss_count_all);
+            else {
+                dd->matrix[order][i] = dd->matrix[order][i-1] * decay_coefficient_lf +
+                (1 - decay_coefficient_lf) * (double)(hit_count_interval)/(hit_count_interval + miss_count_interval);
+            }
+        }
+        else
+            dd->matrix[order][i] = (double)(hit_count_all)/(hit_count_all + miss_count_all);
     }
 
 
@@ -86,36 +102,55 @@ void heatmap_nonLRU_hit_ratio_start_time_end_time_thread(gpointer data, gpointer
  */
 void heatmap_LRU_hit_ratio_start_time_end_time_thread(gpointer data, gpointer user_data){
 
-    guint64 i, j, hit_count, miss_count;
+    guint64 i, j, hit_count_all, miss_count_all, hit_count_interval, miss_count_interval;
     mt_params_hm_t* params = (mt_params_hm_t*) user_data;
     reader_t* reader_thread = clone_reader(params->reader);
     GArray* break_points = params->break_points;
     guint64* progress = params->progress;
     draw_dict* dd = params->dd;
     guint64 cache_size = (guint64)params->cache->core->size;
+    // distance to last access 
     gint* last_access = reader_thread->sdata->last_access;
     gint64* reuse_dist = reader_thread->sdata->reuse_dist;
     
-    int order = GPOINTER_TO_INT(data)-1;
+    guint64 order = GPOINTER_TO_INT(data)-1;
     guint64 real_start = g_array_index(break_points, guint64, order);
+    int interval_hit_ratio_b = params->interval_hit_ratio_b;
+    double decay_coefficient_lf = params->decay_coefficient_lf;
     
-    hit_count = 0;
-    miss_count = 0;
+    hit_count_all = 0;
+    miss_count_all = 0;
+    
     
 
     // unnecessary ? 
     skip_N_elements(reader_thread, g_array_index(break_points, guint64, order));
 
     for (i=order; i<break_points->len-1; i++){
+        hit_count_interval  = 0;
+        miss_count_interval = 0;
         for(j=g_array_index(break_points, guint64, i); j< g_array_index(break_points, guint64, i+1); j++){
-            if (reuse_dist[j] == -1)
-                miss_count ++;
+            if (reuse_dist[j] == -1){
+                miss_count_interval ++;
+            }
             else if (last_access[j] - (long long)(j - real_start) <= 0 && reuse_dist[j] < (long long)cache_size)
-                hit_count ++;
+                hit_count_interval ++;
             else
-                miss_count ++;
+                miss_count_interval ++;
         }
-        dd->matrix[order][i] = (double)(hit_count)/(hit_count+miss_count);
+        hit_count_all += hit_count_interval;
+        miss_count_all += miss_count_interval;
+        if (interval_hit_ratio_b){
+            if (i == order)
+                // no decay for first pixel
+                dd->matrix[order][i] = (double)(hit_count_all)/(hit_count_all + miss_count_all);
+            else {
+                dd->matrix[order][i] = dd->matrix[order][i-1] * decay_coefficient_lf +
+                       (1 - decay_coefficient_lf) * (double)(hit_count_interval)/(hit_count_interval + miss_count_interval);
+            }
+        }
+        else
+            dd->matrix[order][i] = (double)(hit_count_all)/(hit_count_all + miss_count_all);
     }
     
     // clean up

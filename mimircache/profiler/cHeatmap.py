@@ -120,10 +120,11 @@ class cHeatmap:
         :param plot_type:
         :param mode:
         :param reader:
-        :param kwargs: include num_of_threads, figname
+        :param kwargs: include num_of_threads, figname, decay_coefficient (default: 0.2)
         :return:
         """
 
+        DEFAULT_DECAY_COEFFICIENT = 0.2
         figname = None
         self.time_interval = time_interval
         self.num_of_pixels = num_of_pixels
@@ -154,10 +155,24 @@ class cHeatmap:
             if plot_type == "hit_ratio_start_time_end_time":
                 # assert algorithm!=None, "please specify your cache replacement algorithm in heatmap plotting"
                 assert cache_size != -1, "please provide cache_size parameter for plotting hit_ratio_start_time_end_time"
+                # this is used to specify the type of hit ratio for each pixel, when it is False, it means
+                # the hit ratio is the average hit ratio from beginning of trace,
+                # if True, then the hit ratio will be exponentially decayed average hit ratio from beginning plus
+                # the hit ratio in current time interval, the coefficient decay_coefficient specify the ratio of
+                # average hit ratio in the new calculation
+                interval_hit_ratio = False
+                decay_coefficient  = DEFAULT_DECAY_COEFFICIENT
+                if 'interval_hit_ratio'in kwargs:
+                    interval_hit_ratio = kwargs["interval_hit_ratio"]
+                    decay_coefficient  = kwargs.get("decay_coefficient", DEFAULT_DECAY_COEFFICIENT)
+
+
 
                 if algorithm.lower() in const.c_available_cache:
                     xydict = c_heatmap.heatmap(reader.cReader, mode, plot_type,
                                                cache_size, algorithm,
+                                               interval_hit_ratio=interval_hit_ratio,
+                                               decay_coefficient=decay_coefficient,
                                                time_interval=time_interval,
                                                num_of_pixels=num_of_pixels,
                                                cache_params=cache_params,

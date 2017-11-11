@@ -50,6 +50,10 @@ typedef struct _multithreading_params_heatmap{
     reader_t* reader;
     struct cache* cache;
     int order;
+
+    int interval_hit_ratio_b;
+    double decay_coefficient_lf;
+    
     GArray* break_points;
     draw_dict* dd;
     guint64* progress;
@@ -84,20 +88,40 @@ void free_draw_dict(draw_dict* dd);
 GSList* get_last_access_dist_seq(reader_t* reader,
                                  void (*funcPtr)(reader_t*, cache_line*));
 
-draw_dict* heatmap(reader_t* reader, struct_cache* cache, char mode,
-                   gint64 time_interval, gint64 num_of_pixels,
-                   heatmap_type_e plot_type, int num_of_threads);
-draw_dict* differential_heatmap(reader_t* reader, struct_cache* cache1,
-                                struct_cache* cache2, char mode,
-                                gint64 time_interval, gint64 num_of_pixels,
-                                heatmap_type_e plot_type, int num_of_threads);
-draw_dict* heatmap_rd_distribution(reader_t* reader, char mode,
-                                   int num_of_threads, int CDF);
+draw_dict* heatmap(reader_t* reader,
+                   struct_cache* cache,
+                   char time_mode,
+                   gint64 time_interval,
+                   gint64 num_of_pixels,
+                   heatmap_type_e plot_type,
+                   int interval_hit_ratio_b,
+                   double decay_coefficient_lf,
+                   int num_of_threads);
+    
+draw_dict* differential_heatmap(reader_t* reader,
+                                struct_cache* cache1,
+                                struct_cache* cache2,
+                                char time_mode,
+                                gint64 time_interval,
+                                gint64 num_of_pixels,
+                                heatmap_type_e plot_type,
+                                int interval_hit_ratio_b,
+                                double decay_coefficient_lf,
+                                int num_of_threads);
+    
+draw_dict* heatmap_rd_distribution(reader_t* reader,
+                                   char time_mode,
+                                   int num_of_threads,
+                                   int CDF);
 
 
-GArray* gen_breakpoints_virtualtime(reader_t* reader, gint64 time_interval,
+GArray* gen_breakpoints_virtualtime(reader_t* reader,
+                                    gint64 time_interval,
                                     gint64 num_of_pixels);
-GArray* gen_breakpoints_realtime(reader_t* reader, gint64 time_interval,
+
+    
+GArray* gen_breakpoints_realtime(reader_t* reader,
+                                 gint64 time_interval,
                                  gint64 num_of_pixels);
 
 
