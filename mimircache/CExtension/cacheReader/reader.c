@@ -136,7 +136,7 @@ void read_one_element(reader_t *const reader, cache_line_t *const c){
             csv_read_one_element(reader, c);
             break;
         case PLAIN:
-            if (reader->base->offset == reader->base->file_size-1){
+            if (reader->base->offset >= reader->base->file_size-1){
                 c->valid = FALSE;
                 break;
             }
@@ -145,6 +145,7 @@ void read_one_element(reader_t *const reader, cache_line_t *const c){
             strncpy(c->item, reader->base->mapped_file+reader->base->offset, line_len);
             c->item[line_len] = 0;
             reader->base->offset = (void*)line_end - reader->base->mapped_file;
+//            printf("%lu/%ld\n", reader->base->offset, reader->base->file_size);
             break;
         case VSCSI:
             vscsi_read(reader, c);
