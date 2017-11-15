@@ -1,6 +1,9 @@
 # coding=utf-8
 
 import unittest
+import os
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from mimircache import cachecow
 
 DAT_FOLDER = "../data/"
@@ -13,6 +16,8 @@ if not os.path.exists(DAT_FOLDER):
 
 class cachecowTest(unittest.TestCase):
     def test1(self):
+        import matplotlib
+        print("################## matplotlib version {} ###################".format(matplotlib.__version__))
         CACHE_SIZE = 2000
         TIME_MODE = 'r'
         TIME_INTERVAL = 50000000
