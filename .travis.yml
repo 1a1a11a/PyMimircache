@@ -6,8 +6,8 @@ python:
 #  - "3.3"
   - "3.4"
   - "3.5"
-  - "3.6" # 3.5 development branch
-#  - "nightly" # currently points to 3.6-dev
+  - "3.6"
+#  - "nightly" # currently points to 3.7-dev
 
 addons:
   apt:
@@ -17,8 +17,7 @@ addons:
 
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install -y libglib2.0-dev python3-pip python3-matplotlib
-  - sudo apt-get install python3-matplotlib python-matplotlib
+  - sudo apt-get install -y libglib2.0-dev python3-pip python3-matplotlib python3-dev git gcc g++
 
 # command to install dependencies
 install: "pip3 install -r requirements.txt; python3 setup.py build_ext -i"
