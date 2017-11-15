@@ -481,28 +481,28 @@ class cachecow:
                     if use_general_profiler:
                         # save the computed hit ratio
                         hit_ratio_dict["LRU"] = {}
-                        for i in range(len(hr)):
-                            hit_ratio_dict["LRU"][i * bin_size] = hr[i]
-                        plt.plot([i * bin_size for i in range(len(hr))], hr, label=label[i])
+                        for j in range(len(hr)):
+                            hit_ratio_dict["LRU"][j * bin_size] = hr[j]
+                        plt.plot([j * bin_size for j in range(len(hr))], hr, label=label[i])
                     else:
                         # save the computed hit ratio
                         hit_ratio_dict["LRU"] = {}
-                        for i in range(len(hr)-2):
-                            hit_ratio_dict["LRU"][i] = hr[i]
+                        for j in range(len(hr)-2):
+                            hit_ratio_dict["LRU"][j] = hr[j]
                         plt.plot(hr[:-2], label=label[i])
                 else:
                     # save the computed hit ratio
                     hit_ratio_dict["LRU"] = {}
-                    for i in range(len(LRU_HR)):
-                        hit_ratio_dict["LRU"][i] = LRU_HR[i]
+                    for j in range(len(LRU_HR)):
+                        hit_ratio_dict["LRU"][j] = LRU_HR[j]
                     plt.plot(LRU_HR, label=label[i])
             else:
                 hr = profiler.get_hit_ratio()
                 # save the computed hit ratio
                 hit_ratio_dict[alg] = {}
-                for i in range(len(hr)):
-                    hit_ratio_dict[alg][i * bin_size] = hr[i]
-                plt.plot([i * bin_size for i in range(len(hr))], hr, label=label[i])
+                for j in range(len(hr)):
+                    hit_ratio_dict[alg][j * bin_size] = hr[j]
+                plt.plot([j * bin_size for j in range(len(hr))], hr, label=label[i])
             self.reader.reset()
             INFO("HRC plotting {} computation finished using time {} s".format(alg, time.time() - t1))
             if save_gradually:

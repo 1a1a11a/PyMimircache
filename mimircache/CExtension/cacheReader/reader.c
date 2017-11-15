@@ -75,13 +75,13 @@ reader_t* setup_reader(const char* const file_loc,
     
     // set up mmap region
     if ( (fd = open (file_loc, O_RDONLY)) < 0){
-        ERROR("Unable to open '%s'\n", file_loc);
+        ERROR("Unable to open '%s', %s\n", file_loc, strerror(errno));
         exit(1);
     }
     
     if ( (fstat (fd, &st)) < 0){
         close (fd);
-        ERROR("Unable to fstat '%s'\n", file_loc);
+        ERROR("Unable to fstat '%s', %s\n", file_loc, strerror(errno));
         exit(1);
     }
     
@@ -120,6 +120,7 @@ reader_t* setup_reader(const char* const file_loc,
             exit(1);
             break;
     }
+    close(fd);
     return reader;
 }
 

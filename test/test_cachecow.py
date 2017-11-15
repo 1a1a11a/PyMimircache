@@ -49,7 +49,7 @@ class cachecowTest(unittest.TestCase):
         c.evictionPlot('r', 10000000, "accumulative_freq", "Optimal", 1000)
         c.evictionPlot('r', 10000000, "reuse_dist", "Optimal", 10000)
 
-        c.plotHRCs(["LRU", "Optimal", "LFUFast", "LRU_K", "SLRU"], [None, None, None, {"K":2}])
+        c.plotHRCs(["LRU", "Optimal", "LFUFast", "LRU_K", "SLRU"], [None, None, None, {"K":2}, None])
 
     def test2(self):
         c = cachecow()
