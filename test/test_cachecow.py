@@ -16,8 +16,6 @@ if not os.path.exists(DAT_FOLDER):
 
 class cachecowTest(unittest.TestCase):
     def test1(self):
-        import matplotlib
-        print("################## matplotlib version {} ###################".format(matplotlib.__version__))
         CACHE_SIZE = 2000
         TIME_MODE = 'r'
         TIME_INTERVAL = 50000000
