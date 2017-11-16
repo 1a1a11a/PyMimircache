@@ -9,11 +9,11 @@ python:
   - "3.6"
 #  - "nightly" # currently points to 3.7-dev
 
-addons:
-  apt:
-    sources:
-    - sourceline: 'deb http://us.archive.ubuntu.com/ubuntu/ trusty main restricted universe multiverse'
-    - sourceline: 'deb-src http://us.archive.ubuntu.com/ubuntu/ trusty main restricted universe multiverse'
+#addons:
+#  apt:
+#    sources:
+#    - sourceline: 'deb http://us.archive.ubuntu.com/ubuntu/ trusty main restricted universe multiverse'
+#    - sourceline: 'deb-src http://us.archive.ubuntu.com/ubuntu/ trusty main restricted universe multiverse'
 
 before_install:
   - sudo apt-get -qq update

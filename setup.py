@@ -179,7 +179,7 @@ extensions.append(Extension(
     ["mimircache/CExtension/cacheReader/include"] + 
     ["mimircache/CExtension/profiler/include"] + 
     ["mimircache/CExtension/utils/include/"] + 
-    ["mimircache/CExtension/pyBindings/headers"] + 
+    ["mimircache/CExtension/pyBindings/include"] + 
     ['mimircache/CExtension/headers/cache'] + numpy_headers, 
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args,
@@ -199,7 +199,7 @@ extensions.append(Extension(
     ["mimircache/CExtension/cacheReader/include"] + 
     ["mimircache/CExtension/profiler/include"] + 
     ["mimircache/CExtension/utils/include/"] + 
-    ["mimircache/CExtension/pyBindings/headers"] + 
+    ["mimircache/CExtension/pyBindings/include"] + 
     ['mimircache/CExtension/headers/cache'] + numpy_headers, 
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args,
@@ -219,7 +219,7 @@ extensions.append(Extension(
     ["mimircache/CExtension/cacheReader/include"] + 
     ["mimircache/CExtension/profiler/include"] + 
     ["mimircache/CExtension/utils/include/"] + 
-    ["mimircache/CExtension/pyBindings/headers"] + 
+    ["mimircache/CExtension/pyBindings/include"] + 
     ['mimircache/CExtension/headers/cache'] + numpy_headers, 
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args,
@@ -239,7 +239,7 @@ extensions.append(Extension(
     ["mimircache/CExtension/cacheReader/include"] + 
     ["mimircache/CExtension/profiler/include"] + 
     ["mimircache/CExtension/utils/include/"] + 
-    ["mimircache/CExtension/pyBindings/headers"] + 
+    ["mimircache/CExtension/pyBindings/include"] + 
     ['mimircache/CExtension/headers/cache'] + numpy_headers, 
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args,

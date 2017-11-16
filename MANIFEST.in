@@ -4,6 +4,12 @@ prune multiMachineProcessing
 prune paper
 prune tVarying 
 graft mimircache/profiler/abstract 
+graft mimircache/CExtension/headers/*
+graft mimircache/CExtension/cache/include
+graft mimircache/CExtension/cacheReader/include
+graft mimircache/CExtension/profiler/include
+graft mimircache/CExtension/pyBindings/include
+graft mimircache/CExtension/utils/include
 include *.py
 
 
