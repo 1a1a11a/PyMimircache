@@ -10,6 +10,13 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, file_loc, data_type='c', block_unit_size=0, disk_sector_size=0):
+        """
+        :param file_loc:            location of the file
+        :param data_type:           type of data(label), can be "l" for int/long, "c" for string
+        :param block_unit_size:     block size for storage system, 0 when disabled
+        :param disk_sector_size:    size of disk sector
+        """
+
         self.file_loc = file_loc
         self.trace_file = None
         self.cReader = None
@@ -41,6 +48,11 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
             c_cacheReader.reset_reader(self.cReader)
 
     def get_num_total_req(self):
+        """
+        count the number of requests in the trace, fast for binary type trace,
+        for plain/csv type trace, this is slow
+        :return: the number of requests in the trace
+        """
         if self.num_of_line != -1:
             return self.num_of_line
 
@@ -56,6 +68,10 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
         return self.num_of_line
 
     def get_req_freq_distribution(self):
+        """
+        calculate the count for each block/obj
+        :return: a dictionary mapping from block/ojb to count
+        """
         d = defaultdict(int)
         for i in self:
             d[i] += 1
@@ -63,6 +79,10 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
         return d
 
     def get_num_unique_req(self):
+        """
+        count the number of unique block/obj in the trace
+        :return: the number of unique block/obj
+        """
         if self.num_of_uniq_req == -1:
             self.num_of_uniq_req = len(self.get_req_freq_distribution())
         return self.num_of_uniq_req
@@ -87,9 +107,17 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def read_one_element(self):
+        """
+        read one request, only return the label of the request
+        :return:
+        """
         pass
 
     def close(self):
+        """
+        close reader, this is used to close the cReader, which will not be automatically closed
+        :return:
+        """
         try:
             if self is not None:
                 if self.trace_file:

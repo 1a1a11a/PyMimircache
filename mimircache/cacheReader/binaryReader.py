@@ -10,7 +10,8 @@ from mimircache.cacheReader.abstractReader import cacheReaderAbstract
 
 
 class binaryReader(cacheReaderAbstract):
-    def __init__(self, file_loc, init_params, data_type='c', block_unit_size=0, disk_sector_size=0, open_c_reader=True):
+    def __init__(self, file_loc, init_params, data_type='c',
+                 block_unit_size=0, disk_sector_size=0, open_c_reader=True):
         """
         initialization function
         :param file_loc:
@@ -86,6 +87,11 @@ class binaryReader(cacheReaderAbstract):
 
 
     def lines(self):
+        """
+        a generator for reading the whole request (including label and other information)
+        similar to read_whole_line, but this functions is generator
+        :return: a list of information for current request
+        """
         b = self.trace_file.read(self.record_size)
         while len(b):
             ret = list(self.structIns.unpack(b))

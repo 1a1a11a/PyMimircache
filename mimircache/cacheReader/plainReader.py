@@ -5,6 +5,11 @@ import mimircache.c_cacheReader as c_cacheReader
 
 class plainReader(cacheReaderAbstract):
     def __init__(self, file_loc, data_type='c', open_c_reader=True):
+        """
+        :param file_loc:            location of the file
+        :param data_type:           type of data, can be "l" for int/long, "c" for string
+        :param open_c_reader:       bool for whether open reader in C backend
+        """
         super(plainReader, self).__init__(file_loc, data_type, 0, 0)
         self.trace_file = open(file_loc, 'r')
         if open_c_reader:

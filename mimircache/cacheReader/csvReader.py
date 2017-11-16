@@ -10,6 +10,16 @@ class csvReader(cacheReaderAbstract):
     def __init__(self, file_loc, data_type='c', init_params=None,
                 block_unit_size=0, disk_sector_size=0,
                 open_c_reader=True):
+        """
+        :param file_loc:            location of the file
+        :param data_type:           type of data, can be "l" for int/long, "c" for string
+        :param init_params:         the init_params for opening csv
+        :param block_unit_size:     block size for storage system, 0 when disabled
+        :param disk_sector_size:    size of disk sector
+        :param open_c_reader:       bool for whether open reader in C backend
+        """
+
+
         super(csvReader, self).__init__(file_loc, data_type, block_unit_size, disk_sector_size)
         assert init_params is not None, "please provide init_param for csvReader"
         assert "label" in init_params, "please provide label for csv reader"
@@ -82,6 +92,10 @@ class csvReader(cacheReaderAbstract):
             yield d
 
     def lines(self):
+        """
+        a generator for reading all the information of current request/line
+        :return: a tuple of current request
+        """
         line = self.trace_file.readline()
         while line:
             line_split = tuple(line.split(self.delimiter))
