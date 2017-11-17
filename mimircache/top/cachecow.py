@@ -101,7 +101,7 @@ class cachecow:
         :return:
         """
         if self.n_req == -1:
-            self.n_req = self.reader.get_num_total_req()
+            self.n_req = self.reader.get_num_of_req()
         return self.n_req
 
     def num_of_uniq_req(self):
@@ -110,7 +110,7 @@ class cachecow:
         :return:
         """
         if self.n_uniq_req == -1:
-            self.n_uniq_req = self.reader.get_num_unique_req()
+            self.n_uniq_req = self.reader.get_num_of_uniq_req()
         return self.n_uniq_req
 
     def reset(self):

@@ -61,7 +61,7 @@ guint64* get_hit_count_seq(reader_t* reader,
     guint64 * hit_count_array;
     
     if (reader->base->total_num == -1)
-        get_num_of_cache_lines(reader);
+        get_num_of_req(reader);
     
     if (size == -1)
         size = reader->base->total_num;
@@ -148,7 +148,7 @@ guint64* get_hitcount_withsize_seq(reader_t* reader, gint64 size, int block_unit
     int n, i;
     
     if (reader->base->total_num == -1)
-        get_num_of_cache_lines(reader);
+        get_num_of_req(reader);
     
     if (size == -1)
         size = reader->base->total_num;
@@ -252,7 +252,7 @@ double* get_hitrate_withsize_seq(reader_t* reader,
                                 int block_size){
     int i=0;
     if (reader->base->total_num == -1)
-        reader->base->total_num = get_num_of_cache_lines(reader);
+        reader->base->total_num = get_num_of_req(reader);
     
     if (size == -1)
         size = reader->base->total_num;
@@ -302,7 +302,7 @@ guint64* get_hit_count_seq_shards(reader_t* reader,
     guint64 * hit_count_array;
     
     if (reader->base->total_num == -1)
-        get_num_of_cache_lines(reader);
+        get_num_of_req(reader);
     
     if (size == -1)
         size = (gint64) (reader->base->total_num / sample_ratio);
@@ -381,7 +381,7 @@ double* get_hit_rate_seq_shards(reader_t* reader,
                                 gint64 correction){
     int i=0;
     if (reader->base->total_num == -1)
-        reader->base->total_num = get_num_of_cache_lines(reader);
+        reader->base->total_num = get_num_of_req(reader);
     
     if (size == -1)
         size = (gint64) (reader->base->total_num / sample_ratio);
@@ -416,7 +416,7 @@ double* get_hit_rate_seq_shards(reader_t* reader,
 double* get_hit_rate_seq(reader_t* reader, gint64 size, gint64 begin, gint64 end){
     int i=0;
     if (reader->base->total_num == -1)
-        reader->base->total_num = get_num_of_cache_lines(reader);
+        reader->base->total_num = get_num_of_req(reader);
     
     if (size == -1)
         size = reader->base->total_num;
@@ -457,7 +457,7 @@ double* get_hit_rate_seq(reader_t* reader, gint64 size, gint64 begin, gint64 end
 double* get_miss_rate_seq(reader_t* reader, gint64 size, gint64 begin, gint64 end){
     int i=0;
     if (reader->base->total_num == -1)
-        reader->base->total_num = get_num_of_cache_lines(reader);
+        reader->base->total_num = get_num_of_req(reader);
     if (size == -1)
         size = reader->base->total_num;
     if (end == -1)
@@ -494,7 +494,7 @@ gint64* get_reuse_dist_seq(reader_t* reader, gint64 begin, gint64 end){
     gint64 reuse_dist;
 
     if (reader->base->total_num == -1)
-        get_num_of_cache_lines(reader);
+        get_num_of_req(reader);
     
     if (begin != 0 && begin != -1){
         WARNING("range reuse distance computation is no longer supported (begin=%ld), "
@@ -596,7 +596,7 @@ gint64* get_future_reuse_dist(reader_t* reader, gint64 begin, gint64 end){
     gint64 reuse_dist;
     
     if (reader->base->total_num == -1)
-        get_num_of_cache_lines(reader);
+        get_num_of_req(reader);
 
     if (begin != 0 && begin != -1){
         WARNING("range reuse distance computation is no longer supported, "
@@ -707,7 +707,7 @@ gint64* get_dist_to_last_access(reader_t* reader){
     gint64* value;
     
     if (reader->base->total_num == -1)
-        get_num_of_cache_lines(reader);
+        get_num_of_req(reader);
     
     
     // check whether dist computation has been finished
@@ -827,7 +827,7 @@ gint64* get_reuse_time(reader_t* reader){
     gint64* value;
     
     if (reader->base->total_num == -1)
-        get_num_of_cache_lines(reader);
+        get_num_of_req(reader);
     
     
     // check whether dist computation has been finished
@@ -985,7 +985,7 @@ void load_reuse_dist(reader_t * const reader,
                      const int reuse_type){
 
     if (reader->base->total_num == -1)
-        get_num_of_cache_lines(reader);
+        get_num_of_req(reader);
 
     gint64 * reuse_dist_array = g_new(gint64, reader->base->total_num);
     FILE* file = fopen(load_file_loc, "rb");

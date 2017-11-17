@@ -301,7 +301,7 @@ struct_cache* optimal_init(guint64 size, char data_type, int block_size, void* p
     
     if (((struct optimal_init_params*)params)->next_access == NULL){
         if (reader->base->total_num == -1)
-            get_num_of_cache_lines(reader);
+            get_num_of_req(reader);
         optimal_params->next_access = g_array_sized_new (FALSE, FALSE,
                                                          sizeof (gint),
                                                          (guint)reader->base->total_num);

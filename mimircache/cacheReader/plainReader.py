@@ -16,6 +16,10 @@ class plainReader(cacheReaderAbstract):
             self.cReader = c_cacheReader.setup_reader(file_loc, 'p', data_type=data_type, block_unit_size=0)
 
     def read_one_element(self):
+        """
+        read one request
+        :return:
+        """
         super().read_one_element()
         line = self.trace_file.readline()
         if line:

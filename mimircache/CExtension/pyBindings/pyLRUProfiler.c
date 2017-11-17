@@ -50,7 +50,7 @@ static PyObject* LRUProfiler_get_reuse_dist_seq(PyObject* self,
     if (begin < 0)
         begin = 0;
     if (reader->base->total_num == -1)
-        get_num_of_cache_lines(reader);
+        get_num_of_req(reader);
     if (end < 0)
         end = reader->base->total_num;
     
@@ -90,7 +90,7 @@ static PyObject* LRUProfiler_get_future_reuse_dist(PyObject* self,
     if (begin < 0)
         begin = 0;
     if (reader->base->total_num == -1)
-        get_num_of_cache_lines(reader);
+        get_num_of_req(reader);
     if (end < 0)
         end = reader->base->total_num;
     
@@ -205,7 +205,7 @@ static PyObject* LRUProfiler_get_hit_count_seq(PyObject* self, PyObject* args, P
     if (begin == -1)
         begin = 0;
     if (reader->base->total_num == -1)
-        get_num_of_cache_lines(reader);
+        get_num_of_req(reader);
     if (end == -1)
         end = reader->base->total_num;
     
@@ -255,7 +255,7 @@ static PyObject* LRUProfiler_get_hit_rate_seq(PyObject* self, PyObject* args, Py
     if (begin == -1)
         begin = 0;
     if (reader->base->total_num == -1)
-        get_num_of_cache_lines(reader);
+        get_num_of_req(reader);
     if (end == -1)
         end = reader->base->total_num;
     
@@ -303,7 +303,7 @@ static PyObject* LRUProfiler_get_miss_rate_seq(PyObject* self,
     if (begin == -1)
         begin = 0;
     if (reader->base->total_num == -1)
-        get_num_of_cache_lines(reader);
+        get_num_of_req(reader);
     if (end == -1)
         end = reader->base->total_num;
 
@@ -350,7 +350,7 @@ static PyObject* LRUProfiler_get_hit_rate_seq_shards(PyObject* self,
     }
     
     if (reader->base->total_num == -1)
-        get_num_of_cache_lines(reader);
+        get_num_of_req(reader);
     
     // get hit rate
     double* hit_rate = get_hit_rate_seq_shards(reader, cache_size,
@@ -396,7 +396,7 @@ static PyObject* LRUProfiler_get_hit_rate_withsize_seq(PyObject* self,
     }
     
     if (reader->base->total_num == -1)
-        get_num_of_cache_lines(reader);
+        get_num_of_req(reader);
     
     // get hit rate
     double* hit_rate = get_hitrate_withsize_seq(reader, cache_size, block_size);
@@ -439,7 +439,7 @@ static PyObject* LRUProfiler_get_hit_count_withsize_seq(PyObject* self, PyObject
     }
 
     if (reader->base->total_num == -1)
-        get_num_of_cache_lines(reader);
+        get_num_of_req(reader);
     
     // get hit count
     guint64* hit_count = get_hitcount_withsize_seq(reader, cache_size, block_size);

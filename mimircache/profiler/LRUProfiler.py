@@ -19,7 +19,7 @@ from mimircache.utils.printing import *
 from matplotlib.ticker import FuncFormatter
 
 class LRUProfiler:
-    all = ["get_hit_count",
+    all = ("get_hit_count",
            "get_hit_ratio",
            "get_miss_ratio",
            "get_reuse_distance",
@@ -27,7 +27,7 @@ class LRUProfiler:
            "plotHRC",
            "save_reuse_dist",
            "load_reuse_dist",
-           "use_precomputedRD"]
+           "use_precomputedRD")
 
     def __init__(self, reader, cache_size=-1, cache_params=None, *args, **kwargs):
 

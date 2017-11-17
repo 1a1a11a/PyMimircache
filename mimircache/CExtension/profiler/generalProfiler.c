@@ -607,7 +607,7 @@ return_res** profiler(reader_t* reader_in,
     
     if (end_pos==-1){
         if (reader_in->base->total_num == -1)
-            get_num_of_cache_lines(reader_in);
+            get_num_of_req(reader_in);
         end_pos = reader_in->base->total_num;
     }
     
@@ -751,7 +751,7 @@ gdouble* LRU_evict_err_statistics(reader_t* reader_in, struct_cache* cache_in, g
     optimal->core->bp = reader_in->sdata->break_points;
     
     if (reader_in->base->total_num == -1)
-        get_num_of_cache_lines(reader_in);
+        get_num_of_req(reader_in);
     
     if (reader_in->base->type == 'v')
         optimal->core->eviction_array = g_new0(guint64, reader_in->base->total_num);

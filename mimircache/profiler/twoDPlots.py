@@ -138,7 +138,7 @@ def namemapping_2d(reader, partial_ratio=0.1, figname=None):
     # initialization
     SCATTER_POINT_LIMIT = 6000
     mapping_counter = 0
-    num_of_requests = reader.get_num_total_req()
+    num_of_requests = reader.get_num_of_req()
     num_of_partial = int(num_of_requests * partial_ratio)
     name_mapping = {}
 

@@ -154,7 +154,7 @@ draw_dict* heatmap_LRU(reader_t* reader,
         if (reader->sdata->reuse_dist_type != NORMAL_REUSE_DISTANCE)
             get_reuse_dist_seq(reader, 0, -1);
     }
-    
+
     if (plot_type == hit_ratio_start_time_end_time){
         GSList* last_access_gslist = get_last_access_dist_seq(reader, read_one_element);
         if (reader->sdata->last_access != NULL){
@@ -318,7 +318,6 @@ draw_dict* heatmap_hit_ratio_start_time_end_time(reader_t* reader,
     
     GArray* break_points;
     break_points = reader->sdata->break_points->array;
-    
 
     // create draw_dict storage
     draw_dict* dd = g_new(draw_dict, 1);

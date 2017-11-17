@@ -72,7 +72,7 @@ GSList* get_last_access_dist_seq(reader_t* reader,
     GSList* list= NULL; 
 
     if (reader->base->total_num == -1)
-        get_num_of_cache_lines(reader);
+        get_num_of_req(reader);
 
     // create cache lize struct and initialization
     cache_line* cp = new_cacheline();
@@ -202,7 +202,7 @@ GArray* gen_breakpoints_virtualtime(reader_t* reader,
      */
     
     if (reader->base->total_num == -1)
-        get_num_of_cache_lines(reader);
+        get_num_of_req(reader);
     
     if (reader->sdata->break_points){
         if (reader->sdata->break_points->mode == 'v' &&
@@ -284,7 +284,7 @@ GArray* gen_breakpoints_realtime(reader_t* reader,
 
     
     if (reader->base->total_num == -1)
-        get_num_of_cache_lines(reader);
+        get_num_of_req(reader);
     
     
     if (reader->sdata->break_points){

@@ -54,7 +54,7 @@ jason@myMachine: ~$ sudo pip3 install mimircache
 Alternative using docker
 ------------------------
 
-As an alternative, you can using mimircache in a docker container, according to our simple benchmark, the performance difference between using a bare metal and a docker container is less than 10%.
+As an alternative, you can use mimircache in a docker container, according to our simple benchmark, the performance difference between using a bare metal and a docker container is less than 10%.
 
 ### Use interactive shell
 
@@ -106,3 +106,12 @@ c.heatmap('r', "hit_ratio_start_time_end_time", time_interval=10000000)
 <img src="https://github.com/1a1a11a/mimircache/blob/develop/docs/images/example_heatmap.png" alt="Hit Ratio Heatmap" width="38%">
 
 An example of hit ratio heatmap.
+
+
+Contributing
+------------
+You are more than welcome to make any contributions. Please create Pull Request for any changes.
+
+LICENSE
+------- 
+mimircache is provided under GPLv3 license.

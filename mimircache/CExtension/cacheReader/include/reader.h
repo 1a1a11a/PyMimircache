@@ -194,7 +194,7 @@ guint64 read_one_request_size(reader_t *const reader);
 
 void reader_set_read_pos(reader_t *const reader, double pos);
 
-guint64 get_num_of_cache_lines(reader_t *const reader);
+guint64 get_num_of_req(reader_t *const reader);
 
 void reset_reader(reader_t *const reader);
 

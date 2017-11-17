@@ -328,7 +328,7 @@ static PyObject* reader_reader_set_read_pos(PyObject* self, PyObject* args)
 }
 
 
-static PyObject* reader_get_num_of_cache_lines(PyObject* self, PyObject* args)
+static PyObject* reader_get_num_of_req(PyObject* self, PyObject* args)
 {   
     reader_t* reader;
     PyObject* po; 
@@ -341,7 +341,7 @@ static PyObject* reader_get_num_of_cache_lines(PyObject* self, PyObject* args)
         return NULL;
     } 
 
-    long long num_of_lines = get_num_of_cache_lines(reader);
+    long long num_of_lines = get_num_of_req(reader);
     return Py_BuildValue("l", num_of_lines);
 }
 
@@ -388,7 +388,7 @@ static PyObject* reader_skip_N_requests(PyObject* self, PyObject* args)
 static PyMethodDef c_cacheReader_funcs[] = {
     {"setup_reader", (PyCFunction)reader_setup_reader,
         METH_VARARGS | METH_KEYWORDS, "setup the c_reader in C extension for profiling"},
-    {"get_num_of_lines", (PyCFunction)reader_get_num_of_cache_lines,
+    {"get_num_of_req", (PyCFunction)reader_get_num_of_req,
         METH_VARARGS, "return the number of requests in the cache file"},
     {"close_reader", (PyCFunction)reader_close_reader,
         METH_VARARGS, "close c_reader"},

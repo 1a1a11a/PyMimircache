@@ -23,17 +23,16 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
         self.data_type = data_type
         self.block_unit_size = block_unit_size
         self.disk_sector_size = disk_sector_size
-        if self.disk_sector_size!=0:
+        if self.disk_sector_size != 0:
             assert data_type == 'l', "block size option only support on block request(data type l)"
         assert (os.path.exists(file_loc)), "data file({}) does not exist".format(file_loc)
-
 
         self.support_real_time = False
         self.support_size = False
         self.already_load_rd = False
 
         self.counter = 0
-        self.num_of_line = -1
+        self.num_of_req = -1
         self.num_of_uniq_req = -1
         self.lock = Lock()
 
@@ -47,25 +46,25 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
         if self.cReader:
             c_cacheReader.reset_reader(self.cReader)
 
-    def get_num_total_req(self):
+    def get_num_of_req(self):
         """
         count the number of requests in the trace, fast for binary type trace,
         for plain/csv type trace, this is slow
         :return: the number of requests in the trace
         """
-        if self.num_of_line != -1:
-            return self.num_of_line
+        if self.num_of_req != -1:
+            return self.num_of_req
 
         # clear before counting
-        self.num_of_line = 0
+        self.num_of_req = 0
         if self.cReader:
-            self.num_of_line = c_cacheReader.get_num_of_lines(self.cReader)
+            self.num_of_req = c_cacheReader.get_num_of_req(self.cReader)
         else:
             while self.read_one_element() is not None:
-                self.num_of_line += 1
+                self.num_of_req += 1
         self.reset()
 
-        return self.num_of_line
+        return self.num_of_req
 
     def get_req_freq_distribution(self):
         """
@@ -78,7 +77,7 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
         self.reset()
         return d
 
-    def get_num_unique_req(self):
+    def get_num_of_uniq_req(self):
         """
         count the number of unique block/obj in the trace
         :return: the number of unique block/obj
@@ -94,16 +93,13 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
         return self.__next__()
 
     def __len__(self):
-        return self.get_num_total_req()
+        return self.get_num_of_req()
 
     def __enter__(self):
         return self
 
-
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
-
-
 
     @abc.abstractmethod
     def read_one_element(self):

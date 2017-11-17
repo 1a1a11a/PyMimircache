@@ -371,13 +371,14 @@ void reader_set_read_pos(reader_t *const reader, const double pos){
 }
 
 
-guint64 get_num_of_cache_lines(reader_t *const reader){
+guint64 get_num_of_req(reader_t *const reader){
     if (reader->base->total_num !=0 && reader->base->total_num != -1)
         return reader->base->total_num;
     
     guint64 old_offset = reader->base->offset;
     reader->base->offset = 0;
-    guint64 num_of_lines = 0;
+    guint64 n_req = 0;
+    // why can't reset here?
     // reset_reader(reader);
     
     switch (reader->base->type) {
@@ -389,12 +390,12 @@ guint64 get_num_of_cache_lines(reader_t *const reader){
             long line_len;
             while (!find_line_ending(reader, &line_end, &line_len)){
                 reader->base->offset = (void*)line_end - reader->base->mapped_file;
-                num_of_lines ++;
+                n_req ++;
             }
-            num_of_lines++;
+            n_req++;
             if (reader->base->type == 'c')
                 if (((csv_params_t*)(reader->reader_params))->has_header)
-                    num_of_lines --;
+                    n_req --;
             break;
         case BINARY:
         case VSCSI:
@@ -405,9 +406,9 @@ guint64 get_num_of_cache_lines(reader_t *const reader){
             exit(1);
             break;
     }
-    reader->base->total_num = num_of_lines;
+    reader->base->total_num = n_req;
     reader->base->offset = old_offset;
-    return num_of_lines;
+    return n_req;
 }
 
 
