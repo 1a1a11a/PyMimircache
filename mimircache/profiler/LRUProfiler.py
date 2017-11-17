@@ -42,10 +42,10 @@ class LRUProfiler:
             self.cache_params = {}
 
         # check whether user want to profling with size
-        self.block_unit_size = cache_params.get("block_unit_size", 0)
+        self.block_unit_size = self.cache_params.get("block_unit_size", 0)
         block_unit_size_names = {"unit_size", "block_size", "chunk_size"}
         for name in block_unit_size_names:
-            if name in cache_params:
+            if name in self.cache_params:
                 self.block_unit_size = cache_params[name]
                 break
 
@@ -58,7 +58,8 @@ class LRUProfiler:
         # INTERNAL USE to cache intermediate reuse distance
         self.already_load_rd = False
         if INTERNAL_USE and not kwargs.get("no_load_rd", False) and \
-                        socket.gethostname().lower() in ["master", "node2", "node3"]:
+                socket.gethostname().lower() in ["master", "node2", "node3"] and \
+                ".." not in reader.file_loc:
             if not reader.already_load_rd:
                 self.use_precomputedRD()
                 self.already_load_rd = True
@@ -160,11 +161,9 @@ class LRUProfiler:
          size 0 should always be 0, CACHE_SIZE+1 is out of range, CACHE_SIZE+2 is cold miss,
          so total is CACHE_SIZE+3 buckets
         """
-        kargs = {}
-        if 'cache_size' not in kwargs:
-            kargs['cache_size'] = self.cache_size
-        else:
-            kargs['cache_size'] = kwargs['cache_size']
+        kargs = {"cache_size": kwargs.get("cache_size", self.cache_size)}
+
+        # deprecated
         if 'begin' in kwargs:
             kargs['begin'] = kwargs['begin']
         if 'end' in kwargs:
@@ -226,8 +225,9 @@ class LRUProfiler:
         :param kargs:
         :return:
         """
-        WARNING("reuse distance calculation does not support variable obj size, "
-                "calculating without considering size")
+        if self.block_unit_size != 0:
+            WARNING("reuse distance calculation does not support variable obj size, "
+                    "calculating without considering size")
         rd = c_LRUProfiler.get_reuse_dist_seq(self.reader.cReader, **kargs)
         return rd
 
@@ -237,7 +237,8 @@ class LRUProfiler:
         :param kargs:
         :return:
         """
-        WARNING("future reuse distance calculation does not support variable obj size, "
+        if self.block_unit_size != 0:
+            WARNING("future reuse distance calculation does not support variable obj size, "
                 "calculating without considering size")
         frd = c_LRUProfiler.get_future_reuse_dist(self.reader.cReader, **kargs)
         return frd
@@ -287,7 +288,7 @@ class LRUProfiler:
         :param figname:
         :param auto_resize:
         :param threshold:
-        :param kwargs:
+        :param kwargs: cache_size_unit (in Byte)
         :return:
         """
         # EXTENTION_LENGTH is used only when auto_resize is enabled,
@@ -315,13 +316,15 @@ class LRUProfiler:
 
             plt.xlim(0, len(HRC))
             plt.plot(HRC)
-            if self.block_unit_size != 0:
-                plt.gca().xaxis.set_major_formatter(FuncFormatter(
-                        lambda x, p: int(x * self.block_unit_size//1024//1024)))
-                plt.xlabel("Cache Size (MB)")
-            else:
-                plt.xlabel("Cache Size (Items)")
+            xlabel = "Cache Size (Items)"
 
+            cache_size_unit = kwargs.get("cache_size_unit", self.block_unit_size)
+            if cache_size_unit != 0:
+                plt.gca().xaxis.set_major_formatter(FuncFormatter(
+                        lambda x, p: int(x * cache_size_unit//1024//1024)))
+                xlabel = "Cache Size (MB)"
+
+            plt.xlabel(xlabel)
             plt.ylabel("Hit Ratio")
             plt.title('Hit Ratio Curve', fontsize=18, color='black')
             if not 'no_save' in kwargs or not kwargs['no_save']:

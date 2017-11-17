@@ -73,10 +73,10 @@ class cGeneralProfiler:
         self.num_of_threads = num_of_threads
 
         # check whether user want to profling with size
-        self.block_unit_size = cache_params.get("block_unit_size", 0)
+        self.block_unit_size = self.cache_params.get("block_unit_size", 0)
         block_unit_size_names = {"unit_size", "block_size", "chunk_size"}
         for name in block_unit_size_names:
-            if name in cache_params:
+            if name in self.cache_params:
                 self.block_unit_size = cache_params[name]
                 break
 
@@ -211,12 +211,15 @@ class cGeneralProfiler:
         try:
             plt.xlim(0, self.cache_size)
             plt.plot(range(0, self.cache_size + 1, self.bin_size), HRC)
-            if self.block_unit_size != 0:
-                plt.xlabel("Cache Size (MB)")
+            xlabel = "Cache Size (items)"
+
+            cache_size_unit = kwargs.get("cache_size_unit", self.block_unit_size)
+            if cache_size_unit != 0:
+                xlabel = "Cache Size (MB)"
                 plt.gca().xaxis.set_major_formatter(
-                    ticker.FuncFormatter(lambda x, p: int(x * self.block_unit_size // 1024 // 1024)))
-            else:
-                plt.xlabel("Cache Size (items)")
+                    ticker.FuncFormatter(lambda x, p: int(x * cache_size_unit // 1024 // 1024)))
+
+            plt.xlabel(xlabel)
             plt.ylabel("Hit Ratio")
             plt.title('Hit Ratio Curve', fontsize=18, color='black')
             plt.savefig(figname, dpi=600)
