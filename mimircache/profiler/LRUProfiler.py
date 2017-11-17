@@ -41,11 +41,14 @@ class LRUProfiler:
         if self.cache_params is None:
             self.cache_params = {}
 
-        if 'block_unit_size' in self.cache_params:
-            self.with_size = True
-            self.block_unit_size = self.cache_params["block_unit_size"]
-        else:
-            self.with_size = False
+        # check whether user want to profling with size
+        self.block_unit_size = cache_params.get("block_unit_size", 0)
+        block_unit_size_names = {"unit_size", "block_size", "chunk_size"}
+        for name in block_unit_size_names:
+            if name in cache_params:
+                self.block_unit_size = cache_params[name]
+                break
+
 
         # this is for deprecated functions, as old version uses hit/miss rate instead of hit/miss ratio
         self.get_hit_rate = self.get_hit_ratio
@@ -142,7 +145,7 @@ class LRUProfiler:
         """
         if 'cache_size' not in kargs:
             kargs['cache_size'] = self.cache_size
-        if self.with_size:
+        if self.block_unit_size != 0:
             print("not supported yet")
             return None
         else:
@@ -167,7 +170,7 @@ class LRUProfiler:
         if 'end' in kwargs:
             kargs['end'] = kwargs['end']
 
-        if self.with_size:
+        if self.block_unit_size != 0 :
             hit_ratio = c_LRUProfiler.get_hit_ratio_with_size(self.reader.cReader,
                                                             block_unit_size=self.block_unit_size, **kargs)
         else:
@@ -196,7 +199,7 @@ class LRUProfiler:
         # correction = 0
         tempReader = binaryReader(traceName, init_params={"label":1, "fmt": fmt})
 
-        if self.with_size:
+        if self.block_unit_size != 0:
             print("not supported yet")
             return None
         else:
@@ -210,7 +213,7 @@ class LRUProfiler:
         """
         if 'cache_size' not in kargs:
             kargs['cache_size'] = self.cache_size
-        if self.with_size:
+        if self.block_unit_size != 0:
             print("not supported yet")
             return None
         else:
@@ -223,10 +226,9 @@ class LRUProfiler:
         :param kargs:
         :return:
         """
-        if self.with_size:
-            raise RuntimeError("not supported yet")
-        else:
-            rd = c_LRUProfiler.get_reuse_dist_seq(self.reader.cReader, **kargs)
+        WARNING("reuse distance calculation does not support variable obj size, "
+                "calculating without considering size")
+        rd = c_LRUProfiler.get_reuse_dist_seq(self.reader.cReader, **kargs)
         return rd
 
     def get_future_reuse_distance(self, **kargs):
@@ -235,10 +237,9 @@ class LRUProfiler:
         :param kargs:
         :return:
         """
-        if self.with_size:
-            raise RuntimeError("not supported yet")
-        else:
-            frd = c_LRUProfiler.get_future_reuse_dist(self.reader.cReader, **kargs)
+        WARNING("future reuse distance calculation does not support variable obj size, "
+                "calculating without considering size")
+        frd = c_LRUProfiler.get_future_reuse_dist(self.reader.cReader, **kargs)
         return frd
 
     def plotMRC(self, figname="MRC.png", auto_resize=False, threshold=0.98, **kwargs):
@@ -266,16 +267,14 @@ class LRUProfiler:
                     stop_point = len(MRC) - 3
 
             plt.plot(MRC[:stop_point])
-            plt.xlabel("cache Size")
+            plt.xlabel("Cache Size")
             plt.ylabel("Miss Ratio")
             plt.title('Miss Ratio Curve', fontsize=18, color='black')
             if not 'no_save' in kwargs or not kwargs['no_save']:
                 plt.savefig(figname, dpi=600)
                 INFO("plot is saved at the same directory")
-            try:
-                plt.show()
-            except:
-                pass
+            try: plt.show()
+            except: pass
             plt.clf()
             return stop_point
         except Exception as e:
@@ -316,7 +315,7 @@ class LRUProfiler:
 
             plt.xlim(0, len(HRC))
             plt.plot(HRC)
-            if self.with_size:
+            if self.block_unit_size != 0:
                 plt.gca().xaxis.set_major_formatter(FuncFormatter(
                         lambda x, p: int(x * self.block_unit_size//1024//1024)))
                 plt.xlabel("Cache Size (MB)")
@@ -328,10 +327,8 @@ class LRUProfiler:
             if not 'no_save' in kwargs or not kwargs['no_save']:
                 plt.savefig(figname, dpi=600)
                 INFO("plot is saved")
-            try:
-                plt.show()
-            except:
-                pass
+            try: plt.show()
+            except: pass
             plt.clf()
             return HRC
         except Exception as e:
@@ -368,10 +365,8 @@ class LRUProfiler:
             if not 'no_save' in kwargs or not kwargs['no_save']:
                 plt.savefig(figname, dpi=600)
                 INFO("plot is saved")
-            try:
-                plt.show()
-            except:
-                pass
+            try: plt.show()
+            except: pass
             plt.clf()
             return stop_point
         except Exception as e:
@@ -379,7 +374,7 @@ class LRUProfiler:
             WARNING("the plotting function is not wrong, is this a headless server? \nERROR: {}".format(e))
 
     def __del__(self):
-        if os.path.exists('temp.dat'):
-            os.remove('temp.dat')
+        if os.path.exists('.temp.dat'):
+            os.remove('.temp.dat')
 
 

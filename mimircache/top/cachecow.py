@@ -456,9 +456,11 @@ class cachecow:
 
         # check whether profiling with size
         for i in range(len(algorithm_list)):
-            if i < len(cache_params) and cache_params[i] and 'block_unit_size' in cache_params[i]:
-                profiling_with_size = True
-                break
+            if i < len(cache_params) and cache_params[i]:
+                block_unit_size = cache_params[i].get("block_unit_size", 0)
+                if block_unit_size != 0:
+                    profiling_with_size = True
+                    break
 
         for i in range(len(algorithm_list)):
             alg = algorithm_list[i]
@@ -466,7 +468,7 @@ class cachecow:
                 cache_param = cache_params[i]
                 if profiling_with_size:
                     if cache_param is None or 'block_unit_size' not in cache_param:
-                        ERROR("seems you want to profiling with size, but you didn't provide block_unit_size in "
+                        ERROR("it seems you want to profiling with size, but you didn't provide block_unit_size in "
                               "cache params {}".format(cache_param))
 
             else:

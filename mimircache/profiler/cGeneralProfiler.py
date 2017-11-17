@@ -28,11 +28,11 @@ from mimircache.const import *
 
 
 class cGeneralProfiler:
-    all = ["get_hit_count",
+    all = ("get_hit_count",
            "get_hit_ratio",
            "get_miss_ratio",
            "plotMRC",
-           "plotHRC"]
+           "plotHRC")
 
     def __init__(self, reader,
                  cache_name, cache_size, bin_size=-1, cache_params=None,
@@ -60,10 +60,9 @@ class cGeneralProfiler:
         self.reader = reader
         self.cache_size = cache_size
         self.cache_name = cache_alg_mapping[cache_name.lower()]
-        if bin_size == -1:
+        self.bin_size = bin_size
+        if self.bin_size == -1:
             self.bin_size = int(self.cache_size / DEFAULT_BIN_NUM_PROFILER)
-        else:
-            self.bin_size = bin_size
 
         if self.bin_size == 0:
             self.bin_size = 1
@@ -73,10 +72,13 @@ class cGeneralProfiler:
             self.cache_params = {}
         self.num_of_threads = num_of_threads
 
-        if cache_params is not None and 'block_unit_size' in cache_params:
-            self.with_size = True
-        else:
-            self.with_size = False
+        # check whether user want to profling with size
+        self.block_unit_size = cache_params.get("block_unit_size", 0)
+        block_unit_size_names = {"unit_size", "block_size", "chunk_size"}
+        for name in block_unit_size_names:
+            if name in cache_params:
+                self.block_unit_size = cache_params[name]
+                break
 
         # if the given file is not embedded reader, needs conversion for C backend
         need_convert = True
@@ -115,22 +117,16 @@ class cGeneralProfiler:
         obtain hit count at cache size [0, bin_size, bin_size*2 ...]
         :return: a numpy array, with hit count corresponding to size [0, bin_size, bin_size*2 ...]
         """
-        sanity_kwargs = {}
-        if 'num_of_threads' not in kwargs:
-            sanity_kwargs['num_of_threads'] = self.num_of_threads
-        else:
-            sanity_kwargs['num_of_threads'] = kwargs['num_of_threads']
-        if 'cache_size' in kwargs:
-            cache_size = kwargs['cache_size']
-        else:
-            cache_size = self.cache_size
+        sanity_kwargs = {"num_of_threads": kwargs.get("num_of_threads", self.num_of_threads)}
+        cache_size = kwargs.get("cache_size", self.cache_size)
 
         # this is going to be deprecated
         if 'begin' in kwargs:
             sanity_kwargs['begin'] = kwargs['begin']
         if 'end' in kwargs:
             sanity_kwargs['end'] = kwargs['end']
-        if self.with_size:
+
+        if self.block_unit_size != 0:
             print("not supported yet")
         else:
             return c_generalProfiler.get_hit_count(self.reader.cReader, self.cache_name, cache_size,
@@ -141,28 +137,19 @@ class cGeneralProfiler:
         obtain hit ratio at cache size [0, bin_size, bin_size*2 ...]
         :return: a numpy array, with hit rate corresponding to size [0, bin_size, bin_size*2 ...]
         """
-        sanity_kwargs = {}
-        if 'num_of_threads' not in kwargs:
-            sanity_kwargs['num_of_threads'] = self.num_of_threads
-        else:
-            sanity_kwargs['num_of_threads'] = kwargs['num_of_threads']
-        if 'cache_size' in kwargs:
-            cache_size = kwargs['cache_size']
-        else:
-            cache_size = self.cache_size
-        if 'bin_size' in kwargs:
-            bin_size = kwargs['bin_size']
-        else:
-            bin_size = self.bin_size
+        sanity_kwargs = {"num_of_threads": kwargs.get("num_of_threads", self.num_of_threads)}
+        cache_size = kwargs.get("cache_size", self.cache_size)
+        bin_size = kwargs.get("bin_size", self.bin_size)
 
         # this is going to be deprecated
         if 'begin' in kwargs:
             sanity_kwargs['begin'] = kwargs['begin']
         if 'end' in kwargs:
             sanity_kwargs['end'] = kwargs['end']
-        # handles both withsize and no size
+
+        # handles both withsize and no size, but currently only storage system trace are supported with size
         return c_generalProfiler.get_hit_ratio(self.reader.cReader, self.cache_name, cache_size,
-                                                        bin_size, cache_params=self.cache_params, **sanity_kwargs)
+                                                bin_size, cache_params=self.cache_params, **sanity_kwargs)
 
 
 
@@ -171,25 +158,17 @@ class cGeneralProfiler:
         obtain miss ratio at cache size [0, bin_size, bin_size*2 ...]
         :return: a numpy array, with miss rate corresponding to size [0, bin_size, bin_size*2 ...]
         """
-
-        sanity_kwargs = {}
-        if 'num_of_threads' not in kwargs:
-            sanity_kwargs['num_of_threads'] = self.num_of_threads
-        if 'cache_size' in kwargs:
-            cache_size = kwargs['cache_size']
-        else:
-            cache_size = self.cache_size
-        if 'bin_size' in kwargs:
-            bin_size = kwargs['bin_size']
-        else:
-            bin_size = self.bin_size
+        sanity_kwargs = {"num_of_threads": kwargs.get("num_of_threads", self.num_of_threads)}
+        cache_size = kwargs.get("cache_size", self.cache_size)
+        bin_size = kwargs.get("bin_size", self.bin_size)
 
         # this is going to be deprecated
         if 'begin' in kwargs:
             sanity_kwargs['begin'] = kwargs['begin']
         if 'end' in kwargs:
             sanity_kwargs['end'] = kwargs['end']
-        if self.with_size:
+
+        if self.block_unit_size != 0:
             print("not supported yet")
         else:
             return c_generalProfiler.get_miss_ratio(self.reader.cReader, self.cache_name, cache_size,
@@ -232,17 +211,18 @@ class cGeneralProfiler:
         try:
             plt.xlim(0, self.cache_size)
             plt.plot(range(0, self.cache_size + 1, self.bin_size), HRC)
-            if 'block_unit_size' in self.cache_params:
+            if self.block_unit_size != 0:
                 plt.xlabel("Cache Size (MB)")
                 plt.gca().xaxis.set_major_formatter(
-                    ticker.FuncFormatter(lambda x, p: int(x * self.cache_params['block_unit_size'] // 1024 // 1024)))
+                    ticker.FuncFormatter(lambda x, p: int(x * self.block_unit_size // 1024 // 1024)))
             else:
                 plt.xlabel("Cache Size (items)")
             plt.ylabel("Hit Ratio")
             plt.title('Hit Ratio Curve', fontsize=18, color='black')
             plt.savefig(figname, dpi=600)
             INFO("plot is saved")
-            # plt.show()
+            try: plt.show()
+            except: pass
             plt.clf()
         except Exception as e:
             plt.savefig(figname)
