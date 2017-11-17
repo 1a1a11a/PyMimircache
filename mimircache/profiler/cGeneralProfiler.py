@@ -213,11 +213,11 @@ class cGeneralProfiler:
             plt.plot(range(0, self.cache_size + 1, self.bin_size), HRC)
             xlabel = "Cache Size (items)"
 
-            cache_size_unit = kwargs.get("cache_size_unit", self.block_unit_size)
-            if cache_size_unit != 0:
+            cache_unit_size = kwargs.get("cache_unit_size", self.block_unit_size)
+            if cache_unit_size != 0:
                 xlabel = "Cache Size (MB)"
                 plt.gca().xaxis.set_major_formatter(
-                    ticker.FuncFormatter(lambda x, p: int(x * cache_size_unit // 1024 // 1024)))
+                    ticker.FuncFormatter(lambda x, p: int(x * cache_unit_size // 1024 // 1024)))
 
             plt.xlabel(xlabel)
             plt.ylabel("Hit Ratio")

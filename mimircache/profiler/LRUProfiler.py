@@ -288,7 +288,7 @@ class LRUProfiler:
         :param figname:
         :param auto_resize:
         :param threshold:
-        :param kwargs: cache_size_unit (in Byte)
+        :param kwargs: cache_unit_size (in Byte)
         :return:
         """
         # EXTENTION_LENGTH is used only when auto_resize is enabled,
@@ -318,10 +318,10 @@ class LRUProfiler:
             plt.plot(HRC)
             xlabel = "Cache Size (Items)"
 
-            cache_size_unit = kwargs.get("cache_size_unit", self.block_unit_size)
-            if cache_size_unit != 0:
+            cache_unit_size = kwargs.get("cache_unit_size", self.block_unit_size)
+            if cache_unit_size != 0:
                 plt.gca().xaxis.set_major_formatter(FuncFormatter(
-                        lambda x, p: int(x * cache_size_unit//1024//1024)))
+                        lambda x, p: int(x * cache_unit_size//1024//1024)))
                 xlabel = "Cache Size (MB)"
 
             plt.xlabel(xlabel)

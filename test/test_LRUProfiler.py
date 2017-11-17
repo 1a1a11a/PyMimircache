@@ -107,6 +107,7 @@ class LRUProfilerTest(unittest.TestCase):
         self.assertAlmostEqual(hr[1], 0.02357911)
         hr = p.get_hit_ratio(cache_size=5, begin=113852, end=113872)
         self.assertAlmostEqual(hr[2], 0.05)
+        p.plotHRC("test.png", cache_unit_size=32*1024)
         reader.close()
 
 

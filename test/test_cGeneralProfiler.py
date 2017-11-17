@@ -38,7 +38,8 @@ class cGeneralProfilerTest(unittest.TestCase):
         self.assertAlmostEqual(mr[-1], 0.83065193891525269)
         hr = p.get_hit_ratio(begin=113852, end=113872, cache_size=5000)
         self.assertAlmostEqual(hr[1], 0.2)
-
+        p.plotHRC("test.png", cache_unit_size=32*1024)
+        reader.close()
 
     def test_Optimal(self):
         reader = vscsiReader("{}/trace.vscsi".format(DAT_FOLDER))
@@ -53,7 +54,7 @@ class cGeneralProfilerTest(unittest.TestCase):
         self.assertAlmostEqual(mr[-1], 0.71893000602722168)
         hr = p.get_hit_ratio(begin=113852, end=113872, cache_size=5000)
         self.assertAlmostEqual(hr[1], 0.2)
-
+        reader.close()
 
         reader = plainReader("{}/trace.txt".format(DAT_FOLDER))
         p = cGeneralProfiler(reader, "Optimal", cache_size=2000, num_of_threads=4)
@@ -65,7 +66,8 @@ class cGeneralProfilerTest(unittest.TestCase):
         self.assertEqual(hc[0], 0)
         mr = p.get_miss_rate()
         self.assertAlmostEqual(mr[-1], 0.71893000602722168)
-
+        p.plotHRC("test2.png", cache_unit_size=32*1024)
+        reader.close()
 
         reader = csvReader("{}/trace.csv".format(DAT_FOLDER),
                            init_params={"header":True, 'label':5, 'delimiter':','})
@@ -78,7 +80,7 @@ class cGeneralProfilerTest(unittest.TestCase):
         self.assertEqual(hc[0], 0)
         mr = p.get_miss_rate()
         self.assertAlmostEqual(mr[-1], 0.71893000602722168)
-
+        reader.close()
 
         reader = binaryReader("{}/trace.vscsi".format(DAT_FOLDER),
                               init_params={"label":6, "real_time":7, "fmt": "<3I2H2Q"})
@@ -91,7 +93,7 @@ class cGeneralProfilerTest(unittest.TestCase):
         self.assertEqual(hc[0], 0)
         mr = p.get_miss_rate()
         self.assertAlmostEqual(mr[-1], 0.71893000602722168)
-
+        reader.close()
 
     def test_LRU_2(self):
         reader = vscsiReader("{}/trace.vscsi".format(DAT_FOLDER))
@@ -108,7 +110,7 @@ class cGeneralProfilerTest(unittest.TestCase):
 
         hr = p.get_hit_ratio(begin=113852, end=113872, cache_size=5000)
         self.assertAlmostEqual(hr[1], 0.2)
-
+        reader.close()
 
 
     def test_SLRU(self):
@@ -126,6 +128,7 @@ class cGeneralProfilerTest(unittest.TestCase):
 
         hr = p.get_hit_ratio(begin=113852, end=113872, cache_size=5000)
         self.assertAlmostEqual(hr[1], 0.2)
+        reader.close()
 
 
     def test_LFU_LFUFast(self):
@@ -143,7 +146,9 @@ class cGeneralProfilerTest(unittest.TestCase):
 
         mr = p.get_miss_rate()
         self.assertAlmostEqual(mr[-1], 0.82569903135299683)
+        p2.plotHRC("test.png", cache_unit_size=32*1024)
 
+        reader.close()
 
 
 if __name__ == "__main__":

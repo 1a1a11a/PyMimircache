@@ -407,7 +407,9 @@ class cachecow:
                 plot_type, "reuse_dist, freq, accumulative_freq"
             ))
 
-    def plotHRCs(self, algorithm_list, cache_params=(), cache_size=-1, bin_size=-1, auto_size=True, figname="HRC.png", **kwargs):
+    def plotHRCs(self, algorithm_list, cache_params=(),
+                 cache_size=-1, bin_size=-1,
+                 auto_size=True, figname="HRC.png", **kwargs):
         """
 
         :param algorithm_list:
@@ -416,14 +418,15 @@ class cachecow:
         :param bin_size:
         :param auto_size:
         :param figname:
-        :param kwargs: block_unit_size, num_of_threads, label, autosize_threshold, xlimit, ylimit
+        :param kwargs: block_unit_size, num_of_threads, label, autosize_threshold, xlimit, ylimit, cache_unit_size
 
         :return:
         """
 
         plot_dict = prepPlotParams("Hit Ratio Curve", "Cache Size(item)", "Hit Ratio", figname, **kwargs)
         hit_ratio_dict = {}
-        num_of_threads = 4
+        num_of_threads = os.cpu_count()
+        cache_unit_size = kwargs.get("cache_unit_size", 0)
         if 'num_of_threads' in kwargs:
             num_of_threads = kwargs['num_of_threads']
 
@@ -461,6 +464,10 @@ class cachecow:
                 if block_unit_size != 0:
                     profiling_with_size = True
                     break
+        if profiling_with_size and cache_unit_size != 0 and block_unit_size != cache_unit_size:
+            raise RuntimeError("cache_unit_size and block_unit_size is not equal {} {}".\
+                                format(cache_unit_size, block_unit_size))
+
 
         for i in range(len(algorithm_list)):
             alg = algorithm_list[i]
@@ -468,8 +475,11 @@ class cachecow:
                 cache_param = cache_params[i]
                 if profiling_with_size:
                     if cache_param is None or 'block_unit_size' not in cache_param:
-                        ERROR("it seems you want to profiling with size, but you didn't provide block_unit_size in "
+                        ERROR("it seems you want to profiling with size, "
+                              "but you didn't provide block_unit_size in "
                               "cache params {}".format(cache_param))
+                    elif cache_param["block_unit_size"] != block_unit_size:
+                        ERROR("only same block unit size for single plot is allowed")
 
             else:
                 cache_param = None
@@ -520,10 +530,10 @@ class cachecow:
         if "ylimit" in kwargs:
             plt.ylim(kwargs["ylimit"])
 
-        if profiling_with_size:
+        if cache_unit_size != 0:
             plt.xlabel("Cache Size (MB)")
             plt.gca().xaxis.set_major_formatter(
-                FuncFormatter(lambda x, p: int(x * kwargs['block_unit_size'] // 1024 // 1024)))
+                FuncFormatter(lambda x, p: int(x * cache_unit_size // 1024 // 1024)))
 
         if not 'no_save' in kwargs or not kwargs['no_save']:
             plt.savefig(plot_dict['figname'], dpi=600)
