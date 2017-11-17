@@ -374,7 +374,7 @@ class cachecow:
                             logY=kwargs.get("logY", True), cdf=kwargs.get("cdf", False), figname=figname)
 
         elif plot_type == 'mapping':
-            nameMapping_2d(self.reader, partial_ratio=kwargs.get('partial_ratio', 0.1), figname=figname)
+            namemapping_2d(self.reader, partial_ratio=kwargs.get('partial_ratio', 0.1), figname=figname)
 
         else:
             WARNING("currently don't support your specified plot_type: " + str(plot_type))

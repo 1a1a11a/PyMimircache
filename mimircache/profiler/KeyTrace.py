@@ -1,3 +1,10 @@
+# coding=utf-8
+
+"""
+code from Shreed
+
+"""
+
 import matplotlib.pyplot as plt
 
 

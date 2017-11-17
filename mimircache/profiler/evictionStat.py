@@ -1,4 +1,12 @@
 # coding=utf-8
+"""
+this module provides eviction related plotting, now is deprecated
+
+
+Author: Jason Yang <peter.waynechina@gmail.com> 2016/10
+
+"""
+
 
 from mimircache import *
 from math import ceil, log2

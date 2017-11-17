@@ -1,4 +1,11 @@
 # coding=utf-8
+"""
+This is the subprocess of pyHeatmap plotting, this is not fully optimized either, but it works to some extend.
+
+
+Author: Jason Yang <peter.waynechina@gmail.com> 2016/08
+"""
+
 import math
 
 from mimircache import *

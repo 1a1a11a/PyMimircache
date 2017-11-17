@@ -1,14 +1,23 @@
 # coding=utf-8
+"""
+This module provides all the heatmap related plotting
 
-import os
-import matplotlib
-import matplotlib.ticker as ticker
-import mimircache.c_heatmap as c_heatmap
+
+TODO: refactoring
+
+Author: Jason Yang <peter.waynechina@gmail.com> 2016/08
+
+"""
+
+
+
 import numpy as np
+from matplotlib import colors
 from matplotlib import pyplot as plt
+import matplotlib.ticker as ticker
 
+import mimircache.c_heatmap as c_heatmap
 from mimircache import const
-from mimircache.cacheReader.vscsiReader import vscsiReader
 from mimircache.utils.printing import *
 
 
@@ -66,7 +75,7 @@ class cHeatmap:
             array = xydict
         elif axis == 'cb':  # color bar
             if axis_type == 'count':
-                self.other_plot_kwargs['norm'] = matplotlib.colors.LogNorm()
+                self.other_plot_kwargs['norm'] = colors.LogNorm()
         else:
             print("unsupported axis: " + str(axis))
 
@@ -160,10 +169,10 @@ class cHeatmap:
                 # if True, then the hit ratio will be exponentially decayed average hit ratio from beginning plus
                 # the hit ratio in current time interval, the coefficient decay_coefficient specify the ratio of
                 # average hit ratio in the new calculation
-                interval_hit_ratio = False
+                enable_ihr = False
                 decay_coefficient  = DEFAULT_DECAY_COEFFICIENT
-                if 'interval_hit_ratio'in kwargs:
-                    interval_hit_ratio = kwargs["interval_hit_ratio"]
+                if 'interval_hit_ratio'in kwargs or "enable_ihr" in kwargs:
+                    enable_ihr = kwargs.get("interval_hit_ratio", False) or kwargs.get("enable_ihr", False)
                     decay_coefficient  = kwargs.get("decay_coefficient", DEFAULT_DECAY_COEFFICIENT)
 
 
@@ -171,13 +180,12 @@ class cHeatmap:
                 if algorithm.lower() in const.c_available_cache:
                     xydict = c_heatmap.heatmap(reader.cReader, mode, plot_type,
                                                cache_size, algorithm,
-                                               interval_hit_ratio=interval_hit_ratio,
+                                               interval_hit_ratio=enable_ihr,
                                                decay_coefficient=decay_coefficient,
                                                time_interval=time_interval,
                                                num_of_pixels=num_of_pixels,
                                                cache_params=cache_params,
                                                num_of_threads=num_of_threads)
-                    # print("computation finishes {}".format(xydict))
                 else:
                     raise RuntimeError("haven't provided support given algorithm in C yet: " + str(algorithm))
                     pass
@@ -188,6 +196,8 @@ class cHeatmap:
                        "plot type: \n{}".format(cache_size,
                                                 algorithm, mode, time_interval, plot_type)
 
+                # np.savetxt("test.out", xydict)
+                # coordinate to put the text
                 x1, y1 = xydict.shape
                 x1 = int(x1 / 2.8)
                 y1 /= 8
@@ -235,6 +245,9 @@ class cHeatmap:
                                                                      num_of_threads=num_of_threads)
 
                 if 'filter_rd' in kwargs:
+                    # make reuse distance < filter_rd unvisible,
+                    # this can be useful when the low-reuse-distance request dominates
+                    # thus makes the heatmap hard to read
                     assert kwargs['filter_rd'] > 0, "filter_rd must be positive"
                     index_pos = int(np.log(kwargs['filter_rd'])/np.log(log_base))
                     xydict[:index_pos+1, :] = 0
@@ -316,12 +329,13 @@ class cHeatmap:
 
 
             else:
-                raise RuntimeError(
-                    "Cannot recognize this plot type, please check documentation, yoru input is {}".format(plot_type))
+                raise RuntimeError("Cannot recognize this plot type, "
+                    "please check documentation, yoru input is {}".format(plot_type))
 
         else:
-            raise RuntimeError("Cannot recognize this mode, it can only be either real time(r) or virtual time(v), "
-                               "but you input %s" % mode)
+            raise RuntimeError("Cannot recognize this mode, "
+                               "it can only be either real time(r) or virtual time(v), "
+                               "but your input %s" % mode)
 
         reader.reset()
 
@@ -425,7 +439,8 @@ class cHeatmap:
                     "Cannot recognize this plot type, please check documentation, yoru input is %s" % mode)
 
         else:
-            raise RuntimeError("Cannot recognize this mode, it can only be either real time(r) or virtual time(v), "
+            raise RuntimeError("Cannot recognize this mode, "
+                               "it can only be either real time(r) or virtual time(v), "
                                "but you input %s" % mode)
 
         reader.reset()
@@ -445,7 +460,6 @@ class cHeatmap:
             assert kwargs['filter_count'] > 0, "filter_count must be positive"
             plot_array = np.ma.array(xydict, mask=(xydict<kwargs['filter_count']))
 
-        # xydict.dump("xydict2.np")
         cmap = plt.cm.jet
         # cmap = plt.get_cmap("Oranges")
         cmap.set_bad('w', 1.)

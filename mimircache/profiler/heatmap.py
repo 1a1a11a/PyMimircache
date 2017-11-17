@@ -1,9 +1,10 @@
 # coding=utf-8
 """
-this module provides the heatmap ploting engine, it supports both virtual time (fixed number of trace requests) and
+this module provides the pyheatmap ploting engine, it is in Python, so it is very slow
+it supports both virtual time (fixed number of trace requests) and
 real time, under both modes, it support using multiprocessing to do the plotting
 currently, it only support LRU
-the mechanism it works is it gets reuse distance from LRU profiler (parda for now)
+the mechanism it works is it gets reuse distance from LRUProfiler
 currently supported plot type:
 
         # 1. hit_ratio_start_time_end_time
@@ -11,6 +12,13 @@ currently supported plot type:
         # 3. avg_rd_start_time_end_time
         # 4. cold_miss_count_start_time_end_time
         # 5. rd_distribution
+
+This module hasn't been fully optimized and might not get optimized soon
+If you want to use this module instead of cHeatmap and
+need optimizations, you can do it yourself or contact the author
+
+Author: Jason Yang <peter.waynechina@gmail.com> 2016/08
+
 """
 
 import os
@@ -18,10 +26,6 @@ import pickle
 from collections import deque
 from multiprocessing import Array, Process, Queue
 
-from mimircache.cacheReader.csvReader import csvReader
-from mimircache.cacheReader.vscsiReader import vscsiReader
-from mimircache.profiler.LRUProfiler import LRUProfiler
-from mimircache.profiler.cHeatmap import cHeatmap
 import mimircache.c_heatmap as c_heatmap
 from mimircache.profiler.heatmap_subprocess import *
 from mimircache.utils.printing import *
@@ -422,82 +426,4 @@ class heatmap:
         # self.__del_manual__()
 
 
-def server_plot_all():
-    mem_sizes = []
-    with open('memSize', 'r') as ifile:
-        for line in ifile:
-            mem_sizes.append(int(line.strip()))
-
-    for filename in os.listdir("../data/cloudphysics"):
-        print(filename)
-        if filename.endswith('.vscsitrace'):
-            hm = heatmap()
-            mem_size = mem_sizes[int(filename.split('_')[0][1:]) - 1] * 16
-            reader = vscsiReader("../data/cloudphysics/" + filename)
-            if os.path.exists("0601/" + filename + "LRU_Optimal_" + str(mem_size) + "_r.png"):
-                continue
-
-            # hm.run('r', 1000000000, "hit_ratio_start_time_cache_size", reader, num_of_threads=48, cache_size=mem_size,
-            #        save=True, bin_size=1000, text="size = " + str(mem_size), fixed_range=True,
-            #        figname='0601/' + filename + '_hit_ratio_start_time_cache_size_r.png')
-            # # ,change_label='False'     ,   10000000
-            #
-            #
-            # hm.run('r', 1000000000, "avg_rd_start_time_end_time", reader, num_of_threads=48,
-            #        # LRU=False, cache='optimal',
-            #        calculated=True, cache_size=mem_size,
-            #        figname='0601/' + filename + "_avg_rd_start_time_end_time_r.png")
-            #
-            #
-            # hm.run('r', 1000000000, "cold_miss_count_start_time_end_time", reader, num_of_threads=48,
-            #        calculated=True, cache_size=mem_size,
-            #        figname='0601/' + filename + "_cold_miss_count_start_time_end_time_r.png")
-            #
-
-
-            del hm
-            del reader
-
-
-
-def localtest():
-    CACHE_SIZE = 2000
-    TIME_INTERVAL = 10000000
-    reader = vscsiReader("../data/trace.vscsi")
-    hm = heatmap()
-    from mimircache.cache.FIFO import FIFO
-
-    # LRU
-    # hm.heatmap(reader, 'r', TIME_INTERVAL, "hit_ratio_start_time_end_time", num_of_threads=1, cache_size=CACHE_SIZE,
-    #            save=True, text="size = " + str(CACHE_SIZE), fixed_range=True,
-    #            figname='test_hit_ratio_start_time_end_time_r.png')
-    #
-    # hm.heatmap(reader, 'r', TIME_INTERVAL, "hit_ratio_start_time_cache_size", num_of_threads=8, cache_size=CACHE_SIZE,
-    #            save=True, bin_size=1000, fixed_range=True,
-    #            figname='test_hit_ratio_start_time_cache_size_r.png')
-    #
-    # hm.heatmap(reader, 'r', TIME_INTERVAL, "avg_rd_start_time_end_time", num_of_threads=8,
-    #            calculated=True, cache_size=CACHE_SIZE,
-    #            figname="test_avg_rd_start_time_end_time_r.png")
-    #
-    # hm.heatmap(reader, 'r', TIME_INTERVAL, "cold_miss_count_start_time_end_time", num_of_threads=8,
-    #            calculated=True, cache_size=CACHE_SIZE,
-    #            figname="test_cold_miss_count_start_time_end_time_r.png")
-
-    # Non-LRU
-    hm.heatmap(reader, 'r', TIME_INTERVAL, "hit_ratio_start_time_end_time", num_of_threads=8, cache_size=CACHE_SIZE,
-               save=True, text="size = " + str(CACHE_SIZE), fixed_range=True, algorithm=FIFO,  # "FIFO",
-               figname='test_hit_ratio_start_time_end_time_r.png')
-
-
-
-if __name__ == "__main__":
-    import time
-
-    t1 = time.time()
-    localtest()
-    # server_plot_all()
-    # cold_miss_count_2d('v', 100)
-    t2 = time.time()
-    print(t2 - t1)
 

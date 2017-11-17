@@ -1,12 +1,18 @@
 # coding=utf-8
-""" this module is used for all cache replacement algorithms in python excluding LRU(LRU also works, but slow compared to
-    using pardaProfiler),
+""" this module is used for all cache replacement algorithms in python
+    this module can be very slow, but you can easily plug in new algorithm.
+
+    This module haven't been fully optimized and haven't been update for some time.
+
+    TODO: use numda and other JIT technique to improve run time
+
+    Author: Jason Yang <peter.waynechina@gmail.com> 2016/07
+
 """
 # -*- coding: utf-8 -*-
 
 
 import math
-import traceback
 import numpy as np
 import matplotlib.pyplot as plt
 from multiprocessing import Process, Pipe, Array

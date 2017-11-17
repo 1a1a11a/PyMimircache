@@ -1,4 +1,13 @@
 # coding=utf-8
+
+"""
+this module deals with LRU related profiling,
+it uses O(nlogn) algorithm to profile without sampling
+Current implementation is using single thread, TODO: implement parallel parda
+
+Author: Jason Yang <peter.waynechina@gmail.com> 2016/07
+
+"""
 import os
 import socket
 from mimircache.const import INTERNAL_USE
@@ -10,24 +19,38 @@ from mimircache.utils.printing import *
 from matplotlib.ticker import FuncFormatter
 
 class LRUProfiler:
-    all = ["get_hit_count", "get_hit_ratio", "get_miss_ratio", "get_reuse_distance",
-           "plotMRC", "plotHRC", "get_best_cache_sizes", "save_reuse_dist", "load_reuse_dist",
+    all = ["get_hit_count",
+           "get_hit_ratio",
+           "get_miss_ratio",
+           "get_reuse_distance",
+           "plotMRC",
+           "plotHRC",
+           "save_reuse_dist",
+           "load_reuse_dist",
            "use_precomputedRD"]
 
     def __init__(self, reader, cache_size=-1, cache_params=None, *args, **kwargs):
+
+        # make sure reader is valid
+        assert isinstance(reader, cacheReaderAbstract), \
+            "you provided an invalid cacheReader: {}".format(reader)
+
         self.cache_size = cache_size
         self.reader = reader
-        if cache_params is not None and 'block_unit_size' in cache_params:
+        self.cache_params = cache_params
+        if self.cache_params is None:
+            self.cache_params = {}
+
+        if 'block_unit_size' in self.cache_params:
             self.with_size = True
-            self.block_unit_size = cache_params["block_unit_size"]
+            self.block_unit_size = self.cache_params["block_unit_size"]
         else:
             self.with_size = False
 
+        # this is for deprecated functions, as old version uses hit/miss rate instead of hit/miss ratio
         self.get_hit_rate = self.get_hit_ratio
         self.get_miss_rate = self.get_miss_ratio
 
-        assert isinstance(reader, cacheReaderAbstract), \
-            "you provided an invalid cacheReader: {}".format(reader)
 
         # INTERNAL USE to cache intermediate reuse distance
         self.already_load_rd = False
@@ -43,11 +66,32 @@ class LRUProfiler:
         pass
 
     def save_reuse_dist(self, file_loc, rd_type):
-        assert rd_type == 'rd' or rd_type == 'frd', "please provide a valid reuse distance type, currently support rd and frd"
+        """
+        save reuse distance to file_loc
+        allowed reuse distance including normal reuse distance (rd),
+        future/forward reuse distance (frd)
+        :param file_loc:
+        :param rd_type:
+        :return:
+        """
+        assert rd_type == 'rd' or rd_type == 'frd', \
+            "please provide a valid reuse distance type, currently support rd and frd"
         c_LRUProfiler.save_reuse_dist(self.reader.cReader, file_loc, rd_type)
 
     def load_reuse_dist(self, file_loc, rd_type):
-        assert rd_type == 'rd' or rd_type == 'frd', "please provide a valid reuse distance type, currently support rd and frd"
+        """
+        load reuse distance from file_loc
+        allowed reuse distance including normal reuse distance (rd),
+        future/forward reuse distance (frd)
+
+        :param file_loc:
+        :param rd_type:
+        :return:
+        """
+        assert rd_type == 'rd' or rd_type == 'frd', \
+            "please provide a valid reuse distance type, currently support rd and frd"
+        if not os.path.exists(file_loc):
+            WARNING("pre-computed reuse distance file does not exist")
         c_LRUProfiler.load_reuse_dist(self.reader.cReader, file_loc, rd_type)
         self.reader.already_load_rd = True
 
@@ -57,8 +101,10 @@ class LRUProfiler:
         """
 
         assert INTERNAL_USE == True, "this function is only used internally"
-        rd_dat_path = self.reader.file_loc.replace("/home/jason/ALL_DATA/", "/research/jason/preComputedData/RD/")
-        rd_dat_path = rd_dat_path.replace("/home/cloudphysics/traces/", "/research/jason/preComputedData/RD/cphyVscsi")
+        rd_dat_path = self.reader.file_loc.replace("/home/jason/ALL_DATA/",
+                                                   "/research/jason/preComputedData/RD/")
+        rd_dat_path = rd_dat_path.replace("/home/cloudphysics/traces/",
+                                          "/research/jason/preComputedData/RD/cphyVscsi")
 
         if not os.path.exists(rd_dat_path):
             WARNING("pre-computed reuse distance file does not exist")
@@ -73,8 +119,10 @@ class LRUProfiler:
         :return:
         """
         if not self.already_load_rd and not self.reader.already_load_rd:
-            rd_dat_path = self.reader.file_loc.replace("/home/jason/ALL_DATA/", "/research/jason/preComputedData/RD/")
-            rd_dat_path = rd_dat_path.replace("/home/cloudphysics/traces/", "/research/jason/preComputedData/RD/cphyVscsi")
+            rd_dat_path = self.reader.file_loc.replace("/home/jason/ALL_DATA/",
+                                                       "/research/jason/preComputedData/RD/")
+            rd_dat_path = rd_dat_path.replace("/home/cloudphysics/traces/",
+                                              "/research/jason/preComputedData/RD/cphyVscsi")
 
             if os.path.exists(rd_dat_path):
                 DEBUG("loading reuse distance from {}".format(rd_dat_path))
@@ -128,6 +176,12 @@ class LRUProfiler:
 
 
     def get_hit_ratio_shards(self, sample_ratio=0.01, **kwargs):
+        """
+        experimental function
+        :param sample_ratio:
+        :param kwargs:
+        :return:
+        """
         from mimircache.cacheReader.tracePreprocesser import tracePreprocessor
         kargs = {}
         if 'cache_size' not in kwargs:
@@ -164,23 +218,39 @@ class LRUProfiler:
         return miss_ratio
 
     def get_reuse_distance(self, **kargs):
+        """
+        get reuse distance as a numpy array
+        :param kargs:
+        :return:
+        """
         if self.with_size:
-            print("not supported yet")
-            return None
+            raise RuntimeError("not supported yet")
         else:
             rd = c_LRUProfiler.get_reuse_dist_seq(self.reader.cReader, **kargs)
         return rd
 
     def get_future_reuse_distance(self, **kargs):
+        """
+        get future reuse_distance as a numpy array
+        :param kargs:
+        :return:
+        """
         if self.with_size:
-            print("not supported yet")
-            return None
+            raise RuntimeError("not supported yet")
         else:
             frd = c_LRUProfiler.get_future_reuse_dist(self.reader.cReader, **kargs)
         return frd
 
     def plotMRC(self, figname="MRC.png", auto_resize=False, threshold=0.98, **kwargs):
-        print("not updated")
+        """
+        this function is deprecated and not up-to-date
+        :param figname:
+        :param auto_resize:
+        :param threshold:
+        :param kwargs:
+        :return:
+        """
+        raise RuntimeWarning("deprecated function")
         EXTENTION_LENGTH = 1024
         MRC = self.get_miss_ratio(**kwargs)
         try:
@@ -213,43 +283,60 @@ class LRUProfiler:
             WARNING("the plotting function is not wrong, is this a headless server? {}".format(e))
 
     def plotHRC(self, figname="HRC.png", auto_resize=False, threshold=0.98, **kwargs):
+        """
+        plot hit ratio curve
+        :param figname:
+        :param auto_resize:
+        :param threshold:
+        :param kwargs:
+        :return:
+        """
+        # EXTENTION_LENGTH is used only when auto_resize is enabled,
+        # to extend the cache size from stop point for EXTENTION_LENGTH items
+        # this is used to make the curve have some part of plateau
         EXTENTION_LENGTH = 1024
-        HRC = self.get_hit_ratio(**kwargs)
+        # the last two are out-of-size ratio and cold miss ratio
+        HRC = self.get_hit_ratio(**kwargs)[:-3]
         try:
-            stop_point = len(HRC) - 3
+            # if auto_resize enabled, then we calculate the first cache size
+            # at which hit ratio <= final hit ratio * threshold
+            # this is used to remove the long plateau at the end of hit ratio curve
             if self.cache_size == -1 and 'cache_size' not in kwargs and auto_resize:
-                for i in range(len(HRC) - 3, 0, -1):
-                    if HRC[i] <= HRC[-3] * threshold:
+                stop_point = len(HRC)
+                for i in range(len(HRC)-1, 0, -1):
+                    if HRC[i] <= HRC[-1] * threshold:
                         stop_point = i
                         break
-                if stop_point + EXTENTION_LENGTH < len(HRC) - 3:
+                if stop_point + EXTENTION_LENGTH < len(HRC):
                     stop_point += EXTENTION_LENGTH
-                else:
-                    stop_point = len(HRC) - 3
+                # the following lines should not be needed, going to remove in next version
+                # else:
+                #     stop_point = len(HRC)
+                HRC = HRC[:stop_point]
 
-            plt.xlim(0, stop_point)
-            plt.plot(HRC[:stop_point])
+            plt.xlim(0, len(HRC))
+            plt.plot(HRC)
             if self.with_size:
                 plt.gca().xaxis.set_major_formatter(FuncFormatter(
                         lambda x, p: int(x * self.block_unit_size//1024//1024)))
                 plt.xlabel("Cache Size (MB)")
             else:
-                plt.xlabel("Cache Size")
+                plt.xlabel("Cache Size (Items)")
 
             plt.ylabel("Hit Ratio")
             plt.title('Hit Ratio Curve', fontsize=18, color='black')
             if not 'no_save' in kwargs or not kwargs['no_save']:
                 plt.savefig(figname, dpi=600)
-                INFO("plot is saved at the same directory")
+                INFO("plot is saved")
             try:
                 plt.show()
             except:
                 pass
             plt.clf()
-            return HRC[:stop_point]
+            return HRC
         except Exception as e:
             plt.savefig(figname)
-            WARNING("the plotting function is not wrong, is this a headless server? {}".format(e))
+            WARNING("the plotting function is not wrong, is this a headless server? \nERROR: {}".format(e))
 
     def plotHRC_withShards(self, figname="HRC.png", auto_resize=False, threshold=0.98, **kwargs):
         print("not updated yet")
@@ -280,7 +367,7 @@ class LRUProfiler:
             plt.title('Hit Ratio Curve', fontsize=18, color='black')
             if not 'no_save' in kwargs or not kwargs['no_save']:
                 plt.savefig(figname, dpi=600)
-                INFO("plot is saved at the same directory")
+                INFO("plot is saved")
             try:
                 plt.show()
             except:
@@ -289,7 +376,7 @@ class LRUProfiler:
             return stop_point
         except Exception as e:
             plt.savefig(figname)
-            WARNING("the plotting function is not wrong, is this a headless server? {}".format(e))
+            WARNING("the plotting function is not wrong, is this a headless server? \nERROR: {}".format(e))
 
     def __del__(self):
         if os.path.exists('temp.dat'):
