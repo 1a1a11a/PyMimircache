@@ -98,6 +98,7 @@ We have prepared a wonderful tutorial here. [Check here for tutorial](http://mim
 >>> c = m.cachecow()
 >>> c.vscsi("trace.vscsi")      # find this data under data folder, other type of data supported too
 >>> print(c.stat())
+<span style="color:blue">
 number of requests: 28468
 number of uniq obj/blocks: 19374
 cold miss ratio: 0.6806
@@ -113,7 +114,7 @@ top N popular (obj, num of requests):
 number of obj/block accessed only once: 14923
 frequency mean: 1.47
 time span: 1825411326
-
+</span>
 >>> print(c.get_reuse_distance())
 [-1 -1 -1 -1 -1 -1 11 7 11 8 8 8 -1 8]
 
