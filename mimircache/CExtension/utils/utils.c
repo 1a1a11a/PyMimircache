@@ -15,6 +15,7 @@
 
 
 int set_thread_affinity(pthread_t tid){
+#ifdef __linux__
     static int last_core_id = -1;
     int num_cores = sysconf(_SC_NPROCESSORS_ONLN);
 
@@ -31,5 +32,6 @@ int set_thread_affinity(pthread_t tid){
     if (rc != 0) {
         WARNING("Error calling pthread_setaffinity_np: %d\n", rc);
     }
+#endif
     return 0;
 }
