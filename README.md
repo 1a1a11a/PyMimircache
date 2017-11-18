@@ -62,7 +62,7 @@ As an alternative, you can use mimircache in a docker container, according to ou
 To enter an interactive shell and do plotting, you can use
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-sudo docker run -it --rm -v $(pwd):/mimircache/scripts -v PATH/TO/DATA:/mimircache/data 1a1a11a/mimircache /bin/bash
+jason@myMachine: ~$ sudo docker run -it --rm -v $(pwd):/mimircache/scripts -v PATH/TO/DATA:/mimircache/data 1a1a11a/mimircache /bin/bash
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 After you run this command, you will be in a shell with everything ready, your
@@ -77,7 +77,7 @@ If you don't want to use an interactive shell and you have your script ready,
 then you can do
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-docker run --rm -v $(pwd):/mimircache/scripts -v PATH/TO/DATA:/mimircache/data 1a1a11a/mimircache python3 /mimircache/scripts/YOUR_PYTHON_SCRIPT.py 
+jason@myMachine: ~$ docker run --rm -v $(pwd):/mimircache/scripts -v PATH/TO/DATA:/mimircache/data 1a1a11a/mimircache python3 /mimircache/scripts/YOUR_PYTHON_SCRIPT.py 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 However, if you are new here or you have trouble using docker to run scripts
@@ -94,44 +94,42 @@ We have prepared a wonderful tutorial here. [Check here for tutorial](http://mim
 **The power of mimircache**
 
 ```python
-import mimircache as m
+>>> import mimircache as m
 >>> c = m.cachecow()
 >>> c.vscsi("trace.vscsi")      # find this data under data folder, other type of data supported too
 >>> print(c.stat())
-<span style="color:blue">
-number of requests: 28468
-number of uniq obj/blocks: 19374
-cold miss ratio: 0.6806
-top N popular (obj, num of requests): 
-[(3345071, 420),
- (6160447, 367),
- (6160455, 367),
- (1313767, 168),
- (6160431, 99),
- (6160439, 98),
- (1313768, 84),
- (1329911, 84)]
-number of obj/block accessed only once: 14923
-frequency mean: 1.47
-time span: 1825411326
-</span>
+    # number of requests: 28468
+    # number of uniq obj/blocks: 19374
+    # cold miss ratio: 0.6806
+    # top N popular (obj, num of requests): 
+    # [(3345071, 420),
+    #  (6160447, 367),
+    #  (6160455, 367),
+    #  (1313767, 168),
+    #  (6160431, 99),
+    #  (6160439, 98),
+    #  (1313768, 84),
+    #  (1329911, 84)]
+    # number of obj/block accessed only once: 14923
+    # frequency mean: 1.47
+    # time span: 1825411326
+
 >>> print(c.get_reuse_distance())
-[-1 -1 -1 -1 -1 -1 11 7 11 8 8 8 -1 8]
+    # [-1 -1 -1 -1 -1 -1 11 7 11 8 8 8 -1 8]
 
 >>> print(c.get_hit_ratio_dict("LRU", cache_size=20))
-{0: 0.0, 1: 0.025256428270338627, 2: 0.031684698608964453, ... 20: 0.07794716875087819}
+    # {0: 0.0, 1: 0.025256428270338627, 2: 0.031684698608964453, ... 20: 0.07794716875087819}
 
 >>> c.plotHRCs(["LRU", "LFU", "Optimal"])
 
 >>> c.heatmap('r', "hit_ratio_start_time_end_time", time_interval=10000000)
 
 ```
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-<img src="https://github.com/1a1a11a/mimircache/blob/develop/docs/images/example_heatmap.png" alt="Hit Ratio Heatmap" width="38%">
+| [![HRC](https://raw.githubusercontent.com/1a1a11a/mimircache/develop/docs/images/github_HRC.png)](https://raw.githubusercontent.com/1a1a11a/mimircache/develop/docs/images/github_HRC.png)  | [![Heatmap](https://raw.githubusercontent.com/1a1a11a/mimircache/develop/docs/images/github_heatmap.png)](https://raw.githubusercontent.com/1a1a11a/mimircache/develop/docs/images/github_heatmap.png) |
+|:---:|:---:|
+| Hit Ratio Curve | Hit Ratio Heatmap | 
 
-An example of hit ratio heatmap.
 
 
 Contributing
