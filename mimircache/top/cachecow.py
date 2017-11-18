@@ -17,15 +17,18 @@ class cachecow:
            "csv",
            "vscsi",
            "binary",
-           "set_size",
+           "stat",
            "num_of_req",
            "num_of_uniq_req",
+           "get_reuse_distance",
+           "get_hit_ratio_dict",
            "heatmap",
            "diffHeatmap",
            "twoDPlot",
            "eviction_plot",
            "plotHRCs",
-           "plotMRCs" 
+           "plotMRCs",
+           "characterize",
            "close")
 
     def __init__(self, **kwargs):
@@ -35,16 +38,43 @@ class cachecow:
         self.n_uniq_req = -1
         self.cacheclass_mapping = {}
 
-    def open(self, file_path, data_type='c'):
+    def open(self, file_path, trace_type="p", **kwargs):
         """
-        open a plain text file, which contains a label each line
+        default this opens a plain text file, which contains a label each line
+        but it also supports only other type of trace by setting trace_type
+        the parameters for opening other trace type are the same as corresponding call
         :param file_path:
-        :param data_type: can be either 'c' for string or 'l' for number (like block IO)
+        :param trace_type:
+        :param kwargs:
         :return:
         """
-        if self.reader:
-            self.reader.close()
-        self.reader = plainReader(file_path, data_type=data_type)
+        if trace_type == "p":
+            if self.reader:
+                self.reader.close()
+            self.reader = plainReader(file_path, data_type=kwargs.get("data_type", "c"))
+
+        elif trace_type == "c":
+            assert "init_params" in kwargs, "please provide init_params for csv trace"
+            init_params = kwargs["init_params"]
+            kwargs_new = {}
+            kwargs_new.update(kwargs)
+            del kwargs_new["init_params"]
+            self.csv(file_path, init_params, **kwargs_new)
+
+        elif trace_type == 'b':
+            assert "init_params" in kwargs, "please provide init_params for csv trace"
+            init_params = kwargs["init_params"]
+            kwargs_new = {}
+            kwargs_new.update(kwargs)
+            del kwargs_new["init_params"]
+            self.binary(file_path, init_params, **kwargs_new)
+
+        elif trace_type == 'v':
+            self.vscsi(file_path, **kwargs)
+
+        else:
+            raise RuntimeError("unknown trace type {}".format(trace_type))
+
         return self.reader
 
     def csv(self, file_path, init_params, data_type='c', block_unit_size=0, disk_sector_size=0):
@@ -105,6 +135,7 @@ class cachecow:
         :param size:
         :return:
         """
+        raise RuntimeWarning("deprecated")
         assert isinstance(size, int), "size can only be an integer"
         self.cache_size = size
 

@@ -376,8 +376,4 @@ class LRUProfiler:
             plt.savefig(figname)
             WARNING("the plotting function is not wrong, is this a headless server? \nERROR: {}".format(e))
 
-    def __del__(self):
-        if os.path.exists('.temp.dat'):
-            os.remove('.temp.dat')
-
 

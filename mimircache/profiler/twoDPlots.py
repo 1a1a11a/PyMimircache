@@ -263,7 +263,6 @@ def popularity_2d(reader, logX=True, logY=False, cdf=True, plot_type="obj",
                 l[i] = l[i-1]+l[i]
             for i in range(0, len(l)):
                 l[i] = l[i] / l[-1]
-            print(l)
     elif plot_type.lower() == "req":
         if not cdf:
             kwargs_plot["ylabel"] = kwargs_plot.get("ylabel", "Request Percentage")
