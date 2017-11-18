@@ -2,7 +2,8 @@ mimircache
 ==========
 
 [![Build Status](https://travis-ci.org/1a1a11a/mimircache.svg?branch=master)](https://travis-ci.org/1a1a11a/mimircache)
-
+[![GitHub version](https://badge.fury.io/gh/1a1a11a%2Fmimircache.svg)](https://badge.fury.io/gh/1a1a11a%2Fmimircache)
+[![PyPI version](https://badge.fury.io/py/mimirCache.svg)](https://badge.fury.io/py/mimirCache)
 
 Mimircache is a cache trace analysis platform that supports
 
@@ -93,14 +94,35 @@ We have prepared a wonderful tutorial here. [Check here for tutorial](http://mim
 **The power of mimircache**
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-import mimircache as m
-c = m.cachecow()
-c.open("trace.txt")
-p = c.profiler('LRU')
-p.get_reuse_dist()
+>>> import mimircache as m
+>>> c = m.cachecow()
+>>> c.vscsi("trace.vscsi")      # find this data under data folder, other type of data supported too
+>>> print(c.stat())
+number of requests: 28468
+number of uniq obj/blocks: 19374
+cold miss ratio: 0.6806
+top N popular (obj, num of requests): 
+[(3345071, 420),
+ (6160447, 367),
+ (6160455, 367),
+ (1313767, 168),
+ (6160431, 99),
+ (6160439, 98),
+ (1313768, 84),
+ (1329911, 84)]
+number of obj/block accessed only once: 14923
+frequency mean: 1.47
+time span: 1825411326
+
+>>> print(c.get_reuse_distance())
 [-1 -1 -1 -1 -1 -1 11 7 11 8 8 8 -1 8]
-p.plotMRC()
-c.heatmap('r', "hit_ratio_start_time_end_time", time_interval=10000000)
+
+>>> print(c.get_hit_ratio_dict("LRU", cache_size=20))
+{0: 0.0, 1: 0.025256428270338627, 2: 0.031684698608964453, ... 20: 0.07794716875087819}
+
+>>> c.plotHRCs(["LRU", "LFU", "Optimal"])
+
+>>> c.heatmap('r', "hit_ratio_start_time_end_time", time_interval=10000000)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 <img src="https://github.com/1a1a11a/mimircache/blob/develop/docs/images/example_heatmap.png" alt="Hit Ratio Heatmap" width="38%">
