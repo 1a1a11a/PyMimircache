@@ -93,8 +93,8 @@ We have prepared a wonderful tutorial here. [Check here for tutorial](http://mim
 
 **The power of mimircache**
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->>> import mimircache as m
+```python
+import mimircache as m
 >>> c = m.cachecow()
 >>> c.vscsi("trace.vscsi")      # find this data under data folder, other type of data supported too
 >>> print(c.stat())
@@ -124,6 +124,9 @@ time span: 1825411326
 >>> c.plotHRCs(["LRU", "LFU", "Optimal"])
 
 >>> c.heatmap('r', "hit_ratio_start_time_end_time", time_interval=10000000)
+
+```
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 <img src="https://github.com/1a1a11a/mimircache/blob/develop/docs/images/example_heatmap.png" alt="Hit Ratio Heatmap" width="38%">
