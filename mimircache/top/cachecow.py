@@ -13,8 +13,21 @@ from multiprocessing import cpu_count
 
 
 class cachecow:
-    all = ["open", "csv", "vscsi", "binary", "set_size", "num_of_req", "num_of_uniq_req",
-           "heatmap", "diffHeatmap", "twoDPlot", "eviction_plot", "plotHRCs", "plotMRCs" "close"]
+    all = ("open",
+           "csv",
+           "vscsi",
+           "binary",
+           "set_size",
+           "num_of_req",
+           "num_of_uniq_req",
+           "heatmap",
+           "diffHeatmap",
+           "twoDPlot",
+           "eviction_plot",
+           "plotHRCs",
+           "plotMRCs" 
+           "close")
+
     def __init__(self, **kwargs):
         self.reader = None
         self.cache_size = 0
@@ -170,9 +183,9 @@ class cachecow:
         """
 
         reader, num_of_threads = self._profiler_pre_check(**kwargs)
-        assert cache_size <= self.num_of_req(), "you cannot specify cache size({}) " \
-                                                    "larger than trace length({})".format(cache_size,
-                                                                                          self.num_of_req())
+        assert cache_size <= self.num_of_req(), \
+                    "you cannot specify cache size({}) larger than " \
+                    "trace length({})".format(cache_size, self.num_of_req())
 
         l = ["avg_rd_start_time_end_time", "hit_ratio_start_time_cache_size"]
 
@@ -214,9 +227,9 @@ class cachecow:
             figname = kwargs['figname']
 
         assert cache_size != -1, "you didn't provide size for cache"
-        assert cache_size <= self.num_of_req(), "you cannot specify cache size({}) " \
-                                                    "larger than trace length({})".format(cache_size,
-                                                                                          self.num_of_req())
+        assert cache_size <= self.num_of_req(), \
+                    "you cannot specify cache size({}) larger than " \
+                    "trace length({})".format(cache_size, self.num_of_req())
 
         reader, num_of_threads = self._profiler_pre_check(**kwargs)
 
@@ -273,15 +286,18 @@ class cachecow:
             x1 = int(x1 / 2.8)
             y1 /= 8
             if mode == 'r':
-                cHm.setPlotParams('x', 'real_time', xydict=xydict1, label='start time (real)',
-                                  text=(x1, y1, text))
-                cHm.setPlotParams('y', 'real_time', xydict=xydict1, label='end time (real)', fixed_range=(-1, 1))
+                time_mode_string = "real"
+            elif mode == "v":
+                time_mode_string = "virtual"
             else:
-                cHm.setPlotParams('x', 'virtual_time', xydict=xydict1, label='start time (virtual)',
-                                  text=(x1, y1, text))
-                cHm.setPlotParams('y', 'virtual_time', xydict=xydict1, label='end time (virtual)',
-                                  fixed_range=(-1, 1))
+                raise RuntimeError("unknown time mode {}".format(mode))
 
+            cHm.setPlotParams('x', '{}_time'.format(time_mode_string), xydict=xydict1,
+                              label='start time ({})'.format(time_mode_string),
+                              text=(x1, y1, text))
+            cHm.setPlotParams('y', '{}_time'.format(time_mode_string), xydict=xydict1,
+                              label='end time ({})'.format(time_mode_string),
+                              fixed_range=(-1, 1))
             np.seterr(divide='ignore', invalid='ignore')
 
             plot_dict = (xydict2 - xydict1) / xydict1
@@ -339,42 +355,46 @@ class cachecow:
         :param kwargs:
         :return:
         """
-        if "figname" in kwargs:
-            figname = kwargs['figname']
-        else:
-            figname = plot_type + ".png"
+        kwargs["figname"] = kwargs.get("figname", "{}.png".format(plot_type))
 
         if plot_type == 'cold_miss' or plot_type == "cold_miss_count":
             if plot_type == 'cold_miss':
                 print("please use cold_miss_count, cold_miss is deprecated")
-            assert "mode" in kwargs, "you need to provide mode(r/v) for plotting cold_miss2d"
-            assert "time_interval" in kwargs, "you need to provide time_interval for plotting cold_miss2d"
-            cold_miss_count_2d(self.reader, kwargs['mode'], kwargs['time_interval'], figname=figname)
+            assert "mode" in kwargs or "time_mode" in kwargs, \
+                "you need to provide time_mode (r/v) for plotting cold_miss2d"
+            assert "time_interval" in kwargs, \
+                "you need to provide time_interval for plotting cold_miss2d"
+            return cold_miss_count_2d(self.reader, **kwargs)
 
         elif plot_type == 'cold_miss_ratio':
-            assert "mode" in kwargs, "you need to provide mode(r/v) for plotting cold_miss2d"
-            assert "time_interval" in kwargs, "you need to provide time_interval for plotting cold_miss2d"
-            cold_miss_ratio_2d(self.reader, kwargs['mode'], kwargs['time_interval'], figname=figname)
+            assert "mode" in kwargs or "time_mode" in kwargs, \
+                "you need to provide time_mode (r/v) for plotting cold_miss2d"
+            assert "time_interval" in kwargs, \
+                "you need to provide time_interval for plotting cold_miss2d"
+            return cold_miss_ratio_2d(self.reader, **kwargs)
 
-        elif plot_type == 'request_num' or plot_type == "request_rate":
-            assert "mode" in kwargs, "you need to provide mode(r/v) for plotting request_num2d"
-            assert "time_interval" in kwargs, "you need to provide time_interval for plotting request_num2d"
-            request_rate_2d(self.reader, kwargs['mode'], kwargs['time_interval'], figname=figname)
+        elif plot_type == "request_rate":
+            assert "mode" in kwargs or "time_mode" in kwargs, \
+                "you need to provide time_mode (r/v) for plotting request_rate2d"
+            assert "time_interval" in kwargs, \
+                "you need to provide time_interval for plotting request_num2d"
+            return request_rate_2d(self.reader, **kwargs)
 
         elif plot_type == "popularity":
-            popularity_2d(self.reader, logX=kwargs.get("logX", True),
-                          logY=kwargs.get("logY", True), cdf=kwargs.get("cdf", False), figname=figname)
+            return popularity_2d(self.reader, **kwargs)
 
         elif plot_type == "rd_popularity":
-            rd_popularity_2d(self.reader, logX=kwargs.get("logX", True),
-                          logY=kwargs.get("logY", True), cdf=kwargs.get("cdf", False), figname=figname)
+            return rd_popularity_2d(self.reader, **kwargs)
 
         elif plot_type == "rt_popularity":
-            rt_popularity_2d(self.reader, kwargs.get("granularity", 1), logX=kwargs.get("logX", True),
-                            logY=kwargs.get("logY", True), cdf=kwargs.get("cdf", False), figname=figname)
+            return rt_popularity_2d(self.reader, **kwargs)
 
         elif plot_type == 'mapping':
-            namemapping_2d(self.reader, partial_ratio=kwargs.get('partial_ratio', 0.1), figname=figname)
+            namemapping_2d(self.reader, **kwargs)
+
+        elif plot_type == "interval_hit_ratio":
+            assert "cache_size" in kwargs, "please provide cache size for interval hit ratio curve plotting"
+            return interval_hit_ratio_2d(self.reader, **kwargs)
 
         else:
             WARNING("currently don't support your specified plot_type: " + str(plot_type))
@@ -537,7 +557,7 @@ class cachecow:
 
         if not 'no_save' in kwargs or not kwargs['no_save']:
             plt.savefig(plot_dict['figname'], dpi=600)
-        INFO("HRC plot is saved at the same directory")
+        INFO("HRC plot is saved")
         try:
             plt.show()
         except:

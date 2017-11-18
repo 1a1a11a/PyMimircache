@@ -9,7 +9,7 @@ this module provides functions for all the two dimensional figure plotting, curr
     rd_freq_popularity_2d,
     rd_popularity_2d,
     rt_popularity_2d,
-    hit_ratio_over_time_2d
+    interval_hit_ratio_2d
 
 
 
@@ -40,39 +40,60 @@ all=(
     "rd_freq_popularity_2d",
     "rd_popularity_2d",
     "rt_popularity_2d",
-    "hit_ratio_over_time_2d"
+    "interval_hit_ratio_2d"
 )
 
-def request_rate_2d(reader, mode, time_interval, figname="request_rate.png"):
+def request_rate_2d(reader, mode, time_interval,
+                    figname="request_rate.png", **kwargs):
     """
     plot the number of requests per time_interval vs time
     :param reader:
     :param mode: either 'r' or 'v' for real time(wall-clock time) or virtual time(reference time)
     :param time_interval:
     :param figname:
-    :return:
+    :return: the list of data points
     """
+
+    kwargs_plot = {}
+    kwargs_plot.update(kwargs)
+
+    kwargs_plot["xlabel"] = kwargs_plot.get("xlabel", '{} Time'.format("Real" if mode == "r" else "Virtual"))
+    kwargs_plot["ylabel"] = kwargs_plot.get("ylabel", 'Request Rate (interval={})'.format(time_interval))
+    kwargs_plot["title"] = kwargs_plot.get("title", 'Request Rate Plot')
+    kwargs_plot["xticks"] = kwargs_plot.get("xticks",
+                        ticker.FuncFormatter(lambda x, pos: '{:2.0f}%'.format(x * 100 / len(break_points))))
+
     assert mode == 'r' or mode == 'v', "currently only support mode r and v, what mode are you using?"
     break_points = cHeatmap().getBreakpoints(reader, mode, time_interval)
 
     l = []
     for i in range(1, len(break_points)):
         l.append(break_points[i] - break_points[i - 1])
-    xticks = ticker.FuncFormatter(lambda x, pos: '{:2.0f}%'.format(x * 100 / len(break_points)))
-    draw2d(l, figname=figname, xticks=xticks, xlabel='time({})'.format(mode),
-           ylabel='request num count(interval={})'.format(time_interval),
-           title='request num count 2D plot')
+
+    draw2d(l, figname=figname, **kwargs_plot)
+    return l
 
 
-def cold_miss_count_2d(reader, mode, time_interval, figname="cold_miss_count2d.png"):
+def cold_miss_count_2d(reader, mode, time_interval,
+                       figname="cold_miss_count2d.png", **kwargs):
     """
     plot the number of cold miss per time_interval
     :param reader:
     :param mode: either 'r' or 'v' for real time(wall-clock time) or virtual time(reference time)
     :param time_interval:
     :param figname:
-    :return:
+    :return: the list of data points
     """
+
+    kwargs_plot = {}
+    kwargs_plot.update(kwargs)
+
+    kwargs_plot["xlabel"] = kwargs_plot.get("xlabel", '{} Time'.format("Real" if mode == "r" else "Virtual"))
+    kwargs_plot["ylabel"] = kwargs_plot.get("ylabel", 'Cold Miss Count (interval={})'.format(time_interval))
+    kwargs_plot["title"] = kwargs_plot.get("title", 'Cold Miss Count 2D plot')
+    kwargs_plot["xticks"] = kwargs_plot.get("xticks",
+                        ticker.FuncFormatter(lambda x, pos: '{:2.0f}%'.format(x * 100 / len(break_points))))
+
     assert mode == 'r' or mode == 'v', "currently only support mode r and v, what mode are you using?"
     break_points = cHeatmap().getBreakpoints(reader, mode, time_interval)
 
@@ -87,23 +108,32 @@ def cold_miss_count_2d(reader, mode, time_interval, figname="cold_miss_count2d.p
                 never_see += 1
         cold_miss_list[i] = never_see
 
-    xticks = ticker.FuncFormatter(lambda x, pos: '{:2.0f}%'.format(x * 100 / len(break_points)))
-    draw2d(cold_miss_list, figname=figname, xticks=xticks, xlabel='time({})'.format(mode),
-           ylabel='cold miss count(interval={})'.format(time_interval),
-           title='cold miss count 2D plot')
+    draw2d(cold_miss_list, figname=figname, **kwargs_plot)
     reader.reset()
+    return cold_miss_list
 
 
-def cold_miss_ratio_2d(reader, mode, time_interval, figname="cold_miss_ratio2d.png"):
+def cold_miss_ratio_2d(reader, mode, time_interval,
+                       figname="cold_miss_ratio2d.png", **kwargs):
     """
     plot the percent of cold miss per time_interval
     :param reader:
     :param mode: either 'r' or 'v' for real time(wall-clock time) or virtual time(reference time)
     :param time_interval:
     :param figname:
-    :return:
+    :return: the list of data points
     """
-    assert mode == 'r' or mode == 'v', "currently only support mode r and v, what mode are you using?"
+
+    kwargs_plot = {}
+    kwargs_plot.update(kwargs)
+
+    kwargs_plot["xlabel"] = kwargs_plot.get("xlabel", '{} Time'.format("Real" if mode == "r" else "Virtual"))
+    kwargs_plot["ylabel"] = kwargs_plot.get("ylabel", 'Cold Miss Ratio (interval={})'.format(time_interval))
+    kwargs_plot["title"] = kwargs_plot.get("title", 'Cold Miss Ratio 2D plot')
+    kwargs_plot["xticks"] = kwargs_plot.get("xticks",
+                        ticker.FuncFormatter(lambda x, pos: '{:2.0f}%'.format(x * 100 / len(break_points))))
+
+    assert mode == 'r' or mode == 'v', "currently only support mode r and v, unknown mode {}".format(mode)
     break_points = cHeatmap().getBreakpoints(reader, mode, time_interval)
 
     cold_miss_list = [0] * (len(break_points) - 1)
@@ -117,14 +147,12 @@ def cold_miss_ratio_2d(reader, mode, time_interval, figname="cold_miss_ratio2d.p
                 never_see += 1
         cold_miss_list[i] = never_see / (break_points[i+1] - break_points[i])
 
-    xticks = ticker.FuncFormatter(lambda x, pos: '{:2.0f}%'.format(x * 100 / len(break_points)))
-    draw2d(cold_miss_list, figname=figname, xticks=xticks, xlabel='time({})'.format(mode),
-           ylabel='cold miss ratio(interval={})'.format(time_interval),
-           title='cold miss ratio 2D plot')
+    draw2d(cold_miss_list, figname=figname, **kwargs_plot)
     reader.reset()
+    return cold_miss_list
 
 
-def namemapping_2d(reader, partial_ratio=0.1, figname=None):
+def namemapping_2d(reader, partial_ratio=0.1, figname=None, **kwargs):
     """
     rename all the ojbID for items in the trace for visualization of trace
     so the first obj is renamed to 1, the second obj is renamed to 2, etc.
@@ -135,6 +163,7 @@ def namemapping_2d(reader, partial_ratio=0.1, figname=None):
     :param figname:
     :return:
     """
+
     # initialization
     SCATTER_POINT_LIMIT = 6000
     mapping_counter = 0
@@ -187,7 +216,8 @@ def namemapping_2d(reader, partial_ratio=0.1, figname=None):
     reader.reset()
 
 
-def popularity_2d(reader, logX=True, logY=False, cdf=True, plot_type="obj", figname="popularity_2d.png"):
+def popularity_2d(reader, logX=True, logY=False, cdf=True, plot_type="obj",
+                  figname="popularity_2d.png", **kwargs):
     """
     plot the popularity curve of the obj in the trace
     X axis is object frequency,
@@ -199,8 +229,16 @@ def popularity_2d(reader, logX=True, logY=False, cdf=True, plot_type="obj", fign
     :param cdf:
     :param plot_type:
     :param figname:
-    :return:
+    :return: the list of data points
     """
+
+    kwargs_plot = {}
+    kwargs_plot.update(kwargs)
+
+    kwargs_plot["logX"], kwargs_plot["logY"] = logX, logY
+    kwargs_plot["cdf"] = cdf
+    kwargs_plot["xlabel"] = kwargs_plot.get("xlabel", "Obj Frequency")
+
 
     req_freq_dict = reader.get_req_freq_distribution()
     freq_count_dict = defaultdict(int)
@@ -211,15 +249,14 @@ def popularity_2d(reader, logX=True, logY=False, cdf=True, plot_type="obj", fign
             max_freq = v
 
     l = [0] * max_freq
-    xlabel = "Obj Frequency"
     if plot_type.lower() == "obj":
         print(freq_count_dict)
         if not cdf:
-            ylabel = "Obj Percentage"
+            kwargs_plot["ylabel"] = kwargs_plot.get("ylabel", "Obj Percentage")
             for k, v in freq_count_dict.items():
                 l[k-1] = v
         else:
-            ylabel = "Obj Percentage (CDF)"
+            kwargs_plot["ylabel"] = kwargs_plot.get("ylabel", "Obj Percentage (CDF)")
             for freq, freq_count in freq_count_dict.items():
                 l[freq-1] = freq_count
             for i in range(1, len(l)):
@@ -229,11 +266,11 @@ def popularity_2d(reader, logX=True, logY=False, cdf=True, plot_type="obj", fign
             print(l)
     elif plot_type.lower() == "req":
         if not cdf:
-            ylabel = "Request Percentage"
+            kwargs_plot["ylabel"] = kwargs_plot.get("ylabel", "Request Percentage")
             for freq, freq_count in freq_count_dict.items():
                 l[freq-1] = freq_count * freq
         else:
-            ylabel = "Req Percentage (CDF)"
+            kwargs_plot["ylabel"] = kwargs_plot.get("ylabel", "Req Percentage (CDF)")
             for freq, freq_count in freq_count_dict.items():
                 l[freq -1] = freq * freq_count
             for i in range(1, len(l)):
@@ -244,12 +281,13 @@ def popularity_2d(reader, logX=True, logY=False, cdf=True, plot_type="obj", fign
         ERROR("unknown plot type {}".format(plot_type))
         return
 
-    draw2d(l, xlabel=xlabel, ylabel=ylabel, logX=logX, logY=logY, figname=figname)
-           # , yticks=ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x *100 / len(l))))
+    draw2d(l, figname=figname, **kwargs_plot)
     reader.reset()
+    return l
 
 
-def rd_freq_popularity_2d(reader, logX=True, logY=True, cdf=False, figname="rdFreq_popularity_2d.png"):
+def rd_freq_popularity_2d(reader, logX=True, logY=True, cdf=False,
+                          figname="rdFreq_popularity_2d.png", **kwargs):
     """
     plot the reuse distance distribution in a two dimensional figure,
     X axis is reuse distance frequency
@@ -259,8 +297,19 @@ def rd_freq_popularity_2d(reader, logX=True, logY=True, cdf=False, figname="rdFr
     :param logY:
     :param cdf:
     :param figname:
-    :return:
+    :return: the list of data points
     """
+
+    kwargs_plot = {}
+    kwargs_plot.update(kwargs)
+
+    kwargs_plot["logX"], kwargs_plot["logY"] = logX, logY
+    kwargs_plot["cdf"] = cdf
+    kwargs_plot["xlabel"] = kwargs_plot.get("xlabel", "Reuse Distance Frequency")
+    kwargs_plot["ylabel"] = kwargs_plot.get("ylabel", "Requests Percentage")
+    kwargs_plot["xticks"] = kwargs_plot.get("xticks", ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / len(l))))
+
+
     rd_list = LRUProfiler(reader).get_reuse_distance()
     rd_dict = defaultdict(int)      # rd -> count
     for rd in rd_list:
@@ -274,13 +323,11 @@ def rd_freq_popularity_2d(reader, logX=True, logY=True, cdf=False, figname="rdFr
             max_freq = v
 
     l = [0] * max_freq
-    xlabel = "Reuse Distance Frequency"
     if not cdf:
-        ylabel = "Requests Percentage"
         for k, v in rd_count_dict.items():
             l[k-1] = v
     else:
-        ylabel = "Requests Percentage (CDF)"
+        kwargs_plot["ylabel"] = kwargs.get("ylabel", "Requests Percentage (CDF)")
         for k, v in rd_count_dict.items():
             # l[-k] = v                # this is not necessary
             l[k-1] = v
@@ -289,12 +336,13 @@ def rd_freq_popularity_2d(reader, logX=True, logY=True, cdf=False, figname="rdFr
         for i in range(0, len(l)):
             l[i] = l[i] / l[-1]
 
-    draw2d(l, xlabel=xlabel, ylabel=ylabel, logX=logX, logY=logY, figname=figname,
-           xticks=ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / len(l))))
+    draw2d(l, figname=figname, **kwargs_plot)
     reader.reset()
+    return l
 
 
-def rd_popularity_2d(reader, logX=True, logY=False, cdf=True, figname="rd_popularity_2d.png"):
+def rd_popularity_2d(reader, logX=True, logY=False, cdf=True,
+                     figname="rd_popularity_2d.png", **kwargs):
     """
     plot the reuse distance distribution in two dimension, cold miss is ignored
     X axis is reuse distance
@@ -304,8 +352,20 @@ def rd_popularity_2d(reader, logX=True, logY=False, cdf=True, figname="rd_popula
     :param logY:
     :param cdf:
     :param figname:
-    :return:
+    :return: the list of data points
     """
+
+    if not logX or logY or not cdf:
+        WARNING("recommend using logX without logY with cdf")
+
+    kwargs_plot = {}
+    kwargs_plot.update(kwargs)
+
+    kwargs_plot["logX"], kwargs_plot["logY"] = logX, logY
+    kwargs_plot["cdf"] = cdf
+    kwargs_plot["xlabel"] = kwargs_plot.get("xlabel", "Reuse Distance")
+    kwargs_plot["ylabel"] = kwargs_plot.get("ylabel", "Num of Requests")
+
     rd_list = LRUProfiler(reader).get_reuse_distance()
     rd_dict = defaultdict(int)      # rd -> count
     for rd in rd_list:
@@ -316,18 +376,13 @@ def rd_popularity_2d(reader, logX=True, logY=False, cdf=True, figname="rd_popula
         if rd > max_rd:
             max_rd = rd
 
-    if not logX or logY or not cdf:
-        WARNING("recommend using logX without logY with cdf")
-
     l = [0] * (max_rd + 2)
-    xlabel = "Reuse Distance"
     if not cdf:
-        ylabel = "Num of Requests"
         for rd, rd_count in rd_dict.items():
             if rd != -1:                         # ignore cold miss
                 l[rd + 1] = rd_count
     else:
-        ylabel = "Num of Requests (CDF)"
+        kwargs_plot["ylabel"] = kwargs.get("ylabel", "Num of Requests (CDF)")
         for rd, rd_count in rd_dict.items():
             if rd != -1:
                 l[rd + 1] = rd_count
@@ -336,12 +391,13 @@ def rd_popularity_2d(reader, logX=True, logY=False, cdf=True, figname="rd_popula
         for i in range(0, len(l)):
             l[i] = l[i] / l[-1]
 
-    draw2d(l, xlabel=xlabel, ylabel=ylabel, logX=logX, logY=logY, figname=figname)
-#            xticks=ticker.FuncFormatter(lambda x, _: '{}'.format( int(logX_base ** x - 1))))
+    draw2d(l, figname=figname, **kwargs_plot)
     reader.reset()
+    return l
 
 
-def rt_popularity_2d(reader, granularity=10, logX=True, logY=False, cdf=True, figname="rt_popularity_2d.png"):
+def rt_popularity_2d(reader, granularity=10, logX=True, logY=False, cdf=True,
+                     figname="rt_popularity_2d.png", **kwargs):
     """
     plot the reuse time distribution in the trace
     X axis is reuse time,
@@ -353,8 +409,16 @@ def rt_popularity_2d(reader, granularity=10, logX=True, logY=False, cdf=True, fi
     :param logY:
     :param cdf:
     :param figname:
-    :return:
+    :return: the list of data points
     """
+
+    kwargs_plot = {}
+    kwargs_plot.update(kwargs)
+
+    kwargs_plot["logX"], kwargs_plot["logY"] = logX, logY
+    kwargs_plot["cdf"] = cdf
+    kwargs_plot["xlabel"] = kwargs_plot.get("xlabel", "Reuse Time (unit: {})".format(granularity))
+    kwargs_plot["ylabel"] = kwargs_plot.get("ylabel", "Num of Requests")
 
     last_access_time_dic = {}
     rt_dic = defaultdict(int)           # rt -> count
@@ -377,13 +441,11 @@ def rt_popularity_2d(reader, granularity=10, logX=True, logY=False, cdf=True, fi
 
     l = [0] * (max_rt + 1)
 
-    xlabel = "Reuse Time (unit: {})".format(granularity)
     if not cdf:
-        ylabel = "Num of Requests"
         for rt, rt_count in rt_dic.items():
             l[rt] = rt_count
     else:
-        ylabel = "Num of Requests (CDF)"
+        kwargs_plot["ylabel"] = kwargs.get("ylabel", "Num of Requests (CDF)")
         for rt, rt_count in rt_dic.items():
             if rt != -1:
                 l[rt] = rt_count
@@ -392,14 +454,15 @@ def rt_popularity_2d(reader, granularity=10, logX=True, logY=False, cdf=True, fi
         for i in range(0, len(l)):
             l[i] = l[i] / l[-1]
 
-    draw2d(l, xlabel=xlabel, ylabel=ylabel, logX=logX, logY=logY,
-           # rotationXAxisLabel=True,
-           figname=figname)
+
+    draw2d(l, figname=figname, **kwargs_plot)
     reader.reset()
+    return l
 
 
-def hit_ratio_over_time_2d(reader, cache_size, decay_coef=0.2,
-                           time_mode="v", time_interval=10000, figname="IHRC_2d.png"):
+def interval_hit_ratio_2d(reader, cache_size, decay_coef=0.2,
+                          time_mode="v", time_interval=10000, figname="IHRC_2d.png",
+                          **kwargs):
     """
     The hit ratio curve over time interval, each pixel in the plot represents the
     exponential weight moving average (ewma) of hit ratio of the interval
@@ -410,11 +473,11 @@ def hit_ratio_over_time_2d(reader, cache_size, decay_coef=0.2,
     :param time_mode:
     :param time_interval:
     :param figname:
-    :return:
+    :return: the list of data points
     """
     p = LRUProfiler(reader)
     # reuse distance list
-    rd_list = p.use_precomputedRD()
+    rd_list = p.get_reuse_distance()
 
     hit_ratio_list = []
     ewma_hit_ratio = 0
@@ -461,10 +524,24 @@ def hit_ratio_over_time_2d(reader, cache_size, decay_coef=0.2,
             line = reader.read_time_request()
             ind += 1
 
-    draw2d(hit_ratio_list, xlabel="{} Time".format({"r": "Real", "v": "Virtual"}.get(time_mode, "")),
-           ylabel="Hit Ratio (decay {})".format(decay_coef),
-           logX=False, logY=False, figname=figname,
-           xticks=ticker.FuncFormatter(lambda x, _: '{:.0%}'.format((x ) / len(hit_ratio_list))))
+    kwargs_plot = {}
+    kwargs_plot.update(kwargs)
+
+    kwargs_plot["logX"] = kwargs_plot.get("logX", False)
+    kwargs_plot["logY"] = kwargs_plot.get("logY", False)
+    kwargs_plot["xlabel"] = kwargs_plot.get("xlabel", "{} Time".format(
+        {"r": "Real", "v": "Virtual"}.get(time_mode, "")))
+    kwargs_plot["ylabel"] = kwargs_plot.get("ylabel", "Interval Hit Ratio (decay {})".format(decay_coef))
+
+    kwargs_plot["xticks"] = kwargs_plot.get("xticks", ticker.FuncFormatter(
+        # both works
+        # lambda x, _: '{:.0f}%'.format(x * 100 / len(hit_ratio_list))))
+        lambda x, _: '{:.0%}'.format(x / len(hit_ratio_list))))
+
+
+    draw2d(hit_ratio_list, figname=figname, **kwargs_plot)
+
+    return hit_ratio_list
 
 
 
@@ -476,10 +553,7 @@ def draw2d(l, **kwargs):
     :param kwargs:
     :return:
     """
-    if 'figname' in kwargs:
-        filename = kwargs['figname']
-    else:
-        filename = '2d_plot.png'
+    filename = kwargs.get("figname", "2dPlot.png")
 
     if "plot_type" in kwargs:
         if kwargs['plot_type'] == "scatter":
@@ -498,37 +572,47 @@ def draw2d(l, **kwargs):
                 plt.plot(l)
 
     # set label
-    if 'xlabel' in kwargs:
+    if kwargs.get("xlabel", None):
         plt.xlabel(kwargs['xlabel'])
-    if 'ylabel' in kwargs:
+    if kwargs.get('ylabel', None):
         plt.ylabel(kwargs['ylabel'])
 
     # set tick
-    if 'xticks' in kwargs:
-        plt.gca().xaxis.set_major_formatter(kwargs['xticks'])
-    if 'yticks' in kwargs:
-        plt.gca().yaxis.set_major_formatter(kwargs['yticks'])
+    if kwargs.get('xticks', None):
+        xticks = kwargs['xticks']
+        if isinstance(xticks, list) or isinstance(xticks, tuple):
+            plt.xticks(*xticks)
+        elif callable(xticks):
+            plt.gca().xaxis.set_major_formatter(xticks)
+        else:
+            WARNING("unknown xticks {}".format(xticks))
+
+    if kwargs.get('yticks', None):
+        yticks = kwargs['yticks']
+        if isinstance(yticks, list) or isinstance(yticks, tuple):
+            plt.yticks(*yticks)
+        elif callable(yticks):
+            plt.gca().yaxis.set_major_formatter(yticks)
+        else:
+            WARNING("unknown yticks {}".format(yticks))
 
     # set limit
-    if 'xlimit' in kwargs:
+    if kwargs.get("xlimit", None):
         plt.xlim(kwargs["xlimit"])
-    if 'ylimit' in kwargs:
+    if kwargs.get('ylimit', None):
         plt.ylim(kwargs["ylimit"])
 
     # set title
-    if 'title' in kwargs:
+    if kwargs.get('title', None):
         plt.title(kwargs['title'])
 
     # if x axis label are too long, then rotate it
-    if "rotationXAxisLabel" in kwargs:
-        print("rotate")
+    if kwargs.get("rotationXAxisTick", False):
         plt.xticks(rotation="vertical")
 
     plt.tight_layout()
     plt.savefig(filename, dpi=600)
-    try:
-        plt.show()
-    except:
-        pass
+    try: plt.show()
+    except: pass
     INFO("plot is saved")
     plt.clf()

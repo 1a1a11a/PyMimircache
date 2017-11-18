@@ -200,6 +200,7 @@ class cGeneralProfiler:
             WARNING("the plotting function reports error, maybe this is a headless server? \nERROR: {}".format(e))
         return MRC
 
+
     def plotHRC(self, figname="HRC.png", **kwargs):
         """
         plot hit ratio curve of the given trace under given algorithm
@@ -231,11 +232,3 @@ class cGeneralProfiler:
             plt.savefig(figname)
             WARNING("the plotting function reports error, maybe this is a headless server? \nERROR: {}".format(e))
         return HRC
-
-
-    def __del__(self):
-        import os
-        if os.path.exists('.temp.dat'):
-            os.remove('.temp.dat')
-
-
