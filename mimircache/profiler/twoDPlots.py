@@ -607,7 +607,7 @@ def draw2d(l, **kwargs):
         plt.title(kwargs['title'])
 
     # if x axis label are too long, then rotate it
-    if kwargs.get("rotationXAxisTick", False):
+    if kwargs.get("rotateXAxisTick", False):
         plt.xticks(rotation="vertical")
 
     plt.tight_layout()

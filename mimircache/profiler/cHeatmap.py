@@ -464,10 +464,10 @@ class cHeatmap:
         # cmap = plt.get_cmap("Oranges")
         cmap.set_bad('w', 1.)
 
-        plt.title("Heatmap")
+        plt.title(kwargs.get("title", "Heatmap"))
 
         try:
-            if 'fixed_range' in self.other_plot_kwargs and self.other_plot_kwargs['fixed_range']:
+            if self.other_plot_kwargs.get('fixed_range', False):
                 vmin, vmax = self.other_plot_kwargs['fixed_range']
                 del self.other_plot_kwargs['fixed_range']
                 img = plt.imshow(plot_array, vmin=vmin, vmax=vmax, interpolation='nearest', origin='lower',
