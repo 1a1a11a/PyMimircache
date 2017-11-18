@@ -1,12 +1,11 @@
 # coding=utf-8
-import sys
-from queue import PriorityQueue
+
 
 from mimircache.cache.abstractCache import cache
-import mimircache.c_LRUProfiler as c_LRUProfiler
-import mimircache.c_heatmap as c_heatmap
-
-import time
+from mimircache.const import CExtensionMode
+if CExtensionMode:
+    import mimircache.c_LRUProfiler as c_LRUProfiler
+    import mimircache.c_heatmap as c_heatmap
 from heapdict import heapdict
 
 

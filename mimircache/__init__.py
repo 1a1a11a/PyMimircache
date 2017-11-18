@@ -13,26 +13,25 @@ try:
 except:
     print("WARNING: fail to import matplotlib, plotting function may be limited", file=sys.stderr)
 
-# import logging
-
 
 CWD = os.getcwd()
-sys.path.extend([CWD, CWD[:CWD.rfind('/')]])
+sys.path.extend([CWD, os.path.join(CWD, "..")])
 
 
-# from mimircache.cache.LRU import LRU as LRU
-# from mimircache.cacheReader.csvReader import csvReader as csvReader
-# from mimircache.cacheReader.plainReader import plainReader as plainReader
-# from mimircache.cacheReader.vscsiReader import vscsiReader as vscsiReader
 from mimircache.profiler.LRUProfiler import LRUProfiler as LRUProfiler
 from mimircache.profiler.cGeneralProfiler import cGeneralProfiler
 from mimircache.profiler.generalProfiler import generalProfiler as generalProfiler
 from mimircache.profiler.cHeatmap import cHeatmap
 from mimircache.profiler.heatmap import heatmap as heatmap
-# from mimircache.profiler.twoDPlots import *
 from mimircache.top.cachecow import cachecow as cachecow
 from mimircache.const import *
 
+from version import __version__ as __version__
+
+
+
+def init():
+    init_cache_alg_mapping()
 
 
 
@@ -40,8 +39,6 @@ from mimircache.const import *
 init()
 
 
-# from _version import __version__
-
+# import logging
 # logging.basicConfig(filename="log", filemode='w', format='%(levelname)s:%(asctime)s:%(message)s', level=logging.DEBUG)
 
-# print(__version__)

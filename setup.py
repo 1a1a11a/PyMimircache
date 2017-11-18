@@ -13,7 +13,7 @@ import subprocess
 import tempfile
 import sysconfig
 # from Cython.Build import cythonize
-from _version import __version__
+from version import __version__
 
 _DEBUG = False
 _DEBUG_LEVEL = 0

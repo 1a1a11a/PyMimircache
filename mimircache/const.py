@@ -1,5 +1,28 @@
 # coding=utf-8
-import os, sys
+"""
+this module supposed to have some const,
+but it is not well organized, the cache name mapping should be moved out of this file
+
+
+"""
+
+import os
+import sys
+
+
+CExtensionMode = True
+INTERNAL_USE = True
+
+DEFAULT_BIN_NUM_PROFILER = 100
+DEFAULT_NUM_OF_THREADS = os.cpu_count()
+
+
+try:
+    import mimircache.c_cacheReader
+except:
+    CExtensionMode = False
+    print("C extension import failed, which will hurt performance by 10*", file=sys.stderr)
+
 
 from mimircache.cache.ARC import ARC
 from mimircache.cache.FIFO import FIFO
@@ -10,15 +33,6 @@ from mimircache.cache.Random import Random
 from mimircache.cache.S4LRU import S4LRU
 from mimircache.cache.SLRU import SLRU
 from mimircache.cache.clock import clock
-
-CExtensionMode = True
-INTERNAL_USE = True
-
-try:
-    import mimircache.c_cacheReader
-except:
-    CExtensionMode = False
-    print("C extension import failed, which will hurt performance by 10*", file=sys.stderr)
 
 
 from mimircache.cacheReader.csvReader import csvReader
@@ -50,18 +64,9 @@ c_available_cache = ["lru"
 
 c_available_cacheReader = [plainReader, vscsiReader, csvReader, binaryReader]
 cache_alg_mapping = {}
-BASE_DIR = os.path.dirname(__file__)
-
-DEFAULT_BIN_NUM_PROFILER = 100
-DEFAULT_NUM_OF_THREADS = cpu_count()
 
 
-def init():
-    _init_cache_alg_mapping()
-
-
-
-def _init_cache_alg_mapping():
+def init_cache_alg_mapping():
     """
     match all possible cache replacement algorithm names(lower case) to available cache replacement algorithms
     :return:
