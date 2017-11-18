@@ -53,8 +53,8 @@ class cachecow:
         :param file_path:
         :param init_params: params related to csv file, see csvReader for detail
         :param data_type: can be either 'c' for string or 'l' for number (like block IO)
-        :param block_unit_size: the page size for a cache 
-        :param disk_sector_size: the disk sector size of input file 
+        :param block_unit_size: the page size for a cache
+        :param disk_sector_size: the disk sector size of input file
         :return:
         """
         if self.reader:
@@ -71,8 +71,8 @@ class cachecow:
         :param file_path:
         :param init_params: params related to csv file, see csvReader for detail
         :param data_type: can be either 'c' for string or 'l' for number (like block IO)
-        :param block_unit_size: the page size for a cache 
-        :param disk_sector_size: the disk sector size of input file 
+        :param block_unit_size: the page size for a cache
+        :param disk_sector_size: the disk sector size of input file
         :return:
         """
         if self.reader:
@@ -88,8 +88,8 @@ class cachecow:
         open vscsi trace file
         :param file_path:
         :param data_type: can be either 'c' for string or 'l' for number (like block IO)
-        :param block_unit_size: the page size for a cache 
-        :param disk_sector_size: the disk sector size of input file 
+        :param block_unit_size: the page size for a cache
+        :param disk_sector_size: the disk sector size of input file
         :return:
         """
         if self.reader:
@@ -101,9 +101,9 @@ class cachecow:
 
     def set_size(self, size):
         """
-        set the size of cachecow 
-        :param size: 
-        :return: 
+        set the size of cachecow
+        :param size:
+        :return:
         """
         assert isinstance(size, int), "size can only be an integer"
         self.cache_size = size
@@ -125,6 +125,32 @@ class cachecow:
         if self.n_uniq_req == -1:
             self.n_uniq_req = self.reader.get_num_of_uniq_req()
         return self.n_uniq_req
+
+    def get_reuse_distance(self):
+        """
+        return an array of reuse distance
+        :return:
+        """
+        return LRUProfiler(self.reader).get_reuse_distance()
+
+    def get_hit_ratio_dict(self, algorithm, cache_size=-1, cache_params=None, bin_size=-1,
+                      use_general_profiler=False, **kwargs):
+        """
+        return an dict of hit ratio of given algorithms, mapping from cache_size -> hit ratio
+        :return:
+        """
+        hit_ratio_dict = {}
+        p = self.profiler(algorithm, cache_params=cache_params,
+                          cache_size=cache_size, bin_size=bin_size,
+                          use_general_profiler=use_general_profiler, **kwargs)
+        hr = p.get_hit_ratio(cache_size=cache_size)
+        if isinstance(p, LRUProfiler):
+            for i in range(len(hr)-2):
+                hit_ratio_dict[i] = hr[i]
+        elif isinstance(p, cGeneralProfiler) or isinstance(p, generalProfiler):
+            for i in range(len(hr)):
+                hit_ratio_dict[i * p.bin_size] = hr[i]
+        return hit_ratio_dict
 
     def reset(self):
         """
@@ -303,17 +329,18 @@ class cachecow:
             plot_dict = (xydict2 - xydict1) / xydict1
             cHm.draw_heatmap(plot_dict, figname=figname)
 
-    def profiler(self, algorithm, cache_params=None, cache_size=-1, use_general_profiler=False, **kwargs):
+    def profiler(self, algorithm, cache_params=None, cache_size=-1, bin_size=-1,
+                 use_general_profiler=False, **kwargs):
         """
         profiler
         :param cache_size:
         :param cache_params:
         :param algorithm:
         :param use_general_profiler: for LRU only, if it is true, then return a cGeneralProfiler for LRU,
-                                        otherwise, return a LRUProfiler for LRU 
+                                        otherwise, return a LRUProfiler for LRU
                                         Note: LRUProfiler does not require cache_size/bin_size params,
                                         it does not sample thus provides a smooth curve, however, it is O(logN) at each step,
-                                        in constrast, cGeneralProfiler samples the curve, but use O(1) at each step 
+                                        in constrast, cGeneralProfiler samples the curve, but use O(1) at each step
         :param kwargs:
         :return:
         """
@@ -321,7 +348,6 @@ class cachecow:
         reader, num_of_threads = self._profiler_pre_check(**kwargs)
 
         profiler = None
-        bin_size = -1
 
         if algorithm.lower() == "lru" and not use_general_profiler:
             profiler = LRUProfiler(reader, cache_size, cache_params)
@@ -330,9 +356,6 @@ class cachecow:
             assert cache_size <= self.num_of_req(), "you cannot specify cache size({}) " \
                                                         "larger than trace length({})".format(cache_size,
                                                                                               self.num_of_req())
-            if 'bin_size' in kwargs:
-                bin_size = kwargs['bin_size']
-
             if isinstance(algorithm, str):
                 if algorithm.lower() in c_available_cache:
                     profiler = cGeneralProfiler(reader, cache_alg_mapping[algorithm.lower()],
@@ -401,16 +424,16 @@ class cachecow:
 
     def evictionPlot(self, mode, time_interval, plot_type, algorithm, cache_size, cache_params=None, **kwargs):
         """
-        plot eviction stat vs time, currently support 
-        reuse_dist, freq, accumulative_freq 
-        :param mode: 
-        :param time_interval: 
-        :param plot_type: 
-        :param algorithm: 
-        :param cache_size: 
-        :param cache_params: 
-        :param kwargs: 
-        :return: 
+        plot eviction stat vs time, currently support
+        reuse_dist, freq, accumulative_freq
+        :param mode:
+        :param time_interval:
+        :param plot_type:
+        :param algorithm:
+        :param cache_size:
+        :param cache_params:
+        :param kwargs:
+        :return:
         """
         if plot_type == "reuse_dist":
             eviction_stat_reuse_dist_plot(self.reader, algorithm, cache_size, mode,
@@ -443,32 +466,20 @@ class cachecow:
         :return:
         """
 
-        plot_dict = prepPlotParams("Hit Ratio Curve", "Cache Size(item)", "Hit Ratio", figname, **kwargs)
+        plot_dict = prepPlotParams("Hit Ratio Curve", "Cache Size (Items)", "Hit Ratio", figname, **kwargs)
         hit_ratio_dict = {}
-        num_of_threads = os.cpu_count()
-        cache_unit_size = kwargs.get("cache_unit_size", 0)
-        if 'num_of_threads' in kwargs:
-            num_of_threads = kwargs['num_of_threads']
 
-        use_general_profiler = False
-        if 'use_general_profiler' in kwargs and kwargs["use_general_profiler"]:
-            use_general_profiler = True
-
-        save_gradually = False
-        if 'save_gradually' in kwargs and kwargs['save_gradually']:
-            save_gradually = True
+        num_of_threads          =       kwargs.get("num_of_threads",        os.cpu_count())
+        cache_unit_size         =       kwargs.get("cache_unit_size",       0)
+        use_general_profiler    =       kwargs.get("use_general_profiler",  False)
+        save_gradually          =       kwargs.get("save_gradually",        False)
+        threshold               =       kwargs.get('autosize_threshold',    0.98)
+        label                   =       kwargs.get("label",                 algorithm_list)
 
         profiling_with_size = False
-        label = algorithm_list
-        threshold = 0.98
         LRU_HR = None
 
-        if 'label' in kwargs:
-            label = kwargs['label']
-        if 'autosize_threshold' in kwargs:
-            threshold = kwargs['autosize_threshold']
-
-        if auto_size:
+        if cache_size == -1 and auto_size:
             LRU_HR = LRUProfiler(self.reader).plotHRC(auto_resize=True, threshold=threshold, no_save=True)
             cache_size = len(LRU_HR)
         else:
@@ -478,6 +489,7 @@ class cachecow:
             bin_size = cache_size // DEFAULT_BIN_NUM_PROFILER + 1
 
         # check whether profiling with size
+        block_unit_size = 0
         for i in range(len(algorithm_list)):
             if i < len(cache_params) and cache_params[i]:
                 block_unit_size = cache_params[i].get("block_unit_size", 0)
@@ -503,8 +515,9 @@ class cachecow:
 
             else:
                 cache_param = None
-            profiler = self.profiler(alg, cache_param, cache_size, use_general_profiler,
-                                     bin_size=bin_size, num_of_threads=num_of_threads)
+            profiler = self.profiler(alg, cache_param, cache_size, bin_size=bin_size,
+                                     use_general_profiler=use_general_profiler,
+                                     num_of_threads=num_of_threads)
             t1 = time.time()
 
             if alg == "LRU":
@@ -567,15 +580,16 @@ class cachecow:
 
     def plotMRCs(self, algorithm_list, cache_params=None, cache_size=-1, bin_size=-1, auto_size=True, **kwargs):
         """
-        plot MRCs, not updated, might be deprecated 
-        :param algorithm_list: 
-        :param cache_params: 
-        :param cache_size: 
-        :param bin_size: 
-        :param auto_size: 
-        :param kwargs: 
-        :return: 
+        plot MRCs, not updated, might be deprecated
+        :param algorithm_list:
+        :param cache_params:
+        :param cache_size:
+        :param bin_size:
+        :param auto_size:
+        :param kwargs:
+        :return:
         """
+        raise RuntimeWarning("deprecated")
         plot_dict = prepPlotParams("Miss Ratio Curve", "Cache Size(item)", "Miss Ratio", "MRC.png", **kwargs)
         num_of_threads = 4
         if 'num_of_threads' in kwargs:
@@ -773,8 +787,8 @@ class cachecow:
 
     def close(self):
         """
-        close the reader opened in cachecow, and clean up in the future 
-        :return: 
+        close the reader opened in cachecow, and clean up in the future
+        :return:
         """
         if self.reader is not None:
             self.reader.close()

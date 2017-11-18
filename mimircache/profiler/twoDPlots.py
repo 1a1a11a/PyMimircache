@@ -538,7 +538,7 @@ def interval_hit_ratio_2d(reader, cache_size, decay_coef=0.2,
         # lambda x, _: '{:.0f}%'.format(x * 100 / len(hit_ratio_list))))
         lambda x, _: '{:.0%}'.format(x / len(hit_ratio_list))))
 
-
+    reader.reset()
     draw2d(hit_ratio_list, figname=figname, **kwargs_plot)
 
     return hit_ratio_list
