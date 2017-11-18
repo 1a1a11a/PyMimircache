@@ -6,18 +6,23 @@ Release v\ |version|.
 Welcome to the documentation of mimircache, a Python3 cache trace analysis platform.
 
 **The power of mimircache**::
-    >>> import mimircache as m 
+    >>> import mimircache as m
     >>> c = m.cachecow()
-    >>> c.open("trace.txt")
-    >>> p = c.profiler('LRU')
-    >>> p.get_reuse_dist()
-    [-1 -1 -1 -1 -1 -1 11  7 11  8  8  8 -1  8]
-    >>> p.plotMRC()
+    >>> c.vscsi("trace.vscsi")      # find this data under data folder, other type of data supported too
+    >>> print(c.stat())
+    >>> print(c.get_reuse_distance())
+    [-1 -1 -1 -1 -1 -1 11 7 11 8 8 8 -1 8]
+
+    >>> print(c.get_hit_ratio_dict("LRU", cache_size=20))
+    {0: 0.0, 1: 0.025256428270338627, 2: 0.031684698608964453, ... 20: 0.07794716875087819}
+
+    >>> c.plotHRCs(["LRU", "LFU", "Optimal"])
+
     >>> c.heatmap('r', "hit_ratio_start_time_end_time", time_interval=10000000)
 
 .. image::  images/example_MRC.png
     :width: 45%
-.. image::  images/example_heatmap.png
+.. image::  images/github_heatmap.png
     :width: 48%
     
 An example of MRC plot and hit ratio heatmap.

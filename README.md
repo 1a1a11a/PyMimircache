@@ -98,21 +98,21 @@ We have prepared a wonderful tutorial here. [Check here for tutorial](http://mim
 >>> c = m.cachecow()
 >>> c.vscsi("trace.vscsi")      # find this data under data folder, other type of data supported too
 >>> print(c.stat())
-    # number of requests: 28468
-    # number of uniq obj/blocks: 19374
-    # cold miss ratio: 0.6806
-    # top N popular (obj, num of requests): 
-    # [(3345071, 420),
-    #  (6160447, 367),
-    #  (6160455, 367),
-    #  (1313767, 168),
-    #  (6160431, 99),
-    #  (6160439, 98),
-    #  (1313768, 84),
-    #  (1329911, 84)]
-    # number of obj/block accessed only once: 14923
-    # frequency mean: 1.47
-    # time span: 1825411326
+	# number of requests: 113872
+	# number of uniq obj/blocks: 48974
+	# cold miss ratio: 0.4301
+	# top N popular (obj, num of requests): 
+	# [(3345071, 1630),
+	#  (6160447, 1342),
+	#  (6160455, 1341),
+	#  (1313767, 652),
+	#  (6160431, 360),
+	#  (6160439, 360),
+	#  (1313768, 326),
+	#  (1329911, 326)]
+	# number of obj/block accessed only once: 21049
+	# frequency mean: 2.33
+	# time span: 7200089885
 
 >>> print(c.get_reuse_distance())
     # [-1 -1 -1 -1 -1 -1 11 7 11 8 8 8 -1 8]
@@ -126,7 +126,7 @@ We have prepared a wonderful tutorial here. [Check here for tutorial](http://mim
 
 ```
 
-| [![HRC](https://raw.githubusercontent.com/1a1a11a/mimircache/develop/docs/images/github_HRC.png)](https://raw.githubusercontent.com/1a1a11a/mimircache/develop/docs/images/github_HRC.png)  | [![Heatmap](https://raw.githubusercontent.com/1a1a11a/mimircache/develop/docs/images/github_heatmap.png)](https://raw.githubusercontent.com/1a1a11a/mimircache/develop/docs/images/github_heatmap.png) |
+| [![HRC](https://github.com/1a1a11a/mimircache/blob/develop/docs/images/github_HRC.png)](https://github.com/1a1a11a/mimircache/blob/develop/docs/images/github_HRC.png)  | [![Heatmap](https://github.com/1a1a11a/mimircache/blob/develop/docs/images/github_heatmap.png)](https://github.com/1a1a11a/mimircache/blob/develop/docs/images/github_heatmap.png) |
 |:---:|:---:|
 | Hit Ratio Curve | Hit Ratio Heatmap | 
 

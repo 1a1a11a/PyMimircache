@@ -1,52 +1,20 @@
+
+
+
 language: python
-
-os:
-  - linux
-  - osx
-
 python:
   - "3.4"
   - "3.5"
-  - "3.6"
-  - "nightly"
+  - "3.6" # 3.5 development branch
+#  - "nightly" # currently points to 3.6-dev
 
-addons:
-  apt:
-#    sources:
-#    - sourceline: 'deb http://us.archive.ubuntu.com/ubuntu/ trusty main restricted universe multiverse'
-#    - sourceline: 'deb-src http://us.archive.ubuntu.com/ubuntu/ trusty main restricted universe multiverse'
-    packages:
-        libglib2.0-dev
-        python3-pip
-        python3-matplotlib
-        python3-dev
-        git
-        gcc
-        g++
 
 before_install:
-#  - sudo apt-get -qq update
-#  - sudo apt-get install -y libglib2.0-dev python3-pip python3-matplotlib python3-dev git gcc g++
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update               ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install glib python3 ; fi
-
+  - sudo apt-get -qq update
+  - sudo apt-get install -y libglib2.0-dev python3-pip python3-matplotlib
+  - sudo apt-get install python3-matplotlib
 
 # command to install dependencies
-install:
-  - pip3 install --upgrade pip setuptools wheel
-  - pip3 install -r requirements.txt
-  - python3 setup.py build_ext -i
-
-matrix:
-  allow_failures:
-    - python: "nightly"
-    - os: osx
-
-
+install: "pip3 install -r requirements.txt; python3 setup.py build_ext -i"
 # command to run tests
 script: nosetests
-
-
-
-
-

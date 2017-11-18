@@ -47,7 +47,7 @@ class cachecowTest(unittest.TestCase):
                       cache_params2=None, num_of_threads=8)
 
         c.twoDPlot("cold_miss_count", mode='v', time_interval=1000)
-        c.twoDPlot("request_num", mode='v', time_interval=1000)
+        c.twoDPlot("request_rate", mode='v', time_interval=1000)
         c.twoDPlot("mapping")
         c.evictionPlot('r', 10000000, "accumulative_freq", "Optimal", 1000)
         c.evictionPlot('r', 10000000, "reuse_dist", "Optimal", 10000)

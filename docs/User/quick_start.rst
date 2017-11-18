@@ -30,17 +30,22 @@ Get Basic Statistics
 --------------------
 You can get some statistics about the trace, for example how many request, how may unique requests.
 
-+-------------------+---------------+------------------------------------------------------------+
-| Functions         | Parameters    |       Description                                          |
-+-------------------+---------------+------------------------------------------------------------+
-| num_of_req        | None          | return the number of requests in the trace                 |
-+-------------------+---------------+------------------------------------------------------------+
-| num_of_uniq_req   | None          | return the number of unique requests in the trace          |
-+-------------------+---------------+------------------------------------------------------------+
-| reset             | None          | reset reader to the beginning of the trace                 |
-+-------------------+---------------+------------------------------------------------------------+
-| __len__           | None          | return the number of requests in the trace                 |
-+-------------------+---------------+------------------------------------------------------------+
++-------------------------+------------------------+------------------------------------------------------------+
+| Functions               | Parameters             |       Description                                          |
++-------------------------+------------------------+------------------------------------------------------------+
+| num_of_req              | None                   | return the number of requests in the trace                 |
++-------------------------+------------------------+------------------------------------------------------------+
+| num_of_uniq_req         | None                   | return the number of unique requests in the trace          |
++-------------------------+------------------------+------------------------------------------------------------+
+|get_reuse_distance       | None                   | return an array of reuse distance of the trace             |
++-------------------------+------------------------+------------------------------------------------------------+
+|get_hit_ratio_dict       | algorithm, cache_size, | return a dict of mapping cache size to hit ratio,          |
+|                         | bin_size, cache_params | all params except algorithm is optional                    |
++-------------------------+------------------------+------------------------------------------------------------+
+| reset                   | None                   | reset reader to the beginning of the trace                 |
++-------------------------+------------------------+------------------------------------------------------------+
+| len                     | None                   | return the number of requests in the trace                 |
++-------------------------+------------------------+------------------------------------------------------------+
 
 If you want to read your data from cachecow, you can simply use cachecow as an iterator, for example, doing the following:
 
