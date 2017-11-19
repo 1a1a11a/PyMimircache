@@ -71,7 +71,6 @@ static void profiler_thread_temp(gpointer data, gpointer user_data){
     char* dat_name = strrchr(reader_thread->base->file_loc, '/');
     sprintf(output_filename, "/home/jason/special/%s_size%ld", dat_name, cache->core->size);
     FILE* miss_req_output = fopen(output_filename, "w");
-//    printf("this is the new one\n"); 
     
     
     while (cp->valid){

@@ -161,7 +161,7 @@ guint64* get_hitcount_withsize_seq(reader_t* reader, gint64 size, int block_unit
     
     /* for a cache_size=size, we need size+1 bucket for size 0~size(included),
      * the last element(size+1) is used for storing count of reuse distance > size
-     * if size==reader->base->total_num, then the last two is not used
+     * if size==reader->base->total_num, then the last two are not used
      */
     hit_count_array = g_new0(guint64, size+3);
     
@@ -181,13 +181,11 @@ guint64* get_hitcount_withsize_seq(reader_t* reader, gint64 size, int block_unit
     // create hashtable
     GHashTable * hash_table;
     if (reader->base->data_type == 'l'){
-        //        cp->type = 'l';
         hash_table = g_hash_table_new_full(g_int64_hash, g_int64_equal, \
                                            (GDestroyNotify)simple_g_key_value_destroyer, \
                                            (GDestroyNotify)simple_g_key_value_destroyer);
     }
     else if (reader->base->data_type == 'c' ){
-        //        cp->type = 'c';
         hash_table = g_hash_table_new_full(g_str_hash, g_str_equal, \
                                            (GDestroyNotify)simple_g_key_value_destroyer, \
                                            (GDestroyNotify)simple_g_key_value_destroyer);
@@ -310,7 +308,7 @@ guint64* get_hit_count_seq_shards(reader_t* reader,
     
     /* for a cache_size=size, we need size+1 bucket for size 0~size(included),
      * the last element(size+1) is used for storing count of reuse distance > size
-     * if size==reader->base->total_num, then the last two is not used
+     * if size==reader->base->total_num, then the last two are not used
      */
     hit_count_array = g_new0(guint64, size+3);
     
@@ -322,13 +320,11 @@ guint64* get_hit_count_seq_shards(reader_t* reader,
     // create hashtable
     GHashTable * hash_table;
     if (reader->base->data_type == 'l'){
-        //        cp->type = 'l';
         hash_table = g_hash_table_new_full(g_int64_hash, g_int64_equal, \
                                            (GDestroyNotify)simple_g_key_value_destroyer, \
                                            (GDestroyNotify)simple_g_key_value_destroyer);
     }
     else if (reader->base->data_type == 'c' ){
-        //        cp->type = 'c';
         hash_table = g_hash_table_new_full(g_str_hash, g_str_equal, \
                                            (GDestroyNotify)simple_g_key_value_destroyer, \
                                            (GDestroyNotify)simple_g_key_value_destroyer);
@@ -337,6 +333,9 @@ guint64* get_hit_count_seq_shards(reader_t* reader,
         ERROR("does not recognize reader data type %c\n", reader->base->data_type);
         abort();
     }
+    
+    // TODO: when it is not profiling with size, just use reuse distance for calculation,
+    // because reuse distance might be loaded without re-computation 
     
     // create splay tree
     sTree* splay_tree = NULL;

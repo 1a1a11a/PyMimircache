@@ -121,7 +121,6 @@ void heatmap_LRU_hit_ratio_start_time_end_time_thread(gpointer data, gpointer us
     hit_count_all = 0;
     miss_count_all = 0;
     
-    
 
     // unnecessary ? 
     skip_N_elements(reader_thread, g_array_index(break_points, guint64, order));

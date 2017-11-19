@@ -2,6 +2,7 @@ mimircache
 ==========
 
 [![Build Status](https://travis-ci.org/1a1a11a/mimircache.svg?branch=master)](https://travis-ci.org/1a1a11a/mimircache)
+[![Documentation Status](https://readthedocs.org/projects/mimircacheemory/badge/?version=develop)](http://mimircacheemory.readthedocs.io/en/develop/?badge=develop)
 [![GitHub version](https://badge.fury.io/gh/1a1a11a%2Fmimircache.svg)](https://badge.fury.io/gh/1a1a11a%2Fmimircache)
 [![PyPI version](https://badge.fury.io/py/mimirCache.svg)](https://badge.fury.io/py/mimirCache)
 

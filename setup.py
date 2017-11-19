@@ -49,7 +49,7 @@ omp_test = \
     """
 
 
-def get_compiler_openmp_flag():
+def get_openmp_flag():
     openmp_flag = ''
     tmpdir = tempfile.mkdtemp()
     curdir = os.getcwd()
@@ -89,23 +89,23 @@ def get_compiler_openmp_flag():
     return openmp_flag
 
 
-def getGlibFlag():
+def get_glib_flag():
     try:
         glib_cflag = subprocess.check_output("pkg-config --cflags glib-2.0", shell=True).decode().strip()
-        extra_compile_args.extend(glib_cflag.split())
+        return glib_cflag.split()
     except Exception as e:
         print(e)
 
 
-def getGlibLibrary():
+def get_glib_library():
     try:
         glib_lib = subprocess.check_output("pkg-config --libs glib-2.0 --libs gthread-2.0", shell=True).decode().strip()
-        extra_link_args.extend(glib_lib.split())
+        return glib_lib.split()
     except Exception as e:
         print(e)
 
 
-def setPlatformRelatedConfig():
+def set_platform_related_config():
     if sys.platform == 'darwin':
         from distutils import sysconfig
         vars = sysconfig.get_config_vars()
@@ -116,7 +116,7 @@ def setPlatformRelatedConfig():
         os.environ["CXX"] = "clang"
 
 
-def getNumpyHeader():
+def get_numpy_header():
     try:
         import numpy
         numpy_headers.append(numpy.get_include())
@@ -126,37 +126,21 @@ def getNumpyHeader():
 
 
 
-getGlibFlag()
-getGlibLibrary()
-getNumpyHeader()
-setPlatformRelatedConfig()
-# openmp_flag = get_compiler_openmp_flag()
-# print('get_compiler_openmp_flag(): ' + openmp_flag)
+extra_compile_args.extend(get_glib_flag())
+extra_link_args.extend(get_glib_library())
+# extra_compile_args.append(get_openmp_flag())
+# extra_link_args.append(get_openmp_flag())
 
-# extra_compile_args.append(openmp_flag)
-# extra_link_args.append(openmp_flag)
+numpy_headers.append(get_numpy_header())
+set_platform_related_config()
 
 
-print('all compile flags: ' + str(extra_compile_args))
-print('all link flasgs: ' + str(extra_link_args))
+if _DEBUG:
+    print('all compile flags: {}'.format(extra_compile_args))
+    print('all link flasgs: {}'.format(extra_link_args))
+    print("{}".format(extensions))
 
-# --------------------- parda module ---------------------------
-# extensions.append(Extension(
-#     "mimircache.profiler.libparda",
-#     glob("mimircache/profiler/parda/src/*.c"),
-#     include_dirs=["mimircache/profiler/parda/src/h/"],
-#     extra_compile_args=extra_compile_args,
-#     extra_link_args=extra_link_args,
-#     language="c"
-# ))
 
-# # --------------------- vscsi module ---------------------------
-# extensions.append(Extension(
-#     "mimircache.cacheReader.libvscsi",
-#     glob("mimircache/cacheReader/vscsi/src/*.c"),
-#     include_dirs=["mimircache/cacheReader/vscsi/src/"],
-#     language="c"
-# ))
 
 extensions.append(Extension(
     'mimircache.c_cacheReader',
@@ -254,18 +238,16 @@ extensions.append(Extension(
 
 
 
-# print("find packages: " + str(
-#     find_packages(exclude=(['mimircache.bin', 'mimircache.test', 'mimircache.data', 'mimircache.A1a1a11a']))))
+long_description = ""
+with open("README.md") as f:
+    long_description = f.read()
 
-print("Extension: " + str(extensions))
-# long_description = read('README.md', 'CHANGES')
 
 
 setup(
     name="mimircache",
     version=__version__,
-    # package_dir = {'':'src'},
-    packages = ['mimircache', 'mimircache.cache', 'mimircache.cacheReader', 'mimircache.profiler', 'mimircache.profiler.abstract', 'mimircache.utils', 'mimircache.top'],
+    packages = ['mimircache', 'mimircache.cache', 'mimircache.cacheReader', 'mimircache.profiler', 'mimircache.utils', 'mimircache.top'],
     # packages=find_packages(exclude=(['mimircache.bin', 'mimircache.test', 'mimircache.data', 'mimircache.A1a1a11a'])),
     # modules = 
     # package_data={'plain': ['mimircache/data/trace.txt'],
@@ -280,10 +262,6 @@ setup(
     keywords="mimircache cache Ymir",
     url="http://mimircache.info",
 
-    # libraries = [libparda, libvscsi],
-    # cmdclass = {'build_clib' : build_clib},
-    # cmdclass = {'build_ext': build_ext_subclass, 'build_clib' : build_clib_subclass},
-
     ext_modules=extensions,
     classifiers=[
         'Development Status :: 3 - Alpha',
@@ -294,23 +272,12 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
     ],
-    install_requires=['heapdict', 'mmh3']      # 'numpy', 'matplotlib', 'scipy',
-    # long_description=long_description
+    install_requires=['heapdict', 'mmh3', "matplotlib", "numpy"]
 )
 
 
 
 # python3 setup.py sdist upload -r pypitest
-
-# could also try this: 
-# from distutils.ccompiler import new_compiler
-
-# # Create compiler with default options
-# c = new_compiler()
-# workdir = "."
-
-# # Optionally add include directories etc.
-# # c.add_include_dir("some/include")
 
 # # Compile into .o files
 # objects = c.compile(["a.c", "b.c"])
