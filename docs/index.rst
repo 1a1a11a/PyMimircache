@@ -5,7 +5,7 @@ Release v\ |version|.
 
 Welcome to the documentation of mimircache, a Python3 cache trace analysis platform.
 
-**The power of mimircache**::
+**The power of mimircache**:
     >>> import mimircache as m
     >>> c = m.cachecow()
     >>> c.vscsi("trace.vscsi")      # find this data under data folder, other type of data supported too
@@ -20,12 +20,12 @@ Welcome to the documentation of mimircache, a Python3 cache trace analysis platf
 
     >>> c.heatmap('r', "hit_ratio_start_time_end_time", time_interval=10000000)
 
-.. image::  images/example_MRC.png
+.. image::  images/github_HRC.png
     :width: 45%
 .. image::  images/github_heatmap.png
     :width: 48%
     
-An example of MRC plot and hit ratio heatmap.
+An example of hit ratio curve plot and hit ratio heatmap.
 
 
 The User Guide 
@@ -80,6 +80,4 @@ Now you can customize mimircache to fit your own need, you can
 Indices and tables
 ==================
 
-* :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`

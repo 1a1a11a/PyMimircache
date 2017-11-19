@@ -1,3 +1,71 @@
+#language: python
+#
+## os:
+##  - linux
+##  - osx
+#
+##python:
+##  - "3.4"
+##  - "3.5"
+##  - "3.6"
+##  - "nightly"
+#
+#addons:
+#  apt:
+##    sources:
+##    - sourceline: 'deb http://us.archive.ubuntu.com/ubuntu/ trusty main restricted universe multiverse'
+##    - sourceline: 'deb-src http://us.archive.ubuntu.com/ubuntu/ trusty main restricted universe multiverse'
+#    packages:
+#        libglib2.0-dev
+#        python3-pip
+#        python3-matplotlib
+#        python3-dev
+#        git
+#        gcc
+#        g++
+#
+#before_install:
+##  - sudo apt-get -qq update
+##  - sudo apt-get install -y libglib2.0-dev python3-pip python3-matplotlib python3-dev git gcc g++
+#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update                                       ; fi
+#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install glib python3 openssl readline        ; fi
+#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew outdated pyenv || brew upgrade pyenv         ; fi
+#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install pyenv-virtualenv                     ; fi
+#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/Users/travis/.pyenv/shims:${PATH}"  ; fi
+#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pyenv-virtualenv venv; source venv/bin/activate   ; fi
+#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then python --version                                  ; fi
+#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then python -m pip install -U pip                      ; fi
+#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then python -m easy_install -U setuptools              ; fi
+#
+#
+## command to install dependencies
+#install:
+#  - pip3 install --upgrade pip setuptools wheel
+#  - pip3 install -r requirements.txt
+#  - python3 setup.py build_ext -i
+#  - which python3
+#  - python3 --version
+#
+#matrix:
+#  include:
+#    - os: linux
+#      python: 3.4
+#    - os: linux
+#      python: 3.5
+#    - os: linux
+#      python: 3.6
+#  allow_failures:
+#    - os: linux
+#      python: "nightly"
+##    - os: osx
+##      language: generic
+#
+#
+#
+## command to run tests
+#script: nosetests
+
+
 
 
 
