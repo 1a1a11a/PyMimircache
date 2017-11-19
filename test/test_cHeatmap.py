@@ -26,11 +26,11 @@ class cHeatmapTest(unittest.TestCase):
     def test1_vReader(self):
         reader = vscsiReader("{}/trace.vscsi".format(DAT_FOLDER))
         cH = cHeatmap()
-        bpr = cH.getBreakpoints(reader, 'r', time_interval=1000000)
+        bpr = cH.get_breakpoints(reader, 'r', time_interval=1000000)
         self.assertEqual(bpr[10], 53)
-        bpr = cH.getBreakpoints(reader, 'r', num_of_pixels=1000)
+        bpr = cH.get_breakpoints(reader, 'r', num_of_pixels=1000)
         # print(bpr)
-        bpv = cH.getBreakpoints(reader, 'v', time_interval=1000)
+        bpv = cH.get_breakpoints(reader, 'v', time_interval=1000)
         self.assertEqual(bpv[10], 10000)
 
         cH.heatmap(reader, 'r', "hit_ratio_start_time_end_time",
@@ -51,7 +51,7 @@ class cHeatmapTest(unittest.TestCase):
     def test2_pReader(self):
         reader = plainReader("{}/trace.txt".format(DAT_FOLDER))
         cH = cHeatmap()
-        bpv = cH.getBreakpoints(reader, 'v', time_interval=1000)
+        bpv = cH.get_breakpoints(reader, 'v', time_interval=1000)
         self.assertEqual(bpv[10], 10000)
 
         cH.heatmap(reader, 'v', "hit_ratio_start_time_end_time",
@@ -74,7 +74,7 @@ class cHeatmapTest(unittest.TestCase):
         reader = csvReader("{}/trace.csv".format(DAT_FOLDER),
                            init_params={"header":True, "label":5})
         cH = cHeatmap()
-        bpv = cH.getBreakpoints(reader, 'v', time_interval=1000)
+        bpv = cH.get_breakpoints(reader, 'v', time_interval=1000)
         self.assertEqual(bpv[10], 10000)
 
         cH.heatmap(reader, 'v', "hit_ratio_start_time_end_time",
@@ -99,7 +99,7 @@ class cHeatmapTest(unittest.TestCase):
         reader = csvReader("{}/trace.csv".format(DAT_FOLDER),
                            init_params={"header":True, "label":5, 'real_time':2})
         cH = cHeatmap()
-        bpr = cH.getBreakpoints(reader, 'r', time_interval=1000000)
+        bpr = cH.get_breakpoints(reader, 'r', time_interval=1000000)
         self.assertEqual(bpr[10], 53)
 
         cH.heatmap(reader, 'r', "hit_ratio_start_time_end_time",
@@ -126,9 +126,9 @@ class cHeatmapTest(unittest.TestCase):
                               init_params={"label":6, "real_time":7, "fmt": "<3I2H2Q"})
 
         cH = cHeatmap()
-        bpr = cH.getBreakpoints(reader, 'r', time_interval=1000000)
+        bpr = cH.get_breakpoints(reader, 'r', time_interval=1000000)
         self.assertEqual(bpr[10], 53)
-        bpv = cH.getBreakpoints(reader, 'v', time_interval=1000)
+        bpv = cH.get_breakpoints(reader, 'v', time_interval=1000)
         self.assertEqual(bpv[10], 10000)
 
         cH.heatmap(reader, 'r', "hit_ratio_start_time_end_time",

@@ -16,7 +16,9 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 
-import mimircache.c_eviction_stat as c_eviction_stat
+from mimircache.const import CExtensionMode
+if CExtensionMode:
+    import mimircache.c_eviction_stat
 from mimircache.const import *
 from mimircache.utils.printing import *
 from mimircache.utils.prepPlotParams import *
@@ -45,10 +47,10 @@ def eviction_stat_reuse_dist_plot(reader, algorithm, cache_size, mode, time_inte
     assert alg=="Optimal", "Currently only Optimal is supported"
 
     # get reuse distance of evicted elements by given algorithm
-    rd_array = c_eviction_stat.get_stat(reader.cReader, algorithm=alg, cache_size=cache_size, stat_type="reuse_dist")
+    rd_array = mimircache.c_eviction_stat.get_stat(reader.cReader, algorithm=alg, cache_size=cache_size, stat_type="reuse_dist")
 
     # generate break points for bucketing the reuse_dist array
-    bp = cHeatmap().getBreakpoints(reader, mode, time_interval)
+    bp = cHeatmap().get_breakpoints(reader, mode, time_interval)
 
     pos = 1
     count = 0
@@ -133,8 +135,8 @@ def eviction_stat_freq_plot(reader, algorithm, cache_size, mode, time_interval,
     if accumulative:
         stat_type = "accumulative_freq"
     assert alg=="Optimal", "Currently only Optimal is supported"
-    freq_array = c_eviction_stat.get_stat(reader.cReader, algorithm=alg, cache_size=cache_size, stat_type=stat_type)
-    bp = cHeatmap().getBreakpoints(reader, mode, time_interval)
+    freq_array = mimircache.c_eviction_stat.get_stat(reader.cReader, algorithm=alg, cache_size=cache_size, stat_type=stat_type)
+    bp = cHeatmap().get_breakpoints(reader, mode, time_interval)
 
     pos = 1
     count = 0

@@ -11,7 +11,9 @@ Author: Jason Yang <peter.waynechina@gmail.com> 2016/07
 import os
 import socket
 from mimircache.const import INTERNAL_USE
-import mimircache.c_LRUProfiler as c_LRUProfiler
+from mimircache.const import CExtensionMode
+if CExtensionMode:
+    import mimircache.c_LRUProfiler
 from mimircache.cacheReader.binaryReader import binaryReader
 from mimircache.cacheReader.abstractReader import cacheReaderAbstract
 import matplotlib.pyplot as plt
@@ -80,7 +82,7 @@ class LRUProfiler:
         """
         assert rd_type == 'rd' or rd_type == 'frd', \
             "please provide a valid reuse distance type, currently support rd and frd"
-        c_LRUProfiler.save_reuse_dist(self.reader.cReader, file_loc, rd_type)
+        mimircache.c_LRUProfiler.save_reuse_dist(self.reader.cReader, file_loc, rd_type)
 
     def load_reuse_dist(self, file_loc, rd_type):
         """
@@ -96,7 +98,7 @@ class LRUProfiler:
             "please provide a valid reuse distance type, currently support rd and frd"
         if not os.path.exists(file_loc):
             WARNING("pre-computed reuse distance file does not exist")
-        c_LRUProfiler.load_reuse_dist(self.reader.cReader, file_loc, rd_type)
+        mimircache.c_LRUProfiler.load_reuse_dist(self.reader.cReader, file_loc, rd_type)
         self.reader.already_load_rd = True
 
     def _del_reuse_dist_file(self):
@@ -150,7 +152,7 @@ class LRUProfiler:
             print("not supported yet")
             return None
         else:
-            hit_count = c_LRUProfiler.get_hit_count_seq(self.reader.cReader, **kargs)
+            hit_count = mimircache.c_LRUProfiler.get_hit_count_seq(self.reader.cReader, **kargs)
         return hit_count
 
     def get_hit_ratio(self, **kwargs):
@@ -170,10 +172,10 @@ class LRUProfiler:
             kargs['end'] = kwargs['end']
 
         if self.block_unit_size != 0 :
-            hit_ratio = c_LRUProfiler.get_hit_ratio_with_size(self.reader.cReader,
+            hit_ratio = mimircache.c_LRUProfiler.get_hit_ratio_with_size(self.reader.cReader,
                                                             block_unit_size=self.block_unit_size, **kargs)
         else:
-            hit_ratio = c_LRUProfiler.get_hit_ratio_seq(self.reader.cReader, **kargs)
+            hit_ratio = mimircache.c_LRUProfiler.get_hit_ratio_seq(self.reader.cReader, **kargs)
         return hit_ratio
 
 
@@ -202,7 +204,7 @@ class LRUProfiler:
             print("not supported yet")
             return None
         else:
-            hit_ratio = c_LRUProfiler.get_hit_ratio_seq_shards(tempReader.cReader, sample_ratio=sample_ratio,
+            hit_ratio = mimircache.c_LRUProfiler.get_hit_ratio_seq_shards(tempReader.cReader, sample_ratio=sample_ratio,
                                                        correction=correction, **kargs)
         return hit_ratio
 
@@ -216,7 +218,7 @@ class LRUProfiler:
             print("not supported yet")
             return None
         else:
-            miss_ratio = c_LRUProfiler.get_miss_ratio_seq(self.reader.cReader, **kargs)
+            miss_ratio = mimircache.c_LRUProfiler.get_miss_ratio_seq(self.reader.cReader, **kargs)
         return miss_ratio
 
     def get_reuse_distance(self, **kargs):
@@ -228,7 +230,7 @@ class LRUProfiler:
         if self.block_unit_size != 0:
             WARNING("reuse distance calculation does not support variable obj size, "
                     "calculating without considering size")
-        rd = c_LRUProfiler.get_reuse_dist_seq(self.reader.cReader, **kargs)
+        rd = mimircache.c_LRUProfiler.get_reuse_dist_seq(self.reader.cReader, **kargs)
         return rd
 
     def get_future_reuse_distance(self, **kargs):
@@ -240,7 +242,7 @@ class LRUProfiler:
         if self.block_unit_size != 0:
             WARNING("future reuse distance calculation does not support variable obj size, "
                 "calculating without considering size")
-        frd = c_LRUProfiler.get_future_reuse_dist(self.reader.cReader, **kargs)
+        frd = mimircache.c_LRUProfiler.get_future_reuse_dist(self.reader.cReader, **kargs)
         return frd
 
     def plotMRC(self, figname="MRC.png", auto_resize=False, threshold=0.98, **kwargs):

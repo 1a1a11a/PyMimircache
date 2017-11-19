@@ -2,7 +2,7 @@
 import string
 from mimircache.const import CExtensionMode
 if CExtensionMode:
-    import mimircache.c_cacheReader as c_cacheReader
+    import mimircache.c_cacheReader
 from mimircache.cacheReader.abstractReader import cacheReaderAbstract
 
 
@@ -47,7 +47,7 @@ class csvReader(cacheReaderAbstract):
             self.read_one_element()
 
         if open_c_reader:
-            self.cReader = c_cacheReader.setup_reader(file_loc, 'c', data_type=data_type,
+            self.cReader = mimircache.c_cacheReader.setup_reader(file_loc, 'c', data_type=data_type,
                                                       block_unit_size=block_unit_size,
                                                       disk_sector_size=disk_sector_size, 
                                                       init_params=init_params)

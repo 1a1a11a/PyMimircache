@@ -64,7 +64,7 @@ def request_rate_2d(reader, mode, time_interval,
                         ticker.FuncFormatter(lambda x, pos: '{:2.0f}%'.format(x * 100 / len(break_points))))
 
     assert mode == 'r' or mode == 'v', "currently only support mode r and v, what mode are you using?"
-    break_points = cHeatmap().getBreakpoints(reader, mode, time_interval)
+    break_points = cHeatmap().get_breakpoints(reader, mode, time_interval)
 
     l = []
     for i in range(1, len(break_points)):
@@ -95,7 +95,7 @@ def cold_miss_count_2d(reader, mode, time_interval,
                         ticker.FuncFormatter(lambda x, pos: '{:2.0f}%'.format(x * 100 / len(break_points))))
 
     assert mode == 'r' or mode == 'v', "currently only support mode r and v, what mode are you using?"
-    break_points = cHeatmap().getBreakpoints(reader, mode, time_interval)
+    break_points = cHeatmap().get_breakpoints(reader, mode, time_interval)
 
     cold_miss_list = [0] * (len(break_points) - 1)
     seen_set = set()
@@ -134,7 +134,7 @@ def cold_miss_ratio_2d(reader, mode, time_interval,
                         ticker.FuncFormatter(lambda x, pos: '{:2.0f}%'.format(x * 100 / len(break_points))))
 
     assert mode == 'r' or mode == 'v', "currently only support mode r and v, unknown mode {}".format(mode)
-    break_points = cHeatmap().getBreakpoints(reader, mode, time_interval)
+    break_points = cHeatmap().get_breakpoints(reader, mode, time_interval)
 
     cold_miss_list = [0] * (len(break_points) - 1)
     seen_set = set()

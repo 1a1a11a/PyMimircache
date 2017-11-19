@@ -1,8 +1,6 @@
 # coding=utf-8
 
 
-# from mimircache import
-from heapdict import heapdict
 import heapq
 
 

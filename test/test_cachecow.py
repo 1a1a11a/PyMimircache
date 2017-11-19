@@ -40,11 +40,11 @@ class cachecowTest(unittest.TestCase):
                   num_of_pixels=100, num_of_threads=8, cache_size=2000)
         c.heatmap('v', "rd_distribution", time_interval=1000, num_of_threads=8)
 
-        c.diffHeatmap(TIME_MODE, "hit_ratio_start_time_end_time",
-                      time_interval=TIME_INTERVAL,
-                      cache_size=CACHE_SIZE,
-                      algorithm1="LRU", algorithm2="MRU",
-                      cache_params2=None, num_of_threads=8)
+        c.diff_heatmap(TIME_MODE, "hit_ratio_start_time_end_time",
+                       time_interval=TIME_INTERVAL,
+                       cache_size=CACHE_SIZE,
+                       algorithm1="LRU", algorithm2="MRU",
+                       cache_params2=None, num_of_threads=8)
 
         c.twoDPlot("cold_miss_count", mode='v', time_interval=1000)
         c.twoDPlot("request_rate", mode='v', time_interval=1000)

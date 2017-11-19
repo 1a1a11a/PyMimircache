@@ -3,7 +3,9 @@ import abc
 import os
 from multiprocessing import Lock
 from collections import defaultdict
-import mimircache.c_cacheReader as c_cacheReader
+from mimircache.const import CExtensionMode
+if CExtensionMode:
+    import mimircache.c_cacheReader
 
 
 class cacheReaderAbstract(metaclass=abc.ABCMeta):
@@ -44,7 +46,7 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
         self.counter = 0
         self.trace_file.seek(0, 0)
         if self.cReader:
-            c_cacheReader.reset_reader(self.cReader)
+            mimircache.c_cacheReader.reset_reader(self.cReader)
 
     def get_num_of_req(self):
         """
@@ -58,7 +60,7 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
         # clear before counting
         self.num_of_req = 0
         if self.cReader:
-            self.num_of_req = c_cacheReader.get_num_of_req(self.cReader)
+            self.num_of_req = mimircache.c_cacheReader.get_num_of_req(self.cReader)
         else:
             while self.read_one_element() is not None:
                 self.num_of_req += 1
@@ -119,12 +121,12 @@ class cacheReaderAbstract(metaclass=abc.ABCMeta):
                 if self.trace_file:
                     self.trace_file.close()
                     self.trace_file = None
-                if self.cReader and c_cacheReader is not None:
-                    c_cacheReader.close_reader(self.cReader)
+                if self.cReader and mimircache.c_cacheReader is not None:
+                    mimircache.c_cacheReader.close_reader(self.cReader)
                     self.cReader = None
         except Exception as e:
             # return
-            print("Exception during close reader: {}, ccacheReader={}".format(e, c_cacheReader))
+            print("Exception during close reader: {}, ccacheReader={}".format(e, mimircache.c_cacheReader))
 
     @abc.abstractmethod
     def __next__(self):  # Python 3

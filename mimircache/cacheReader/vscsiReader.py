@@ -2,7 +2,9 @@
 
 
 from mimircache.cacheReader.abstractReader import cacheReaderAbstract
-import mimircache.c_cacheReader as c_cacheReader
+from mimircache.const import CExtensionMode
+if CExtensionMode:
+    import mimircache.c_cacheReader
 
 
 class vscsiReader(cacheReaderAbstract):
@@ -25,7 +27,7 @@ class vscsiReader(cacheReaderAbstract):
         super().__init__(file_loc, data_type='l', block_unit_size=block_unit_size,
                          disk_sector_size=disk_sector_size)
         if open_c_reader:
-            self.cReader = c_cacheReader.setup_reader(file_loc, 'v', data_type=data_type,
+            self.cReader = mimircache.c_cacheReader.setup_reader(file_loc, 'v', data_type=data_type,
                                                       block_unit_size=block_unit_size,
                                                       disk_sector_size=disk_sector_size)
         self.support_size = True
@@ -36,14 +38,14 @@ class vscsiReader(cacheReaderAbstract):
 
     def reset(self):
         if self.cReader:
-            c_cacheReader.reset_reader(self.cReader)
+            mimircache.c_cacheReader.reset_reader(self.cReader)
 
     def read_one_element(self):
         """
         read one request, return only block number
         :return:
         """
-        r = c_cacheReader.read_one_element(self.cReader)
+        r = mimircache.c_cacheReader.read_one_element(self.cReader)
         if r and self.block_unit_size != 0 and self.disk_sector_size != 0:
             r = r * self.disk_sector_size // self.block_unit_size
         return r
@@ -53,7 +55,7 @@ class vscsiReader(cacheReaderAbstract):
         return real_time information for the request in the form of (time, request)
         :return:
         """
-        r = c_cacheReader.read_time_request(self.cReader)
+        r = mimircache.c_cacheReader.read_time_request(self.cReader)
         if r and self.block_unit_size != 0 and self.disk_sector_size != 0:
             r[1] = r[1] * self.disk_sector_size // self.block_unit_size
         return r
@@ -63,7 +65,7 @@ class vscsiReader(cacheReaderAbstract):
         obtain more info for the request in the form of (time, request, size)
         :return:
         """
-        r = c_cacheReader.read_one_request_full_info(self.cReader)
+        r = mimircache.c_cacheReader.read_one_request_full_info(self.cReader)
         if r and self.block_unit_size != 0 and self.disk_sector_size != 0:
             r = list(r)
             r[1] = r[1] * self.disk_sector_size // self.block_unit_size
@@ -92,10 +94,10 @@ class vscsiReader(cacheReaderAbstract):
         :return:
         """
         ts_list = []
-        r = c_cacheReader.read_time_request(self.cReader)
+        r = mimircache.c_cacheReader.read_time_request(self.cReader)
         while r:
             ts_list.append(r[0])
-            r = c_cacheReader.read_time_request(self.cReader)
+            r = mimircache.c_cacheReader.read_time_request(self.cReader)
         return ts_list
 
 

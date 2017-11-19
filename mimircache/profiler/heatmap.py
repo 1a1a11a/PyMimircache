@@ -26,7 +26,10 @@ import pickle
 from collections import deque
 from multiprocessing import Array, Process, Queue
 
-import mimircache.c_heatmap as c_heatmap
+# this should be replaced by pure python module
+from mimircache.const import CExtensionMode
+if CExtensionMode:
+    import mimircache.c_heatmap
 from mimircache.profiler.heatmap_subprocess import *
 from mimircache.utils.printing import *
 from mimircache.const import *
@@ -81,9 +84,9 @@ class heatmap:
 
         # check break points are loaded or not, if not need to calculate it
         if not break_points:
-            break_points = cHeatmap().getBreakpoints(reader, mode,
-                                                     time_interval=time_interval,
-                                                     num_of_pixels=num_of_pixels)
+            break_points = cHeatmap().get_breakpoints(reader, mode,
+                                                      time_interval=time_interval,
+                                                      num_of_pixels=num_of_pixels)
             if save:
                 with open('temp/break_points_' + mode + str(time_interval) + '.dat', 'wb') as ifile:
                     pickle.dump(break_points, ifile)
@@ -135,7 +138,7 @@ class heatmap:
                 lambda x, pos: '{:2.0f}%'.format(x * 100 / len(break_points)))
             kwargs_plot['title'] = "hit_ratio_start_time_end_time"
 
-            last_access = c_heatmap.get_last_access_dist(reader.cReader)
+            last_access = mimircache.c_heatmap.get_last_access_dist(reader.cReader)
             last_access_array = Array('l', len(last_access), lock=False)
             for i, j in enumerate(last_access):
                 last_access_array[i] = j
@@ -218,9 +221,9 @@ class heatmap:
 
             # prepare break points
             if mode[0] == 'r' or mode[0] == 'v':
-                break_points = cHeatmap().getBreakpoints(reader, mode[0],
-                                                         time_interval=time_interval,
-                                                         num_of_pixels=num_of_pixels)
+                break_points = cHeatmap().get_breakpoints(reader, mode[0],
+                                                          time_interval=time_interval,
+                                                          num_of_pixels=num_of_pixels)
             else:
                 raise RuntimeError("unrecognized mode, it can only be r or v")
 

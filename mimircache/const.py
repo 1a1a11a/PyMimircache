@@ -17,11 +17,28 @@ DEFAULT_BIN_NUM_PROFILER = 100
 DEFAULT_NUM_OF_THREADS = os.cpu_count()
 
 
+failed_components = []
 try:
     import mimircache.c_cacheReader
 except:
+    failed_components.append("cacheReader")
+try:
+    import mimircache.c_LRUProfiler
+except:
+    failed_components.append("LRUProfiler")
+try:
+    import mimircache.c_generalProfiler
+except:
+    failed_components.append("generalProfiler")
+try:
+    import mimircache.c_heatmap
+except:
+    failed_components.append("heatmap")
+
+if len(failed_components):
     CExtensionMode = False
-    print("C extension import failed, which will hurt performance by 10*", file=sys.stderr)
+    print("C extension {} import failed, which will hurt performance by 10*".
+            format(", ".join(failed_components)), file=sys.stderr)
 
 
 from mimircache.cache.ARC import ARC

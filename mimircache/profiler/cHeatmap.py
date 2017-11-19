@@ -16,7 +16,9 @@ from matplotlib import colors
 from matplotlib import pyplot as plt
 import matplotlib.ticker as ticker
 
-import mimircache.c_heatmap as c_heatmap
+from mimircache.const import CExtensionMode
+if CExtensionMode:
+    import mimircache.c_heatmap
 from mimircache import const
 from mimircache.utils.printing import *
 
@@ -25,7 +27,7 @@ class cHeatmap:
     def __init__(self):
         self.other_plot_kwargs = {}
 
-    def getBreakpoints(self, reader, mode, time_interval=-1, num_of_pixels=-1):
+    def get_breakpoints(self, reader, mode, time_interval=-1, num_of_pixels=-1):
         """
 
         :param num_of_pixels:
@@ -36,9 +38,9 @@ class cHeatmap:
         """
         assert time_interval!=-1 or num_of_pixels!=-1, \
             "please provide at least one parameter, time_interval or num_of_pixels"
-        return c_heatmap.getBreakpoints(reader.cReader, mode,
-                                        time_interval=time_interval,
-                                        num_of_pixels=num_of_pixels)
+        return mimircache.c_heatmap.get_breakpoints(reader.cReader, mode,
+                                                    time_interval=time_interval,
+                                                    num_of_pixels=num_of_pixels)
 
     def setPlotParams(self, axis, axis_type, **kwargs):
         log_base = 1
@@ -178,7 +180,7 @@ class cHeatmap:
 
 
                 if algorithm.lower() in const.c_available_cache:
-                    xydict = c_heatmap.heatmap(reader.cReader, mode, plot_type,
+                    xydict = mimircache.c_heatmap.heatmap(reader.cReader, mode, plot_type,
                                                cache_size, algorithm,
                                                interval_hit_ratio=enable_ihr,
                                                decay_coefficient=decay_coefficient,
@@ -226,7 +228,7 @@ class cHeatmap:
 
 
             elif plot_type == "cold_miss_count_start_time_end_time":
-                print("this plot is discontinued")
+                raise RuntimeError("this plot is deprecated")
 
 
             elif plot_type == "???":
@@ -239,7 +241,7 @@ class cHeatmap:
                 if not figname:
                     figname = 'rd_distribution.png'
 
-                xydict, log_base = c_heatmap.heatmap_rd_distribution(reader.cReader, mode,
+                xydict, log_base = mimircache.c_heatmap.heatmap_rd_distribution(reader.cReader, mode,
                                                                      time_interval=time_interval,
                                                                      num_of_pixels=num_of_pixels,
                                                                      num_of_threads=num_of_threads)
@@ -262,7 +264,7 @@ class cHeatmap:
                 if not figname:
                     figname = 'rd_distribution_CDF.png'
 
-                xydict, log_base = c_heatmap.heatmap_rd_distribution(reader.cReader, mode,
+                xydict, log_base = mimircache.c_heatmap.heatmap_rd_distribution(reader.cReader, mode,
                                                                      time_interval=time_interval,
                                                                      num_of_pixels=num_of_pixels,
                                                                      num_of_threads=num_of_threads, CDF=1)
@@ -276,7 +278,7 @@ class cHeatmap:
                 if not figname:
                     figname = 'future_rd_distribution.png'
 
-                xydict, log_base = c_heatmap.heatmap_future_rd_distribution(reader.cReader, mode,
+                xydict, log_base = mimircache.c_heatmap.heatmap_future_rd_distribution(reader.cReader, mode,
                                                                             time_interval=time_interval,
                                                                             num_of_pixels=num_of_pixels,
                                                                             num_of_threads=num_of_threads)
@@ -289,7 +291,7 @@ class cHeatmap:
                 if not figname:
                     figname = 'dist_distribution.png'
 
-                xydict, log_base = c_heatmap.heatmap_dist_distribution(reader.cReader, mode,
+                xydict, log_base = mimircache.c_heatmap.heatmap_dist_distribution(reader.cReader, mode,
                                                                      time_interval=time_interval,
                                                                      num_of_pixels=num_of_pixels,
                                                                      num_of_threads=num_of_threads)
@@ -309,7 +311,7 @@ class cHeatmap:
                 if not figname:
                     figname = 'rt_distribution.png'
 
-                xydict, log_base = c_heatmap.heatmap_reuse_time_distribution(reader.cReader, mode,
+                xydict, log_base = mimircache.c_heatmap.heatmap_reuse_time_distribution(reader.cReader, mode,
                                                                      time_interval=time_interval,
                                                                      num_of_pixels=num_of_pixels,
                                                                      num_of_threads=num_of_threads)
@@ -387,14 +389,14 @@ class cHeatmap:
             if plot_type == "hit_ratio_start_time_end_time":
                 assert cache_size != -1, "please provide cache_size for plotting hit_ratio_start_time_end_time"
 
-                xydict = c_heatmap.diffHeatmap(reader.cReader, mode,
-                                               plot_type, cache_size,
-                                               algorithm1, algorithm2,
-                                               time_interval=time_interval,
-                                               num_of_pixels=num_of_pixels,
-                                               cache_params1=cache_params1,
-                                               cache_params2=cache_params2,
-                                               num_of_threads=num_of_threads)
+                xydict = mimircache.c_heatmap.diff_heatmap(reader.cReader, mode,
+                                                           plot_type, cache_size,
+                                                           algorithm1, algorithm2,
+                                                           time_interval=time_interval,
+                                                           num_of_pixels=num_of_pixels,
+                                                           cache_params1=cache_params1,
+                                                           cache_params2=cache_params2,
+                                                           num_of_threads=num_of_threads)
 
                 text = "      differential heatmap\n      cache size: {},\n      cache type: ({}-{})/{},\n" \
                        "      time type: {},\n      time interval: {},\n      plot type: \n{}".format(

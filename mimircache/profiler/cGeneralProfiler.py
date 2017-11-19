@@ -23,7 +23,9 @@ import matplotlib.ticker as ticker
 
 from mimircache.cacheReader.abstractReader import cacheReaderAbstract
 from mimircache.utils.printing import *
-import mimircache.c_generalProfiler as c_generalProfiler
+from mimircache.const import CExtensionMode
+if CExtensionMode:
+    import mimircache.c_generalProfiler
 from mimircache.const import *
 
 
@@ -87,14 +89,14 @@ class cGeneralProfiler:
                 need_convert = False
                 break
         if need_convert:
-            self.prepare_file()
+            self._prepare_file()
 
         # this is for deprecated functions, as old version use hit rate instead of hit ratio
         self.get_hit_rate = self.get_hit_ratio
         self.get_miss_rate = self.get_miss_ratio
 
 
-    def prepare_file(self):
+    def _prepare_file(self):
         """
         this is used when user passed in a customized reader,
         but customized reader is not supported in C backend
@@ -129,7 +131,7 @@ class cGeneralProfiler:
         if self.block_unit_size != 0:
             print("not supported yet")
         else:
-            return c_generalProfiler.get_hit_count(self.reader.cReader, self.cache_name, cache_size,
+            return mimircache.c_generalProfiler.get_hit_count(self.reader.cReader, self.cache_name, cache_size,
                                                    self.bin_size, cache_params=self.cache_params, **sanity_kwargs)
 
     def get_hit_ratio(self, **kwargs):
@@ -148,7 +150,7 @@ class cGeneralProfiler:
             sanity_kwargs['end'] = kwargs['end']
 
         # handles both withsize and no size, but currently only storage system trace are supported with size
-        return c_generalProfiler.get_hit_ratio(self.reader.cReader, self.cache_name, cache_size,
+        return mimircache.c_generalProfiler.get_hit_ratio(self.reader.cReader, self.cache_name, cache_size,
                                                 bin_size, cache_params=self.cache_params, **sanity_kwargs)
 
 
@@ -171,7 +173,7 @@ class cGeneralProfiler:
         if self.block_unit_size != 0:
             print("not supported yet")
         else:
-            return c_generalProfiler.get_miss_ratio(self.reader.cReader, self.cache_name, cache_size,
+            return mimircache.c_generalProfiler.get_miss_ratio(self.reader.cReader, self.cache_name, cache_size,
                                                     bin_size, cache_params=self.cache_params, **sanity_kwargs)
 
     def plotMRC(self, figname="MRC.png", **kwargs):
