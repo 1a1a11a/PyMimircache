@@ -438,9 +438,12 @@ def rt_popularity_2d(reader, granularity=10, logX=True, logY=False, cdf=True,
     if not logX or logY or not cdf:
         WARNING("recommend using logX without logY with cdf")
 
-    # # time_bin is used in case time unit is small like microsecond
-    # time_bin = kwargs.get("time_bin", 1)
-    # max_rt = max_rt // time_bin + 1
+    # check granularity
+    if max_rt > 1000000:
+        WARNING("max reuse time {} larger than 1000000, "
+                "are you setting the right time granularity? "
+                "Current granularity {}".format(max_rt, granularity))
+
     l = [0] * (max_rt + 1)
 
     if not cdf:
