@@ -44,7 +44,8 @@ class csvReader(cacheReaderAbstract):
 
         if self.header_bool:
             self.headers = [i.strip(string.whitespace) for i in self.trace_file.readline().split(self.delimiter)]
-            self.read_one_element()
+            # self.read_one_element()
+            self.trace_file.readline()
 
         if open_c_reader:
             self.cReader = mimircache.c_cacheReader.setup_reader(file_loc, 'c', data_type=data_type,
@@ -125,6 +126,15 @@ class csvReader(cacheReaderAbstract):
 
         else:
             return None
+
+    def reset(self):
+        """
+        reset reader to initial state
+        :return:
+        """
+        super().reset()
+        if self.header_bool:
+            self.trace_file.readline()
 
 
     def __next__(self):  # Python 3

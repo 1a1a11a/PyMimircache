@@ -483,7 +483,7 @@ class cHeatmap:
 
             plt.savefig(filename, dpi=600)
             plt.show()
-            INFO("plot is saved at the same directory")
+            INFO("plot is saved as {}".format(filename))
             plt.clf()
             self.other_plot_kwargs.clear()
         except Exception as e:

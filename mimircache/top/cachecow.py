@@ -705,7 +705,7 @@ class cachecow:
         return hit_ratio_dict
 
 
-    def characterize(self, type, cache_size=-1):
+    def characterize(self, type, cache_size=-1, **kwargs):
         """
         use this function to obtain a series of plots about your trace, the type includes
 
@@ -716,6 +716,8 @@ class cachecow:
 
         :param type: see above, options: short, medium, long, all
         :param cache_size: estimated cache size for the trace, if -1, mimircache will estimate the cache size
+        :param kwargs: print_stat
+        :return: trace stat string
         """
 
         # TODO: jason: allow one single function call to obtain the most useful information
@@ -726,9 +728,11 @@ class cachecow:
             WARNING("unknown type {}, supported types: {}".format(type, supported_types))
             return
 
-        INFO("trace information ")
         trace_stat = traceStat(self.reader)
-        print(trace_stat)
+        if kwargs.get("print_stat", True):
+            INFO("trace information ")
+            print(trace_stat)
+
         if cache_size == -1:
             cache_size = trace_stat.num_of_uniq_obj//100
 
@@ -786,14 +790,14 @@ class cachecow:
             INFO("now begin to plot rd distribution heatmap")
             self.heatmap("v", "rd_distribution", time_interval=trace_stat.num_of_requests//100)
 
-
             INFO("now begin to plot hit ratio curves")
             self.plotHRCs(["LRU", "Optimal", "LFU", "ARC"], cache_size=cache_size,
                           bin_size=cache_size//cpu_count()//16+1,
                           num_of_threads=cpu_count(),
                           save_gradually=True)
 
-            INFO("now begin to plot hit_ratio_start_time_end_time heatmap")
+            if kwargs.get("print_stat", True):
+                INFO("now begin to plot hit_ratio_start_time_end_time heatmap")
             self.heatmap("v", "hit_ratio_start_time_end_time",
                          time_interval=trace_stat.num_of_requests//100,
                          cache_size=cache_size)
@@ -830,6 +834,8 @@ class cachecow:
             self.heatmap("v", "hit_ratio_start_time_end_time",
                          time_interval=trace_stat.num_of_requests//200,
                          cache_size=cache_size)
+
+        return str(trace_stat)
 
 
     def __len__(self):

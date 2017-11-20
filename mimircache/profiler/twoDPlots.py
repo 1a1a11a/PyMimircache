@@ -212,7 +212,7 @@ def namemapping_2d(reader, partial_ratio=0.1, figname=None, **kwargs):
         new_figname = figname[:pos] + '_partial' + figname[pos:]
     plt.savefig(new_figname)
     plt.clf()
-    INFO("plot is saved at the same directory")
+    INFO("mapping plot is saved")
     reader.reset()
 
 
@@ -250,7 +250,6 @@ def popularity_2d(reader, logX=True, logY=False, cdf=True, plot_type="obj",
 
     l = [0] * max_freq
     if plot_type.lower() == "obj":
-        print(freq_count_dict)
         if not cdf:
             kwargs_plot["ylabel"] = kwargs_plot.get("ylabel", "Obj Percentage")
             for k, v in freq_count_dict.items():
@@ -408,6 +407,7 @@ def rt_popularity_2d(reader, granularity=10, logX=True, logY=False, cdf=True,
     :param logY:
     :param cdf:
     :param figname:
+    :param kwargs: time_bin
     :return: the list of data points
     """
 
@@ -438,21 +438,25 @@ def rt_popularity_2d(reader, granularity=10, logX=True, logY=False, cdf=True,
     if not logX or logY or not cdf:
         WARNING("recommend using logX without logY with cdf")
 
+    # # time_bin is used in case time unit is small like microsecond
+    # time_bin = kwargs.get("time_bin", 1)
+    # max_rt = max_rt // time_bin + 1
     l = [0] * (max_rt + 1)
 
     if not cdf:
         for rt, rt_count in rt_dic.items():
-            l[rt] = rt_count
+            if rt != -1:
+                l[rt] = rt_count
     else:
         kwargs_plot["ylabel"] = kwargs.get("ylabel", "Num of Requests (CDF)")
         for rt, rt_count in rt_dic.items():
             if rt != -1:
                 l[rt] = rt_count
+        print("l {}".format(len(l)))
         for i in range(1, len(l)):
             l[i] = l[i-1] + l[i]
         for i in range(0, len(l)):
             l[i] = l[i] / l[-1]
-
 
     draw2d(l, figname=figname, **kwargs_plot)
     reader.reset()
@@ -613,5 +617,5 @@ def draw2d(l, **kwargs):
     plt.savefig(filename, dpi=600)
     try: plt.show()
     except: pass
-    INFO("plot is saved")
+    INFO("plot is saved as {}".format(filename))
     plt.clf()
