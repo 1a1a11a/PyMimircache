@@ -13,7 +13,7 @@ import subprocess
 import tempfile
 import sysconfig
 # from Cython.Build import cythonize
-from version import __version__
+from mimircache.version import __version__
 
 _DEBUG = False
 _DEBUG_LEVEL = 0
@@ -247,8 +247,8 @@ with open("README.md") as f:
 setup(
     name="mimircache",
     version=__version__,
-    packages = ['mimircache', 'mimircache.cache', 'mimircache.cacheReader', 'mimircache.profiler', 'mimircache.utils', 'mimircache.top'],
-    # packages=find_packages(exclude=(['mimircache.bin', 'mimircache.test', 'mimircache.data', 'mimircache.A1a1a11a'])),
+    packages = ['mimircache', 'mimircache.cache', 'mimircache.cacheReader', 
+    'mimircache.profiler', 'mimircache.profiler.abstract', 'mimircache.utils', 'mimircache.top'],
     # modules = 
     # package_data={'plain': ['mimircache/data/trace.txt'],
     #               'csv': ['mimircache/data/trace.csv'],

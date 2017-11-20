@@ -8,6 +8,8 @@ this module offer the upper level API to user, it currently supports four types 
 * **trace profiling**
 * **plotting**
 
+Author: Jason Yang <peter.waynechina@gmail.com> 2017/08
+
 """
 from matplotlib.ticker import FuncFormatter
 from mimircache.const import CExtensionMode
@@ -289,7 +291,8 @@ class cachecow:
         """
         get a profiler instance, this should not be used by most users
 
-        :param use_general_profiler: for LRU only, if it is true, then return a cGeneralProfiler for LRU,
+        :param use_general_profiler: this option is for LRU only, if it is True,
+                                        then return a cGeneralProfiler for LRU,
                                         otherwise, return a LRUProfiler for LRU.
 
                                         Note: LRUProfiler does not require cache_size/bin_size params,
@@ -584,12 +587,12 @@ class cachecow:
         :param auto_resize:   when using max possible size or specified cache size too large,
                                 you will get a huge plateau at the end of hit ratio curve,
                                 set auto_resize to True to cutoff most of the big plateau
-        :param kwargs: block_unit_size, num_of_threads,
+        :param kwargs: options: block_unit_size, num_of_threads,
                         auto_resize_threshold, xlimit, ylimit, cache_unit_size
 
                         save_gradually - save a figure everytime computation for one algorithm finishes,
 
-                        label - instead of using algorithm list as label, specified user-defined label,
+                        label - instead of using algorithm list as label, specify user-defined label
         """
 
         plot_dict = prepPlotParams("Hit Ratio Curve", "Cache Size (Items)", "Hit Ratio", figname, **kwargs)

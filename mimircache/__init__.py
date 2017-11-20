@@ -26,7 +26,7 @@ from mimircache.profiler.cHeatmap import cHeatmap
 from mimircache.profiler.heatmap import heatmap as heatmap
 from mimircache.top.cachecow import cachecow as cachecow
 
-from version import __version__ as __version__
+from mimircache.version import __version__ as __version__
 
 
 

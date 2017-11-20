@@ -1,14 +1,14 @@
 # coding=utf-8
-""" this module is used for all other cache replacement algorithms
-it uses sampling, basically what it does is that it simulate a cache
-at cache size [0, bin_size, bin_size*2 ...] (of course, there is no need
-for cache size 0, so the hit count or hit ratio for cache size 0 is always 0.
-The time complexity here is O(mN) where m is the number of bins (cache_size//bin_size),
+""" this module is used for non-LRU cache replacement algorithms (of course, LRU also works)
+it uses sampling, basically it simulates a cache at cache size [0, bin_size, bin_size*2 ...]
+(of course, there is no need for cache size 0,
+so the hit count or hit ratio for cache size 0 is always 0).
+The time complexity of this simulation is O(mN) where m is the number of bins (cache_size//bin_size),
 N is the trace length.
 
 For LRU, you can use module, but LRUProfiler will provide a better accuracy
 as it does not have sampling over cache size, you will always get a smooth curve,
-but the cost is O(nlogn) algorithm.
+but the cost is an O(nlogn) algorithm.
 
 Author: Jason Yang <peter.waynechina@gmail.com> 2016/07
 
