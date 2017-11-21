@@ -21,23 +21,24 @@ failed_components = []
 try:
     import mimircache.c_cacheReader
 except:
-    failed_components.append("cacheReader")
+    failed_components.append("c_cacheReader")
 try:
     import mimircache.c_LRUProfiler
 except:
-    failed_components.append("LRUProfiler")
+    failed_components.append("c_LRUProfiler")
 try:
     import mimircache.c_generalProfiler
 except:
-    failed_components.append("generalProfiler")
+    failed_components.append("c_generalProfiler")
 try:
     import mimircache.c_heatmap
 except:
-    failed_components.append("heatmap")
+    failed_components.append("c_heatmap")
 
 if len(failed_components):
     CExtensionMode = False
-    print("C extension {} import failed, which will hurt performance by 10*".
+    print("C extension {} import failed, performance will degrade, "
+          "if this is installation, you can ignore it".
             format(", ".join(failed_components)), file=sys.stderr)
 
 
@@ -56,7 +57,6 @@ from mimircache.cacheReader.csvReader import csvReader
 from mimircache.cacheReader.plainReader import plainReader
 from mimircache.cacheReader.vscsiReader import vscsiReader
 from mimircache.cacheReader.binaryReader import binaryReader
-from multiprocessing import cpu_count
 
 # global c_available_cache
 c_available_cache = ["lru"
