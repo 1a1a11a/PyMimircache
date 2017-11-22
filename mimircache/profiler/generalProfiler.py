@@ -219,8 +219,10 @@ class generalProfiler(profilerAbstract):
             plt.title('Hit Ratio Curve', fontsize=18, color='black')
             plt.savefig(figname, dpi=600)
             INFO("plot is saved at the same directory")
-            plt.show()
-            plt.clf()
+            try: plt.show()
+            except: pass
+            if not kwargs.get("no_clear", False):
+                plt.clf()
         except Exception as e:
             plt.savefig(figname)
             WARNING("the plotting function is not wrong, is this a headless server? {}".format(e))

@@ -621,4 +621,5 @@ def draw2d(l, **kwargs):
     try: plt.show()
     except: pass
     INFO("plot is saved as {}".format(filename))
-    plt.clf()
+    if not kwargs.get("no_clear", False):
+        plt.clf()

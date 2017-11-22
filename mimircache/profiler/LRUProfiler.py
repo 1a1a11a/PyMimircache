@@ -334,7 +334,8 @@ class LRUProfiler:
                 INFO("plot is saved")
             try: plt.show()
             except: pass
-            plt.clf()
+            if not kwargs.get("no_clear", False):
+                plt.clf()
             return HRC
         except Exception as e:
             plt.savefig(figname)
@@ -372,7 +373,8 @@ class LRUProfiler:
                 INFO("plot is saved")
             try: plt.show()
             except: pass
-            plt.clf()
+            if not kwargs.get("no_clear", False):
+                plt.clf()
             return stop_point
         except Exception as e:
             plt.savefig(figname)

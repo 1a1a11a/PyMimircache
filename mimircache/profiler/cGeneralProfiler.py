@@ -176,32 +176,6 @@ class cGeneralProfiler:
             return mimircache.c_generalProfiler.get_miss_ratio(self.reader.cReader, self.cache_name, cache_size,
                                                     bin_size, cache_params=self.cache_params, **sanity_kwargs)
 
-    def plotMRC(self, figname="MRC.png", **kwargs):
-        """
-        this function is deprecated now and should not be used
-        :param figname:
-        :param kwargs:
-        :return:
-        """
-        raise RuntimeWarning("function not updated")
-        MRC = self.get_miss_ratio(**kwargs)
-        try:
-            # tick = ticker.FuncFormatter(lambda x, pos: '{:2.0f}'.format(x * self.bin_size))
-            # plt.gca().xaxis.set_major_formatter(tick)
-            plt.xlim(0, self.cache_size)
-            plt.plot(range(0, self.cache_size + 1, self.bin_size), MRC)
-            plt.xlabel("Cache Size (items)")
-            plt.ylabel("Miss Rate")
-            plt.title('Miss Rate Curve', fontsize=18, color='black')
-            plt.savefig(figname, dpi=600)
-            INFO("plot is saved")
-            plt.show()
-            plt.clf()
-        except Exception as e:
-            plt.savefig(figname)
-            WARNING("the plotting function reports error, maybe this is a headless server? \nERROR: {}".format(e))
-        return MRC
-
 
     def plotHRC(self, figname="HRC.png", **kwargs):
         """
@@ -229,7 +203,8 @@ class cGeneralProfiler:
             INFO("plot is saved")
             try: plt.show()
             except: pass
-            plt.clf()
+            if not kwargs.get("no_clear", False):
+                plt.clf()
         except Exception as e:
             plt.savefig(figname)
             WARNING("the plotting function reports error, maybe this is a headless server? \nERROR: {}".format(e))
