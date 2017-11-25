@@ -100,3 +100,5 @@ mimircache/CExtension/pyBindings/pyReaderClass.c
 paper/hr_alg_bar/__init__.py
 paper/hr_alg_bar/__init__.py
 paper/hr_alg_bar/plot.py
+*.pickle
+*.doctree

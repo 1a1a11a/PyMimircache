@@ -31,7 +31,7 @@ An example of hit ratio curve plot and hit ratio heatmap.
 The User Guide 
 -------------- 
 .. toctree::
-        :maxdepth: 3
+        :maxdepth: 2
 
         User/intro
         User/installation
