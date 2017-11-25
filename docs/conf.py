@@ -10,7 +10,7 @@ import os
 sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath('_themes'))
 
-from version import __version__
+from mimircache.version import __version__
 
 
 MOCK_MODULES = ['mimircache.c_generalProfiler', 'mimircache.c_heatmap', 'mimircache.c_LRUProfiler',
@@ -147,20 +147,17 @@ todo_include_todos = False
 html_theme = 'sphinxdoc'
 # html_theme = 'scrolls'
 # html_theme = 'pyramid'
+
 # html_theme = 'bootstrap'
+# html_theme_options = {
+#   'bootswatch_theme': "paper",
+# }
 # html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 
-# Theme options are theme-specific and customize the look and feel of a theme
-# further.  For a list of options available for each theme, see the
-# documentation.
-# html_theme_options = {}
-
-# Add any paths that contain custom themes here, relative to this directory.
-# html_theme_path = []
 
 # The name for this set of Sphinx documents.
 # "<project> v<release> documentation" by default.
-# html_title = 'mimircache v0.0.2'
+html_title = 'mimircache v{}'.format(__version__)
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 # html_short_title = None

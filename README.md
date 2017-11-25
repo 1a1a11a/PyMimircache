@@ -132,7 +132,17 @@ We have prepared a wonderful tutorial here. [Check here for tutorial](http://mim
 | Hit Ratio Curve | Hit Ratio Heatmap | 
 
 
+Next Major Releases 
+------------------- 
+* **Architecture**: Separate py-mimircache and C-mimircache to allow them run independently (v0.3.0) 
+* **Feature**: Add block/obj size into cache replacement algorithm (v0.4.0)
+* **Feature**: Add parallel support for LRUProfiling (v0.5.0) 
+* **Feature**: Add sampling layer for all profilers (v0.6.0)
+* **Feature**: Add GPU profiling support (v0.8.0)
+* **Feature**: Add Windows Support (v1.0.0)
+* **Architecture**: C component optimization and allow to be used as an independent caching layer (v2.0.0)
 
+ 
 Contributing
 ------------
 You are more than welcome to make any contributions. Please create Pull Request for any changes.
