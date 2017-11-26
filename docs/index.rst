@@ -20,9 +20,9 @@ Welcome to the documentation of mimircache, a Python3 cache trace analysis platf
 
     >>> c.heatmap('r', "hit_ratio_start_time_end_time", time_interval=10000000)
 
-.. image::  images/github_HRC.png
+.. image::  User/images/github_HRC.png
     :width: 45%
-.. image::  images/github_heatmap.png
+.. image::  User/images/github_heatmap.png
     :width: 48%
     
 An example of hit ratio curve plot and hit ratio heatmap.
