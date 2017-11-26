@@ -127,7 +127,7 @@ We have prepared a wonderful tutorial here. [Check here for tutorial](http://mim
 
 ```
 
-| [![HRC](https://github.com/1a1a11a/mimircache/blob/develop/docs/images/github_HRC.png)](https://github.com/1a1a11a/mimircache/blob/develop/docs/images/github_HRC.png)  | [![Heatmap](https://github.com/1a1a11a/mimircache/blob/develop/docs/images/github_heatmap.png)](https://github.com/1a1a11a/mimircache/blob/develop/docs/images/github_heatmap.png) |
+| [![HRC](https://github.com/1a1a11a/mimircache/blob/develop/docs/User/images/github_HRC.png)](https://github.com/1a1a11a/mimircache/blob/develop/docs/User/images/github_HRC.png)  | [![Heatmap](https://github.com/1a1a11a/mimircache/blob/develop/docs/User/images/github_heatmap.png)](https://github.com/1a1a11a/mimircache/blob/develop/docs/User/images/github_heatmap.png) |
 |:---:|:---:|
 | Hit Ratio Curve | Hit Ratio Heatmap | 
 
