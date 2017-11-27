@@ -189,7 +189,21 @@ def namemapping_2d(reader, partial_ratio=0.1, figname=None, **kwargs):
             list_partial.append(name_mapping[e])
 
     # plotting
-    plt.scatter(np.linspace(0, 100, len(list_overall)), list_overall)
+    if 'pointSize' in kwargs.keys():
+        point_size = kwargs.get('pointSize', False)
+
+        if isinstance(point_size, bool):
+            WARNING("Undefined or unknown pointSize '{}', using default value".format(point_size))
+            point_size = plt.rcParams['lines.markersize'] ** 2
+        elif not isinstance(point_size, (int, float)):
+            WARNING("Undefined or unknown pointSize '{}', using default value".format(point_size))
+            point_size = plt.rcParams['lines.markersize'] ** 2
+        else:
+            pass
+    else:
+        point_size = plt.rcParams['lines.markersize'] ** 2
+
+    plt.scatter(np.linspace(0, 100, len(list_overall)), list_overall, s=point_size)
     plt.title("mapped block versus time(overall)")
     plt.ylabel("mapped LBA")
     plt.xlabel("virtual time/%")
@@ -201,7 +215,7 @@ def namemapping_2d(reader, partial_ratio=0.1, figname=None, **kwargs):
     plt.savefig(new_figname)
 
     plt.clf()
-    plt.scatter(np.linspace(0, 100, len(list_partial)), list_partial)
+    plt.scatter(np.linspace(0, 100, len(list_partial)), list_partial, s=point_size)
     plt.title("renamed block versus time(part)")
     plt.ylabel("renamed block number")
     plt.xlabel("virtual time/%")
@@ -613,12 +627,12 @@ def draw2d(l, **kwargs):
         plt.title(kwargs['title'])
 
     # if x axis label are too long, then rotate it
-    if kwargs.get("rotateXAxisTick", False):
+    if 'rotateXAxisTick' in kwargs.keys():
         xrotate = kwargs['rotateXAxisTick']
 
         if isinstance(xrotate, bool):
             plt.xticks(rotation="vertical")
-        elif isinstance(xrotate, int):
+        elif isinstance(xrotate, (int, float)):
             plt.xticks(rotation=xrotate)
         else:
             plt.xticks(rotation="vertical")
