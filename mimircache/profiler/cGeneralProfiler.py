@@ -30,15 +30,12 @@ from mimircache.const import *
 
 
 class cGeneralProfiler:
-    all = ("get_hit_count",
+    all = ["get_hit_count",
            "get_hit_ratio",
-           "get_miss_ratio",
-           "plotMRC",
-           "plotHRC")
+           "plotHRC"]
 
-    def __init__(self, reader,
-                 cache_name, cache_size, bin_size=-1, cache_params=None,
-                 num_of_threads=DEFAULT_NUM_OF_THREADS):
+    def __init__(self, reader, cache_name, cache_size, bin_size=-1, cache_params=None, **kwargs):
+
         """
         initialization of a cGeneralProfiler
         :param reader:
@@ -46,23 +43,30 @@ class cGeneralProfiler:
         :param cache_size:
         :param bin_size: the sample granularity, the smaller the better, but also much longer run time
         :param cache_params: parameters about the given cache replacement algorithm
-        :param num_of_threads:
+        :param kwargs: num_of_threads
         """
 
         # make sure reader is valid
-        assert isinstance(reader, cacheReaderAbstract), \
-            "you provided an invalid cacheReader: {}".format(reader)
-
-        assert cache_name.lower() in cache_alg_mapping, "please check your cache replacement algorithm: " + cache_name
-        assert cache_name.lower() in c_available_cache, \
-            "cGeneralProfiler currently only available on the following caches: {}\n, " \
-            "please use generalProfiler".format(pformat(c_available_cache))
-        assert cache_size != 0, "you cannot provide size 0"
-
         self.reader = reader
         self.cache_size = cache_size
         self.cache_name = cache_alg_mapping[cache_name.lower()]
         self.bin_size = bin_size
+        self.hit_count = None
+        self.hit_ratio = None
+
+        assert isinstance(reader, cacheReaderAbstract), \
+            "you provided an invalid cacheReader: {}".format(reader)
+
+        assert cache_name.lower() in cache_alg_mapping, \
+            "please check your cache replacement algorithm: " + cache_name
+        assert cache_name.lower() in c_available_cache, \
+            "cGeneralProfiler currently only available on the following caches: {}\n, " \
+            "please use generalProfiler".format(pformat(c_available_cache))
+
+        assert isinstance(self.cache_size, int) and self.cache_size > 0, \
+            "cache size {} is not valid for {}".format(cache_size, self.get_classname())
+
+
         if self.bin_size == -1:
             self.bin_size = int(self.cache_size / DEFAULT_BIN_NUM_PROFILER)
 
@@ -72,7 +76,7 @@ class cGeneralProfiler:
         self.cache_params = cache_params
         if self.cache_params is None:
             self.cache_params = {}
-        self.num_of_threads = num_of_threads
+        self.num_of_threads = kwargs.get("num_of_threads", DEFAULT_NUM_OF_THREADS)
 
         # check whether user want to profling with size
         self.block_unit_size = self.cache_params.get("block_unit_size", 0)
@@ -93,7 +97,6 @@ class cGeneralProfiler:
 
         # this is for deprecated functions, as old version use hit rate instead of hit ratio
         self.get_hit_rate = self.get_hit_ratio
-        self.get_miss_rate = self.get_miss_ratio
 
 
     def _prepare_file(self):
@@ -114,9 +117,20 @@ class cGeneralProfiler:
         self.reader = plainReader('.temp.dat')
 
 
+    @classmethod
+    def get_classname(cls):
+        """
+        return the name of class
+        :return: a string of classname
+        """
+        return cls.__name__
+
+
     def get_hit_count(self, **kwargs):
         """
         obtain hit count at cache size [0, bin_size, bin_size*2 ...]
+        .. NOTICE: the hit count array is not a CDF, while hit ratio array is CDF
+
         :return: a numpy array, with hit count corresponding to size [0, bin_size, bin_size*2 ...]
         """
         sanity_kwargs = {"num_of_threads": kwargs.get("num_of_threads", self.num_of_threads)}
@@ -131,14 +145,21 @@ class cGeneralProfiler:
         if self.block_unit_size != 0:
             print("not supported yet")
         else:
-            return mimircache.c_generalProfiler.get_hit_count(self.reader.cReader, self.cache_name, cache_size,
-                                                   self.bin_size, cache_params=self.cache_params, **sanity_kwargs)
+            self.hit_count = mimircache.c_generalProfiler.get_hit_count(self.reader.cReader,
+                                                              self.cache_name,
+                                                              cache_size,
+                                                              self.bin_size,
+                                                              cache_params=self.cache_params,
+                                                              **sanity_kwargs)
+        return self.hit_count
 
     def get_hit_ratio(self, **kwargs):
         """
         obtain hit ratio at cache size [0, bin_size, bin_size*2 ...]
+
         :return: a numpy array, with hit rate corresponding to size [0, bin_size, bin_size*2 ...]
         """
+
         sanity_kwargs = {"num_of_threads": kwargs.get("num_of_threads", self.num_of_threads)}
         cache_size = kwargs.get("cache_size", self.cache_size)
         bin_size = kwargs.get("bin_size", self.bin_size)
@@ -150,62 +171,46 @@ class cGeneralProfiler:
             sanity_kwargs['end'] = kwargs['end']
 
         # handles both withsize and no size, but currently only storage system trace are supported with size
-        return mimircache.c_generalProfiler.get_hit_ratio(self.reader.cReader, self.cache_name, cache_size,
-                                                bin_size, cache_params=self.cache_params, **sanity_kwargs)
+        self.hit_ratio = mimircache.c_generalProfiler.get_hit_ratio(self.reader.cReader,
+                                                          self.cache_name,
+                                                          cache_size,
+                                                          bin_size,
+                                                          cache_params=self.cache_params,
+                                                          **sanity_kwargs)
+        return self.hit_ratio
 
 
-
-    def get_miss_ratio(self, **kwargs):
-        """
-        obtain miss ratio at cache size [0, bin_size, bin_size*2 ...]
-        :return: a numpy array, with miss rate corresponding to size [0, bin_size, bin_size*2 ...]
-        """
-        sanity_kwargs = {"num_of_threads": kwargs.get("num_of_threads", self.num_of_threads)}
-        cache_size = kwargs.get("cache_size", self.cache_size)
-        bin_size = kwargs.get("bin_size", self.bin_size)
-
-        # this is going to be deprecated
-        if 'begin' in kwargs:
-            sanity_kwargs['begin'] = kwargs['begin']
-        if 'end' in kwargs:
-            sanity_kwargs['end'] = kwargs['end']
-
-        if self.block_unit_size != 0:
-            print("not supported yet")
-        else:
-            return mimircache.c_generalProfiler.get_miss_ratio(self.reader.cReader, self.cache_name, cache_size,
-                                                    bin_size, cache_params=self.cache_params, **sanity_kwargs)
-
-
-    def plotHRC(self, figname="HRC.png", **kwargs):
+    def plotHRC(self, **kwargs):
         """
         plot hit ratio curve of the given trace under given algorithm
-        :param figname:
-        :param kwargs:
+        :param figname: the name of figure
+        :param kwargs: figname, cache_unit_size (unit: Byte), no_clear
         :return:
         """
-        HRC = self.get_hit_ratio(**kwargs)
-        try:
-            plt.xlim(0, self.cache_size)
-            plt.plot(range(0, self.cache_size + 1, self.bin_size), HRC)
-            xlabel = "Cache Size (items)"
 
-            cache_unit_size = kwargs.get("cache_unit_size", self.block_unit_size)
-            if cache_unit_size != 0:
-                xlabel = "Cache Size (MB)"
-                plt.gca().xaxis.set_major_formatter(
-                    ticker.FuncFormatter(lambda x, p: int(x * cache_unit_size // 1024 // 1024)))
+        dat_name = os.path.basename(self.reader.file_loc)
+        figname = kwargs.get("figname", "HRC_{}.png".format(dat_name))
 
-            plt.xlabel(xlabel)
-            plt.ylabel("Hit Ratio")
-            plt.title('Hit Ratio Curve', fontsize=18, color='black')
-            plt.savefig(figname, dpi=600)
-            INFO("plot is saved")
-            try: plt.show()
-            except: pass
-            if not kwargs.get("no_clear", False):
-                plt.clf()
-        except Exception as e:
-            plt.savefig(figname)
-            WARNING("the plotting function reports error, maybe this is a headless server? \nERROR: {}".format(e))
-        return HRC
+        if not self.get_hit_ratio(**kwargs):
+            raise RuntimeError("failed to calculate hit ratio")
+        plt.xlim(0, self.cache_size)
+        plt.plot(range(0, self.cache_size + 1, self.bin_size), self.hit_ratio)
+        xlabel = "Cache Size (Items)"
+
+        cache_unit_size = kwargs.get("cache_unit_size", self.block_unit_size)
+        if cache_unit_size != 0:
+            xlabel = "Cache Size (MB)"
+            plt.gca().xaxis.set_major_formatter(
+                ticker.FuncFormatter(lambda x, p: int(x * cache_unit_size // 1024 // 1024)))
+
+        plt.xlabel(xlabel)
+        plt.ylabel("Hit Ratio")
+        plt.title('Hit Ratio Curve', fontsize=18, color='black')
+        plt.savefig(figname, dpi=600)
+        INFO("plot is saved as {}".format(figname))
+        try: plt.show()
+        except: pass
+        if not kwargs.get("no_clear", False):
+            plt.clf()
+
+        return self.hit_ratio
