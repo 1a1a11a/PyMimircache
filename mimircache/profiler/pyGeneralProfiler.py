@@ -22,6 +22,47 @@ from mimircache.const import *
 from mimircache.utils.printing import *
 from mimircache.profiler.profilerUtils import util_plotHRC
 
+
+__all__ = ["PyGeneralProfiler"]
+
+def _cal_hit_count_subprocess(cache_class,
+                              cache_size,
+                              reader_class,
+                              reader_params,
+                              cache_params=None):
+    """
+    subprocess for simulating a cache, this will be used as init func for simulating a cache,
+    it reads data from reader and calculates the number of hits and misses
+
+    :param cache_class: the __class__ attribute of cache, this will be used to create cache instance
+    :param cache_size:  size of cache
+    :param reader_class: the __class__ attribute of reader, this will be used to create local reader instance
+    :param reader_params:   parameters for reader, used in creating local reader instance
+    :param cache_params:    parameters for cache, used in creating cache
+    :return: a tuple of number of hits and number of misses
+    """
+
+    if cache_params is None:
+        cache_params = {}
+    process_reader = reader_class(**reader_params)
+    cache = cache_class(cache_size, **cache_params)
+    n_hits = 0
+    n_misses = 0
+
+    n = 0
+    for req in process_reader:
+        if n == 0:
+            n += 1
+        hit = cache.add_element(req)
+        if hit:
+            n_hits += 1
+        else:
+            n_misses += 1
+    process_reader.close()
+    # print("size {} \t {}: {}".format(cache_size, n_hits, n_misses))
+    return n_hits, n_misses
+
+
 class PyGeneralProfiler:
     """
     Python version of generalProfiler
@@ -74,46 +115,6 @@ class PyGeneralProfiler:
         return cls.__name__
 
 
-    @staticmethod
-    def _cal_hit_count_subprocess(cache_class,
-                                  cache_size,
-                                  reader_class,
-                                  reader_params,
-                                  cache_params=None):
-        """
-        subprocess for simulating a cache, this will be used as init func for simulating a cache,
-        it reads data from reader and calculates the number of hits and misses
-
-        :param cache_class: the __class__ attribute of cache, this will be used to create cache instance
-        :param cache_size:  size of cache
-        :param reader_class: the __class__ attribute of reader, this will be used to create local reader instance
-        :param reader_params:   parameters for reader, used in creating local reader instance
-        :param cache_params:    parameters for cache, used in creating cache
-        :return: a tuple of number of hits and number of misses
-        """
-
-        if cache_params is None:
-            cache_params = {}
-        process_reader = reader_class(**reader_params)
-        cache = cache_class(cache_size, **cache_params)
-        n_hits = 0
-        n_misses = 0
-
-        n = 0
-        for req in process_reader:
-            if n == 0:
-                n += 1
-            hit = cache.add_element(req)
-            if hit:
-                n_hits += 1
-            else:
-                n_misses += 1
-        process_reader.close()
-        # print("size {} \t {}: {}".format(cache_size, n_hits, n_misses))
-        return n_hits, n_misses
-
-
-
     def _run(self):
         """
         simulate self.num_of_bins cache and calculate hit count and hit ratio for each cache size
@@ -126,7 +127,7 @@ class PyGeneralProfiler:
         self.num_of_trace_elements = self.reader.get_num_of_req()
         count = 0
         with ProcessPoolExecutor(max_workers=self.num_of_threads) as ppe:
-            future_to_size_ind = {ppe.submit(PyGeneralProfiler._cal_hit_count_subprocess,
+            future_to_size_ind = {ppe.submit(_cal_hit_count_subprocess,
                                              self.cache_class, self.bin_size * ind,
                                              self.reader.__class__, reader_params,
                                              self.cache_params): ind \
