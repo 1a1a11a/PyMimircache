@@ -15,20 +15,12 @@
 import math
 import numpy as np
 
-try:
-    # pypy3 fails on this
-    import matplotlib.pyplot as plt
-except:
-    import matplotlib
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-
 from concurrent.futures import as_completed, ProcessPoolExecutor
 
 from mimircache.cacheReader.abstractReader import AbstractReader
 from mimircache.const import *
 from mimircache.utils.printing import *
-
+from mimircache.profiler.profilerUtils import util_plotHRC
 
 class PyGeneralProfiler:
     """
@@ -202,33 +194,14 @@ class PyGeneralProfiler:
             self._run()
 
         dat_name = os.path.basename(self.reader.file_loc)
-        figname = kwargs.get("figname", "HRC_{}.png".format(dat_name))
+        kwargs["figname"] = kwargs.get("figname", "HRC_{}.png".format(dat_name))
+        kwargs["label"] = kwargs.get("label", self.cache_class.__name__)
 
-        no_clear = kwargs.get("no_clear", False)
-        no_save  = kwargs.get("no_save", False)
-        label = kwargs.get("label", self.cache_class.__name__)
 
-        plt.plot(np.arange(0, self.bin_size * (self.num_of_bins+1), self.bin_size),
-                 self.hit_ratio, label=label)
+        hit_ratio_size_list = [self.bin_size * i for i in range(self.num_of_bins + 1)]
+        util_plotHRC(hit_ratio_size_list, self.hit_ratio, **kwargs)
 
-        plt.xlabel("Cache Size (Items)")
-        plt.ylabel("Hit Ratio")
-        plt.legend(loc="best")
-        plt.title('Hit Ratio Curve', fontsize=18, color='black')
-
-        # save the figure
-        if not no_save:
-            if os.path.dirname(figname) and not os.path.exists(os.path.dirname(figname)):
-                os.makedirs(os.path.dirname(figname))
-            plt.savefig(figname, dpi=600)
-            INFO("plot is saved as {}".format(figname))
-
-        try: plt.show()
-        except: pass
-
-        # clear the canvas
-        if not no_clear:
-            plt.clf()
+        return self.hit_ratio
 
 
 if __name__ == "__main__":
@@ -237,24 +210,24 @@ if __name__ == "__main__":
 
     CACHE_SIZE = 40000
     NUM_OF_THREADS = os.cpu_count()
-    NUM_OF_THREADS = 8
-    BIN_SIZE = CACHE_SIZE // NUM_OF_THREADS // 2 + 1
+    # NUM_OF_THREADS = 8
+    BIN_SIZE = CACHE_SIZE // NUM_OF_THREADS // 4 + 1
 
     reader = VscsiReader("../data/trace.vscsi")
     # reader = BinaryReader("../data/trace.vscsi", init_params={"label":6, "fmt": "<3I2H2Q"})
-    reader = BinaryReader("/home/cloudphysics/traces/w106_vscsi1.vscsitrace", init_params={"label":6, "fmt": "<3I2H2Q"})
+    # reader = BinaryReader("/home/cloudphysics/traces/w106_vscsi1.vscsitrace", init_params={"label":6, "fmt": "<3I2H2Q"})
 
 
     p0 = PyGeneralProfiler(reader, LRU, cache_size=CACHE_SIZE, bin_size=BIN_SIZE, num_of_threads=NUM_OF_THREADS)
-    # p1 = CGeneralProfiler(reader, "LRU", cache_size=CACHE_SIZE, bin_size=BIN_SIZE, num_of_threads=NUM_OF_THREADS)
+    p1 = CGeneralProfiler(reader, "LRU", cache_size=CACHE_SIZE, bin_size=BIN_SIZE, num_of_threads=NUM_OF_THREADS)
     mt = MyTimer()
-    print(len(p0.get_hit_ratio()))
+    # print(len(p0.get_hit_ratio()))
     mt.tick()
     # print(len(p1.get_hit_ratio()))
     # mt.tick()
 
     # print(p0.get_hit_count())
-    # p0.plotHRC(figname="test.png", no_clear=True, label="LRU")
+    p0.plotHRC(figname="test.png", no_clear=True, label="LRU", cache_unit_size=1024)
     # mt.tick()
-    # p1.plotHRC(figname="test2.png", no_clear=True, label="LRU2")
+    p1.plotHRC(figname="test2.png", no_clear=True, label="LRU2", cache_unit_size=1024)
     # mt.tick()

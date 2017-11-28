@@ -4,6 +4,7 @@
 
     This module haven't been fully optimized and haven't been update for some time.
 
+    TODO: rewrite the process communication using shared memory for performance, but this depends on rewritten readers
     TODO: use numda and other JIT technique to improve run time
 
     Author: Jason Yang <peter.waynechina@gmail.com> 2016/07
@@ -23,6 +24,8 @@ from mimircache.profiler.abstract.abstractProfiler import profilerAbstract
 
 
 class generalProfiler(profilerAbstract):
+    all = ["get_hit_count", "get_hit_ratio", "get_miss_ratio", "plotHRC"]
+
     def __init__(self, reader, cache_class, cache_size,
                  bin_size=-1, cache_params=None,
                  num_of_threads=DEFAULT_NUM_OF_THREADS):
@@ -42,13 +45,14 @@ class generalProfiler(profilerAbstract):
             self.bin_size = int(self.cache_size / DEFAULT_BIN_NUM_PROFILER)
         else:
             self.bin_size = bin_size
+        if self.bin_size <= 0:
+            self.bin_size = 1
+
         self.num_of_threads = num_of_threads
 
         self.num_of_blocks = -1
         if self.cache_size != -1:
-
             self.num_of_blocks = int(math.ceil(self.cache_size / self.bin_size))
-
             self.HRC = np.zeros((self.num_of_blocks + 1,), dtype=np.double)
             self.MRC = np.zeros((self.num_of_blocks + 1,), dtype=np.double)
 
@@ -81,8 +85,6 @@ class generalProfiler(profilerAbstract):
             p.start()
 
         self.calculated = False
-
-    all = ["get_hit_count", "get_hit_ratio", "get_miss_ratio", "plotMRC", "plotHRC"]
 
 
     def addOneTraceElement(self, element):
@@ -122,7 +124,7 @@ class generalProfiler(profilerAbstract):
         while elements[-1] != 'END_1a1a11a_ENDMARKER':
             for i in range(len(cache_list)):
                 for element in elements:
-                    if not cache_list[i].addElement(element):
+                    if not cache_list[i].add_element(element):
                         MRC_shared_array[i * num_of_threads + process_num] += 1
             elements = pipe.recv()
 
@@ -159,9 +161,10 @@ class generalProfiler(profilerAbstract):
         for i in range(len(self.process_list)):
             self.process_list[i].join()
 
+        print("size {}: {}".format(self.cache_size, ", ".join([str(i) for i in self.MRC_shared_array])))
+
         self.MRC[0] = 1
         for i in range(1, len(self.MRC), 1):
-            # print(self.MRC_shared_array[i])
             self.MRC[i] = self.MRC_shared_array[i - 1] / self.num_of_trace_elements
         for i in range(1, len(self.HRC), 1):
             self.HRC[i] = 1 - self.MRC[i]
@@ -170,10 +173,12 @@ class generalProfiler(profilerAbstract):
     def get_hit_count(self):
         if not self.calculated:
             self.run()
+        print("size {}: {}".format(self.cache_size, ", ".join([str(i) for i in self.MRC_shared_array])))
 
         HC = np.zeros((self.num_of_blocks + 1,), dtype=np.longlong)
         for i in range(1, len(HC), 1):
             HC[i] = self.num_of_trace_elements - self.MRC_shared_array[i - 1]
+        print(HC)
         for i in range(len(HC)-1, 0, -1):
             HC[i] = HC[i] - HC[i - 1]
 
@@ -189,23 +194,6 @@ class generalProfiler(profilerAbstract):
             self.run()
         return self.MRC
 
-    def plotMRC(self, figname="MRC.png", **kwargs):
-        if not self.calculated:
-            self.run()
-        try:
-            num_of_blocks = self.num_of_blocks + 1
-            plt.plot(range(0, self.bin_size * num_of_blocks, self.bin_size), self.MRC[:num_of_blocks])
-            plt.xlabel("Cache Size")
-            plt.ylabel("Miss Ratio")
-            plt.title('Miss Ratio Curve', fontsize=18, color='black')
-            plt.savefig(figname, dpi=600)
-            INFO("plot is saved at the same directory")
-            plt.show()
-            plt.clf()
-        except Exception as e:
-            plt.savefig(figname)
-            WARNING("the plotting function is not wrong, is this a headless server? {}".format(e))
-            traceback.print_exc()
 
     def plotHRC(self, figname="HRC.png", **kwargs):
         if not self.calculated:
@@ -213,18 +201,41 @@ class generalProfiler(profilerAbstract):
         try:
             num_of_blocks = self.num_of_blocks + 1
 
-            plt.plot(range(0, self.bin_size * num_of_blocks, self.bin_size), self.HRC[:num_of_blocks])
+            plot_kwargs = {}
+            if "label" in kwargs:
+                plot_kwargs["label"] = kwargs["label"]
+            print([i for i in range(0, self.bin_size * num_of_blocks, self.bin_size)])
+            plt.plot(range(0, self.bin_size * num_of_blocks, self.bin_size),
+                     self.HRC[:num_of_blocks], **plot_kwargs)
             plt.xlabel("Cache Size")
             plt.ylabel("Hit Ratio")
+            plt.legend(loc="best")
             plt.title('Hit Ratio Curve', fontsize=18, color='black')
+            if os.path.dirname(figname) and not os.path.exists(os.path.dirname(figname)):
+                os.makedirs(os.path.dirname(figname))
             plt.savefig(figname, dpi=600)
-            INFO("plot is saved at the same directory")
+            INFO("plot is saved as {}".format(figname))
             try: plt.show()
             except: pass
             if not kwargs.get("no_clear", False):
                 plt.clf()
         except Exception as e:
             plt.savefig(figname)
-            WARNING("the plotting function is not wrong, is this a headless server? {}".format(e))
+            WARNING("the plotting function failed, is this a headless server? {}".format(e))
 
 
+if __name__ == "__main__":
+    from mimircache.utils.timer import MyTimer
+
+    CACHE_SIZE = 40000
+    NUM_OF_THREADS = os.cpu_count()
+    BIN_SIZE = CACHE_SIZE // NUM_OF_THREADS // 1 + 1
+
+    mt = MyTimer()
+    reader = VscsiReader("../data/trace.vscsi")
+
+
+    p0 = generalProfiler(reader, LRU, cache_size=CACHE_SIZE, bin_size=BIN_SIZE, num_of_threads=NUM_OF_THREADS)
+    print(p0.get_hit_count())
+    p0.plotHRC(figname="test0.png", no_clear=True, label="LRU")
+    mt.tick()

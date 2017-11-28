@@ -87,7 +87,11 @@ class BinaryReader(AbstractReader):
                                                                  disk_sector_size=disk_sector_size,
                                                                  init_params=init_params)
         self.get_num_of_req()
-        # self.read_one_req = self.read_one_element_file
+
+        # this might cause problem on Windows and it does give any performance gain
+        # self.mm = mmap.mmap(self.trace_file.fileno(), 0, mmap.MAP_SHARED, mmap.PROT_READ)
+        # self.trace_file_original = self.trace_file
+        # self.trace_file = self.mm
 
     def get_num_of_req(self):
         """

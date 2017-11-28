@@ -30,6 +30,7 @@ from matplotlib import pyplot as plt
 from mimircache.utils.printing import *
 from mimircache.profiler.cHeatmap import CHeatmap
 from mimircache.profiler.cLRUProfiler import CLRUProfiler
+from mimircache.profiler.profilerUtils import draw2d
 
 all=(
     "request_rate_2d",
@@ -566,7 +567,7 @@ def interval_hit_ratio_2d(reader, cache_size, decay_coef=0.2,
 
 
 
-def draw2d(l, **kwargs):
+def draw2d_old(l, **kwargs):
     """
     given a list l, plot it in two dimension
     :param l:

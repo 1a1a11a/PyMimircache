@@ -17,18 +17,13 @@
 
 
 import math
-import numpy as np
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
-
 from mimircache.cacheReader.abstractReader import AbstractReader
 from mimircache.utils.printing import *
 from mimircache.const import CExtensionMode
 if CExtensionMode:
     import mimircache.c_generalProfiler
 from mimircache.const import *
+from mimircache.profiler.profilerUtils import util_plotHRC
 
 
 class CGeneralProfiler:
@@ -198,40 +193,12 @@ class CGeneralProfiler:
         """
 
         dat_name = os.path.basename(self.reader.file_loc)
-        figname = kwargs.get("figname", "HRC_{}.png".format(dat_name))
-        no_clear = kwargs.get("no_clear", False)
-        no_save  = kwargs.get("no_save", False)
-        label = kwargs.get("label", self.cache_name)
+        kwargs["figname"] = kwargs.get("figname", "HRC_{}.png".format(dat_name))
+        kwargs["label"] = kwargs.get("label", self.cache_name)
 
         self.get_hit_ratio(**kwargs)
+        hit_ratio_size_list = [self.bin_size * i for i in range(self.num_of_bins + 1)]
+        util_plotHRC(hit_ratio_size_list, self.hit_ratio, **kwargs)
 
-        plt.xlim(0, self.cache_size)
-
-        plt.plot(np.arange(0, self.bin_size * (self.num_of_bins+1), self.bin_size),
-                 self.hit_ratio, label=label)
-        xlabel = "Cache Size (Items)"
-
-        cache_unit_size = kwargs.get("cache_unit_size", self.block_unit_size)
-        if cache_unit_size != 0:
-            xlabel = "Cache Size (MB)"
-            plt.gca().xaxis.set_major_formatter(
-                ticker.FuncFormatter(lambda x, p: int(x * cache_unit_size // 1024 // 1024)))
-
-        plt.xlabel(xlabel)
-        plt.ylabel("Hit Ratio")
-        plt.title('Hit Ratio Curve', fontsize=18, color='black')
-
-        # save the figure
-        if not no_save:
-            if os.path.dirname(figname) and not os.path.exists(os.path.dirname(figname)):
-                os.makedirs(os.path.dirname(figname))
-            plt.savefig(figname, dpi=600)
-            INFO("plot is saved as {}".format(figname))
-
-        try: plt.show()
-        except: pass
-
-        # clear canvas
-        if not no_clear: plt.clf()
 
         return self.hit_ratio
