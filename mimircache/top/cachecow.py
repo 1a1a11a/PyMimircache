@@ -23,8 +23,12 @@ from mimircache.cacheReader.traceStat import traceStat
 from multiprocessing import cpu_count
 
 
-class cachecow:
-    __all__ = ["open",
+class Cachecow:
+    """
+    cachecow class providing top level API
+    """
+
+    all = ["open",
            "csv",
            "vscsi",
            "binary",
@@ -33,12 +37,11 @@ class cachecow:
            "num_of_uniq_req",
            "get_reuse_distance",
            "get_hit_ratio_dict",
-           "heatmap",
+            "heatmap",
            "diff_heatmap",
            "twoDPlot",
            "eviction_plot",
            "plotHRCs",
-           "plotMRCs",
            "characterize",
            "close"]
 
@@ -80,7 +83,7 @@ class cachecow:
         if self.reader:
             self.reader.close()
         if trace_type == "p":
-            self.reader = plainReader(file_path, data_type=data_type)
+            self.reader = PlainReader(file_path, data_type=data_type)
 
         elif trace_type == "c":
             assert "init_params" in kwargs, "please provide init_params for csv trace"
@@ -142,7 +145,7 @@ class cachecow:
 
         if self.reader:
             self.reader.close()
-        self.reader = csvReader(file_path, data_type=data_type,
+        self.reader = CsvReader(file_path, data_type=data_type,
                                 block_unit_size=block_unit_size,
                                 disk_sector_size=disk_sector_size,
                                 init_params=init_params, **kwargs)
@@ -164,19 +167,18 @@ class cachecow:
 
         if self.reader:
             self.reader.close()
-        self.reader = binaryReader(file_path, data_type=data_type,
+        self.reader = BinaryReader(file_path, data_type=data_type,
                                    block_unit_size=block_unit_size,
                                    disk_sector_size=disk_sector_size,
                                    init_params=init_params, **kwargs)
         return self.reader
 
-    def vscsi(self, file_path, block_unit_size=0, disk_sector_size=512, **kwargs):
+    def vscsi(self, file_path, block_unit_size=0, **kwargs):
         """
         open vscsi trace file
 
         :param file_path: the path to the data
         :param block_unit_size: the block size for a cache, currently storage system only
-        :param disk_sector_size: the disk sector size of input file, storage system only
         :return: reader object
         """
 
@@ -184,9 +186,7 @@ class cachecow:
             self.reader.close()
         if "data_type" in kwargs:
             del kwargs["data_type"]
-        self.reader = vscsiReader(file_path, data_type="l",
-                                  block_unit_size=block_unit_size,
-                                  disk_sector_size=disk_sector_size, **kwargs)
+        self.reader = VscsiReader(file_path, block_unit_size=block_unit_size, **kwargs)
         return self.reader
 
 
@@ -280,7 +280,7 @@ class cachecow:
         if isinstance(p, LRUProfiler):
             for i in range(len(hr)-2):
                 hit_ratio_dict[i] = hr[i]
-        elif isinstance(p, cGeneralProfiler) or isinstance(p, generalProfiler):
+        elif isinstance(p, CGeneralProfiler) or isinstance(p, PyGeneralProfiler):
             for i in range(len(hr)):
                 hit_ratio_dict[i * p.bin_size] = hr[i]
         return hit_ratio_dict
@@ -314,16 +314,16 @@ class cachecow:
                                                                                               self.num_of_req())
             if isinstance(algorithm, str):
                 if algorithm.lower() in c_available_cache:
-                    profiler = cGeneralProfiler(self.reader, cache_alg_mapping[algorithm.lower()],
+                    profiler = CGeneralProfiler(self.reader, cache_alg_mapping[algorithm.lower()],
                                                 cache_size, bin_size,
-                                                cache_params, num_of_threads)
+                                                cache_params=cache_params, num_of_threads=num_of_threads)
                 else:
-                    profiler = generalProfiler(self.reader, self.cacheclass_mapping[algorithm.lower()],
-                                               cache_size, bin_size,
-                                               cache_params, num_of_threads)
+                    profiler = PyGeneralProfiler(self.reader, self.cacheclass_mapping[algorithm.lower()],
+                                                 cache_size, bin_size,
+                                                 cache_params=cache_params, num_of_threads=num_of_threads)
             else:
-                profiler = generalProfiler(self.reader, algorithm, cache_size, bin_size,
-                                           cache_params, num_of_threads)
+                profiler = PyGeneralProfiler(self.reader, algorithm, cache_size, bin_size,
+                                             cache_params=cache_params, num_of_threads=num_of_threads)
 
         return profiler
 
@@ -367,13 +367,13 @@ class cachecow:
         l = ["avg_rd_start_time_end_time", "hit_ratio_start_time_cache_size"]
 
         if plot_type in l:
-            hm = heatmap()
+            hm = PyHeatmap()
         else:
             if algorithm.lower() in c_available_cache:
-                hm = cHeatmap()
+                hm = CHeatmap()
 
             else:
-                hm = heatmap()
+                hm = PyHeatmap()
 
         hm.heatmap(self.reader, time_mode, plot_type,
                    time_interval=time_interval,
@@ -410,7 +410,7 @@ class cachecow:
 
 
         if algorithm1.lower() in c_available_cache and algorithm2.lower() in c_available_cache:
-            hm = cHeatmap()
+            hm = CHeatmap()
             hm.diffHeatmap(self.reader, time_mode, plot_type,
                            cache_size=cache_size,
                            time_interval=time_interval,
@@ -422,7 +422,7 @@ class cachecow:
                            **kwargs)
 
         else:
-            hm = heatmap()
+            hm = PyHeatmap()
             if algorithm1.lower() not in c_available_cache:
                 xydict1 = hm.calculate_heatmap_dat(self.reader, time_mode, plot_type,
                                                    time_interval=time_interval,
@@ -453,7 +453,7 @@ class cachecow:
                                                        cache_params=cache_params2,
                                                        num_of_threads=num_of_threads)
 
-            cHm = cHeatmap()
+            cHm = CHeatmap()
             text = "      differential heatmap\n      cache size: {},\n      cache type: ({}-{})/{},\n" \
                    "      time type: {},\n      time interval: {},\n      plot type: \n{}".format(
                 cache_size, algorithm2, algorithm1, algorithm1, time_mode, time_interval, plot_type)

@@ -3,10 +3,10 @@ from mimircache.cache.LRU import LRU
 
 
 class FIFO(LRU):
-    def __init__(self, cache_size=1000):
-        super().__init__(cache_size)
+    def __init__(self, cache_size=1000, **kwargs):
+        super().__init__(cache_size, **kwargs)
 
-    def _updateElement(self, element):
+    def _update_element(self, element):
         """ the given element is in the cache, now update it to new location
         :param element:
         :return: None
@@ -14,5 +14,5 @@ class FIFO(LRU):
         pass
 
     def __repr__(self):
-        return "FIFO, given size: {}, current size: {}, {}".format(
+        return "FIFO cache of size {}, current size: {}, {}".format(
             self.cache_size, self.cacheLinkedList.size, super().__repr__())

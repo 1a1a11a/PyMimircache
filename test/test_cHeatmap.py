@@ -4,13 +4,13 @@
 import unittest
 import mimircache.c_cacheReader as c_cacheReader
 import mimircache.c_LRUProfiler as c_LRUProfiler
-from mimircache.cacheReader.csvReader import csvReader
-from mimircache.cacheReader.plainReader import plainReader
-from mimircache.cacheReader.vscsiReader import vscsiReader
-from mimircache.cacheReader.binaryReader import binaryReader
-from mimircache.profiler.LRUProfiler import LRUProfiler
-from mimircache.profiler.cGeneralProfiler import cGeneralProfiler
-from mimircache.profiler.cHeatmap import cHeatmap
+from mimircache.cacheReader.csvReader import CsvReader
+from mimircache.cacheReader.plainReader import PlainReader
+from mimircache.cacheReader.vscsiReader import VscsiReader
+from mimircache.cacheReader.binaryReader import BinaryReader
+from mimircache.profiler.cLRUProfiler import CLRUProfiler
+from mimircache.profiler.cGeneralProfiler import CGeneralProfiler
+from mimircache.profiler.cHeatmap import CHeatmap
 
 
 DAT_FOLDER = "../data/"
@@ -24,8 +24,8 @@ if not os.path.exists(DAT_FOLDER):
 
 class cHeatmapTest(unittest.TestCase):
     def test1_vReader(self):
-        reader = vscsiReader("{}/trace.vscsi".format(DAT_FOLDER))
-        cH = cHeatmap()
+        reader = VscsiReader("{}/trace.vscsi".format(DAT_FOLDER))
+        cH = CHeatmap()
         bpr = cH.get_breakpoints(reader, 'r', time_interval=1000000)
         self.assertEqual(bpr[10], 53)
         bpr = cH.get_breakpoints(reader, 'r', num_of_pixels=1000)
@@ -49,8 +49,8 @@ class cHeatmapTest(unittest.TestCase):
 
 
     def test2_pReader(self):
-        reader = plainReader("{}/trace.txt".format(DAT_FOLDER))
-        cH = cHeatmap()
+        reader = PlainReader("{}/trace.txt".format(DAT_FOLDER))
+        cH = CHeatmap()
         bpv = cH.get_breakpoints(reader, 'v', time_interval=1000)
         self.assertEqual(bpv[10], 10000)
 
@@ -71,9 +71,9 @@ class cHeatmapTest(unittest.TestCase):
 
 
     def test3_cReader_v(self):
-        reader = csvReader("{}/trace.csv".format(DAT_FOLDER),
+        reader = CsvReader("{}/trace.csv".format(DAT_FOLDER),
                            init_params={"header":True, "label":5})
-        cH = cHeatmap()
+        cH = CHeatmap()
         bpv = cH.get_breakpoints(reader, 'v', time_interval=1000)
         self.assertEqual(bpv[10], 10000)
 
@@ -96,9 +96,9 @@ class cHeatmapTest(unittest.TestCase):
 
 
     def test4_cReader_r(self):
-        reader = csvReader("{}/trace.csv".format(DAT_FOLDER),
+        reader = CsvReader("{}/trace.csv".format(DAT_FOLDER),
                            init_params={"header":True, "label":5, 'real_time':2})
-        cH = cHeatmap()
+        cH = CHeatmap()
         bpr = cH.get_breakpoints(reader, 'r', time_interval=1000000)
         self.assertEqual(bpr[10], 53)
 
@@ -122,10 +122,10 @@ class cHeatmapTest(unittest.TestCase):
 
 
     def test5_bReader(self):
-        reader = binaryReader("{}/trace.vscsi".format(DAT_FOLDER),
+        reader = BinaryReader("{}/trace.vscsi".format(DAT_FOLDER),
                               init_params={"label":6, "real_time":7, "fmt": "<3I2H2Q"})
 
-        cH = cHeatmap()
+        cH = CHeatmap()
         bpr = cH.get_breakpoints(reader, 'r', time_interval=1000000)
         self.assertEqual(bpr[10], 53)
         bpv = cH.get_breakpoints(reader, 'v', time_interval=1000)

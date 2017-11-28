@@ -1,27 +1,29 @@
 # coding=utf-8
-""" this module is used for non-LRU cache replacement algorithms (of course, LRU also works)
-it uses sampling, basically it simulates a cache at cache size [0, bin_size, bin_size*2 ...]
-(of course, there is no need for cache size 0,
-so the hit count or hit ratio for cache size 0 is always 0).
-The time complexity of this simulation is O(mN) where m is the number of bins (cache_size//bin_size),
-N is the trace length.
+"""
+    this module is used for non-LRU cache replacement algorithms (of course, LRU also works)
+    it uses sampling, basically it simulates a cache at cache size [0, bin_size, bin_size*2 ...]
+    (of course, there is no need for cache size 0,
+    so the hit count or hit ratio for cache size 0 is always 0).
+    The time complexity of this simulation is O(mN) where m is the number of bins (cache_size//bin_size),
+    N is the trace length.
 
-For LRU, you can use module, but LRUProfiler will provide a better accuracy
-as it does not have sampling over cache size, you will always get a smooth curve,
-but the cost is an O(nlogn) algorithm.
+    For LRU, you can use module, but LRUProfiler will provide a better accuracy
+    as it does not have sampling over cache size, you will always get a smooth curve,
+    but the cost is an O(nlogn) algorithm.
 
-Author: Jason Yang <peter.waynechina@gmail.com> 2016/07
+    Author: Jason Yang <peter.waynechina@gmail.com> 2016/07
 
 """
-# -*- coding: utf-8 -*-
 
 
+import math
+import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 
-from mimircache.cacheReader.abstractReader import cacheReaderAbstract
+from mimircache.cacheReader.abstractReader import AbstractReader
 from mimircache.utils.printing import *
 from mimircache.const import CExtensionMode
 if CExtensionMode:
@@ -29,12 +31,16 @@ if CExtensionMode:
 from mimircache.const import *
 
 
-class cGeneralProfiler:
+class CGeneralProfiler:
+    """
+    generalProfiler of C lang version
+    """
     all = ["get_hit_count",
            "get_hit_ratio",
            "plotHRC"]
 
-    def __init__(self, reader, cache_name, cache_size, bin_size=-1, cache_params=None, **kwargs):
+    def __init__(self, reader, cache_name, cache_size,
+                 bin_size=-1, num_of_bins=-1, cache_params=None, **kwargs):
 
         """
         initialization of a cGeneralProfiler
@@ -51,10 +57,11 @@ class cGeneralProfiler:
         self.cache_size = cache_size
         self.cache_name = cache_alg_mapping[cache_name.lower()]
         self.bin_size = bin_size
+        self.num_of_bins = num_of_bins
         self.hit_count = None
         self.hit_ratio = None
 
-        assert isinstance(reader, cacheReaderAbstract), \
+        assert isinstance(reader, AbstractReader), \
             "you provided an invalid cacheReader: {}".format(reader)
 
         assert cache_name.lower() in cache_alg_mapping, \
@@ -63,15 +70,18 @@ class cGeneralProfiler:
             "cGeneralProfiler currently only available on the following caches: {}\n, " \
             "please use generalProfiler".format(pformat(c_available_cache))
 
+        assert self.bin_size == -1 or self.num_of_bins == -1, \
+            "please don't specify bin_size ({}) and num_of_bins ({}) at the same time".format(self.bin_size, self.num_of_bins)
         assert isinstance(self.cache_size, int) and self.cache_size > 0, \
             "cache size {} is not valid for {}".format(cache_size, self.get_classname())
 
 
         if self.bin_size == -1:
-            self.bin_size = int(self.cache_size / DEFAULT_BIN_NUM_PROFILER)
-
-        if self.bin_size == 0:
-            self.bin_size = 1
+            if self.num_of_bins == -1:
+                self.num_of_bins = DEFAULT_BIN_NUM_PROFILER
+            self.bin_size = int(math.ceil(self.cache_size / self.num_of_bins)) # this guarantees bin_size >= 1
+        else:
+            self.num_of_bins = int(math.ceil(self.cache_size / self.bin_size))
 
         self.cache_params = cache_params
         if self.cache_params is None:
@@ -109,11 +119,11 @@ class cGeneralProfiler:
         """
         self.num_of_lines = 0
         with open('.temp.dat', 'w') as ofile:
-            i = self.reader.read_one_element()
+            i = self.reader.read_one_req()
             while i is not None:
                 self.num_of_lines += 1
                 ofile.write(str(i) + '\n')
-                i = self.reader.read_one_element()
+                i = self.reader.read_one_req()
         self.reader = plainReader('.temp.dat')
 
 
@@ -183,18 +193,22 @@ class cGeneralProfiler:
     def plotHRC(self, **kwargs):
         """
         plot hit ratio curve of the given trace under given algorithm
-        :param figname: the name of figure
-        :param kwargs: figname, cache_unit_size (unit: Byte), no_clear
+        :param kwargs: figname, cache_unit_size (unit: Byte), no_clear, no_save
         :return:
         """
 
         dat_name = os.path.basename(self.reader.file_loc)
         figname = kwargs.get("figname", "HRC_{}.png".format(dat_name))
+        no_clear = kwargs.get("no_clear", False)
+        no_save  = kwargs.get("no_save", False)
+        label = kwargs.get("label", self.cache_name)
 
-        if not self.get_hit_ratio(**kwargs):
-            raise RuntimeError("failed to calculate hit ratio")
+        self.get_hit_ratio(**kwargs)
+
         plt.xlim(0, self.cache_size)
-        plt.plot(range(0, self.cache_size + 1, self.bin_size), self.hit_ratio)
+
+        plt.plot(np.arange(0, self.bin_size * (self.num_of_bins+1), self.bin_size),
+                 self.hit_ratio, label=label)
         xlabel = "Cache Size (Items)"
 
         cache_unit_size = kwargs.get("cache_unit_size", self.block_unit_size)
@@ -206,11 +220,18 @@ class cGeneralProfiler:
         plt.xlabel(xlabel)
         plt.ylabel("Hit Ratio")
         plt.title('Hit Ratio Curve', fontsize=18, color='black')
-        plt.savefig(figname, dpi=600)
-        INFO("plot is saved as {}".format(figname))
+
+        # save the figure
+        if not no_save:
+            if os.path.dirname(figname) and not os.path.exists(os.path.dirname(figname)):
+                os.makedirs(os.path.dirname(figname))
+            plt.savefig(figname, dpi=600)
+            INFO("plot is saved as {}".format(figname))
+
         try: plt.show()
         except: pass
-        if not kwargs.get("no_clear", False):
-            plt.clf()
+
+        # clear canvas
+        if not no_clear: plt.clf()
 
         return self.hit_ratio

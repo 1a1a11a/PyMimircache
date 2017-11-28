@@ -158,7 +158,7 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
 }
 
 
-static PyObject* reader_read_one_element(PyObject* self, PyObject* args)
+static PyObject* reader_read_one_req(PyObject* self, PyObject* args)
 {
     reader_t* reader;
     PyObject* po; 
@@ -235,7 +235,7 @@ static PyObject* reader_read_time_request(PyObject* self, PyObject* args)
         Py_RETURN_NONE;
 }
 
-static PyObject* reader_read_one_request_full_info(PyObject* self, PyObject* args)
+static PyObject* reader_read_complete_req(PyObject* self, PyObject* args)
 {
     reader_t* reader;
     PyObject* po;
@@ -392,7 +392,7 @@ static PyMethodDef c_cacheReader_funcs[] = {
         METH_VARARGS, "return the number of requests in the cache file"},
     {"close_reader", (PyCFunction)reader_close_reader,
         METH_VARARGS, "close c_reader"},
-    {"read_one_element", (PyCFunction)reader_read_one_element,
+    {"read_one_req", (PyCFunction)reader_read_one_req,
         METH_VARARGS, "read one element from reader"},
     {"reset_reader", (PyCFunction)reader_reset_reader,
         METH_VARARGS, "reset reader to beginning position"},
@@ -404,7 +404,7 @@ static PyMethodDef c_cacheReader_funcs[] = {
     {"read_time_request", (PyCFunction)reader_read_time_request,
         METH_VARARGS, "read one element with its real time from reader "
         "in the form of tuple (real time, request)"},
-    {"read_one_request_full_info", (PyCFunction)reader_read_one_request_full_info,
+    {"read_complete_req", (PyCFunction)reader_read_complete_req,
         METH_VARARGS, "read one element with its real time and size from reader"
         " in the form of tuple (real time, request, size)"},
     

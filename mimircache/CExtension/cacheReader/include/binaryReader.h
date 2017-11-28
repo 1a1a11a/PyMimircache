@@ -137,10 +137,11 @@ static inline int binary_read(reader_t* reader, cache_line* cp){
                        params->size_type, &(cp->size));
     }
     if (params->op_type){
-        printf("op type %d %c\n", params->op_type, params->op_type);
-        WARNING("currently op option is not supported\n");
+//        printf("op type %d %c\n", params->op_type, params->op_type);
+//        WARNING("currently op option is not supported\n");
 //        binary_extract(record, params->op_pos, params->op_len,
 //                       params->op_type, &(cp->op));
+        ;
     }
     
     

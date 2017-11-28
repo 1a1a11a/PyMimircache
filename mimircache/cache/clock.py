@@ -7,12 +7,12 @@ class clock(LRU):
     second chance page replacement algorithm
     """
 
-    def __init__(self, cache_size=1000):
+    def __init__(self, cache_size=1000, **kwargs):
         # use node id to represent the reference bit
-        super(clock, self).__init__(cache_size)
+        super(clock, self).__init__(cache_size, **kwargs)
         self.hand = None  # points to the node for examination/eviction
 
-    def _updateElement(self, element):
+    def _update_element(self, element):
         """ the given element is in the cache, now update it
         :param element:
         :return: None
@@ -20,14 +20,14 @@ class clock(LRU):
         node = self.cacheDict[element]
         node.id = 1
 
-    def _insertElement(self, element, evict=True):
+    def _insert_element(self, element, evict=True):
         """
         the given element is not in the cache, now insert it into cache
         :param element:
         :return: True on success, False on failure
         """
         if self.cacheLinkedList.size >= self.cache_size:
-            self._evictOneElement()
+            self._evict_one_element()
 
         node = self.cacheLinkedList.insertAtTail(element, id=1)
         self.cacheDict[element] = node
@@ -64,7 +64,7 @@ class clock(LRU):
             self.hand = node.next
             return node
 
-    def _evictOneElement(self):
+    def _evict_one_element(self):
         """
         evict one element from the cache line
         :return: True on success, False on failure
@@ -75,13 +75,13 @@ class clock(LRU):
 
         return True
 
-    def addElement(self, element):
+    def add_element(self, element):
         """
         :param element: the element in the reference, it can be in the cache, or not
         :return: None
         """
-        if self.checkElement(element):
-            self._updateElement(element)
+        if self.check_element(element):
+            self._update_element(element)
             # self.printCacheLine()
             if len(self.cacheDict) != self.cacheLinkedList.size:
                 print("1*********########### ERROR detected in LRU size #############***********")
@@ -90,7 +90,7 @@ class clock(LRU):
                 sys.exit(-1)
             return True
         else:
-            self._insertElement(element)
+            self._insert_element(element)
             # self.printCacheLine()
             if len(self.cacheDict) != self.cacheLinkedList.size:
                 print("2*********########### ERROR detected in LRU size #############***********")

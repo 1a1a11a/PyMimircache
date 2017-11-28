@@ -9,12 +9,12 @@ from mimircache.cache.abstractCache import cache
 
 
 class Random(cache):
-    def __init__(self, cache_size=1000):
-        super().__init__(cache_size)
+    def __init__(self, cache_size=1000, **kwargs):
+        super().__init__(cache_size, **kwargs)
         self.cache_set = set()  # key -> linked list node (in reality, it should also contains value)
         self.cache_line_list = [] # to save all the keys, otherwise needs to populate from cache_set every time
 
-    def checkElement(self, element):
+    def check_element(self, element):
         """
         :param element: the key of cache request
         :return: whether the given key is in the cache or not
@@ -24,7 +24,7 @@ class Random(cache):
         else:
             return False
 
-    def _updateElement(self, element):
+    def _update_element(self, element):
         """ the given element is in the cache, when it is requested again,
          usually we need to update it to new location, but in random, we don't need to do that
         :param element: the key of cache request
@@ -33,7 +33,7 @@ class Random(cache):
 
         pass
 
-    def _insertElement(self, element):
+    def _insert_element(self, element):
         """
         the given element is not in the cache, now insert it into cache
         :param element: the key of cache request
@@ -59,23 +59,23 @@ class Random(cache):
 
         print(' ')
 
-    def _evictOneElement(self):
+    def _evict_one_element(self):
         """
         not used
         :return:
         """
         pass
 
-    def addElement(self, element):
+    def add_element(self, element):
         """
         :param element: the key of cache request, it can be in the cache, or not in the cache
         :return: True if element in the cache
         """
-        if self.checkElement(element):
-            self._updateElement(element)
+        if self.check_element(element):
+            self._update_element(element)
             return True
         else:
-            self._insertElement(element)
+            self._insert_element(element)
             return False
 
     def __repr__(self):

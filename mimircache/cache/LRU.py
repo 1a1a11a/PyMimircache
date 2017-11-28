@@ -4,15 +4,16 @@ from mimircache.utils.LinkedList import LinkedList
 
 
 class LRU(cache):
-    def __init__(self, cache_size=1000):
-        super().__init__(cache_size)
+    def __init__(self, cache_size=1000, **kwargs):
+
+        super().__init__(cache_size, **kwargs)
         self.cacheLinkedList = LinkedList()
         self.cacheDict = dict()  # key -> linked list node (in reality, it should also contains value)
 
     def __len__(self):
         return len(self.cacheDict)
 
-    def checkElement(self, element):
+    def check_element(self, element):
         """
         :param element:
         :return: whether the given element is in the cache
@@ -22,7 +23,7 @@ class LRU(cache):
         else:
             return False
 
-    def _updateElement(self, element):
+    def _update_element(self, element):
         """ the given element is in the cache, now update it to new location
         :param element:
         :return: None
@@ -31,16 +32,13 @@ class LRU(cache):
         node = self.cacheDict[element]
         self.cacheLinkedList.moveNodeToTail(node)
 
-    def _insertElement(self, element, evict=True):
+    def _insert_element(self, element):
         """
         the given element is not in the cache, now insert it into cache
         :param element:
         :return: evicted element or None
         """
         return_content = None
-        if evict and self.cacheLinkedList.size >= self.cache_size:
-            return_content = self._evictOneElement()
-
         node = self.cacheLinkedList.insertAtTail(element)
         self.cacheDict[element] = node
         return return_content
@@ -54,37 +52,30 @@ class LRU(cache):
 
         print(' ')
 
-    def _evictOneElement(self):
+    def _evict_one_element(self):
         """
-        evict one element from the cache line
+        evict one element from the cache
         :return: content of evicted element
         """
+
         content = self.cacheLinkedList.removeFromHead()
         del self.cacheDict[content]
         return content
 
-    def addElement(self, element):
+    def add_element(self, element):
         """
-        :param element: the element in the reference, it can be in the cache, or not
+        :param element: the element in the trace, it can be in the cache, or not
         :return: None
         """
-        if self.checkElement(element):
-            self._updateElement(element)
-            if len(self.cacheDict) != self.cacheLinkedList.size:
-                print("1*********########### ERROR detected in LRU size #############***********")
-                print("{}: {}".format(self.cacheLinkedList.size, len(self.cacheDict)))
-                import sys
-                sys.exit(-1)
+        if self.check_element(element):
+            self._update_element(element)
             return True
         else:
-            self._insertElement(element)
-            if len(self.cacheDict) != self.cacheLinkedList.size:
-                print("2*********########### ERROR detected in LRU size #############***********")
-                print("{}: {}".format(self.cacheLinkedList.size, len(self.cacheDict)))
-                import sys
-                sys.exit(-1)
+            self._insert_element(element)
+            if self.cacheLinkedList.size > self.cache_size:
+                self._evict_one_element()
             return False
 
     def __repr__(self):
-        return "LRU, given size: {}, current size: {}, {}".format(self.cache_size, self.cacheLinkedList.size,
-                                                                  super().__repr__())
+        return "LRU cache of size: {}, current size: {}, {}".\
+            format(self.cache_size, self.cacheLinkedList.size, super().__repr__())

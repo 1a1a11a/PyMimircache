@@ -24,7 +24,7 @@
 >>>         else:
 >>>             return False
 >>>
->>>     def _updateElement(self, element):
+>>>     def _update_element(self, element):
             ''' the given element is in the cache, when it is requested again,
              usually we need to update it to new location, but in random, we don't need to do that
             :param element: the key of cache request
@@ -39,11 +39,11 @@
             :return: None
             '''
 >>>         if len(self.cache_dict) >= self.cache_size:
->>>             self._evictOneElement()
+>>>             self._evict_one_element()
 >>>         self.cache_dict[element] = ""
 >>>         self.cache_line_list.append(element)
 >>>
->>>     def _evictOneElement(self):
+>>>     def _evict_one_element(self):
             '''
             evict one element from the cache line
             if we delete one element from list every time, it would be O(N) on
@@ -68,16 +68,16 @@
 >>>             self.cache_line_list = new_list
 >>>         del self.cache_dict[element]
 >>>
->>>     def addElement(self, element):
+>>>     def add_element(self, element):
             '''
             :param element: the key of cache request, it can be in the cache, or not in the cache
             :return: True if element in the cache
             '''
->>>         if self.checkElement(element):
->>>             self._updateElement(element)
+>>>         if self.check_element(element):
+>>>             self._update_element(element)
 >>>             return True
 >>>         else:
->>>             self._insertElement(element)
+>>>             self._insert_element(element)
 >>>             return False
 >>>
 >>>     def __repr__(self):

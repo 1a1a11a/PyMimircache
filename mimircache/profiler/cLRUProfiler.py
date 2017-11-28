@@ -14,27 +14,37 @@ from mimircache.const import INTERNAL_USE
 from mimircache.const import CExtensionMode
 if CExtensionMode:
     import mimircache.c_LRUProfiler
-from mimircache.cacheReader.binaryReader import binaryReader
-from mimircache.cacheReader.abstractReader import cacheReaderAbstract
+from mimircache.cacheReader.binaryReader import BinaryReader
+from mimircache.cacheReader.abstractReader import AbstractReader
 import matplotlib.pyplot as plt
 from mimircache.utils.printing import *
 from matplotlib.ticker import FuncFormatter
 
-class LRUProfiler:
-    all = ("get_hit_count",
+class CLRUProfiler:
+    """
+    LRUProfiler in C
+
+    """
+    all = ["get_hit_count",
            "get_hit_ratio",
-           "get_miss_ratio",
            "get_reuse_distance",
-           "plotMRC",
            "plotHRC",
            "save_reuse_dist",
            "load_reuse_dist",
-           "use_precomputedRD")
+           "use_precomputedRD"]
 
-    def __init__(self, reader, cache_size=-1, cache_params=None, *args, **kwargs):
+    def __init__(self, reader, cache_size=-1, cache_params=None, **kwargs):
+        """
+        initialize a CLRUProfiler
+
+        :param reader: reader for feeding data into profiler
+        :param cache_size: size of cache, if -1, then use max possible size
+        :param cache_params: parameters about cache, such as block_unit_size
+        :param kwargs: no_load_rd
+        """
 
         # make sure reader is valid
-        assert isinstance(reader, cacheReaderAbstract), \
+        assert isinstance(reader, AbstractReader), \
             "you provided an invalid cacheReader: {}".format(reader)
 
         self.cache_size = cache_size
@@ -54,7 +64,6 @@ class LRUProfiler:
 
         # this is for deprecated functions, as old version uses hit/miss rate instead of hit/miss ratio
         self.get_hit_rate = self.get_hit_ratio
-        self.get_miss_rate = self.get_miss_ratio
 
 
         # INTERNAL USE to cache intermediate reuse distance
@@ -66,10 +75,6 @@ class LRUProfiler:
                 self.use_precomputedRD()
                 self.already_load_rd = True
 
-
-    def addOneTraceElement(self, element):
-        # do not need this function in this profiler
-        pass
 
     def save_reuse_dist(self, file_loc, rd_type):
         """
@@ -186,19 +191,19 @@ class LRUProfiler:
         :param kwargs:
         :return:
         """
-        from mimircache.cacheReader.tracePreprocesser import tracePreprocessor
+        from mimircache.cacheReader.tracePreprocesser import TracePreprocessor
         kargs = {}
         if 'cache_size' not in kwargs:
             kargs['cache_size'] = self.cache_size
         else:
             kargs['cache_size'] = kwargs['cache_size']
 
-        pp = tracePreprocessor(self.reader)
+        pp = TracePreprocessor(self.reader)
         N1, N2, traceName, fmt = pp.prepare_for_shards(sample_ratio=sample_ratio, has_time=False)
         correction = N2 - N1
         print("correction: {}".format(correction))
         # correction = 0
-        tempReader = binaryReader(traceName, init_params={"label":1, "fmt": fmt})
+        tempReader = BinaryReader(traceName, init_params={"label":1, "fmt": fmt})
 
         if self.block_unit_size != 0:
             print("not supported yet")
@@ -208,18 +213,6 @@ class LRUProfiler:
                                                        correction=correction, **kargs)
         return hit_ratio
 
-    def get_miss_ratio(self, **kargs):
-        """
-        get miss ratio as a np array
-        """
-        if 'cache_size' not in kargs:
-            kargs['cache_size'] = self.cache_size
-        if self.block_unit_size != 0:
-            print("not supported yet")
-            return None
-        else:
-            miss_ratio = mimircache.c_LRUProfiler.get_miss_ratio_seq(self.reader.cReader, **kargs)
-        return miss_ratio
 
     def get_reuse_distance(self, **kargs):
         """
@@ -245,44 +238,6 @@ class LRUProfiler:
         frd = mimircache.c_LRUProfiler.get_future_reuse_dist(self.reader.cReader, **kargs)
         return frd
 
-    def plotMRC(self, figname="MRC.png", auto_resize=False, threshold=0.98, **kwargs):
-        """
-        this function is deprecated and not up-to-date
-        :param figname:
-        :param auto_resize:
-        :param threshold:
-        :param kwargs:
-        :return:
-        """
-        raise RuntimeWarning("deprecated function")
-        EXTENTION_LENGTH = 1024
-        MRC = self.get_miss_ratio(**kwargs)
-        try:
-            stop_point = len(MRC) - 3
-            if self.cache_size == -1 and 'cache_size' not in kwargs and auto_resize:
-                for i in range(len(MRC) - 3, 0, -1):
-                    if MRC[i] >= MRC[-3] / threshold:
-                        stop_point = i
-                        break
-                if stop_point + EXTENTION_LENGTH < len(MRC) - 3:
-                    stop_point += EXTENTION_LENGTH
-                else:
-                    stop_point = len(MRC) - 3
-
-            plt.plot(MRC[:stop_point])
-            plt.xlabel("Cache Size")
-            plt.ylabel("Miss Ratio")
-            plt.title('Miss Ratio Curve', fontsize=18, color='black')
-            if not 'no_save' in kwargs or not kwargs['no_save']:
-                plt.savefig(figname, dpi=600)
-                INFO("plot is saved at the same directory")
-            try: plt.show()
-            except: pass
-            plt.clf()
-            return stop_point
-        except Exception as e:
-            plt.savefig(figname)
-            WARNING("the plotting function is not wrong, is this a headless server? {}".format(e))
 
     def plotHRC(self, figname="HRC.png", auto_resize=False, threshold=0.98, **kwargs):
         """
@@ -298,50 +253,45 @@ class LRUProfiler:
         # this is used to make the curve have some part of plateau
         EXTENTION_LENGTH = 1024
         # the last two are out-of-size ratio and cold miss ratio
-        HRC = self.get_hit_ratio(**kwargs)[:-3]
-        try:
-            # if auto_resize enabled, then we calculate the first cache size
-            # at which hit ratio <= final hit ratio * threshold
-            # this is used to remove the long plateau at the end of hit ratio curve
-            if self.cache_size == -1 and 'cache_size' not in kwargs and auto_resize:
-                stop_point = len(HRC)
-                for i in range(len(HRC)-1, 0, -1):
-                    if HRC[i] <= HRC[-1] * threshold:
-                        stop_point = i
-                        break
-                if stop_point + EXTENTION_LENGTH < len(HRC):
-                    stop_point += EXTENTION_LENGTH
-                # the following lines should not be needed, going to remove in next version
-                # else:
-                #     stop_point = len(HRC)
-                HRC = HRC[:stop_point]
+        hit_ratio = self.get_hit_ratio(**kwargs)[:-3]
 
-            plt.xlim(0, len(HRC))
-            plt.plot(HRC)
-            xlabel = "Cache Size (Items)"
+        # if auto_resize enabled, then we calculate the first cache size
+        # at which hit ratio <= final hit ratio * threshold
+        # this is used to remove the long plateau at the end of hit ratio curve
+        if self.cache_size == -1 and 'cache_size' not in kwargs and auto_resize:
+            stop_point = len(hit_ratio)
+            for i in range(len(hit_ratio)-1, 0, -1):
+                if hit_ratio[i] <= hit_ratio[-1] * threshold:
+                    stop_point = i
+                    break
+            if stop_point + EXTENTION_LENGTH < len(hit_ratio):
+                stop_point += EXTENTION_LENGTH
+            hit_ratio = hit_ratio[:stop_point]
 
-            cache_unit_size = kwargs.get("cache_unit_size", self.block_unit_size)
-            if cache_unit_size != 0:
-                plt.gca().xaxis.set_major_formatter(FuncFormatter(
-                        lambda x, p: int(x * cache_unit_size//1024//1024)))
-                xlabel = "Cache Size (MB)"
+        plt.xlim(0, len(hit_ratio))
+        plt.plot(hit_ratio)
+        xlabel = "Cache Size (Items)"
 
-            plt.xlabel(xlabel)
-            plt.ylabel("Hit Ratio")
-            plt.title('Hit Ratio Curve', fontsize=18, color='black')
-            if not 'no_save' in kwargs or not kwargs['no_save']:
-                plt.savefig(figname, dpi=600)
-                INFO("plot is saved")
-            try: plt.show()
-            except: pass
-            if not kwargs.get("no_clear", False):
-                plt.clf()
-            return HRC
-        except Exception as e:
-            plt.savefig(figname)
-            WARNING("the plotting function is not wrong, is this a headless server? \nERROR: {}".format(e))
+        cache_unit_size = kwargs.get("cache_unit_size", self.block_unit_size)
+        if cache_unit_size != 0:
+            plt.gca().xaxis.set_major_formatter(FuncFormatter(
+                    lambda x, p: int(x * cache_unit_size//1024//1024)))
+            xlabel = "Cache Size (MB)"
 
-    def plotHRC_withShards(self, figname="HRC.png", auto_resize=False, threshold=0.98, **kwargs):
+        plt.xlabel(xlabel)
+        plt.ylabel("Hit Ratio")
+        plt.title('Hit Ratio Curve', fontsize=18, color='black')
+        if not 'no_save' in kwargs or not kwargs['no_save']:
+            plt.savefig(figname, dpi=600)
+            INFO("plot is saved")
+        try: plt.show()
+        except: pass
+        if not kwargs.get("no_clear", False):
+            plt.clf()
+        return hit_ratio
+
+
+    def plotHRC_with_shards(self, figname="HRC.png", auto_resize=False, threshold=0.98, **kwargs):
         print("not updated yet")
         EXTENTION_LENGTH = 1024
         HRC = self.get_hit_ratio(**kwargs)

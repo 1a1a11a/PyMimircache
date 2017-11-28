@@ -135,7 +135,3 @@ class traceStat:
         return self.get_stat()
 
 
-if __name__ == "__main__":
-    from mimircache import *
-    reader = vscsiReader("../data/trace.vscsi")
-    print(traceStat(reader).get_stat(return_format="dict"))

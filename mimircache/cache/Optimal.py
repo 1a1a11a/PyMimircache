@@ -10,8 +10,8 @@ from heapdict import heapdict
 
 
 class Optimal(cache):
-    def __init__(self, cache_size, reader):
-        super().__init__(cache_size)
+    def __init__(self, cache_size, reader, **kwargs):
+        super().__init__(cache_size, **kwargs)
         # reader.reset()
         self.reader = reader
         self.reader.lock.acquire()
@@ -25,7 +25,7 @@ class Optimal(cache):
     def get_reversed_reuse_dist(self):
         return mimircache.c_LRUProfiler.get_reversed_reuse_dist(self.reader.cReader)
 
-    def checkElement(self, element):
+    def check_element(self, element):
         """
         :param element:
         :return: whether the given element is in the cache
@@ -35,7 +35,7 @@ class Optimal(cache):
         else:
             return False
 
-    def _updateElement(self, element):
+    def _update_element(self, element):
         """ the given element is in the cache, now update it to new location
         :param element:
         :return: None
@@ -47,7 +47,7 @@ class Optimal(cache):
             del self.pq[element]
 
 
-    def _insertElement(self, element):
+    def _insert_element(self, element):
         """
         the given element is not in the cache, now insert it into cache
         :param element:
@@ -65,7 +65,7 @@ class Optimal(cache):
             print(i, end='\t')
         print('')
 
-    def _evictOneElement(self):
+    def _evict_one_element(self):
         """
         evict one element from the cache line
         :return: True on success, False on failure
@@ -77,21 +77,21 @@ class Optimal(cache):
         return element
 
 
-    def addElement(self, element):
+    def add_element(self, element):
         """
         :param element: the element in the reference, it can be in the cache, or not,
                         !!! Attention, for optimal, the element is a tuple of
                         (timestamp, real_request)
         :return: True if element in the cache
         """
-        if self.checkElement(element):
-            self._updateElement(element)
+        if self.check_element(element):
+            self._update_element(element)
             self.ts += 1
             return True
         else:
-            self._insertElement(element)
+            self._insert_element(element)
             if len(self.pq) > self.cache_size:
-                self._evictOneElement()
+                self._evict_one_element()
             self.ts += 1
             return False
 

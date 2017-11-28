@@ -4,14 +4,14 @@ from mimircache.cache.abstractCache import cache
 
 
 class S4LRU(cache):
-    def __init__(self, cache_size=1000):
+    def __init__(self, cache_size=1000, **kwargs):
         """
         add the fourth part first, then gradually goes up to third, second and first level,
         final eviction is from fourth part
         :param cache_size: size of cache
         :return:
         """
-        super(S4LRU, self).__init__(cache_size)
+        super(S4LRU, self).__init__(cache_size, **kwargs)
 
         # Maybe use four linkedlist and a dict will be more efficient?
         self.firstLRU = LRU(self.cache_size // 4)
@@ -19,7 +19,7 @@ class S4LRU(cache):
         self.thirdLRU = LRU(self.cache_size // 4)
         self.fourthLRU = LRU(self.cache_size // 4)
 
-    def checkElement(self, element):
+    def check_element(self, element):
         """
         :param element:
         :return: whether the given element is in the cache
@@ -30,13 +30,13 @@ class S4LRU(cache):
         else:
             return False
 
-    def _updateElement(self, element):
+    def _update_element(self, element):
         """ the given element is in the cache, now update it to new location
         :param element:
         :return: None
         """
         if element in self.firstLRU:
-            self.firstLRU._updateElement(element)
+            self.firstLRU._update_element(element)
         elif element in self.secondLRU:
             # element is in second, remove from second, insert to end of first,
             # evict from first to second if needed
@@ -62,19 +62,19 @@ class S4LRU(cache):
         del lowerLRU.cacheDict[element]
 
         # insert into upperLRU
-        evicted_key = upperLRU._insertElement(node.content)
+        evicted_key = upperLRU._insert_element(node.content)
 
         # if there are element evicted from upperLRU, add to lowerLRU
         if evicted_key:
-            lowerLRU._insertElement(evicted_key)
+            lowerLRU._insert_element(evicted_key)
 
-    def _insertElement(self, element):
+    def _insert_element(self, element):
         """
         the given element is not in the cache, now insert it into cache
         :param element:
         :return: evicted element
         """
-        return self.fourthLRU._insertElement(element)
+        return self.fourthLRU._insert_element(element)
 
     def _printCacheLine(self):
         print("first: ")
@@ -86,23 +86,23 @@ class S4LRU(cache):
         print("fourth: ")
         self.fourthLRU._printCacheLine()
 
-    def _evictOneElement(self):
+    def _evict_one_element(self):
         """
         evict one element from the cache line
         :return: True on success, False on failure
         """
         pass
 
-    def addElement(self, element):
+    def add_element(self, element):
         """
         :param element: a cache request, it can be in the cache, or not
         :return: None
         """
-        if self.checkElement(element):
-            self._updateElement(element)
+        if self.check_element(element):
+            self._update_element(element)
             return True
         else:
-            self._insertElement(element)
+            self._insert_element(element)
             return False
 
     def __repr__(self):

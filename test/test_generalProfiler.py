@@ -1,42 +1,150 @@
 # coding=utf-8
+"""
+this module provides unittest for cGeneralProfiler and pyGeneralProfiler,
+it uses single cache replacement algorithm (FIFO) with different types of readers
+the test of other algorithms are excluded and should be under cache folder
 
+"""
+
+import os
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import unittest
-from mimircache import *
+
+from mimircache.cacheReader.csvReader import CsvReader
+from mimircache.cacheReader.plainReader import PlainReader
+from mimircache.cacheReader.vscsiReader import VscsiReader
+from mimircache.cacheReader.binaryReader import BinaryReader
+
+from mimircache.profiler.cGeneralProfiler import CGeneralProfiler
+from mimircache.profiler.pyGeneralProfiler import PyGeneralProfiler
+
 
 
 DAT_FOLDER = "../data/"
-import os
 if not os.path.exists(DAT_FOLDER):
     if os.path.exists("data/"):
         DAT_FOLDER = "data/"
     elif os.path.exists("../mimircache/data/"):
         DAT_FOLDER = "../mimircache/data/"
 
-class generalProfilerTest(unittest.TestCase):
-    def test1(self):
-        CACHE_SIZE = 2000
-        BIN_SIZE   = 200
-        TIME_MODE = 'r'
-        TIME_INTERVAL = 50000000
 
-        reader = vscsiReader("{}/trace.vscsi".format(DAT_FOLDER))
-        p = generalProfiler(reader, "Optimal", cache_size=CACHE_SIZE, bin_size=BIN_SIZE,
-                            cache_params={"reader": reader}, num_of_threads=1)
-        hr = p.get_hit_ratio()
-        self.assertEqual(hr[0], 0)
-        print(hr)
-        self.assertAlmostEqual(hr[8], 0.26610580300688491)
+class GeneralProfilerTest(unittest.TestCase):
+    def test_FIFO_vscsi(self):
+        reader = VscsiReader("{}/trace.vscsi".format(DAT_FOLDER))
+        p1 = CGeneralProfiler(reader, "FIFO", cache_size=2000, bin_size=200, num_of_threads=os.cpu_count())
+        p2 = PyGeneralProfiler(reader, 'FIFO', cache_size=2000, bin_size=200, num_of_threads=os.cpu_count())
 
-        cg = cGeneralProfiler(reader, "Optimal", cache_size=CACHE_SIZE, bin_size=BIN_SIZE,
-                                  cache_params={"reader": reader}, num_of_threads=1)
-        hr2 = cg.get_hit_ratio()
-        self.assertAlmostEqual(hr2[8], 0.26610580300688491)
-        for i,j in zip(hr, hr2):
-            self.assertAlmostEqual(i, j)
+        hc1 = p1.get_hit_count()
+        hc2 = p2.get_hit_count()
+        self.assertEqual(hc1[0], 0)
+        self.assertEqual(hc1[8], 187)
+        self.assertListEqual(list(hc1), list(hc2))
+
+        hr1 = p1.get_hit_ratio()
+        hr2 = p2.get_hit_ratio()
+        self.assertAlmostEqual(hr1[0], 0.0)
+        self.assertAlmostEqual(hr2[0], 0.0)
+        self.assertAlmostEqual(hr1[2], hr2[2])
+        self.assertAlmostEqual(hr1[2], 0.148702055216)
+
+        # get hit count again to make sure the value won't change
+        hc = p1.get_hit_count()
+        self.assertEqual(hc[0], 0)
+        self.assertEqual(hc[8], 187)
+
+        p1.plotHRC(figname="test_v_c.png", cache_unit_size=32*1024)
+        p2.plotHRC(figname="test_v_py.png", cache_unit_size=32*1024)
+        reader.close()
 
 
+    def test_FIFO_plain(self):
+        reader = PlainReader("{}/trace.txt".format(DAT_FOLDER))
+        p1 = CGeneralProfiler(reader, "FIFO", cache_size=2000, bin_size=200, num_of_threads=os.cpu_count())
+        p2 = PyGeneralProfiler(reader, 'FIFO', cache_size=2000, bin_size=200, num_of_threads=os.cpu_count())
+
+        hc1 = p1.get_hit_count()
+        hc2 = p2.get_hit_count()
+        self.assertEqual(hc1[0], 0)
+        self.assertEqual(hc1[8], 187)
+        self.assertListEqual(list(hc1), list(hc2))
+
+        hr1 = p1.get_hit_ratio()
+        hr2 = p2.get_hit_ratio()
+        self.assertAlmostEqual(hr1[0], 0.0)
+        self.assertAlmostEqual(hr2[0], 0.0)
+        self.assertAlmostEqual(hr1[2], hr2[2])
+        self.assertAlmostEqual(hr1[2], 0.148702055216)
+
+        # get hit count again to make sure the value won't change
+        hc = p1.get_hit_count()
+        self.assertEqual(hc[0], 0)
+        self.assertEqual(hc[8], 187)
+
+        p1.plotHRC(figname="test_p_c.png", cache_unit_size=32*1024)
+        p2.plotHRC(figname="test_p_py.png", cache_unit_size=32*1024)
+        reader.close()
+
+
+    def test_FIFO_csv(self):
+        reader = CsvReader("{}/trace.csv".format(DAT_FOLDER),
+                           init_params={"header":True, 'label':5, 'delimiter':','})
+        p1 = CGeneralProfiler(reader, "FIFO", cache_size=2000, bin_size=200, num_of_threads=os.cpu_count())
+        p2 = PyGeneralProfiler(reader, 'FIFO', cache_size=2000, bin_size=200, num_of_threads=os.cpu_count())
+
+        hc1 = p1.get_hit_count()
+        hc2 = p2.get_hit_count()
+        self.assertEqual(hc1[0], 0)
+        self.assertEqual(hc1[8], 187)
+        self.assertListEqual(list(hc1), list(hc2))
+
+        hr1 = p1.get_hit_ratio()
+        hr2 = p2.get_hit_ratio()
+        self.assertAlmostEqual(hr1[0], 0.0)
+        self.assertAlmostEqual(hr2[0], 0.0)
+        self.assertAlmostEqual(hr1[2], hr2[2])
+        self.assertAlmostEqual(hr1[2], 0.148702055216)
+
+        # get hit count again to make sure the value won't change
+        hc = p1.get_hit_count()
+        self.assertEqual(hc[0], 0)
+        self.assertEqual(hc[8], 187)
+
+        p1.plotHRC(figname="test_c_c.png", cache_unit_size=32*1024)
+        p2.plotHRC(figname="test_c_py.png", cache_unit_size=32*1024)
+        reader.close()
+
+
+    def test_FIFO_bin(self):
+        reader = BinaryReader("{}/trace.vscsi".format(DAT_FOLDER),
+                              init_params={"label":6, "real_time":7, "fmt": "<3I2H2Q"})
+
+        p1 = CGeneralProfiler(reader, "FIFO", cache_size=2000, bin_size=200, num_of_threads=os.cpu_count())
+        p2 = PyGeneralProfiler(reader, 'FIFO', cache_size=2000, bin_size=200, num_of_threads=os.cpu_count())
+
+        hc1 = p1.get_hit_count()
+        hc2 = p2.get_hit_count()
+
+        self.assertEqual(hc1[0], 0)
+        self.assertEqual(hc1[8], 187)
+        self.assertListEqual(list(hc1), list(hc2))
+
+        hr1 = p1.get_hit_ratio()
+        hr2 = p2.get_hit_ratio()
+        self.assertAlmostEqual(hr1[0], 0.0)
+        self.assertAlmostEqual(hr2[0], 0.0)
+        self.assertAlmostEqual(hr1[2], hr2[2])
+        self.assertAlmostEqual(hr1[2], 0.148702055216)
+
+        # get hit count again to make sure the value won't change
+        hc = p1.get_hit_count()
+        self.assertEqual(hc[0], 0)
+        self.assertEqual(hc[8], 187)
+
+        p1.plotHRC(figname="test_b_c.png", cache_unit_size=32*1024)
+        p2.plotHRC(figname="test_b_py.png", cache_unit_size=32*1024)
+        reader.close()
 
 
 if __name__ == "__main__":
     unittest.main()
-

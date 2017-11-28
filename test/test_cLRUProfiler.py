@@ -1,13 +1,18 @@
 # coding=utf-8
+"""
+    unittest for cLRUProfiler module
+
+    Author: Juncheng Yang <peter.waynechina@gmail.com>
+
+"""
 
 
 import unittest
-import mimircache.c_cacheReader as c_cacheReader
-import mimircache.c_LRUProfiler as c_LRUProfiler
-from mimircache.cacheReader.csvReader import csvReader
-from mimircache.cacheReader.plainReader import plainReader
-from mimircache.cacheReader.vscsiReader import vscsiReader
-from mimircache.profiler.LRUProfiler import LRUProfiler
+
+from mimircache.profiler.cLRUProfiler import CLRUProfiler
+from mimircache.cacheReader.csvReader import CsvReader
+from mimircache.cacheReader.plainReader import PlainReader
+from mimircache.cacheReader.vscsiReader import VscsiReader
 
 DAT_FOLDER = "../data/"
 import os
@@ -18,40 +23,41 @@ if not os.path.exists(DAT_FOLDER):
         DAT_FOLDER = "../mimircache/data/"
 
 
-class LRUProfilerTest(unittest.TestCase):
+class CLRUProfilerTest(unittest.TestCase):
     def test_reader_v(self):
-        reader = vscsiReader("{}/trace.vscsi".format(DAT_FOLDER))
-        p = LRUProfiler(reader)
+        reader = VscsiReader("{}/trace.vscsi".format(DAT_FOLDER))
+        p = CLRUProfiler(reader)
 
         hr = p.get_hit_ratio()
         self.assertAlmostEqual(hr[2000], 0.172851974146)
         hc = p.get_hit_count()
         self.assertEqual(hc[20002], 0)
         self.assertEqual(hc[0], 0)
-        mr = p.get_miss_ratio()
-        self.assertEqual(hr[-1], mr[-1])
-        #
+
+
         rd = p.get_reuse_distance()
-        print(rd)
         self.assertEqual(rd[1024], -1)
         self.assertEqual(rd[113860], 1)
 
-        c_LRUProfiler.get_future_reuse_dist(reader.cReader)
+        frd = p.get_future_reuse_distance()
+        self.assertEqual(frd[20], 10)
+        self.assertEqual(frd[21], 56)
 
-        hr = p.get_hit_ratio(begin=113852, end=113872)
-        print(hr)
-        self.assertEqual(hr[8], 0.2)
+        # begin end deprecated
+        # hr = p.get_hit_ratio(begin=113852, end=113872)
+        # self.assertEqual(hr[8], 0.2)
+        # hr = p.get_hit_ratio(cache_size=5, begin=113852, end=113872)
+        # self.assertAlmostEqual(hr[2], 0.05)
 
         hr = p.get_hit_ratio(cache_size=20)
         self.assertAlmostEqual(hr[1], 0.02357911)
-        hr = p.get_hit_ratio(cache_size=5, begin=113852, end=113872)
-        self.assertAlmostEqual(hr[2], 0.05)
+
         reader.close()
 
 
     def test_reader_p(self):
-        reader = plainReader("{}/trace.txt".format(DAT_FOLDER), data_type='c')
-        p = LRUProfiler(reader)
+        reader = PlainReader("{}/trace.txt".format(DAT_FOLDER), data_type='c')
+        p = CLRUProfiler(reader)
         hr = p.get_hit_ratio()
         self.assertAlmostEqual(hr[2000], 0.172851974146)
 
@@ -59,55 +65,48 @@ class LRUProfilerTest(unittest.TestCase):
         self.assertEqual(hc[20002], 0)
         self.assertEqual(hc[0], 0)
 
-        mr = p.get_miss_ratio()
-        self.assertEqual(hr[-1], mr[-1])
         rd = p.get_reuse_distance()
         self.assertEqual(rd[1024], -1)
         self.assertEqual(rd[113860], 1)
 
-        c_LRUProfiler.get_future_reuse_dist(reader.cReader)
-
-        hr = p.get_hit_ratio(begin=113852, end=113872)
-        self.assertEqual(hr[8], 0.2)
+        frd = p.get_future_reuse_distance()
+        self.assertEqual(frd[20], 10)
+        self.assertEqual(frd[21], 56)
 
         hr = p.get_hit_ratio(cache_size=20)
         self.assertAlmostEqual(hr[1], 0.02357911)
-        hr = p.get_hit_ratio(cache_size=5, begin=113852, end=113872)
-        self.assertAlmostEqual(hr[2], 0.05)
+
         reader.close()
 
 
     def test_reader_c(self):
-        reader = csvReader("{}/trace.csv".format(DAT_FOLDER),
+        reader = CsvReader("{}/trace.csv".format(DAT_FOLDER),
                            init_params={"header":True, "label":5})
-        p = LRUProfiler(reader)
+        p = CLRUProfiler(reader)
 
         rd = p.get_reuse_distance()
-        print(rd)
+        self.assertEqual(rd[1024], -1)
+        self.assertEqual(rd[113860], 1)
 
         hr = p.get_hit_ratio()
         self.assertAlmostEqual(hr[2000], 0.172851974146)
         hc = p.get_hit_count()
         self.assertEqual(hc[20002], 0)
         self.assertEqual(hc[0], 0)
-        mr = p.get_miss_ratio()
-        self.assertEqual(hr[-1], mr[-1])
 
         rd = p.get_reuse_distance()
-        print(rd)
         self.assertEqual(rd[1024], -1)
         self.assertEqual(rd[113860], 1)
 
-        c_LRUProfiler.get_future_reuse_dist(reader.cReader)
-
-        hr = p.get_hit_ratio(begin=113852, end=113872)
-        self.assertEqual(hr[8], 0.2)
+        frd = p.get_future_reuse_distance()
+        self.assertEqual(frd[20], 10)
+        self.assertEqual(frd[21], 56)
 
         hr = p.get_hit_ratio(cache_size=20)
         self.assertAlmostEqual(hr[1], 0.02357911)
-        hr = p.get_hit_ratio(cache_size=5, begin=113852, end=113872)
-        self.assertAlmostEqual(hr[2], 0.05)
+
         p.plotHRC("test.png", cache_unit_size=32*1024)
+
         reader.close()
 
 

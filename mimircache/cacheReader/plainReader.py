@@ -1,33 +1,76 @@
 # coding=utf-8
-from mimircache.cacheReader.abstractReader import cacheReaderAbstract
+"""
+    this module provides reader for reading plainText trace
+
+    Author: Jason Yang <peter.waynechina@gmail.com> 2016/07
+
+"""
+
+from mimircache.cacheReader.abstractReader import AbstractReader
 from mimircache.const import CExtensionMode
+
 if CExtensionMode:
     import mimircache.c_cacheReader
 
 
-class plainReader(cacheReaderAbstract):
-    def __init__(self, file_loc, data_type='c', open_c_reader=True):
+class PlainReader(AbstractReader):
+    """
+    PlainReader class
+
+    """
+    all = ["read_one_req", "copy", "get_params"]
+
+    def __init__(self, file_loc, data_type='c', open_c_reader=True, **kwargs):
         """
         :param file_loc:            location of the file
         :param data_type:           type of data, can be "l" for int/long, "c" for string
         :param open_c_reader:       bool for whether open reader in C backend
+        :param kwargs:              not used now
         """
-        super(plainReader, self).__init__(file_loc, data_type, 0, 0)
-        self.trace_file = open(file_loc, 'r')
-        if open_c_reader:
+
+        super(PlainReader, self).__init__(file_loc, data_type, open_c_reader=open_c_reader)
+        self.trace_file = open(file_loc, 'rb')
+        if CExtensionMode and open_c_reader:
             self.cReader = mimircache.c_cacheReader.setup_reader(file_loc, 'p', data_type=data_type, block_unit_size=0)
 
-    def read_one_element(self):
+    def read_one_req(self):
         """
         read one request
-        :return:
+        :return: a request
         """
-        super().read_one_element()
-        line = self.trace_file.readline()
-        if line:
+        super().read_one_req()
+
+        line = self.trace_file.readline().decode()
+        while line and len(line.strip()) == 0:
+            line = self.trace_file.readline().decode()
+
+        if line and len(line.strip()):
             return line.strip()
         else:
             return None
+
+    def copy(self, open_c_reader=False):
+        """
+        reader a deep copy of current reader with everything reset to initial state,
+        the returned reader should not interfere with current reader
+
+        :param open_c_reader: whether open_c_reader_or_not, default not open
+        :return: a copied reader
+        """
+
+        return PlainReader(self.file_loc, data_type=self.data_type, open_c_reader=open_c_reader)
+
+    def get_params(self):
+        """
+        return all the parameters for this reader instance in a dictionary
+        :return: a dictionary containing all parameters
+        """
+
+        return {
+            "file_loc": self.file_loc,
+            "data_type": self.data_type,
+            "open_c_reader": self.open_c_reader
+        }
 
     def __next__(self):  # Python 3
         super().__next__()
@@ -38,4 +81,4 @@ class plainReader(cacheReaderAbstract):
             raise StopIteration
 
     def __repr__(self):
-        return "plainTextReader on file {}".format(self.file_loc)
+        return "PlainReader of trace {}".format(self.file_loc)

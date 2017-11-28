@@ -30,7 +30,7 @@ from multiprocessing import Array, Process, Queue
 from mimircache.const import CExtensionMode
 if CExtensionMode:
     import mimircache.c_heatmap
-from mimircache.profiler.heatmap_subprocess import *
+from mimircache.profiler.pyHeatmapSubprocess import *
 from mimircache.utils.printing import *
 from mimircache.const import *
 
@@ -43,7 +43,7 @@ from matplotlib import pyplot as plt
 __all__ = ("run", "draw")
 
 
-class heatmap:
+class PyHeatmap:
     def __init__(self):
         # if not os.path.exists('temp/'):
         #     os.mkdir('temp')
@@ -84,7 +84,7 @@ class heatmap:
 
         # check break points are loaded or not, if not need to calculate it
         if not break_points:
-            break_points = cHeatmap().get_breakpoints(reader, mode,
+            break_points = CHeatmap().get_breakpoints(reader, mode,
                                                       time_interval=time_interval,
                                                       num_of_pixels=num_of_pixels)
             if save:
@@ -221,7 +221,7 @@ class heatmap:
 
             # prepare break points
             if mode[0] == 'r' or mode[0] == 'v':
-                break_points = cHeatmap().get_breakpoints(reader, mode[0],
+                break_points = CHeatmap().get_breakpoints(reader, mode[0],
                                                           time_interval=time_interval,
                                                           num_of_pixels=num_of_pixels)
             else:
@@ -415,7 +415,7 @@ class heatmap:
         reader.reset()
 
         if mode == 'r' or mode == 'v':
-            xydict, kwargs_plot = self.calculate_heatmap_dat(reader, mode, plot_type, algorithm,
+            xydict, kwargs_plot = self.calculate_heatmap_dat(reader, mode, plot_type, algorithm=algorithm,
                                                              time_interval=time_interval, num_of_pixels=num_of_pixels,
                                                              cache_params=cache_params, **kwargs)
         else:

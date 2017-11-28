@@ -1,98 +1,76 @@
 # coding=utf-8
+"""
+    vscsi reader for vscsi trace
 
+    Author: Jason Yang <peter.waynechina@gmail.com> 2016/06
 
-from mimircache.cacheReader.abstractReader import cacheReaderAbstract
+"""
+
+from mimircache.cacheReader.binaryReader import BinaryReader
 from mimircache.const import CExtensionMode
+
 if CExtensionMode:
     import mimircache.c_cacheReader
 
 
-class vscsiReader(cacheReaderAbstract):
-    all = ("reset",
-           "read_one_element",
-           "read_time_request",
-           "read_one_request_full_info",
-           "get_average_size",
-           "get_timestamp_list")
+class VscsiReader(BinaryReader):
+    """
+    VscsiReader for vscsi trace
+     
+    """
+    all = ["read_one_req", "read_time_request", "read_complete_req",
+           "get_average_size", "get_timestamp_list",
+           "reset", "copy", "get_params"]
 
-    def __init__(self, file_loc, data_type='l',
-                 block_unit_size=0, disk_sector_size=512, open_c_reader=True):
+    def __init__(self, file_loc, vscsi_type=1,
+                 block_unit_size=0, open_c_reader=True):
         """
         :param file_loc:            location of the file
-        :param data_type:           type of data, can be "l" for int/long, "c" for string
+        :param vscsi_type:          vscsi trace type, can be 1 or 2
         :param block_unit_size:     block size for storage system, 0 when disabled
-        :param disk_sector_size:    size of disk sector
         :param open_c_reader:       bool for whether open reader in C backend
         """
-        super().__init__(file_loc, data_type='l', block_unit_size=block_unit_size,
-                         disk_sector_size=disk_sector_size)
-        if open_c_reader:
-            self.cReader = mimircache.c_cacheReader.setup_reader(file_loc, 'v', data_type=data_type,
-                                                      block_unit_size=block_unit_size,
-                                                      disk_sector_size=disk_sector_size)
-        self.support_size = True
-        self.support_real_time = True
 
-        self.get_num_of_req()
+        if vscsi_type == 1:
+            self.vscsi_type = 1
+            init_params = {"size": 2, "op": 4, "label": 6, "real_time": 7, "fmt": "<3I2H2Q"}
+            assert "vscsi2" not in file_loc, "are you sure the trace ({}) is vscsi type 1? ".format(file_loc)
+        elif vscsi_type == 2:
+            self.vscsi_type = 2
+            init_params = {"op": 1, "size": 4, "label": 6, "real_time": 7, "fmt": "<2H3I3Q"}
+            assert "vscsi1" not in file_loc, "are you sure the trace ({}) is vscsi type 2? ".format(file_loc)
+        else:
+            raise RuntimeError("unknown vscsi type")
 
-
-    def reset(self):
-        if self.cReader:
-            mimircache.c_cacheReader.reset_reader(self.cReader)
-
-    def read_one_element(self):
-        """
-        read one request, return only block number
-        :return:
-        """
-        r = mimircache.c_cacheReader.read_one_element(self.cReader)
-        if r and self.block_unit_size != 0 and self.disk_sector_size != 0:
-            r = r * self.disk_sector_size // self.block_unit_size
-        return r
-
-    def read_time_request(self):
-        """
-        return real_time information for the request in the form of (time, request)
-        :return:
-        """
-        r = mimircache.c_cacheReader.read_time_request(self.cReader)
-        if r and self.block_unit_size != 0 and self.disk_sector_size != 0:
-            r[1] = r[1] * self.disk_sector_size // self.block_unit_size
-        return r
-
-    def read_one_request_full_info(self):
-        """
-        obtain more info for the request in the form of (time, request, size)
-        :return:
-        """
-        r = mimircache.c_cacheReader.read_one_request_full_info(self.cReader)
-        if r and self.block_unit_size != 0 and self.disk_sector_size != 0:
-            r = list(r)
-            r[1] = r[1] * self.disk_sector_size // self.block_unit_size
-        return r
+        super(VscsiReader, self).__init__(file_loc, data_type='l',
+                                          init_params=init_params,
+                                          block_unit_size=block_unit_size,
+                                          disk_sector_size=512,
+                                          open_c_reader=open_c_reader)
 
     def get_average_size(self):
         """
         sum sizes for all the requests, then divided by number of requests
-        :return:
+        :return: a float of average size of all requests
         """
+
         sizes = 0
         counter = 0
 
-        t = self.read_one_request_full_info()
+        t = self.read_complete_req()
         while t:
             sizes += t[2]
             counter += 1
-            t = self.read_one_request_full_info()
+            t = self.read_complete_req()
         self.reset()
-        return sizes/counter
-
+        return sizes / counter
 
     def get_timestamp_list(self):
         """
         get a list of timestamps
-        :return:
+        :return: a list of timestamps corresponding to requests
         """
+
         ts_list = []
         r = mimircache.c_cacheReader.read_time_request(self.cReader)
         while r:
@@ -100,15 +78,29 @@ class vscsiReader(cacheReaderAbstract):
             r = mimircache.c_cacheReader.read_time_request(self.cReader)
         return ts_list
 
+    def copy(self, open_c_reader=False):
+        """
+        reader a deep copy of current reader with everything reset to initial state,
+        the returned reader should not interfere with current reader
 
-    def __next__(self):  # Python 3
-        super().__next__()
-        element = self.read_one_element()
-        if element is not None:
-            return element
-        else:
-            raise StopIteration
+        :param open_c_reader: whether open_c_reader_or_not, default not open
+        :return: a copied reader
+        """
 
+        return VscsiReader(self.file_loc, self.vscsi_type, self.block_unit_size, open_c_reader)
+
+    def get_params(self):
+        """
+        return all the parameters for this reader instance in a dictionary
+        :return: a dictionary containing all parameters
+        """
+
+        return {
+            "file_loc": self.file_loc,
+            "vscsi_type": self.vscsi_type,
+            "block_unit_size": self.block_unit_size,
+            "open_c_reader": self.open_c_reader
+        }
 
     def __repr__(self):
-        return "vscsiReader of {}".format(self.file_loc)
+        return "vscsiReader of trace {}".format(self.file_loc)

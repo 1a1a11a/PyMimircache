@@ -12,7 +12,7 @@ from mimircache.utils.LinkedList import LinkedList
 
 
 class ARC(cache):
-    def __init__(self, cache_size=1000, p=0.5, ghostlist_size=-1):
+    def __init__(self, cache_size=1000, p=0.5, ghostlist_size=-1, **kwargs):
         """
 
         :param cache_size:
@@ -20,7 +20,7 @@ class ARC(cache):
         :param ghostlist_size:
         :return:
         """
-        super().__init__(cache_size)
+        super().__init__(cache_size, **kwargs)
         self.p = p
         if ghostlist_size == -1:
             self.ghostlist_size = self.cache_size
@@ -39,7 +39,7 @@ class ARC(cache):
         self.cacheDict2_ghost = defaultdict(
             lambda: 0)  # key -> linked list node (in reality, it should also contains value)
 
-    def checkElement(self, element):
+    def check_element(self, element):
         """
         :param element: the element for search
         :return: whether the given element is in the cache
@@ -59,7 +59,7 @@ class ARC(cache):
         else:
             return False
 
-    def _updateElement(self, element):
+    def _update_element(self, element):
         """ the given element is in the cache, now update it to new location
         :param element:
         :return: None
@@ -91,7 +91,7 @@ class ARC(cache):
 
             self.linkedList2.moveNodeToTail(node)
 
-    def _insertElement(self, element):
+    def _insert_element(self, element):
         """
         the given element is not in the cache, now insert it into cache
         :param element:
@@ -100,7 +100,7 @@ class ARC(cache):
         return_content = None
         if self.linkedList1.size + self.linkedList2.size >= self.cache_size:
             # needs to evict one element, depend on ghost list to decide evict from part1 or part2
-            return_content = self._evictOneElement(element)
+            return_content = self._evict_one_element(element)
 
         # insert into part 1
         node = self.linkedList1.insertAtTail(element)
@@ -126,7 +126,7 @@ class ARC(cache):
         print(' ')
 
 
-    def _evictOneElement(self):
+    def _evict_one_element(self):
         """
         evict one element from the cache line into ghost list, then check ghost list,
         if oversize, then evict one from ghost list
@@ -229,18 +229,18 @@ class ARC(cache):
             print(self.lru_list_head_p2)
         assert node2 == self.lru_list_head_p2, "LRU list2 head pointer wrong"
 
-    def addElement(self, element):
+    def add_element(self, element):
         """
         :param element: the element in the reference, it can be in the cache, or not
         :return: None
         """
-        if self.checkElement(element):
-            self._updateElement(element)
+        if self.check_element(element):
+            self._update_element(element)
             # self.printCacheLine()
             # self._check_lru_list_p()
             return True
         else:
-            self._insertElement(element)
+            self._insert_element(element)
             # self.printCacheLine()
             # self._check_lru_list_p()
             return False

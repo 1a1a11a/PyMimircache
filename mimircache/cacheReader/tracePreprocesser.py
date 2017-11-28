@@ -1,6 +1,9 @@
 # coding=utf-8
 """
 a module for preprocessing tracefile
+
+
+
 """
 
 
@@ -8,11 +11,11 @@ a module for preprocessing tracefile
 
 import mmh3
 from mimircache import *
-from mimircache.cacheReader.binaryWriter import traceBinaryWriter
+from mimircache.cacheReader.binaryWriter import TraceBinaryWriter
 
 
 
-class tracePreprocessor:
+class TracePreprocessor:
     def __init__(self, reader):
         """
 
@@ -46,7 +49,7 @@ class tracePreprocessor:
         self.shards_file_loc = ofilename
 
         mapping_dict = {}
-        writer = traceBinaryWriter(ofilename, fmt=fmt)
+        writer = TraceBinaryWriter(ofilename, fmt=fmt)
         counter = 0     # number of unique labels
         if has_time:
             r = self.reader.read_time_request()
@@ -61,7 +64,7 @@ class tracePreprocessor:
                     written_records += 1
                 r = self.reader.read_time_request()
         else:
-            r = self.reader.read_one_element()
+            r = self.reader.read_one_req()
             while r:
                 h = mmh3.hash(str(r)) % self.modulo
                 if h <= self.modulo*sample_ratio:
@@ -70,7 +73,7 @@ class tracePreprocessor:
                         counter += 1
                     writer.write( (mapping_dict[r], ) )
                     written_records += 1
-                r = self.reader.read_one_element()
+                r = self.reader.read_one_req()
 
         writer.close()
         return (int(self.N * sample_ratio), written_records, ofilename, fmt)
@@ -81,12 +84,12 @@ class tracePreprocessor:
 
 
 if __name__ == "__main__":
-    from mimircache.cacheReader.vscsiReader import vscsiReader
-    from mimircache.cacheReader.csvReader import csvReader
-    reader = vscsiReader("../data/trace.vscsi")
-    reader2 = csvReader("/home/jason/ALL_DATA/Akamai/201610.all.sort.clean",
+    from mimircache.cacheReader.vscsiReader import VscsiReader
+    from mimircache.cacheReader.csvReader import CsvReader
+    reader = VscsiReader("../data/trace.vscsi")
+    reader2 = CsvReader("/home/jason/ALL_DATA/Akamai/201610.all.sort.clean",
                         init_params={"header":False, "delimiter":"\t", "label_column":5, 'real_time_column':1})
-    print(tracePreprocessor(reader).prepare_for_shards(has_time=True, fmt="<LL"))
+    print(TracePreprocessor(reader).prepare_for_shards(has_time=True, fmt="<LL"))
 
 
 

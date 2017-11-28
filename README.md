@@ -96,7 +96,7 @@ We have prepared a wonderful tutorial here. [Check here for tutorial](http://mim
 
 ```python
 >>> import mimircache as m
->>> c = m.cachecow()
+>>> c = m.Cachecow()
 >>> c.vscsi("trace.vscsi")      # find this data under data folder, other type of data supported too
 >>> print(c.stat())
 	# number of requests: 113872

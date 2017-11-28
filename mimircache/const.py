@@ -53,10 +53,10 @@ from mimircache.cache.SLRU import SLRU
 from mimircache.cache.clock import clock
 
 
-from mimircache.cacheReader.csvReader import csvReader
-from mimircache.cacheReader.plainReader import plainReader
-from mimircache.cacheReader.vscsiReader import vscsiReader
-from mimircache.cacheReader.binaryReader import binaryReader
+from mimircache.cacheReader.csvReader import CsvReader
+from mimircache.cacheReader.plainReader import PlainReader
+from mimircache.cacheReader.vscsiReader import VscsiReader
+from mimircache.cacheReader.binaryReader import BinaryReader
 
 # global c_available_cache
 c_available_cache = ["lru"
@@ -79,7 +79,7 @@ c_available_cache = ["lru"
 , "akamai"
 ]
 
-c_available_cacheReader = [plainReader, vscsiReader, csvReader, binaryReader]
+c_available_cacheReader = [PlainReader, VscsiReader, CsvReader, BinaryReader]
 cache_alg_mapping = {}
 
 

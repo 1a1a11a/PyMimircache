@@ -7,7 +7,7 @@ Welcome to the documentation of mimircache, a Python3 cache trace analysis platf
 
 **The power of mimircache**:
     >>> import mimircache as m
-    >>> c = m.cachecow()
+    >>> c = m.Cachecow()
     >>> c.vscsi("trace.vscsi")      # find this data under data folder, other type of data supported too
     >>> print(c.stat())
     >>> print(c.get_reuse_distance())

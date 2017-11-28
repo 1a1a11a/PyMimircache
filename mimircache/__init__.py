@@ -19,14 +19,14 @@ sys.path.extend([CWD, os.path.join(CWD, "..")])
 
 
 from mimircache.const import *
-from mimircache.profiler.LRUProfiler import LRUProfiler as LRUProfiler
-from mimircache.profiler.cGeneralProfiler import cGeneralProfiler
-from mimircache.profiler.generalProfiler import generalProfiler as generalProfiler
-from mimircache.profiler.cHeatmap import cHeatmap
-from mimircache.profiler.heatmap import heatmap as heatmap
-from mimircache.top.cachecow import cachecow as cachecow
+from mimircache.profiler.cLRUProfiler import CLRUProfiler as LRUProfiler
+from mimircache.profiler.cGeneralProfiler import CGeneralProfiler
+from mimircache.profiler.pyGeneralProfiler import PyGeneralProfiler
+from mimircache.profiler.cHeatmap import CHeatmap
+from mimircache.profiler.pyHeatmap import PyHeatmap
+from mimircache.top.cachecow import Cachecow
 
-from mimircache.version import __version__ as __version__
+from mimircache.version import __version__
 
 
 

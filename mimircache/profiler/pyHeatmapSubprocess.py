@@ -59,7 +59,7 @@ def calc_hit_ratio_start_time_end_time_subprocess_general(order, cache, break_po
     # else:
     #     reader_new = type(reader)(reader.file_loc)
 
-    if isinstance(reader, csvReader):
+    if isinstance(reader, CsvReader):
         reader_new = type(reader)(reader.file_loc, init_params=reader.init_params, open_c_reader=False)
     else:
         reader_new = type(reader)(reader.file_loc, open_c_reader=False)
@@ -76,7 +76,7 @@ def calc_hit_ratio_start_time_end_time_subprocess_general(order, cache, break_po
             c.ts = line_num
 
         line_num += 1
-        if c.addElement(line):
+        if c.add_element(line):
             total_hc += 1
         else:
             total_mc += 1

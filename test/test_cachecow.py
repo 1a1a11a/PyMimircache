@@ -4,7 +4,7 @@ import unittest
 import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from mimircache import cachecow
+from mimircache import Cachecow
 
 DAT_FOLDER = "../data/"
 if not os.path.exists(DAT_FOLDER):
@@ -28,7 +28,7 @@ class cachecowTest(unittest.TestCase):
 
 
     def _test_overall(self):
-        c = cachecow()
+        c = Cachecow()
         c.csv("{}/trace.csv".format(DAT_FOLDER),
               init_params={"header" :True, 'label' :5, 'real_time':2})
         self.assertEqual(len(c), 113872)
@@ -49,21 +49,21 @@ class cachecowTest(unittest.TestCase):
 
 
     def _test_basic(self, param_sets):
-        c = cachecow()
+        c = Cachecow()
         c.open('{}/trace.txt'.format(DAT_FOLDER))
         for param_set in param_sets:
             if "time_mode" not in param_set:
                 self._coretest(c, param_set)
         c.close()
 
-        c = cachecow()
+        c = Cachecow()
         c.csv("{}/trace.csv".format(DAT_FOLDER),
               init_params={"header" :True, 'label' :5, 'real_time':2})
         for param_set in param_sets:
             self._coretest(c, param_set)
         c.close()
 
-        c = cachecow()
+        c = Cachecow()
         c.vscsi('{}/trace.vscsi'.format(DAT_FOLDER))
         for param_set in param_sets:
             self._coretest(c, param_set)

@@ -23,7 +23,7 @@ from mimircache import const
 from mimircache.utils.printing import *
 
 
-class cHeatmap:
+class CHeatmap:
     def __init__(self):
         self.other_plot_kwargs = {}
 
