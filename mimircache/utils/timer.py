@@ -2,7 +2,9 @@
 
 
 """
-this module is used for conveniently print running time
+    this module is used for conveniently print running time
+
+    Author: Jason Yang <peter.waynechina@gmail.com> 2016/10
 
 """
 

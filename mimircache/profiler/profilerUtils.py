@@ -69,6 +69,30 @@ def draw2d(*args, **kwargs):
             else:
                 plt.plot(*args, label=kwargs.get("label", None))
 
+    set_fig(**kwargs)
+
+    if not kwargs.get("no_save", False):
+        # if folder does not exist, create the folder
+        dname = os.path.dirname(figname)
+        if dname and not os.path.exists(dname):
+            os.makedirs(dname)
+        plt.savefig(figname, dpi=600)
+        INFO("plot is saved as {}".format(figname))
+
+    if not kwargs.get("no_show", False):
+        try: plt.show()
+        except: pass
+
+    if not kwargs.get("no_clear", False):
+        plt.clf()
+
+
+def set_fig(**kwargs):
+    """
+    change figures
+    :param kwargs:
+    :return:
+    """
 
     # set label
     if kwargs.get("xlabel", None):
@@ -124,18 +148,3 @@ def draw2d(*args, **kwargs):
     # tight layout
     if kwargs.get("tight_layout", True):
         plt.tight_layout()
-
-    if not kwargs.get("no_save", False):
-        # if folder does not exist, create the folder
-        dname = os.path.dirname(figname)
-        if dname and not os.path.exists(dname):
-            os.makedirs(dname)
-        plt.savefig(figname, dpi=600)
-        INFO("plot is saved as {}".format(figname))
-
-    if not kwargs.get("no_show", False):
-        try: plt.show()
-        except: pass
-
-    if not kwargs.get("no_clear", False):
-        plt.clf()

@@ -1,14 +1,14 @@
 # coding=utf-8
 
 import os
-from mimircache import vscsiReader
-from mimircache.cacheReader.binaryReader import binaryReader
-from mimircache.cacheReader.binaryWriter import traceBinaryWriter
+from mimircache import VscsiReader
+from mimircache.cacheReader.binaryReader import BinaryReader
+from mimircache.cacheReader.binaryWriter import TraceBinaryWriter
 
 
 
 def vReaderToPReader(file_path, output_path):
-    vReader = vscsiReader(file_path)
+    vReader = VscsiReader(file_path)
     with open(output_path, 'w') as ofile:
         for req in vReader:
             ofile.write("{}\n".format(req))
@@ -26,7 +26,7 @@ def splitTrace(reader, n, output_folder, prefix=""):
     :param prefix:
     :return:
     """
-    total_num = reader.get_num_total_req()
+    total_num = reader.get_num_of_req()
     num_each_file = total_num // n
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
@@ -65,14 +65,14 @@ def trace_mixer(reader1, reader2, mix_mode, output="mixTrace.csv", *args, **kwar
         while begin_flag or r1 or r2:
             if begin_flag or r1:
                 for i in range(round_robin_n):
-                    r1 = reader1.read_one_element()
+                    r1 = reader1.read_one_req()
                     if r1:
                         ofile.write("{},{}\n".format('A', 'A' + str(r1)))
                     else:
                         break
             if begin_flag or r2:
                 for i in range(round_robin_n):
-                    r2 = reader2.read_one_element()
+                    r2 = reader2.read_one_req()
                     if r2:
                         ofile.write("{},{}\n".format('B', 'B' + str(r2)))
                     else:
@@ -121,7 +121,7 @@ def splitTraceWithTime(dat, timeInterval=24*3600*10**6):
     FOLDER_NAME = "{}".format(dat[dat.rfind('/')+1 : dat.find("_")])
     if not os.path.exists(FOLDER_NAME):
         os.makedirs(FOLDER_NAME)
-    reader = vscsiReader(dat)
+    reader = VscsiReader(dat)
     t, label = reader.read_time_request()
     init_t = t
     ofile = None
@@ -159,7 +159,7 @@ def extract_part_trace(reader, writer, range):
         maxLine = len(reader)
 
     line_count = 0
-    # reader.jumpN(range[0])
+    # reader.skip_n_req(range[0])
     for line in reader:
         line_count += 1
         if line_count-1 < range[0]:     # -1 because we add 1 before checking
@@ -181,9 +181,9 @@ if __name__ == "__main__":
     # trace_mixer(reader1, reader2, mix_mode="real_time")
     # splitTrace(reader, 2, "w38Split")
     # splitTraceWithTime("/var/dept/scratch/jyan254/cache/mimircache/data/traces/w65_vscsi1.vscsitrace")
-    with binaryReader("../data/trace.vscsi", "<3I2H2Q") as reader:
-        with traceBinaryWriter("test.vscsi", "<3I2H2Q") as writer:
+    with BinaryReader("../data/trace.vscsi", "<3I2H2Q") as reader:
+        with TraceBinaryWriter("test.vscsi", "<3I2H2Q") as writer:
             extract_part_trace(reader, writer, (1, -1))
-    with binaryReader("../utils/test.vscsi", "<3I2H2Q") as r:
+    with BinaryReader("../utils/test.vscsi", "<3I2H2Q") as r:
         print(len(r))
 

@@ -3,6 +3,7 @@
 import time
 
 
+# deprecated function, no longer maintain
 def prepPlotParams(title0, xlabel0, ylabel0, figname0, **kwargs):
     plot_dict = {}
     if 'title' in kwargs:

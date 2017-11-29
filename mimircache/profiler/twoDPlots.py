@@ -208,24 +208,22 @@ def namemapping_2d(reader, partial_ratio=0.1, figname=None, **kwargs):
     plt.title("mapped block versus time(overall)")
     plt.ylabel("mapped LBA")
     plt.xlabel("virtual time/%")
+
     if figname is None:
-        new_figname = os.path.basename(reader.fileloc) + '_overall.png'
+        base_figname = os.path.basename(reader.fileloc)
     else:
         pos = figname.rfind('.')
-        new_figname = figname[:pos] + '_overall' + figname[pos:]
-    plt.savefig(new_figname)
+        base_figname = figname[:pos] + '_overall' + figname[pos:]
+    plt.tight_layout()
+    plt.savefig("{}_overall.png".format(base_figname))
 
     plt.clf()
     plt.scatter(np.linspace(0, 100, len(list_partial)), list_partial, s=point_size)
     plt.title("renamed block versus time(part)")
     plt.ylabel("renamed block number")
     plt.xlabel("virtual time/%")
-    if figname is None:
-        new_figname = os.path.basename(reader.fileloc) + '_partial.png'
-    else:
-        pos = figname.rfind('.')
-        new_figname = figname[:pos] + '_partial' + figname[pos:]
-    plt.savefig(new_figname)
+    plt.tight_layout()
+    plt.savefig("{}_partial.png".format(base_figname))
     plt.clf()
     INFO("mapping plot is saved")
     reader.reset()

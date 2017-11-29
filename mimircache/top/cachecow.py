@@ -21,6 +21,7 @@ from mimircache.profiler.twoDPlots import *
 from mimircache.utils.prepPlotParams import *
 from mimircache.cacheReader.traceStat import traceStat
 from multiprocessing import cpu_count
+from mimircache.profiler.profilerUtils import set_fig
 
 
 class Cachecow:
@@ -595,7 +596,6 @@ class Cachecow:
                         label - instead of using algorithm list as label, specify user-defined label
         """
 
-        plot_dict = prepPlotParams("Hit Ratio Curve", "Cache Size (Items)", "Hit Ratio", figname, **kwargs)
         hit_ratio_dict = {}
 
         num_of_threads          =       kwargs.get("num_of_threads",        os.cpu_count())
@@ -604,6 +604,9 @@ class Cachecow:
         save_gradually          =       kwargs.get("save_gradually",        False)
         threshold               =       kwargs.get('auto_resize_threshold', 0.98)
         label                   =       kwargs.get("label",                 algorithm_list)
+        xlabel                  =       kwargs.get("xlable",                "Cache Size (Items)")
+        ylabel                  =       kwargs.get("ylabel",                "Hit Ratio")
+        title                   =       kwargs.get("title",                 "Hit Ratio Curve")
 
         profiling_with_size = False
         LRU_HR = None
@@ -680,17 +683,9 @@ class Cachecow:
             self.reader.reset()
             INFO("HRC plotting {} computation finished using time {} s".format(alg, time.time() - t1))
             if save_gradually:
-                plt.savefig(plot_dict['figname'], dpi=600)
+                plt.savefig(figname, dpi=600)
 
-        plt.legend(loc="best")
-        plt.xlabel(plot_dict['xlabel'])
-        plt.ylabel(plot_dict['ylabel'])
-        plt.title(plot_dict['title'], fontsize=18, color='black')
-
-        if "xlimit" in kwargs:
-            plt.xlim(kwargs["xlimit"])
-        if "ylimit" in kwargs:
-            plt.ylim(kwargs["ylimit"])
+        set_fig(xlabel=xlabel, ylabel=ylabel, title=title, **kwargs)
 
         if cache_unit_size != 0:
             plt.xlabel("Cache Size (MB)")
@@ -698,12 +693,10 @@ class Cachecow:
                 FuncFormatter(lambda x, p: int(x * cache_unit_size // 1024 // 1024)))
 
         if not 'no_save' in kwargs or not kwargs['no_save']:
-            plt.savefig(plot_dict['figname'], dpi=600)
-        INFO("HRC plot is saved")
-        try:
-            plt.show()
-        except:
-            pass
+            plt.savefig(figname, dpi=600)
+            INFO("HRC plot is saved as {}".format(figname))
+        try: plt.show()
+        except: pass
         plt.clf()
         return hit_ratio_dict
 

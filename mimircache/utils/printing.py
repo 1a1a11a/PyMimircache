@@ -11,6 +11,9 @@ print_level     verbosity
 3               INFO
 4               WARNING
 5               ERROR
+
+    Author: Jason Yang <peter.waynechina@gmail.com> 2016/10
+
 """
 
 
