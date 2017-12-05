@@ -142,11 +142,12 @@ class CLRUProfiler:
                 if not os.path.exists(os.path.dirname(rd_dat_path)):
                     os.makedirs(os.path.dirname(rd_dat_path))
                 self.save_reuse_dist(rd_dat_path, "rd")
+                INFO("reuse distance calculated and saved at {}".format(rd_dat_path))
         return self.get_reuse_distance()
 
     def get_hit_count(self, **kargs):
         """
-        0~size(included) are for counting rd=0~size-1, size+1 is
+        0~size(included) are for counting rd=0~size, size+1 is
         out of range, size+2 is cold miss, so total is size+3 buckets
         :param kargs:
         :return:
@@ -154,7 +155,7 @@ class CLRUProfiler:
         if 'cache_size' not in kargs:
             kargs['cache_size'] = self.cache_size
         if self.block_unit_size != 0:
-            print("not supported yet")
+            WARNING("not supported yet")
             return None
         else:
             hit_count = mimircache.c_LRUProfiler.get_hit_count_seq(self.reader.cReader, **kargs)

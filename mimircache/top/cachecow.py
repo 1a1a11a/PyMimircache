@@ -16,12 +16,31 @@ from mimircache.const import CExtensionMode
 if CExtensionMode:
     import mimircache.c_heatmap
     
-from mimircache.profiler.evictionStat import *
-from mimircache.profiler.twoDPlots import *
+# from mimircache.profiler.evictionStat import *
+try:
+    from mimircache.profiler.twoDPlots import *
+except: pass
+
+import os
+import matplotlib
+import matplotlib.pyplot as plt
+
+from mimircache.const import *
+from mimircache.utils.printing import *
+from mimircache.cacheReader.binaryReader import BinaryReader
+from mimircache.cacheReader.csvReader import CsvReader
+from mimircache.cacheReader.plainReader import PlainReader
+from mimircache.cacheReader.vscsiReader import VscsiReader
+from mimircache.profiler.cLRUProfiler import CLRUProfiler as LRUProfiler
+from mimircache.profiler.cGeneralProfiler import CGeneralProfiler
+from mimircache.profiler.pyGeneralProfiler import PyGeneralProfiler
+from mimircache.profiler.cHeatmap import CHeatmap
+from mimircache.profiler.pyHeatmap import PyHeatmap
+
 from mimircache.utils.prepPlotParams import *
 from mimircache.cacheReader.traceStat import traceStat
 from multiprocessing import cpu_count
-from mimircache.profiler.profilerUtils import set_fig
+from mimircache.profiler.utilProfiler import set_fig
 
 
 class Cachecow:
@@ -37,8 +56,9 @@ class Cachecow:
            "num_of_req",
            "num_of_uniq_req",
            "get_reuse_distance",
+           "get_hit_count_dict",
            "get_hit_ratio_dict",
-            "heatmap",
+           "heatmap",
            "diff_heatmap",
            "twoDPlot",
            "eviction_plot",
@@ -254,9 +274,46 @@ class Cachecow:
         """
         return LRUProfiler(self.reader).get_reuse_distance()
 
+    def get_hit_count_dict(self, algorithm, cache_size=-1, cache_params=None, bin_size=-1,
+                      use_general_profiler=False, **kwargs):
+        """
+        get hit count of the given algorithm and return a dict of mapping from cache size -> hit count
+        notice that hit count array is not CDF, meaning hit count of size 2 does not include hit count of size 1,
+        you need to sum up to get a CDF.
+
+        :param algorithm: cache replacement algorithms
+        :param cache_size: size of cache
+        :param cache_params: parameters passed to cache, some of the cache replacement algorithms require parameters,
+                for example LRU-K, SLRU
+        :param bin_size: if algorithm is not LRU, then the hit ratio will be calculated by simulating cache at
+                cache size [0, bin_size, bin_size*2 ... cache_size], this is not required for LRU
+        :param use_general_profiler: if algorithm is LRU and you don't want to use LRUProfiler, then set this to True,
+                possible reason for not using a LRUProfiler: 1. LRUProfiler is too slow for your large trace
+                because the algorithm is O(NlogN) and it uses single thread; 2. LRUProfiler has a bug (let me know if you found a bug).
+        :param kwargs: other parameters including num_of_threads
+        :return: an dict of hit ratio of given algorithms, mapping from cache_size -> hit ratio
+        """
+
+        hit_count_dict = {}
+        p = self.profiler(algorithm,
+                          cache_params=cache_params,
+                          cache_size=cache_size,
+                          bin_size=bin_size,
+                          use_general_profiler=use_general_profiler, **kwargs)
+        hc = p.get_hit_count(cache_size=cache_size)
+        if isinstance(p, LRUProfiler):
+            for i in range(len(hc)-2):
+                hit_count_dict[i] = hc[i]
+        elif isinstance(p, CGeneralProfiler) or isinstance(p, PyGeneralProfiler):
+            for i in range(len(hc)):
+                hit_count_dict[i * p.bin_size] = hc[i]
+        return hit_count_dict
+
+
     def get_hit_ratio_dict(self, algorithm, cache_size=-1, cache_params=None, bin_size=-1,
                       use_general_profiler=False, **kwargs):
         """
+        get hit ratio of the given algorithm and return a dict of mapping from cache size -> hit ratio
 
         :param algorithm: cache replacement algorithms
         :param cache_size: size of cache
@@ -292,6 +349,10 @@ class Cachecow:
         """
         get a profiler instance, this should not be used by most users
 
+        :param algorithm:  name of algorithm
+        :param cache_params: parameters of given cache replacement algorithm
+        :param cache_size: size of cache
+        :param bin_size: bin_size for generalProfiler
         :param use_general_profiler: this option is for LRU only, if it is True,
                                         then return a cGeneralProfiler for LRU,
                                         otherwise, return a LRUProfiler for LRU.
@@ -390,6 +451,7 @@ class Cachecow:
         """
         Plot the differential heatmap between two algorithms by alg2 - alg1
 
+        :param cache_size: size of cache
         :param time_mode: time time_mode "v" for virutal time, "r" for real time
         :param plot_type: same as the name in heatmap function
         :param algorithm1:  name of the first alg
@@ -469,12 +531,12 @@ class Cachecow:
             else:
                 raise RuntimeError("unknown time time_mode {}".format(time_mode))
 
-            cHm.setPlotParams('x', '{} Time'.format(time_mode_string), xydict=xydict1,
-                              label='Start Time ({})'.format(time_mode_string),
-                              text=(x1, y1, text))
-            cHm.setPlotParams('y', '{} Time'.format(time_mode_string), xydict=xydict1,
-                              label='End Time ({})'.format(time_mode_string),
-                              fixed_range=(-1, 1))
+            cHm.set_plot_params('x', '{} Time'.format(time_mode_string), xydict=xydict1,
+                                label='Start Time ({})'.format(time_mode_string),
+                                text=(x1, y1, text))
+            cHm.set_plot_params('y', '{} Time'.format(time_mode_string), xydict=xydict1,
+                                label='End Time ({})'.format(time_mode_string),
+                                fixed_range=(-1, 1))
             np.seterr(divide='ignore', invalid='ignore')
 
             plot_dict = (xydict2 - xydict1) / xydict1
@@ -550,27 +612,27 @@ class Cachecow:
             WARNING("currently don't support your specified plot_type: " + str(plot_type))
 
 
-    def evictionPlot(self, mode, time_interval, plot_type, algorithm, cache_size, cache_params=None, **kwargs):
-        """
-        plot eviction stat vs time, currently support reuse_dist, freq, accumulative_freq
-
-        This function is going to be deprecated
-        """
-
-        if plot_type == "reuse_dist":
-            eviction_stat_reuse_dist_plot(self.reader, algorithm, cache_size, mode,
-                                          time_interval, cache_params=cache_params, **kwargs)
-        elif plot_type == "freq":
-            eviction_stat_freq_plot(self.reader, algorithm, cache_size, mode, time_interval,
-                                    accumulative=False, cache_params=cache_params, **kwargs)
-
-        elif plot_type == "accumulative_freq":
-            eviction_stat_freq_plot(self.reader, algorithm, cache_size, mode, time_interval,
-                                    accumulative=True, cache_params=cache_params, **kwargs)
-        else:
-            print("the plot type you specified is not supported: {}, currently only support: {}".format(
-                plot_type, "reuse_dist, freq, accumulative_freq"
-            ))
+    # def evictionPlot(self, mode, time_interval, plot_type, algorithm, cache_size, cache_params=None, **kwargs):
+    #     """
+    #     plot eviction stat vs time, currently support reuse_dist, freq, accumulative_freq
+    #
+    #     This function is going to be deprecated
+    #     """
+    #
+    #     if plot_type == "reuse_dist":
+    #         eviction_stat_reuse_dist_plot(self.reader, algorithm, cache_size, mode,
+    #                                       time_interval, cache_params=cache_params, **kwargs)
+    #     elif plot_type == "freq":
+    #         eviction_stat_freq_plot(self.reader, algorithm, cache_size, mode, time_interval,
+    #                                 accumulative=False, cache_params=cache_params, **kwargs)
+    #
+    #     elif plot_type == "accumulative_freq":
+    #         eviction_stat_freq_plot(self.reader, algorithm, cache_size, mode, time_interval,
+    #                                 accumulative=True, cache_params=cache_params, **kwargs)
+    #     else:
+    #         print("the plot type you specified is not supported: {}, currently only support: {}".format(
+    #             plot_type, "reuse_dist, freq, accumulative_freq"
+    #         ))
 
 
     def plotHRCs(self, algorithm_list, cache_params=(),
@@ -588,6 +650,7 @@ class Cachecow:
         :param auto_resize:   when using max possible size or specified cache size too large,
                                 you will get a huge plateau at the end of hit ratio curve,
                                 set auto_resize to True to cutoff most of the big plateau
+        :param figname: name of figure
         :param kwargs: options: block_unit_size, num_of_threads,
                         auto_resize_threshold, xlimit, ylimit, cache_unit_size
 
@@ -701,7 +764,7 @@ class Cachecow:
         return hit_ratio_dict
 
 
-    def characterize(self, type, cache_size=-1, **kwargs):
+    def characterize(self, characterize_type, cache_size=-1, **kwargs):
         """
         use this function to obtain a series of plots about your trace, the type includes
 
@@ -710,7 +773,7 @@ class Cachecow:
         * long
         * all - most of the available plots with high accuracy, notice it can take **LONG** time on big trace
 
-        :param type: see above, options: short, medium, long, all
+        :param characterize_type: see above, options: short, medium, long, all
         :param cache_size: estimated cache size for the trace, if -1, mimircache will estimate the cache size
         :param kwargs: print_stat
         :return: trace stat string
@@ -720,8 +783,8 @@ class Cachecow:
         # and would be better to give time estimation while running
 
         supported_types = ["short", "medium", "long", "all"]
-        if type not in supported_types:
-            WARNING("unknown type {}, supported types: {}".format(type, supported_types))
+        if characterize_type not in supported_types:
+            WARNING("unknown characterize_type {}, supported types: {}".format(characterize_type, supported_types))
             return
 
         trace_stat = traceStat(self.reader)
@@ -732,7 +795,7 @@ class Cachecow:
         if cache_size == -1:
             cache_size = trace_stat.num_of_uniq_obj//100
 
-        if type == "short":
+        if characterize_type == "short":
             # short should support [basic stat, HRC of LRU, OPT, cold miss ratio, popularity]
             INFO("now begin to plot cold miss ratio curve")
             self.twoDPlot("cold_miss_ratio", mode="v", time_interval=trace_stat.num_of_requests//100)
@@ -745,7 +808,7 @@ class Cachecow:
                           num_of_threads=cpu_count(),
                           use_general_profiler=True, save_gradually=True)
 
-        elif type == "medium":
+        elif characterize_type == "medium":
             if trace_stat.time_span != 0:
                 INFO("now begin to plot request rate curve")
                 self.twoDPlot("request_rate", mode="r", time_interval=trace_stat.time_span//100)
@@ -766,7 +829,7 @@ class Cachecow:
                           use_general_profiler=True, save_gradually=True)
 
 
-        elif type == "long":
+        elif characterize_type == "long":
             if trace_stat.time_span != 0:
                 INFO("now begin to plot request rate curve")
                 self.twoDPlot("request_rate", mode="r", time_interval=trace_stat.time_span//100)
@@ -799,7 +862,7 @@ class Cachecow:
                          cache_size=cache_size)
 
 
-        elif type == "all":
+        elif characterize_type == "all":
             if trace_stat.time_span != 0:
                 INFO("now begin to plot request rate curve")
                 self.twoDPlot("request_rate", mode="r", time_interval=trace_stat.time_span//200)

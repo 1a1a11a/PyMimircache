@@ -131,8 +131,8 @@ class cachecowTest(unittest.TestCase):
     def _coretest_realtime(self, c, cache_size, time_interval):
         c.twoDPlot("request_rate", mode='r', time_interval=time_interval)
         c.twoDPlot("rt_popularity", granularity=10 * 1000000)
-        c.evictionPlot('r', time_interval, "accumulative_freq", "Optimal", cache_size)
-        c.evictionPlot('r', time_interval, "reuse_dist", "Optimal", cache_size)
+        # c.evictionPlot('r', time_interval, "accumulative_freq", "Optimal", cache_size)
+        # c.evictionPlot('r', time_interval, "reuse_dist", "Optimal", cache_size)
 
 
 

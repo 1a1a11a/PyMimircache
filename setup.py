@@ -210,25 +210,25 @@ extensions.append(Extension(
     language="c"))
 
 
-extensions.append(Extension(
-    'mimircache.c_eviction_stat',
-    glob("mimircache/CExtension/profiler/*.c") +
-    glob("mimircache/CExtension/cache/*.c") +
-    glob('mimircache/CExtension/cacheReader/*.c') +
-    glob('mimircache/CExtension/utils/*.c') +
-    glob('mimircache/CExtension/wrapper/*.c') + 
-    ["mimircache/CExtension/pyBindings/python_wrapper.c"] +  
-    ["mimircache/CExtension/pyBindings/pyEviction_stat.c"], 
-    include_dirs=["mimircache/CExtension/headers"] + 
-    ["mimircache/CExtension/cache/include"] + 
-    ["mimircache/CExtension/cacheReader/include"] + 
-    ["mimircache/CExtension/profiler/include"] + 
-    ["mimircache/CExtension/utils/include/"] + 
-    ["mimircache/CExtension/pyBindings/include"] + 
-    ['mimircache/CExtension/headers/cache'] + numpy_headers, 
-    extra_compile_args=extra_compile_args,
-    extra_link_args=extra_link_args,
-    language="c"))
+# extensions.append(Extension(
+#     'mimircache.c_eviction_stat',
+#     glob("mimircache/CExtension/profiler/*.c") +
+#     glob("mimircache/CExtension/cache/*.c") +
+#     glob('mimircache/CExtension/cacheReader/*.c') +
+#     glob('mimircache/CExtension/utils/*.c') +
+#     glob('mimircache/CExtension/wrapper/*.c') + 
+#     ["mimircache/CExtension/pyBindings/python_wrapper.c"] +  
+#     ["mimircache/CExtension/pyBindings/pyEviction_stat.c"], 
+#     include_dirs=["mimircache/CExtension/headers"] + 
+#     ["mimircache/CExtension/cache/include"] + 
+#     ["mimircache/CExtension/cacheReader/include"] + 
+#     ["mimircache/CExtension/profiler/include"] + 
+#     ["mimircache/CExtension/utils/include/"] + 
+#     ["mimircache/CExtension/pyBindings/include"] + 
+#     ['mimircache/CExtension/headers/cache'] + numpy_headers, 
+#     extra_compile_args=extra_compile_args,
+#     extra_link_args=extra_link_args,
+#     language="c"))
 
 
 

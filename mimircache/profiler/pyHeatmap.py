@@ -2,7 +2,8 @@
 """
 this module provides the pyheatmap ploting engine, it is in Python, so it is very slow
 it supports both virtual time (fixed number of trace requests) and
-real time, under both modes, it support using multiprocessing to do the plotting
+real time
+it support using multiprocessing to speed up computation
 currently, it only support LRU
 the mechanism it works is it gets reuse distance from LRUProfiler
 currently supported plot type:
@@ -21,13 +22,14 @@ Author: Jason Yang <peter.waynechina@gmail.com> 2016/08
 
 """
 
-import os
 import pickle
 from collections import deque
 from multiprocessing import Array, Process, Queue
 
 # this should be replaced by pure python module
 from mimircache.const import CExtensionMode
+# from mimircache.profiler.cHeatmap import get_breakpoints
+
 if CExtensionMode:
     import mimircache.c_heatmap
 from mimircache.profiler.pyHeatmapSubprocess import *
@@ -40,7 +42,7 @@ from matplotlib import pyplot as plt
 
 # DEBUG = True
 
-__all__ = ("run", "draw")
+__all__ = ["run", "draw"]
 
 
 class PyHeatmap:
@@ -84,7 +86,7 @@ class PyHeatmap:
 
         # check break points are loaded or not, if not need to calculate it
         if not break_points:
-            break_points = CHeatmap().get_breakpoints(reader, mode,
+            break_points = CHeatmap.get_breakpoints(reader, mode,
                                                       time_interval=time_interval,
                                                       num_of_pixels=num_of_pixels)
             if save:
@@ -221,7 +223,7 @@ class PyHeatmap:
 
             # prepare break points
             if mode[0] == 'r' or mode[0] == 'v':
-                break_points = CHeatmap().get_breakpoints(reader, mode[0],
+                break_points = CHeatmap.get_breakpoints(reader, mode[0],
                                                           time_interval=time_interval,
                                                           num_of_pixels=num_of_pixels)
             else:

@@ -99,9 +99,9 @@ gint64* eviction_stat(reader_t* reader_in, struct_cache* cache, evict_stat_type 
 gdouble* eviction_stat_over_time(reader_t* reader_in, char mode, guint64 time_interval, guint64 cache_size, char* stat_type){
 
     if (mode == 'r')
-        gen_breakpoints_realtime(reader_in, time_interval, -1);
+        get_bp_rtime(reader_in, time_interval, -1);
     else
-        gen_breakpoints_virtualtime(reader_in, time_interval, -1);
+        get_bp_vtime(reader_in, time_interval, -1);
     
 
 

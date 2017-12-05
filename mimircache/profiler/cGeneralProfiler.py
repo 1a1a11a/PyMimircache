@@ -23,7 +23,7 @@ from mimircache.const import CExtensionMode
 if CExtensionMode:
     import mimircache.c_generalProfiler
 from mimircache.const import *
-from mimircache.profiler.profilerUtils import util_plotHRC
+from mimircache.profiler.utilProfiler import util_plotHRC
 
 
 class CGeneralProfiler:
@@ -138,6 +138,7 @@ class CGeneralProfiler:
 
         :return: a numpy array, with hit count corresponding to size [0, bin_size, bin_size*2 ...]
         """
+
         sanity_kwargs = {"num_of_threads": kwargs.get("num_of_threads", self.num_of_threads)}
         cache_size = kwargs.get("cache_size", self.cache_size)
 

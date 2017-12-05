@@ -9,7 +9,7 @@
 #include <Python.h>
 #include "heatmap.h"
 #include "cache.h"
-#include "FIFO.h" 
+#include "FIFO.h"
 #include "Optimal.h"
 #include "const.h"
 #include "python_wrapper.h"
@@ -19,12 +19,12 @@
 #include <numpy/arrayobject.h>
 
 
-/* TODO: 
-not urgent, not necessary: change this profiler module into a python object,
-    this is not necessary for now because we are not going to expose this level API 
-    to user, instead we wrap it with our python API, so these C functions are only 
-    called inside mimircache  
-*/
+/* TODO:
+ not urgent, not necessary: change this profiler module into a python object,
+ this is not necessary for now because we are not going to expose this level API
+ to user, instead we wrap it with our python API, so these C functions are only
+ called inside mimircache
+ */
 
 
 static PyObject* differential_heatmap_py(PyObject* self,
@@ -37,25 +37,25 @@ static PyObject* differential_heatmap_py(PyObject* self,
 static PyObject* heatmap_get_last_access_dist_seq(PyObject* self,
                                                   PyObject* args,
                                                   PyObject* keywds)
-{   
+{
     PyObject* po;
     reader_t* reader;
-    long begin=-1, end=-1; 
+    long begin=-1, end=-1;
     static char *kwlist[] = {"reader", "begin", "end", NULL};
-
+    
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O|ll", kwlist, 
-                                &po, &begin, &end)) {
-        // currently specifying begin and ending position is not supported 
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O|ll", kwlist,
+                                     &po, &begin, &end)) {
+        // currently specifying begin and ending position is not supported
         return NULL;
     }
     if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
     }
-
-    // get last access dist list  
+    
+    // get last access dist list
     GSList* list = get_last_access_dist_seq(reader, read_one_element);
-
+    
     if (reader->base->total_num == -1)
         get_num_of_req(reader);
     
@@ -63,21 +63,21 @@ static PyObject* heatmap_get_last_access_dist_seq(PyObject* self,
         begin = 0;
     if (end == -1)
         end = reader->base->total_num;
-
+    
     // create numpy array
     long long size = end - begin;
-
+    
     npy_intp dims[1] = { size };
-    PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_INT); 
+    PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_INT);
     GSList* gsl;
     long long counter = size-1;
-    int* array = (int*) PyArray_GETPTR1((PyArrayObject *)ret_array, 0); 
+    int* array = (int*) PyArray_GETPTR1((PyArrayObject *)ret_array, 0);
     for (gsl=list; gsl!=NULL; gsl=gsl->next){
         array[counter--] = GPOINTER_TO_INT(gsl->data);
     }
-
+    
     // memcpy(PyArray_DATA((PyArrayObject*)ret_array), hit_count, sizeof(long long)*(cache_size+3));
-    g_slist_free(list); 
+    g_slist_free(list);
     
     return ret_array;
 }
@@ -99,18 +99,18 @@ static PyObject* heatmap_get_next_access_dist_seq(PyObject* self,
     if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
     }
-
+    
     // get reversed last access dist list
     GSList* list = get_last_access_dist_seq(reader, read_one_element_above);
-
+    
     if (reader->base->total_num == -1)
         get_num_of_req(reader);
-
+    
     if (begin == -1)
         begin = 0;
     if (end == -1)
         end = reader->base->total_num;
-
+    
     // create numpy array
     long long size = end - begin;
     npy_intp dims[1] = { size };
@@ -121,7 +121,7 @@ static PyObject* heatmap_get_next_access_dist_seq(PyObject* self,
     long i;
     for (i=0; i<begin; i++)
         gsl = gsl->next;
-
+    
     
     for (i=begin; i<end; i++,gsl=gsl->next){
         array[counter++] = GPOINTER_TO_INT(gsl->data);
@@ -144,37 +144,49 @@ static PyObject* heatmap_computation(PyObject* self,
     char *algorithm;
     char* plot_type_s;
     heatmap_type_e plot_type;
-    char* mode;
-    double decay_coefficient;
-    int interval_hit_ratio;
-    long time_interval = -1;
-    long num_of_pixels = 200;
+    char* time_mode;
+    double ewma_coefficient_lf;
+    int interval_hit_ratio = 0;
+    long time_interval = 0;
+    long bin_size = 0;
+    long num_of_pixel_of_time_dim = 120;
     struct_cache* cache;
-
-    static char *kwlist[] = {"reader", "mode", "plot_type", "cache_size", "algorithm",
-        "interval_hit_ratio", "decay_coefficient",
-        "time_interval", "num_of_pixels", "cache_params", "num_of_threads", NULL};
+    
+    static char *kwlist[] = {"reader", "time_mode", "plot_type", "cache_size", "algorithm",
+        "interval_hit_ratio", "ewma_coefficient",
+        "time_interval", "bin_size", "num_of_pixel_of_time_dim",
+        "cache_params", "num_of_threads", NULL};
     
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Ossls|$pdllOi", kwlist, &po,
-                                     &mode, &plot_type_s, &cache_size, &algorithm,
-                                     &interval_hit_ratio, &decay_coefficient,
-                                     &time_interval, &num_of_pixels, &cache_params,
-                                     &num_of_threads)) {
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Ossls|$pdlllOi",kwlist,
+                                     &po, &time_mode, &plot_type_s, &cache_size, &algorithm,
+                                     &interval_hit_ratio, &ewma_coefficient_lf,
+                                     &time_interval, &bin_size, &num_of_pixel_of_time_dim,
+                                     &cache_params, &num_of_threads)) {
         ERROR("parsing argument failed in heatmap_computation\n");
         return NULL;
     }
-    if (time_interval == -1 && num_of_pixels == -1)
-        num_of_pixels = 200;
-
     
-    INFO("plot type: %s, interval hit ratio_bool: %d, decay_coefficient: %.2lf, "
-         "cache size: %ld, mode: %s, time_interval: %ld, "
-           "num_of_pixels: %ld, num_of_threads: %d\n", plot_type_s,
-         interval_hit_ratio, decay_coefficient, cache_size,
-           mode, time_interval, num_of_pixels, num_of_threads);
+    //    if (time_interval_x == -1 && num_of_pixels_x == -1){
+    //        WARNING("time_interval_x and num_of_pixels_x can not both be -1, "
+    //                "use 120 as default for now\n");
+    //        num_of_pixels_x = 120;
+    //    }
+    //    if (time_interval_y == -1 && num_of_pixels_y == -1){
+    //        WARNING("time_interval_xy and num_of_pixels_y can not both be -1, "
+    //                "use 120 as default for now\n");
+    //        num_of_pixels_y = 120;
+    
+    INFO("plot type: %s, interval hit ratio_bool: %d, ewma_coefficient: %.2lf, "
+         "cache size: %ld, time_mode: %s, num_of_pixel_of_time_dim: %ld, "
+         "time_interval: %ld, "
+         "bin_size: %ld, num_of_threads: %d\n", plot_type_s,
+         interval_hit_ratio, ewma_coefficient_lf, cache_size,
+         time_mode, num_of_pixel_of_time_dim,
+         time_interval, bin_size, num_of_threads);
     
     if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
+        ERROR("reader is NULL\n");
         return NULL;
     }
     
@@ -185,33 +197,99 @@ static PyObject* heatmap_computation(PyObject* self,
     }
     else
         cache = build_cache(reader, cache_size, algorithm, cache_params, 0);
-
     
-    if (strcmp(plot_type_s, "hit_ratio_start_time_end_time") == 0)
-        plot_type = hit_ratio_start_time_end_time;
-    else if (strcmp(plot_type_s, "hit_ratio_start_time_cache_size") == 0)
-        plot_type = hit_ratio_start_time_cache_size;
-    else if (strcmp(plot_type_s, "avg_rd_start_time_end_time") == 0)
-        plot_type = avg_rd_start_time_end_time;
-    else if (strcmp(plot_type_s, "cold_miss_count_start_time_end_time") == 0)
-        plot_type = cold_miss_count_start_time_end_time;
+    
+    // verify plot type and check parameters
+    if (strcmp(plot_type_s, "hr_st_et") == 0 || \
+        strcmp(plot_type_s, "hit_ratio_start_time_end_time") == 0){
+        plot_type = hr_st_et;
+        if (time_interval <= 0 && num_of_pixel_of_time_dim <= 1){
+            WARNING("time_interval and num_of_pixel_of_time_dim "
+                    "can not be 0/1/-1 at the same time, "
+                    "use 120 for num_of_pixel_of_time_dim as default for now\n");
+            num_of_pixel_of_time_dim = 120;
+        }
+    }
+    
+    else if (strcmp(plot_type_s, "hr_interval_size") == 0){
+        plot_type = hr_interval_size;
+        if (bin_size <= 0){
+            WARNING("bin_size can not be 0 or -1 for hr_interval_size, "
+                    "use cache//120 as default for now\n");
+            bin_size = cache_size/120;
+        }
+        
+        if (time_interval == 0 && num_of_pixel_of_time_dim <= 1){
+            WARNING("time_interval and num_of_pixel_of_time_dim "
+                    "can not be 0 or -1 at the same time, "
+                    "use 120 for num_of_pixel_of_time_dim as default for now\n");
+            num_of_pixel_of_time_dim = 120;
+        }
+    }
+    
+    
+    else if (strcmp(plot_type_s, "hr_st_size") == 0 || \
+             strcmp(plot_type_s, "hit_ratio_start_time_cache_size") == 0){
+        plot_type = hr_st_size;
+        if (bin_size <= 0){
+            WARNING("bin_size can not be 0 or -1 for hr_interval_size, "
+                    "use cache//120 as default for now\n");
+            bin_size = cache_size/120;
+        }
+        
+        if (time_interval == 0 && num_of_pixel_of_time_dim <= 1){
+            WARNING("time_interval and num_of_pixel_of_time_dim "
+                    "can not be 0 or -1 at the same time, "
+                    "use 120 for num_of_pixel_of_time_dim as default for now\n");
+            num_of_pixel_of_time_dim = 120;
+        }
+    }
+    
+    
+    else if (strcmp(plot_type_s, "avg_rd_st_et") == 0 || \
+             strcmp(plot_type_s, "avg_rd_start_time_end_time") == 0){
+        plot_type = avg_rd_st_et;
+        if (time_interval <= 0 && num_of_pixel_of_time_dim <= 1){
+            WARNING("time_interval and num_of_pixel_of_time_dim "
+                    "can not be 0/1/-1 at the same time, "
+                    "use 120 as default for now\n");
+            num_of_pixel_of_time_dim = 120;
+        }
+    }
+    
+    
+    else if (strcmp(plot_type_s, "cold_miss_count_start_time_end_time") == 0){
+        plot_type = cmc_st_et;
+        WARNING("this plot type should be deprecated now\n");
+    }
+    
+    
     else if (strcmp(plot_type_s, "rd_distribution") == 0){
         printf("please use function heatmap_rd_distribution\n");
         Py_RETURN_NONE;
     }
+    
+    
     else {
         ERROR("unsupported plot type\n");
         exit(1);
     }
     
-    draw_dict* dd = heatmap(reader, cache, *mode, time_interval, num_of_pixels,
-                            plot_type, interval_hit_ratio, decay_coefficient, num_of_threads);
+    draw_dict* dd = heatmap(reader, cache,
+                            *time_mode,
+                            time_interval,
+                            bin_size,
+                            num_of_pixel_of_time_dim,
+                            plot_type,
+                            interval_hit_ratio,
+                            ewma_coefficient_lf,
+                            num_of_threads);
     
     // create numpy array
     npy_intp dims[2] = { dd->ylength, dd->xlength };
-
+    
     PyObject* ret_array = PyArray_EMPTY(2, dims, NPY_DOUBLE, 0);
-
+    
     
     guint64 i, j;
     double **matrix = dd->matrix;
@@ -221,11 +299,11 @@ static PyObject* heatmap_computation(PyObject* self,
         for (j=0; j<dd->xlength; j++)
             if (matrix[j][i]){
                 array[j] = matrix[j][i];
-//                printf("%lu %lu: %lf\n", i, j, matrix[i][j]);
+                //                printf("%lu %lu: %lf\n", i, j, matrix[i][j]);
             }
         /* change it to opposite will help with cache, but become confusing */
     }
-
+    
     
     // clean up
     free_draw_dict(dd);
@@ -250,38 +328,39 @@ static PyObject* differential_heatmap_with_Optimal(PyObject* self,
     char *algorithm;
     char* plot_type_s;
     int plot_type;
-    char* mode;
+    char* time_mode;
+    long bin_size = -1;
     long time_interval = -1;
-    long num_of_pixels = 200;
-    double decay_coefficient;
+    long num_of_pixel_of_time_dim = 120;
+    double ewma_coefficient;
     int interval_hit_ratio;
     struct_cache* cache;
-
     
-    static char *kwlist[] = {"reader", "mode", "plot_type", "cache_size",
+    
+    static char *kwlist[] = {"reader", "time_mode", "plot_type", "cache_size",
         "algorithm",
-        "interval_hit_ratio", "decay_coefficient",
-        "time_interval", "num_of_pixels", "cache_params",
+        "interval_hit_ratio", "ewma_coefficient",
+        "time_interval",
+        "num_of_pixels_of_time_dim", "bin_size", "cache_params",
         "num_of_threads", NULL};
     
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Ossls|$pdllOi", kwlist, &po,
-                                     &mode, &plot_type_s, &cache_size, &algorithm,
-                                     &interval_hit_ratio, &decay_coefficient,
-                                     &time_interval, &num_of_pixels, &cache_params,
-                                     &num_of_threads)) {
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Ossls|$pdlllOi", kwlist, &po,
+                                     &time_mode, &plot_type_s, &cache_size, &algorithm,
+                                     &interval_hit_ratio, &ewma_coefficient,
+                                     &time_interval, &num_of_pixel_of_time_dim, &bin_size,
+                                     &cache_params, &num_of_threads)) {
         ERROR("parsing argument failed in heatmap_computation\n");
         return NULL;
     }
-    if (time_interval == -1 && num_of_pixels == -1)
-        num_of_pixels = 200;
     
     
     printf("plot type: %s, cache size: %ld, mode: %s, time_interval: %ld, "
-           "num_of_threads: %d\n", plot_type_s, cache_size, mode, time_interval,
+           "num_of_threads: %d\n", plot_type_s, cache_size, time_mode, time_interval,
            num_of_threads);
     
     if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
+        ERROR("failed to get reader pointer\n");
         return NULL;
     }
     
@@ -292,16 +371,66 @@ static PyObject* differential_heatmap_with_Optimal(PyObject* self,
     }
     else
         cache = build_cache(reader, cache_size, algorithm, cache_params, 0);
-
     
-    if (strcmp(plot_type_s, "hit_ratio_start_time_end_time") == 0)
-        plot_type = hit_ratio_start_time_end_time;
-    else if (strcmp(plot_type_s, "hit_ratio_start_time_cache_size") == 0)
-        plot_type = hit_ratio_start_time_cache_size;
-    else if (strcmp(plot_type_s, "avg_rd_start_time_end_time") == 0)
-        plot_type = avg_rd_start_time_end_time;
-    else if (strcmp(plot_type_s, "cold_miss_count_start_time_end_time") == 0)
-        plot_type = cold_miss_count_start_time_end_time;
+    
+    // verify plot type and check parameters
+    if (strcmp(plot_type_s, "hr_st_et") == 0 || \
+        strcmp(plot_type_s, "hit_ratio_start_time_end_time") == 0){
+        plot_type = hr_st_et;
+        if (time_interval <= 0 && num_of_pixel_of_time_dim <= 1){
+            WARNING("time_interval and num_of_pixel_of_time_dim "
+                    "can not be 0/1/-1 at the same time, "
+                    "use 120 for num_of_pixel_of_time_dim as default for now\n");
+            num_of_pixel_of_time_dim = 120;
+        }
+    }
+    
+    else if (strcmp(plot_type_s, "hr_interval_size") == 0){
+        plot_type = hr_interval_size;
+        if (bin_size <= 0){
+            WARNING("bin_size can not be 0 or -1 for hr_interval_size, "
+                    "use cache//120 as default for now\n");
+            bin_size = cache_size/120;
+        }
+        
+        if (time_interval == 0 && num_of_pixel_of_time_dim <= 1){
+            WARNING("time_interval and num_of_pixel_of_time_dim "
+                    "can not be 0 or -1 at the same time, "
+                    "use 120 for num_of_pixel_of_time_dim as default for now\n");
+            num_of_pixel_of_time_dim = 120;
+        }
+    }
+    
+    
+    else if (strcmp(plot_type_s, "hr_st_size") == 0 || \
+             strcmp(plot_type_s, "hit_ratio_start_time_cache_size") == 0){
+        plot_type = hr_st_size;
+        if (bin_size <= 0){
+            WARNING("bin_size can not be 0 or -1 for hr_interval_size, "
+                    "use cache//120 as default for now\n");
+            bin_size = cache_size/120;
+        }
+        
+        if (time_interval == 0 && num_of_pixel_of_time_dim <= 1){
+            WARNING("time_interval and num_of_pixel_of_time_dim "
+                    "can not be 0 or -1 at the same time, "
+                    "use 120 for num_of_pixel_of_time_dim as default for now\n");
+            num_of_pixel_of_time_dim = 120;
+        }
+    }
+    
+    
+    else if (strcmp(plot_type_s, "avg_rd_st_et") == 0 || \
+             strcmp(plot_type_s, "avg_rd_start_time_end_time") == 0){
+        plot_type = avg_rd_st_et;
+        if (time_interval <= 0 && num_of_pixel_of_time_dim <= 1){
+            WARNING("time_interval and num_of_pixel_of_time_dim "
+                    "can not be 0/1/-1 at the same time, "
+                    "use 120 as default for now\n");
+            num_of_pixel_of_time_dim = 120;
+        }
+    }
+    
     else {
         ERROR("unsupported plot type\n");
         exit(1);
@@ -310,12 +439,18 @@ static PyObject* differential_heatmap_with_Optimal(PyObject* self,
     struct optimal_init_params init_params = {.reader=reader, .next_access=NULL, .ts=0};
     struct_cache* optimal = optimal_init(cache_size, reader->base->type, 0, (void*)&init_params);
     
-
     
-    draw_dict* dd = differential_heatmap(reader, cache, optimal, *mode,
-                                         time_interval, num_of_pixels,
+    
+    draw_dict* dd = differential_heatmap(reader,
+                                         cache,
+                                         optimal,
+                                         *time_mode,
+                                         bin_size,
+                                         time_interval,
+                                         num_of_pixel_of_time_dim,
                                          plot_type,
-                                         interval_hit_ratio, decay_coefficient,
+                                         interval_hit_ratio,
+                                         ewma_coefficient,
                                          num_of_threads);
     
     // create numpy array
@@ -330,8 +465,8 @@ static PyObject* differential_heatmap_with_Optimal(PyObject* self,
     for (i=0; i<dd->ylength; i++){
         array = (double*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
         for (j=0; j<dd->xlength; j++)
-                array[j] = matrix[j][i];
-            
+            array[j] = matrix[j][i];
+        
     }
     
     
@@ -360,38 +495,49 @@ static PyObject* differential_heatmap_py(PyObject* self,
     char *algorithm[2];
     char* plot_type_s;
     int plot_type;
-    char* mode;
+    char* time_mode;
     PyObject* cache_params[2];
     long time_interval = -1;
-    long num_of_pixels = 200;
-    int interval_hit_ratio;
-    double decay_coefficient;
+    long bin_size = 0;
+    long num_of_pixel_of_time_dim = 120;
+    int interval_hit_ratio = 0;
+    double ewma_coefficient;
     struct_cache* cache[2];
     
-    static char *kwlist[] = {"reader", "mode", "plot_type", "cache_size",
+    static char *kwlist[] = {"reader", "time_mode", "plot_type", "cache_size",
         "algorithm1", "algorithm2",
-        "interval_hit_ratio", "decay_coefficient",
-        "time_interval", "num_of_pixels",
+        "interval_hit_ratio", "ewma_coefficient",
+        "time_interval", "bin_size",
+        "num_of_pixel_of_time_dim",
         "cache_params1", "cache_params2", "num_of_threads", NULL};
     
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osslss|$pdllOOi", kwlist, &po,
-                                     &mode, &plot_type_s, &cache_size,
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osslss|$pdlllOOi", kwlist, &po,
+                                     &time_mode, &plot_type_s, &cache_size,
                                      &algorithm[0], &algorithm[1],
-                                     &time_interval,
-                                     &interval_hit_ratio, &decay_coefficient, 
-                                     &num_of_pixels, &(cache_params[0]),
-                                     &(cache_params[1]), &num_of_threads)) {
+                                     &interval_hit_ratio, &ewma_coefficient,
+                                     &time_interval, &bin_size, &num_of_pixel_of_time_dim,
+                                     &(cache_params[0]), &(cache_params[1]),
+                                     &num_of_threads)) {
         ERROR("parsing argument failed in heatmap_computation\n");
         return NULL;
     }
-    if (time_interval == -1 && num_of_pixels == -1)
-        num_of_pixels = 200;
-
+    
     
     if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
+        ERROR("failed to get reader pointer\n");
         return NULL;
     }
+    
+    
+    INFO("plot type: %s, interval hit ratio_bool: %d, ewma_coefficient: %.2lf, "
+         "cache size: %ld, time_mode: %s, num_of_pixel_of_time_dim: %ld, "
+         "time_interval: %ld, "
+         "bin_size: %ld, num_of_threads: %d\n", plot_type_s,
+         interval_hit_ratio, ewma_coefficient, cache_size,
+         time_mode, num_of_pixel_of_time_dim,
+         time_interval, bin_size, num_of_threads);
+
     
     // build cache (isolate LRU, because we don't need a real LRU for profiling,
     // just need to pass size and data_type)
@@ -410,23 +556,80 @@ static PyObject* differential_heatmap_py(PyObject* self,
             cache[i] = build_cache(reader, cache_size, algorithm[i], cache_params[i], 0);
     }
     
-    if (strcmp(plot_type_s, "hit_ratio_start_time_end_time") == 0)
-        plot_type = hit_ratio_start_time_end_time;
-    else if (strcmp(plot_type_s, "hit_ratio_start_time_cache_size") == 0)
-        plot_type = hit_ratio_start_time_cache_size;
-    else if (strcmp(plot_type_s, "avg_rd_start_time_end_time") == 0)
-        plot_type = avg_rd_start_time_end_time;
-    else if (strcmp(plot_type_s, "cold_miss_count_start_time_end_time") == 0)
-        plot_type = cold_miss_count_start_time_end_time;
+    // verify plot type and check parameters
+    if (strcmp(plot_type_s, "hr_st_et") == 0 || \
+        strcmp(plot_type_s, "hit_ratio_start_time_end_time") == 0){
+        plot_type = hr_st_et;
+        if (time_interval <= 0 && num_of_pixel_of_time_dim <= 1){
+            WARNING("time_interval and num_of_pixel_of_time_dim "
+                    "can not be 0/1/-1 at the same time, "
+                    "use 120 for num_of_pixel_of_time_dim as default for now\n");
+            num_of_pixel_of_time_dim = 120;
+        }
+    }
+    
+    else if (strcmp(plot_type_s, "hr_interval_size") == 0){
+        plot_type = hr_interval_size;
+        if (bin_size <= 0){
+            WARNING("bin_size can not be 0 or -1 for hr_interval_size, "
+                    "use cache//120 as default for now\n");
+            bin_size = cache_size/120;
+        }
+        
+        if (time_interval == 0 && num_of_pixel_of_time_dim <= 1){
+            WARNING("time_interval and num_of_pixel_of_time_dim "
+                    "can not be 0 or -1 at the same time, "
+                    "use 120 for num_of_pixel_of_time_dim as default for now\n");
+            num_of_pixel_of_time_dim = 120;
+        }
+    }
+    
+    
+    else if (strcmp(plot_type_s, "hr_st_size") == 0 || \
+             strcmp(plot_type_s, "hit_ratio_start_time_cache_size") == 0){
+        plot_type = hr_st_size;
+        if (bin_size <= 0){
+            WARNING("bin_size can not be 0 or -1 for hr_interval_size, "
+                    "use cache//120 as default for now\n");
+            bin_size = cache_size/120;
+        }
+        
+        if (time_interval == 0 && num_of_pixel_of_time_dim <= 1){
+            WARNING("time_interval and num_of_pixel_of_time_dim "
+                    "can not be 0 or -1 at the same time, "
+                    "use 120 for num_of_pixel_of_time_dim as default for now\n");
+            num_of_pixel_of_time_dim = 120;
+        }
+    }
+    
+    
+    else if (strcmp(plot_type_s, "avg_rd_st_et") == 0 || \
+             strcmp(plot_type_s, "avg_rd_start_time_end_time") == 0){
+        plot_type = avg_rd_st_et;
+        if (time_interval <= 0 && num_of_pixel_of_time_dim <= 1){
+            WARNING("time_interval and num_of_pixel_of_time_dim "
+                    "can not be 0/1/-1 at the same time, "
+                    "use 120 as default for now\n");
+            num_of_pixel_of_time_dim = 120;
+        }
+    }
+    
+    
     else {
         ERROR("unsupported plot type\n");
         exit(1);
     }
     
-    draw_dict* dd = differential_heatmap(reader, cache[0], cache[1], *mode,
-                                         time_interval, num_of_pixels,
+    draw_dict* dd = differential_heatmap(reader,
+                                         cache[0],
+                                         cache[1],
+                                         *time_mode,
+                                         bin_size,
+                                         time_interval,
+                                         num_of_pixel_of_time_dim,
                                          plot_type,
-                                         interval_hit_ratio, decay_coefficient,
+                                         interval_hit_ratio,
+                                         ewma_coefficient,
                                          num_of_threads);
     
     // create numpy array
@@ -440,7 +643,7 @@ static PyObject* differential_heatmap_py(PyObject* self,
     for (i=0; i<dd->ylength; i++){
         array = (double*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
         for (j=0; j<dd->xlength; j++)
-                array[j] = matrix[j][i];
+            array[j] = matrix[j][i];
     }
     
     
@@ -468,15 +671,15 @@ static PyObject* heatmap_rd_distribution_py(PyObject* self,
     int num_of_threads = 4;
     char* mode;
     long time_interval = -1;
-    long num_of_pixels = -1;
+    long num_of_pixel_of_time_dim = -1;
     int CDF = 0;
     
-    static char *kwlist[] = {"reader", "mode", "time_interval", "num_of_pixels",
+    static char *kwlist[] = {"reader", "mode", "time_interval", "num_of_pixel_of_time_dim",
         "num_of_threads", "CDF", NULL};
     
     // parse arguments
     if (!PyArg_ParseTupleAndKeywords(args, keywds, "Os|$llii", kwlist, &po,
-                                     &mode, &time_interval, &num_of_pixels,
+                                     &mode, &time_interval, &num_of_pixel_of_time_dim,
                                      &num_of_threads, &CDF)) {
         ERROR("parsing argument failed in heatmap_rd_distribution\n");
         return NULL;
@@ -485,17 +688,17 @@ static PyObject* heatmap_rd_distribution_py(PyObject* self,
     if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
     }
-    if (time_interval == -1 && num_of_pixels == -1)
-        num_of_pixels = 200;
-
+    if (time_interval == -1 && num_of_pixel_of_time_dim == -1)
+        num_of_pixel_of_time_dim = 120;
+    
     
     draw_dict* dd;
     if (CDF){
-        dd = heatmap(reader, NULL, *mode, time_interval, num_of_pixels,
+        dd = heatmap(reader, NULL, *mode, time_interval, -1, num_of_pixel_of_time_dim,
                      rd_distribution_CDF, 0, 0, num_of_threads);
     }
     else
-        dd = heatmap(reader, NULL, *mode, time_interval, num_of_pixels,
+        dd = heatmap(reader, NULL, *mode, time_interval, -1, num_of_pixel_of_time_dim,
                      rd_distribution, 0, 0, num_of_threads);
     
     // create numpy array
@@ -503,23 +706,23 @@ static PyObject* heatmap_rd_distribution_py(PyObject* self,
     
     PyObject* ret_array;
     guint64 i, j;
-//    long long **matrix = dd->matrix;
+    //    long long **matrix = dd->matrix;
     double **matrix = dd->matrix;
-
+    
     
     if (!CDF){
         ret_array = PyArray_EMPTY(2, dims, NPY_LONGLONG, 0);
-//        ret_array = PyArray_EMPTY(2, dims, NPY_DOUBLE, 0);
-    
-//        double *array;
-//        gint64 *sum_array = g_new0(gint64, dd->xlength);
-//        for (i=0; i<dd->xlength; i++)
-//            for (j=0; j<dd->ylength; j++)
-//                sum_array[i] += (long long)matrix[i][j];
-//        for (i=0; i<dd->ylength; i++){
-//            array = (double*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
-//            for (j=0; j<dd->xlength; j++)
-//                array[j] = (double)matrix[j][i] / sum_array[j];
+        //        ret_array = PyArray_EMPTY(2, dims, NPY_DOUBLE, 0);
+        
+        //        double *array;
+        //        gint64 *sum_array = g_new0(gint64, dd->xlength);
+        //        for (i=0; i<dd->xlength; i++)
+        //            for (j=0; j<dd->ylength; j++)
+        //                sum_array[i] += (long long)matrix[i][j];
+        //        for (i=0; i<dd->ylength; i++){
+        //            array = (double*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
+        //            for (j=0; j<dd->xlength; j++)
+        //                array[j] = (double)matrix[j][i] / sum_array[j];
         
         
         long long *array;
@@ -539,9 +742,9 @@ static PyObject* heatmap_rd_distribution_py(PyObject* self,
                 array[j] = matrix[j][i];
             }
         }
-
-    }
         
+    }
+    
     
     // clean up
     free_draw_dict(dd);
@@ -558,14 +761,14 @@ static PyObject* heatmap_future_rd_distribution_py(PyObject* self,
     int num_of_threads = 4;
     char* mode;
     long time_interval = -1;
-    long num_of_pixels = 200;
+    long num_of_pixel_of_time_dim = 120;
     
-    static char *kwlist[] = {"reader", "mode", "time_interval", "num_of_pixels",
+    static char *kwlist[] = {"reader", "mode", "time_interval", "num_of_pixel_of_time_dim",
         "num_of_threads", NULL};
     
     // parse arguments
     if (!PyArg_ParseTupleAndKeywords(args, keywds, "Os|$lli", kwlist, &po, &mode,
-                                     &time_interval, &num_of_pixels, &num_of_threads)) {
+                                     &time_interval, &num_of_pixel_of_time_dim, &num_of_threads)) {
         ERROR("parsing argument failed in heatmap_rd_distribution\n");
         return NULL;
     }
@@ -573,11 +776,11 @@ static PyObject* heatmap_future_rd_distribution_py(PyObject* self,
     if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
     }
-    if (time_interval == -1 && num_of_pixels == -1)
-        num_of_pixels = 200;
-
+    if (time_interval == -1 && num_of_pixel_of_time_dim == -1)
+        num_of_pixel_of_time_dim = 120;
     
-    draw_dict* dd = heatmap(reader, NULL, *mode, time_interval, num_of_pixels,
+    
+    draw_dict* dd = heatmap(reader, NULL, *mode, time_interval, -1, num_of_pixel_of_time_dim,
                             future_rd_distribution, 0, 0, num_of_threads);
     
     // create numpy array
@@ -587,7 +790,7 @@ static PyObject* heatmap_future_rd_distribution_py(PyObject* self,
     
     
     guint64 i, j;
-//    long long **matrix = dd->matrix;
+    //    long long **matrix = dd->matrix;
     double **matrix = dd->matrix;
     long long *array;
     for (i=0; i<dd->ylength; i++){
@@ -597,18 +800,18 @@ static PyObject* heatmap_future_rd_distribution_py(PyObject* self,
     }
     
     
-//    PyObject* ret_array = PyArray_EMPTY(2, dims, NPY_DOUBLE, 0);
+    //    PyObject* ret_array = PyArray_EMPTY(2, dims, NPY_DOUBLE, 0);
     
-//    double *array;
-//    gint64 *sum_array = g_new0(gint64, dd->xlength);
-//    for (i=0; i<dd->xlength; i++)
-//        for (j=0; j<dd->ylength; j++)
-//            sum_array[i] += (long long)matrix[i][j];
-//    for (i=0; i<dd->ylength; i++){
-//        array = (double*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
-//        for (j=0; j<dd->xlength; j++)
-//            array[j] = (double)matrix[j][i] / sum_array[j];
-//    }
+    //    double *array;
+    //    gint64 *sum_array = g_new0(gint64, dd->xlength);
+    //    for (i=0; i<dd->xlength; i++)
+    //        for (j=0; j<dd->ylength; j++)
+    //            sum_array[i] += (long long)matrix[i][j];
+    //    for (i=0; i<dd->ylength; i++){
+    //        array = (double*) PyArray_GETPTR1((PyArrayObject *)ret_array, i);
+    //        for (j=0; j<dd->xlength; j++)
+    //            array[j] = (double)matrix[j][i] / sum_array[j];
+    //    }
     
     
     // clean up
@@ -618,22 +821,22 @@ static PyObject* heatmap_future_rd_distribution_py(PyObject* self,
 
 
 static PyObject* heatmap_dist_distribution_py(PyObject* self,
-                                                   PyObject* args,
-                                                   PyObject* keywds)
+                                              PyObject* args,
+                                              PyObject* keywds)
 {
     PyObject* po;
     reader_t* reader;
     int num_of_threads = 4;
     char* mode;
     long time_interval = -1;
-    long num_of_pixels = 200;
+    long num_of_pixel_of_time_dim = 120;
     
-    static char *kwlist[] = {"reader", "mode", "time_interval", "num_of_pixels",
+    static char *kwlist[] = {"reader", "mode", "time_interval", "num_of_pixel_of_time_dim",
         "num_of_threads", NULL};
     
     // parse arguments
     if (!PyArg_ParseTupleAndKeywords(args, keywds, "Os|$lli", kwlist, &po, &mode,
-                                     &time_interval, &num_of_pixels, &num_of_threads)) {
+                                     &time_interval, &num_of_pixel_of_time_dim, &num_of_threads)) {
         ERROR("parsing argument failed in heatmap_dist_distribution\n");
         return NULL;
     }
@@ -641,11 +844,11 @@ static PyObject* heatmap_dist_distribution_py(PyObject* self,
     if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
     }
-    if (time_interval == -1 && num_of_pixels == -1)
-        num_of_pixels = 200;
+    if (time_interval == -1 && num_of_pixel_of_time_dim == -1)
+        num_of_pixel_of_time_dim = 120;
     
     
-    draw_dict* dd = heatmap(reader, NULL, *mode, time_interval, num_of_pixels,
+    draw_dict* dd = heatmap(reader, NULL, *mode, time_interval, -1, num_of_pixel_of_time_dim,
                             dist_distribution, 0, 0, num_of_threads);
     
     // create numpy array
@@ -671,22 +874,22 @@ static PyObject* heatmap_dist_distribution_py(PyObject* self,
 
 
 static PyObject* heatmap_rt_distribution_py(PyObject* self,
-                                              PyObject* args,
-                                              PyObject* keywds)
+                                            PyObject* args,
+                                            PyObject* keywds)
 {
     PyObject* po;
     reader_t* reader;
     int num_of_threads = 4;
     char* mode;
     long time_interval = -1;
-    long num_of_pixels = 200;
+    long num_of_pixel_of_time_dim = 200;
     
-    static char *kwlist[] = {"reader", "mode", "time_interval", "num_of_pixels",
+    static char *kwlist[] = {"reader", "mode", "time_interval", "num_of_pixel_of_time_dim",
         "num_of_threads", NULL};
     
     // parse arguments
     if (!PyArg_ParseTupleAndKeywords(args, keywds, "Os|$lli", kwlist, &po, &mode,
-                                     &time_interval, &num_of_pixels, &num_of_threads)) {
+                                     &time_interval, &num_of_pixel_of_time_dim, &num_of_threads)) {
         ERROR("parsing argument failed in heatmap_dist_distribution\n");
         return NULL;
     }
@@ -694,11 +897,11 @@ static PyObject* heatmap_rt_distribution_py(PyObject* self,
     if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
     }
-    if (time_interval == -1 && num_of_pixels == -1)
-        num_of_pixels = 200;
+    if (time_interval == -1 && num_of_pixel_of_time_dim == -1)
+        num_of_pixel_of_time_dim = 120;
     
     
-    draw_dict* dd = heatmap(reader, NULL, *mode, time_interval, num_of_pixels,
+    draw_dict* dd = heatmap(reader, NULL, *mode, time_interval, -1, num_of_pixel_of_time_dim,
                             rt_distribution, 0, 0, num_of_threads);
     
     // create numpy array
@@ -729,15 +932,15 @@ static PyObject* heatmap_get_break_points(PyObject* self,
 {
     PyObject* po;
     reader_t* reader;
-    char* mode;
+    char* time_mode;
     long time_interval = -1;
-    long num_of_pixels = -1;
+    long num_of_pixel_of_time_dim = -1;
     
-    static char *kwlist[] = {"reader", "mode", "time_interval", "num_of_pixels", NULL};
+    static char *kwlist[] = {"reader", "time_mode", "time_interval", "num_of_pixel_of_time_dim", NULL};
     
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Os|ll", kwlist, &po, &mode,
-                                     &time_interval, &num_of_pixels)) {
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Os|ll", kwlist, &po, &time_mode,
+                                     &time_interval, &num_of_pixel_of_time_dim)) {
         ERROR("parsing argument failed in heatmap_get_break_points\n");
         return NULL;
     }
@@ -745,16 +948,16 @@ static PyObject* heatmap_get_break_points(PyObject* self,
     if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
     }
-    if (time_interval == -1 && num_of_pixels == -1)
-        num_of_pixels = 200;
+    if (time_interval == -1 && num_of_pixel_of_time_dim == -1)
+        num_of_pixel_of_time_dim = 120;
     
     GArray* breakpoints;
-    if (mode[0] == 'r')
-        breakpoints = gen_breakpoints_realtime(reader, (guint64)time_interval,
-                                               num_of_pixels);
+    if (time_mode[0] == 'r')
+        breakpoints = get_bp_rtime(reader, (guint64)time_interval,
+                                   num_of_pixel_of_time_dim);
     else
-        breakpoints = gen_breakpoints_virtualtime(reader, (guint64)time_interval,
-                                                  num_of_pixels);
+        breakpoints = get_bp_vtime(reader, (guint64)time_interval,
+                                   num_of_pixel_of_time_dim);
     
     // create numpy array
     npy_intp dims[1] = { breakpoints->len };
@@ -765,12 +968,14 @@ static PyObject* heatmap_get_break_points(PyObject* self,
     guint64 i;
     for (i=0; i<breakpoints->len; i++){
         *(long long*) PyArray_GETPTR1((PyArrayObject *)ret_array, i) =
-            (long long)g_array_index(breakpoints, guint64, i);
+        (long long)g_array_index(breakpoints, guint64, i);
     }
-
+    
     
     // clean up
-//    g_array_free(breakpoints, TRUE);      DON'T FREE it, if you are going to free it, also remember to free break point struct
+    // DON'T FREE it, if you are going to free it,
+    // also remember to free break point struct
+    //    g_array_free(breakpoints, TRUE);
     return ret_array;
 }
 
@@ -804,7 +1009,7 @@ static PyMethodDef c_heatmap_funcs[] = {
 };
 
 
-static struct PyModuleDef c_heatmap_definition = { 
+static struct PyModuleDef c_heatmap_definition = {
     PyModuleDef_HEAD_INIT,
     "c_heatmap",
     "A Python module that doing heatmap related computation",

@@ -96,6 +96,7 @@ def print_list(l, num_per_line=20):
         if counter%num_per_line==0:
             print("")
             counter = 0
+    print("")
     printing_lock.release()
 
 

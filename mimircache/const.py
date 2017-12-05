@@ -20,19 +20,23 @@ DEFAULT_NUM_OF_THREADS = os.cpu_count()
 failed_components = []
 try:
     import mimircache.c_cacheReader
-except:
+except Exception as e:
+    print(e)
     failed_components.append("c_cacheReader")
 try:
     import mimircache.c_LRUProfiler
-except:
+except Exception as e:
+    print(e)
     failed_components.append("c_LRUProfiler")
 try:
     import mimircache.c_generalProfiler
-except:
+except Exception as e:
+    print(e)
     failed_components.append("c_generalProfiler")
 try:
     import mimircache.c_heatmap
-except:
+except Exception as e:
+    print(e)
     failed_components.append("c_heatmap")
 
 if len(failed_components):
@@ -130,6 +134,11 @@ def init_cache_alg_mapping():
 
 
 def cache_name_to_class(name):
+    """
+    convert cache name to cache class
+    :param name: name of cache
+    :return:
+    """
     cache_class = None
     if name.lower() in cache_alg_mapping:
         cache = cache_alg_mapping[name.lower()]

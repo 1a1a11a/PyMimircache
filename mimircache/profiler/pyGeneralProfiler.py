@@ -20,7 +20,7 @@ from concurrent.futures import as_completed, ProcessPoolExecutor
 from mimircache.cacheReader.abstractReader import AbstractReader
 from mimircache.const import *
 from mimircache.utils.printing import *
-from mimircache.profiler.profilerUtils import util_plotHRC
+from mimircache.profiler.utilProfiler import util_plotHRC
 
 
 __all__ = ["PyGeneralProfiler"]

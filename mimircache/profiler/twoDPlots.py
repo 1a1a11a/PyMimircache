@@ -22,17 +22,24 @@ this module provides functions for all the two dimensional figure plotting, curr
 
 
 import os
+import sys
 import numpy as np
 from collections import defaultdict
 import matplotlib.ticker as ticker
 from matplotlib import pyplot as plt
 
-from mimircache.utils.printing import *
-from mimircache.profiler.cHeatmap import CHeatmap
-from mimircache.profiler.cLRUProfiler import CLRUProfiler
-from mimircache.profiler.profilerUtils import draw2d
+from mimircache import CExtensionMode
+if CExtensionMode:
+    from mimircache.profiler.cHeatmap import CHeatmap as Heatmap
+    from mimircache.profiler.cLRUProfiler import CLRUProfiler as LRUProfiler
+else:
+    print("not all plots in twoDPlots support Py mode", file=sys.stderr)
+    # raise RuntimeError("Py mode is not ready in twoDPlots")
 
-all=(
+from mimircache.utils.printing import *
+from mimircache.profiler.utilProfiler import draw2d
+
+__all__=[
     "request_rate_2d",
     "cold_miss_count_2d",
     "cold_miss_ratio_2d",
@@ -42,7 +49,7 @@ all=(
     "rd_popularity_2d",
     "rt_popularity_2d",
     "interval_hit_ratio_2d"
-)
+]
 
 def request_rate_2d(reader, mode, time_interval,
                     figname="request_rate.png", **kwargs):
@@ -65,7 +72,7 @@ def request_rate_2d(reader, mode, time_interval,
                         ticker.FuncFormatter(lambda x, pos: '{:2.0f}%'.format(x * 100 / len(break_points))))
 
     assert mode == 'r' or mode == 'v', "currently only support mode r and v, what mode are you using?"
-    break_points = CHeatmap().get_breakpoints(reader, mode, time_interval)
+    break_points = Heatmap.get_breakpoints(reader, mode, time_interval)
 
     l = []
     for i in range(1, len(break_points)):
@@ -96,7 +103,7 @@ def cold_miss_count_2d(reader, mode, time_interval,
                         ticker.FuncFormatter(lambda x, pos: '{:2.0f}%'.format(x * 100 / len(break_points))))
 
     assert mode == 'r' or mode == 'v', "currently only support mode r and v, what mode are you using?"
-    break_points = CHeatmap().get_breakpoints(reader, mode, time_interval)
+    break_points = Heatmap.get_breakpoints(reader, mode, time_interval)
 
     cold_miss_list = [0] * (len(break_points) - 1)
     seen_set = set()
@@ -135,7 +142,7 @@ def cold_miss_ratio_2d(reader, mode, time_interval,
                         ticker.FuncFormatter(lambda x, pos: '{:2.0f}%'.format(x * 100 / len(break_points))))
 
     assert mode == 'r' or mode == 'v', "currently only support mode r and v, unknown mode {}".format(mode)
-    break_points = CHeatmap().get_breakpoints(reader, mode, time_interval)
+    break_points = Heatmap.get_breakpoints(reader, mode, time_interval)
 
     cold_miss_list = [0] * (len(break_points) - 1)
     seen_set = set()
@@ -321,7 +328,7 @@ def rd_freq_popularity_2d(reader, logX=True, logY=True, cdf=False,
     kwargs_plot["xticks"] = kwargs_plot.get("xticks", ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / len(l))))
 
 
-    rd_list = CLRUProfiler(reader).get_reuse_distance()
+    rd_list = LRUProfiler(reader).get_reuse_distance()
     rd_dict = defaultdict(int)      # rd -> count
     for rd in rd_list:
         rd_dict[rd] += 1
@@ -377,7 +384,7 @@ def rd_popularity_2d(reader, logX=True, logY=False, cdf=True,
     kwargs_plot["xlabel"] = kwargs_plot.get("xlabel", "Reuse Distance")
     kwargs_plot["ylabel"] = kwargs_plot.get("ylabel", "Num of Requests")
 
-    rd_list = CLRUProfiler(reader).get_reuse_distance()
+    rd_list = LRUProfiler(reader).get_reuse_distance()
     rd_dict = defaultdict(int)      # rd -> count
     for rd in rd_list:
         rd_dict[rd] += 1
@@ -494,7 +501,7 @@ def interval_hit_ratio_2d(reader, cache_size, decay_coef=0.2,
     :param figname:
     :return: the list of data points
     """
-    p = CLRUProfiler(reader)
+    p = LRUProfiler(reader)
     # reuse distance list
     rd_list = p.get_reuse_distance()
 
