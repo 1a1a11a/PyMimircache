@@ -107,7 +107,7 @@ The arguments here are similar to plotting heatmaps, the only difference is that
 
 
 Example:
->>> c.diffHeatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+>>> c.diff_heatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
 
 
 You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
@@ -149,6 +149,646 @@ Currently we only support differential heatmap of hit_ratio_start_time_end_time,
 The function to plot is shown below:
 
 >>> c.diffHeatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diff_heatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diff_heatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diff_heatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diff_heatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diff_heatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diff_heatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diffHeatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diffHeatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diff_heatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diffHeatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diff_heatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diff_heatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diff_heatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diff_heatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diffHeatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diff_heatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diff_heatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diffHeatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diff_heatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diffHeatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diff_heatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diff_heatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diff_heatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diff_heatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diffHeatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diff_heatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diff_heatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diffHeatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diff_heatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diffHeatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diff_heatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diff_heatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diff_heatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diff_heatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diffHeatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diff_heatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diffHeatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diffHeatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diff_heatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diff_heatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diff_heatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diff_heatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diff_heatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diff_heatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diffHeatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diff_heatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diffHeatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diffHeatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diff_heatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diff_heatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diff_heatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diff_heatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diff_heatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diff_heatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diffHeatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diff_heatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diffHeatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diff_heatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diff_heatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diffHeatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diff_heatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diff_heatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diff_heatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diff_heatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diffHeatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diff_heatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diffHeatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diff_heatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diff_heatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diffHeatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diff_heatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diff_heatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diff_heatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diff_heatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diff_heatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diff_heatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diff_heatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diff_heatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+                    algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
+
+The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,
+
+
+Example:
+>>> c.diff_heatmap('r', "hit_ratio_start_time_end_time", time_interval=1000000, algorithm1="LRU", cache_size=2000)
+
+
+You are in the right place! Differential heatmaps allow you to compare cache replacement algorithms with respect to time.
+
+
+Currently we only support differential heatmap of hit_ratio_start_time_end_time, each pixel (x, y) in the plot implies the hit ratio difference between algorithm1 and algorithm2 and divided by hit ratio of algorithm 1 from time x to y.
+The function to plot is shown below:
+
+>>> c.diff_heatmap(mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
                     algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs)
 
 The arguments here are similar to plotting heatmaps, the only difference is that we have one more algorithm, which is used for comparison,

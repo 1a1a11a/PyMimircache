@@ -40,9 +40,7 @@ import matplotlib.ticker as ticker
 import numpy as np
 from matplotlib import pyplot as plt
 
-# DEBUG = True
 
-__all__ = ["run", "draw"]
 
 
 class PyHeatmap:
@@ -50,6 +48,34 @@ class PyHeatmap:
         # if not os.path.exists('temp/'):
         #     os.mkdir('temp')
         pass
+
+    @staticmethod
+    def get_breakpoints(reader, time_mode,
+                        time_interval=-1,
+                        num_of_pixel_of_time_dim=-1,
+                        **kwargs):
+        """
+        retrieve the breakpoints given time_mode and time_interval or num_of_pixel_of_time_dim,
+        break point breaks the trace into chunks of given time_interval
+
+        :param reader: reader for reading trace
+        :param time_mode: either real time (r) or virtual time (v)
+        :param time_interval: the intended time_interval of data chunk
+        :param num_of_pixel_of_time_dim: the number of chunks, this is used when it is hard to estimate time_interval,
+                                you only need specify one, either num_of_pixel_of_time_dim or time_interval
+        :param kwargs: not used now
+        :return: a numpy list of break points begin with 0, ends with total_num_requests
+        """
+
+        assert time_interval != -1 or num_of_pixel_of_time_dim != -1, \
+            "please provide at least one parameter, time_interval or num_of_pixel_of_time_dim"
+        pass
+
+
+        """
+        components down need re-write 
+        """
+
 
     def _prepare_reuse_distance_and_break_points(self, mode, reader,
                                                  time_interval=-1, num_of_pixels=-1,

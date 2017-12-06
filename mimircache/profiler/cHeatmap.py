@@ -42,7 +42,10 @@ class CHeatmap:
         self.other_plot_kwargs = {}
 
     @staticmethod
-    def get_breakpoints(reader, time_mode, time_interval=-1, num_of_pixel_of_time_dim=-1, **kwargs):
+    def get_breakpoints(reader, time_mode,
+                        time_interval=-1,
+                        num_of_pixel_of_time_dim=-1,
+                        **kwargs):
         """
         retrieve the breakpoints given time_mode and time_interval or num_of_pixel_of_time_dim,
         break point breaks the trace into chunks of given time_interval
@@ -62,94 +65,98 @@ class CHeatmap:
                                                     time_interval=time_interval,
                                                     num_of_pixel_of_time_dim=num_of_pixel_of_time_dim)
 
-    def set_plot_params(self, axis, axis_type, **kwargs):
-        """
-        this function sets the label and ticks for x and y axis
+    # def set_plot_params(self, axis, axis_type, **kwargs):
+    #     """
+    #     this function sets the label and ticks for x and y axis
+    #
+    #     :param axis:
+    #     :param axis_type:
+    #     :param kwargs:
+    #     :return:
+    #     """
+    #     log_base = 1
+    #     label = ''
+    #     tick = None
+    #     xydict = None
+    #
+    #     if 'xydict' in kwargs:
+    #         xydict = kwargs['xydict']
+    #
+    #     if 'log_base' in kwargs:
+    #         log_base = kwargs['log_base']
+    #
+    #     if 'fixed_range' in kwargs and kwargs['fixed_range']:
+    #         # if 'vmin' in kwargs:
+    #         #     self.other_plot_kwargs['vmin'] = kwargs['vmin']
+    #         # vmin, vmax = kwargs['fixed_range']
+    #         # self.other_plot_kwargs['vmin'] = 0
+    #         # self.other_plot_kwargs['vmax'] = 1
+    #         self.other_plot_kwargs['fixed_range'] = kwargs['fixed_range']
+    #
+    #     if 'other_kwargs' in kwargs:
+    #         self.other_plot_kwargs.update(kwargs['other_kwargs'])
+    #
+    #     if 'text' in kwargs:
+    #         ax = plt.gca()
+    #         ax.text(kwargs['text'][0], kwargs['text'][1], kwargs['text'][2])  # , fontsize=20)  , color='blue')
+    #
+    #     if axis == 'x':
+    #         assert 'xydict' in kwargs, "you didn't provide xydict"
+    #         array = xydict[0]
+    #     elif axis == 'y':
+    #         assert 'xydict' in kwargs, "you didn't provide xydict"
+    #         array = xydict
+    #     elif axis == 'cb':  # color bar
+    #         if axis_type == 'count':
+    #             self.other_plot_kwargs['norm'] = colors.LogNorm()
+    #     else:
+    #         print("unsupported axis: " + str(axis))
+    #
+    #     if axis_type == 'virtual time':
+    #         if 'label' in kwargs:
+    #             label = kwargs['label']
+    #         else:
+    #             label = 'virtual time'
+    #         # tick = ticker.FuncFormatter(lambda x, pos: '{:2.0f}'.format(bin_size * x))
+    #         tick = ticker.FuncFormatter(lambda x, pos: '{:2.0f}%'.format(x * 100 / (len(array) - 1)))
+    #     elif axis_type == 'real time':
+    #         if 'label' in kwargs:
+    #             label = kwargs['label']
+    #         else:
+    #             label = 'real time'
+    #         # tick = ticker.FuncFormatter(lambda x, pos: '{:2.0f}'.format(bin_size * x))
+    #         tick = ticker.FuncFormatter(lambda x, pos: '{:2.0f}%'.format(x * 100 / (len(array) - 1)))
+    #
+    #     elif axis_type == 'cache_size':
+    #         assert log_base != 1, "please provide log_base"
+    #         label = 'cache size'
+    #         tick = ticker.FuncFormatter(lambda x, pos: '{:2.0f}'.format(log_base ** x))
+    #
+    #     elif axis_type == 'reuse_dist' or axis_type == "distance":
+    #         assert log_base != 1, "please provide log_base"
+    #         label = 'reuse distance'
+    #         tick = ticker.FuncFormatter(lambda x, pos: '{:2.0f}'.format(log_base ** x-1))
+    #
+    #     if axis == 'x':
+    #         plt.xlabel(label)
+    #         plt.gca().xaxis.set_major_formatter(tick)
+    #
+    #     elif axis == 'y':
+    #         plt.ylabel(label)
+    #         plt.gca().yaxis.set_major_formatter(tick)
+    #
+    #     elif axis == 'cb':
+    #         pass
+    #
+    #     else:
+    #         print("unsupported axis: " + str(axis))
 
-        :param axis:
-        :param axis_type:
-        :param kwargs:
-        :return:
-        """
-        log_base = 1
-        label = ''
-        tick = None
-        xydict = None
-
-        if 'xydict' in kwargs:
-            xydict = kwargs['xydict']
-
-        if 'log_base' in kwargs:
-            log_base = kwargs['log_base']
-
-        if 'fixed_range' in kwargs and kwargs['fixed_range']:
-            # if 'vmin' in kwargs:
-            #     self.other_plot_kwargs['vmin'] = kwargs['vmin']
-            # vmin, vmax = kwargs['fixed_range']
-            # self.other_plot_kwargs['vmin'] = 0
-            # self.other_plot_kwargs['vmax'] = 1
-            self.other_plot_kwargs['fixed_range'] = kwargs['fixed_range']
-
-        if 'other_kwargs' in kwargs:
-            self.other_plot_kwargs.update(kwargs['other_kwargs'])
-
-        if 'text' in kwargs:
-            ax = plt.gca()
-            ax.text(kwargs['text'][0], kwargs['text'][1], kwargs['text'][2])  # , fontsize=20)  , color='blue')
-
-        if axis == 'x':
-            assert 'xydict' in kwargs, "you didn't provide xydict"
-            array = xydict[0]
-        elif axis == 'y':
-            assert 'xydict' in kwargs, "you didn't provide xydict"
-            array = xydict
-        elif axis == 'cb':  # color bar
-            if axis_type == 'count':
-                self.other_plot_kwargs['norm'] = colors.LogNorm()
-        else:
-            print("unsupported axis: " + str(axis))
-
-        if axis_type == 'virtual time':
-            if 'label' in kwargs:
-                label = kwargs['label']
-            else:
-                label = 'virtual time'
-            # tick = ticker.FuncFormatter(lambda x, pos: '{:2.0f}'.format(bin_size * x))
-            tick = ticker.FuncFormatter(lambda x, pos: '{:2.0f}%'.format(x * 100 / (len(array) - 1)))
-        elif axis_type == 'real time':
-            if 'label' in kwargs:
-                label = kwargs['label']
-            else:
-                label = 'real time'
-            # tick = ticker.FuncFormatter(lambda x, pos: '{:2.0f}'.format(bin_size * x))
-            tick = ticker.FuncFormatter(lambda x, pos: '{:2.0f}%'.format(x * 100 / (len(array) - 1)))
-
-        elif axis_type == 'cache_size':
-            assert log_base != 1, "please provide log_base"
-            label = 'cache size'
-            tick = ticker.FuncFormatter(lambda x, pos: '{:2.0f}'.format(log_base ** x))
-
-        elif axis_type == 'reuse_dist' or axis_type == "distance":
-            assert log_base != 1, "please provide log_base"
-            label = 'reuse distance'
-            tick = ticker.FuncFormatter(lambda x, pos: '{:2.0f}'.format(log_base ** x-1))
-
-        if axis == 'x':
-            plt.xlabel(label)
-            plt.gca().xaxis.set_major_formatter(tick)
-
-        elif axis == 'y':
-            plt.ylabel(label)
-            plt.gca().yaxis.set_major_formatter(tick)
-
-        elif axis == 'cb':
-            pass
-
-        else:
-            print("unsupported axis: " + str(axis))
-
-    def heatmap(self, reader, time_mode, plot_type, algorithm="LRU", time_interval=-1, num_of_pixel_of_time_dim=-1,
-                cache_params=None, **kwargs):
+    def heatmap(self, reader, time_mode, plot_type,
+                algorithm="LRU",
+                time_interval=-1,
+                num_of_pixel_of_time_dim=-1,
+                cache_params=None,
+                **kwargs):
         """
 
         :param cache_params:
@@ -175,10 +182,6 @@ class CHeatmap:
                                         "it can only be either real time(r) or virtual time(v), " \
                                         "but you give {}".format(time_mode)
 
-        if time_mode == 'r':
-            mode_string = "real time"
-        else:
-            mode_string = "virtual time"
 
         if plot_type == "hit_ratio_start_time_end_time" or plot_type == "hr_st_et":
             assert cache_size != -1, "please provide cache_size parameter for plotting hr_st_et"
@@ -225,20 +228,11 @@ class CHeatmap:
             ax = plt.gca()
             ax.text(x1, y1, text)  # , fontsize=20)  , color='blue')
 
-
-            # if time_mode == 'r':
-            #     self.set_plot_params('x', mode_string, xydict=xydict, label='start time (real)',
-            #                          text=(x1, y1, text))
-            #     self.set_plot_params('y', mode_string, xydict=xydict, label='end time (real)', fixed_range=(0, 1))
-            # else:
-            #     self.set_plot_params('x', mode_string, xydict=xydict, label='start time (virtual)',
-            #                          text=(x1, y1, text))
-            #     self.set_plot_params('y', mode_string, xydict=xydict, label='end time (virtual)',
-            #                          fixed_range=(0, 1))
-
             if not figname:
                 figname = '_'.join([algorithm, str(cache_size), plot_type]) + '.png'
-            self.draw_heatmap(xydict, figname=figname, fixed_range=(0, 1),
+
+            plot_data = np.ma.array(xydict, mask=np.tri(len(xydict), dtype=int).T)
+            self.draw_heatmap(plot_data, figname=figname, fixed_range=(0, 1),
                               xlabel=xlabel, ylabel=ylabel, xticks=xticks, yticks=yticks)
 
 
@@ -265,11 +259,11 @@ class CHeatmap:
             print(xydict.shape)
             print_list(xydict[:8, 0])
             print_list(xydict[:8, 1])
-
+            plot_data = xydict
 
             if not figname:
                 figname = '_'.join([algorithm, str(cache_size), plot_type]) + '.png'
-            self.draw_heatmap(xydict, no_mask=True, figname=figname, fixed_range=(0, 1),
+            self.draw_heatmap(plot_data, figname=figname, fixed_range=(0, 1),
                               xlabel=xlabel, ylabel=ylabel, xticks=xticks, yticks=yticks, title=title)
 
         elif plot_type == "hit_ratio_start_time_cache_size" or plot_type == "hr_st_size":
@@ -294,92 +288,171 @@ class CHeatmap:
             if not figname:
                 figname = 'rd_distribution.png'
 
-            xydict, log_base = mimircache.c_heatmap.heatmap_rd_distribution(reader.cReader, time_mode,
-                                                                            time_interval=time_interval,
-                                                                            num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
-                                                                            num_of_threads=num_of_threads)
+            xydict, log_base = mimircache.c_heatmap.\
+                hm_rd_distribution(reader.cReader, time_mode,
+                                   time_interval=time_interval,
+                                   num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
+                                   num_of_threads=num_of_threads)
+
+
+
+            title = "Reuse Distance Distribution Heatmap"
+            xlabel = '{} Time'.format("Real" if time_mode=="r" else "Virtual")
+            xticks = ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (xydict.shape[1]-1)))
+            ylabel = "Reuse Distance"
+            yticks = ticker.FuncFormatter(lambda x, _: '{:2.0f}'.format(log_base ** x-1))
+            imshow_kwargs = {"norm": colors.LogNorm()}
+
+            plot_data = xydict
+            np.ma.masked_where(plot_data==0, plot_data, copy=False)
 
             if 'filter_rd' in kwargs:
-                # make reuse distance < filter_rd unvisible,
+                # make reuse distance < filter_rd invisible,
                 # this can be useful when the low-reuse-distance request dominates
                 # thus makes the heatmap hard to read
                 assert kwargs['filter_rd'] > 0, "filter_rd must be positive"
                 index_pos = int(np.log(kwargs['filter_rd'])/np.log(log_base))
-                xydict[:index_pos+1, :] = 0
+                plot_data[:index_pos+1, :] = 0
 
 
-            self.set_plot_params('x', mode_string, xydict=xydict)
-            self.set_plot_params('y', 'reuse_dist', xydict=xydict, log_base=log_base)
-            self.set_plot_params('cb', 'count') #, fixed_range=(0.01, 1))
-            self.draw_heatmap(xydict, figname=figname, no_mask=True)
+            self.draw_heatmap(plot_data, figname=figname, xlabel=xlabel, ylabel=ylabel,
+                              xticks=xticks, yticks=yticks, title=title,
+                              imshow_kwargs=imshow_kwargs)
+
 
         elif plot_type == "rd_distribution_CDF":
             if not figname:
                 figname = 'rd_distribution_CDF.png'
 
-            xydict, log_base = mimircache.c_heatmap.heatmap_rd_distribution(reader.cReader, time_mode,
-                                                                            time_interval=time_interval,
-                                                                            num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
-                                                                            num_of_threads=num_of_threads, CDF=1)
-            self.set_plot_params('x', mode_string, xydict=xydict)
-            self.set_plot_params('y', 'reuse_dist', xydict=xydict, log_base=log_base)
-            self.set_plot_params('cb', 'count') #, fixed_range=(0.01, 1))
-            self.draw_heatmap(xydict, figname=figname, no_mask=True)
+            xydict, log_base = mimircache.c_heatmap.\
+                hm_rd_distribution(reader.cReader, time_mode,
+                                   time_interval=time_interval,
+                                   num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
+                                   num_of_threads=num_of_threads, CDF=1)
+
+            title = "Reuse Distance Distribution CDF Heatmap"
+            xlabel = '{} Time'.format("Real" if time_mode=="r" else "Virtual")
+            xticks = ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (xydict.shape[1]-1)))
+            ylabel = "Reuse Distance (CDF)"
+            yticks = ticker.FuncFormatter(lambda x, _: '{:2.0f}'.format(log_base ** x-1))
+            imshow_kwargs = {"norm": colors.LogNorm()}
+
+            plot_data = xydict
+            np.ma.masked_where(plot_data==0, plot_data, copy=False)
+
+            if 'filter_rd' in kwargs:
+                # make reuse distance < filter_rd invisible,
+                # this can be useful when the low-reuse-distance request dominates
+                # thus makes the heatmap hard to read
+                assert kwargs['filter_rd'] > 0, "filter_rd must be positive"
+                index_pos = int(np.log(kwargs['filter_rd'])/np.log(log_base))
+                plot_data[:index_pos+1, :] = 0
+
+
+            self.draw_heatmap(plot_data, figname=figname, xlabel=xlabel, ylabel=ylabel,
+                              xticks=xticks, yticks=yticks, title=title,
+                              imshow_kwargs=imshow_kwargs)
 
 
         elif plot_type == "future_rd_distribution":
             if not figname:
                 figname = 'future_rd_distribution.png'
 
-            xydict, log_base = mimircache.c_heatmap.heatmap_future_rd_distribution(reader.cReader, time_mode,
-                                                                                   time_interval=time_interval,
-                                                                                   num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
-                                                                                   num_of_threads=num_of_threads)
-            self.set_plot_params('x', mode_string, xydict=xydict)
-            self.set_plot_params('y', 'reuse_dist', xydict=xydict, log_base=log_base)
-            self.set_plot_params('cb', 'count') #, fixed_range=(0.01, 1))
-            self.draw_heatmap(xydict, figname=figname, no_mask=True)
+            xydict, log_base = mimircache.c_heatmap.\
+                hm_future_rd_distribution(reader.cReader, time_mode,
+                                          time_interval=time_interval,
+                                          num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
+                                          num_of_threads=num_of_threads)
+
+            title = "Future Reuse Distance Distribution Heatmap"
+            xlabel = '{} Time'.format("Real" if time_mode=="r" else "Virtual")
+            xticks = ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (xydict.shape[1]-1)))
+            ylabel = "Future Reuse Distance"
+            yticks = ticker.FuncFormatter(lambda x, _: '{:2.0f}'.format(log_base ** x-1))
+            imshow_kwargs = {"norm": colors.LogNorm()}
+
+            plot_data = xydict
+            np.ma.masked_where(plot_data==0, plot_data, copy=False)
+
+            if 'filter_rd' in kwargs:
+                # make reuse distance < filter_rd invisible,
+                # this can be useful when the low-reuse-distance request dominates
+                # thus makes the heatmap hard to read
+                assert kwargs['filter_rd'] > 0, "filter_rd must be positive"
+                index_pos = int(np.log(kwargs['filter_rd'])/np.log(log_base))
+                plot_data[:index_pos+1, :] = 0
+
+
+            self.draw_heatmap(plot_data, figname=figname, xlabel=xlabel, ylabel=ylabel,
+                              xticks=xticks, yticks=yticks, title=title,
+                              imshow_kwargs=imshow_kwargs)
 
         elif plot_type == "dist_distribution":
             if not figname:
                 figname = 'dist_distribution.png'
 
-            xydict, log_base = mimircache.c_heatmap.heatmap_dist_distribution(reader.cReader, time_mode,
-                                                                              time_interval=time_interval,
-                                                                              num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
-                                                                              num_of_threads=num_of_threads)
+            xydict, log_base = mimircache.c_heatmap.\
+                hm_dist_distribution(reader.cReader, time_mode,
+                                     time_interval=time_interval,
+                                     num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
+                                     num_of_threads=num_of_threads)
 
-            if 'filter_rd' in kwargs:
-                assert kwargs['filter_rd'] > 0, "filter_rd must be positive"
-                index_pos = int(np.log(kwargs['filter_rd'])/np.log(log_base))
-                xydict[:index_pos+1, :] = 0
+            title = "Distance Distribution Heatmap"
+            xlabel = '{} Time'.format("Real" if time_mode=="r" else "Virtual")
+            xticks = ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (xydict.shape[1]-1)))
+            ylabel = "Distance"
+            yticks = ticker.FuncFormatter(lambda x, _: '{:2.0f}'.format(log_base ** x-1))
+            imshow_kwargs = {"norm": colors.LogNorm()}
+
+            plot_data = xydict
+            np.ma.masked_where(plot_data==0, plot_data, copy=False)
+
+            if 'filter_dist' in kwargs:
+                # make reuse distance < filter_rd invisible,
+                # this can be useful when the low-reuse-distance request dominates
+                # thus makes the heatmap hard to read
+                assert kwargs['filter_dist'] > 0, "filter_dist must be positive"
+                index_pos = int(np.log(kwargs['filter_dist'])/np.log(log_base))
+                plot_data[:index_pos+1, :] = 0
 
 
-            self.set_plot_params('x', mode_string, xydict=xydict)
-            self.set_plot_params('y', 'distance', xydict=xydict, log_base=log_base)
-            self.set_plot_params('cb', 'count') #, fixed_range=(0.01, 1))
-            self.draw_heatmap(xydict, figname=figname, no_mask=True)
+            self.draw_heatmap(plot_data, figname=figname, xlabel=xlabel, ylabel=ylabel,
+                              xticks=xticks, yticks=yticks, title=title,
+                              imshow_kwargs=imshow_kwargs)
+
 
         elif plot_type == "reuse_time_distribution":
             if not figname:
                 figname = 'rt_distribution.png'
 
-            xydict, log_base = mimircache.c_heatmap.heatmap_reuse_time_distribution(reader.cReader, time_mode,
-                                                                                    time_interval=time_interval,
-                                                                                    num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
-                                                                                    num_of_threads=num_of_threads)
+            xydict, log_base = mimircache.c_heatmap.\
+                hm_reuse_time_distribution(reader.cReader, time_mode,
+                                           time_interval=time_interval,
+                                           num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
+                                           num_of_threads=num_of_threads)
 
-            if 'filter_rd' in kwargs:
-                assert kwargs['filter_rd'] > 0, "filter_rd must be positive"
-                index_pos = int(np.log(kwargs['filter_rd'])/np.log(log_base))
-                xydict[:index_pos+1, :] = 0
+            title = "Reuse Time Distribution Heatmap"
+            xlabel = '{} Time'.format("Real" if time_mode=="r" else "Virtual")
+            xticks = ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (xydict.shape[1]-1)))
+            ylabel = "Reuse Time"
+            yticks = ticker.FuncFormatter(lambda x, _: '{:2.0f}'.format(log_base ** x-1))
+            imshow_kwargs = {"norm": colors.LogNorm()}
+
+            plot_data = xydict
+            np.ma.masked_where(plot_data==0, plot_data, copy=False)
+
+            if 'filter_rt' in kwargs:
+                # make reuse distance < filter_rd invisible,
+                # this can be useful when the low-reuse-distance request dominates
+                # thus makes the heatmap hard to read
+                assert kwargs['filter_rt'] > 0, "filter_rt must be positive"
+                index_pos = int(np.log(kwargs['filter_rt'])/np.log(log_base))
+                plot_data[:index_pos+1, :] = 0
 
 
-            self.set_plot_params('x', mode_string, xydict=xydict)
-            self.set_plot_params('y', 'distance', xydict=xydict, log_base=log_base)
-            plt.ylabel("reuse time")
-            self.set_plot_params('cb', 'count') #, fixed_range=(0.01, 1))
-            self.draw_heatmap(xydict, figname=figname, no_mask=True)
+            self.draw_heatmap(plot_data, figname=figname, xlabel=xlabel, ylabel=ylabel,
+                              xticks=xticks, yticks=yticks, title=title,
+                              imshow_kwargs=imshow_kwargs)
 
 
 
@@ -390,9 +463,9 @@ class CHeatmap:
 
         reader.reset()
 
-    def diffHeatmap(self, reader, time_mode, plot_type, algorithm1,
-                    time_interval=-1, num_of_pixel_of_time_dim=-1, algorithm2="Optimal",
-                    cache_params1=None, cache_params2=None, **kwargs):
+    def diff_heatmap(self, reader, time_mode, plot_type, algorithm1,
+                     time_interval=-1, num_of_pixel_of_time_dim=-1, algorithm2="Optimal",
+                     cache_params1=None, cache_params2=None, **kwargs):
         """
 
         :param time_interval:
@@ -408,10 +481,6 @@ class CHeatmap:
         :return:
         """
 
-        # self.time_interval = time_interval
-        # self.num_of_pixel_of_time_dim = num_of_pixel_of_time_dim
-        # self.time_mode = time_mode
-
         reader.reset()
 
         cache_size = kwargs.get("cache_size", -1)
@@ -419,11 +488,6 @@ class CHeatmap:
         num_of_threads = kwargs.get("num_of_threads", os.cpu_count())
         assert time_mode in ["r", "v"], "Cannot recognize time_mode {}, it can only be either " \
                                         "real time(r) or virtual time(v)".format(time_mode)
-
-        if time_mode == 'r':
-            mode_string = "real time"
-        else:
-            mode_string = "virtual time"
 
         if plot_type == "hit_ratio_start_time_end_time" or plot_type == "hr_st_et":
             assert cache_size != -1, "please provide cache_size for plotting hr_st_et"
@@ -445,26 +509,17 @@ class CHeatmap:
             x1 = int(x1 / 2.8)
             y1 /= 8
 
-            if time_mode == 'r':
-                self.set_plot_params('x', mode_string, xydict=xydict, label='start time (real)',
-                                     text=(x1, y1, text))
-                self.set_plot_params('y', mode_string, xydict=xydict, label='end time (real)', fixed_range=(-1, 1))
-            else:
-                self.set_plot_params('x', mode_string, xydict=xydict, label='start time (virtual)',
-                                     text=(x1, y1, text))
-                self.set_plot_params('y', mode_string, xydict=xydict, label='end time (virtual)',
-                                     fixed_range=(-1, 1))
-
             title = "Differential Heatmap"
             xlabel = 'Start Time ({})'.format(time_mode)
             xticks = ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (xydict.shape[1]-1)))
             ylabel = "End Time ({})".format(time_mode)
             yticks = ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (xydict.shape[1]-1)))
             ax = plt.gca()
-            ax.text(x1, y1, text)  # , fontsize=20)  , color='blue')
+            ax.text(x1, y1, text)
 
 
-            self.draw_heatmap(xydict, figname=figname)
+            self.draw_heatmap(xydict, figname=figname, xlabel=xlabel, ylabel=ylabel,
+                              xticks=xticks, yticks=yticks, title=title, fixed_range=(-1, 1))
 
 
 
@@ -492,32 +547,29 @@ class CHeatmap:
         reader.reset()
 
 
-    def draw_heatmap(self, xydict, **kwargs):
+    def draw_heatmap(self, plot_array, **kwargs):
         filename = kwargs.get("figname", 'heatmap.png')
-
-        if 'no_mask' in kwargs and kwargs['no_mask']:
-            plot_array = xydict
-        else:
-            plot_array = np.ma.array(xydict, mask=np.tri(len(xydict), dtype=int).T)
 
         if 'filter_count' in kwargs:
             assert kwargs['filter_count'] > 0, "filter_count must be positive"
-            plot_array = np.ma.array(xydict, mask=(xydict<kwargs['filter_count']))
+            plot_array = np.ma.array(xydict, mask=(plot_array<kwargs['filter_count']))
+
+        imshow_kwargs = kwargs.get("imshow_kwargs", {})
 
         cmap = plt.cm.jet
         # cmap = plt.get_cmap("Oranges")
-        cmap.set_bad('w', 1.)
+        cmap.set_bad(color='white', alpha=1.)
 
-        if 1:
-        # try:
+        # if 1:
+        try:
             if kwargs.get('fixed_range', False):
                 vmin, vmax = kwargs['fixed_range']
                 img = plt.imshow(plot_array, vmin=vmin, vmax=vmax,
                                  interpolation='nearest', origin='lower',
-                                 cmap=cmap, aspect='auto')
+                                 cmap=cmap, aspect='auto', **imshow_kwargs)
             else:
                 img = plt.imshow(plot_array, interpolation='nearest',
-                                 origin='lower', aspect='auto', cmap=cmap)
+                                 origin='lower', aspect='auto', cmap=cmap, **imshow_kwargs)
 
             cb = plt.colorbar(img)
             set_fig(no_legend=True, **kwargs)
@@ -532,20 +584,20 @@ class CHeatmap:
                 try: plt.clf()
                 except: pass
 
-        # except Exception as e:
-        #     try:
-        #         import time
-        #         t = int(time.time())
-        #         WARNING("plotting using imshow failed: {}, "
-        #                 "now try to save the plotting data to /tmp/heatmap.{}.pickle".format(e, t))
-        #         import pickle
-        #         with open("/tmp/heatmap.{}.pickle", 'wb') as ofile:
-        #             pickle.dump(plot_array, ofile)
-        #     except Exception as e:
-        #         WARNING("failed to save plotting data")
-        #
-        #     try:
-        #         plt.pcolormesh(plot_array.T, cmap=cmap)
-        #         plt.savefig(filename)
-        #     except Exception as e:
-        #         WARNING("further plotting using pcolormesh failed" + str(e))
+        except Exception as e:
+            try:
+                import time
+                t = int(time.time())
+                WARNING("plotting using imshow failed: {}, "
+                        "now try to save the plotting data to /tmp/heatmap.{}.pickle".format(e, t))
+                import pickle
+                with open("/tmp/heatmap.{}.pickle", 'wb') as ofile:
+                    pickle.dump(plot_array, ofile)
+            except Exception as e:
+                WARNING("failed to save plotting data")
+
+            try:
+                plt.pcolormesh(plot_array.T, cmap=cmap)
+                plt.savefig(filename)
+            except Exception as e:
+                WARNING("further plotting using pcolormesh failed" + str(e))

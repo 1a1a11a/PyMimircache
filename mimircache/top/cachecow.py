@@ -474,15 +474,15 @@ class Cachecow:
 
         if algorithm1.lower() in c_available_cache and algorithm2.lower() in c_available_cache:
             hm = CHeatmap()
-            hm.diffHeatmap(self.reader, time_mode, plot_type,
-                           cache_size=cache_size,
-                           time_interval=time_interval,
-                           num_of_pixels=num_of_pixels,
-                           algorithm1=cache_alg_mapping[algorithm1.lower()],
-                           algorithm2=cache_alg_mapping[algorithm2.lower()],
-                           cache_params1=cache_params1,
-                           cache_params2=cache_params2,
-                           **kwargs)
+            hm.diff_heatmap(self.reader, time_mode, plot_type,
+                            cache_size=cache_size,
+                            time_interval=time_interval,
+                            num_of_pixels=num_of_pixels,
+                            algorithm1=cache_alg_mapping[algorithm1.lower()],
+                            algorithm2=cache_alg_mapping[algorithm2.lower()],
+                            cache_params1=cache_params1,
+                            cache_params2=cache_params2,
+                            **kwargs)
 
         else:
             hm = PyHeatmap()
