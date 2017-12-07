@@ -11,7 +11,7 @@ For all cache replacement algorithms, including the ones built-in and the ones y
 To help you better evaluate different cache replacement algorithms, we also include a variety of visulization tool inside mimircache, for example you can plot hit rate curve(HRC), miss rate curve(MRC), different variants of heatmaps and differential heatmaps. For LRU, it also supports reuse distance calculation, reuse distance distribution plotting and etc. 
 
 A sample graph generated from mimircache: 
-![Heatmap](https://raw.githubusercontent.com/1a1a11a/mimircache/develop/docs/Users/images/github_heatmap.png)
+![Heatmap](https://raw.githubusercontent.com/1a1a11a/mimircache/develop/docs/User/images/github_heatmap.png)
 
 
 Supported Features
