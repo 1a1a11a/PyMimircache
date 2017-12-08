@@ -36,3 +36,22 @@ Now you can customize mimircache to fit your own need, you can
 Authors and Contributors
 ----------------------------
 Mimircache is created by [Juncheng Yang](http://junchengyang.com) of [Ymir](http://www.ymsir.com)'s group at Emory University with help from a lot of others. 
+
+
+<!-- Start of StatCounter Code for Default Guide -->
+<script type="text/javascript">
+var sc_project=11567620; 
+var sc_invisible=1; 
+var sc_security="ee805e1b"; 
+var scJsHost = (("https:" == document.location.protocol) ?
+"https://secure." : "http://www.");
+document.write("<sc"+"ript type='text/javascript' src='" +
+scJsHost+
+"statcounter.com/counter/counter.js'></"+"script>");
+</script>
+<noscript><div class="statcounter"><a title="Web Analytics"
+href="http://statcounter.com/" target="_blank"><img
+class="statcounter"
+src="//c.statcounter.com/11567620/0/ee805e1b/1/" alt="Web
+Analytics"></a></div></noscript>
+<!-- End of StatCounter Code for Default Guide --> 
