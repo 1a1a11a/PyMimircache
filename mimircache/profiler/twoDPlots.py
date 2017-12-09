@@ -51,12 +51,12 @@ __all__=[
     "interval_hit_ratio_2d"
 ]
 
-def request_rate_2d(reader, mode, time_interval,
+def request_rate_2d(reader, time_mode, time_interval,
                     figname="request_rate.png", **kwargs):
     """
     plot the number of requests per time_interval vs time
     :param reader:
-    :param mode: either 'r' or 'v' for real time(wall-clock time) or virtual time(reference time)
+    :param time_mode: either 'r' or 'v' for real time(wall-clock time) or virtual time(reference time)
     :param time_interval:
     :param figname:
     :return: the list of data points
@@ -65,14 +65,14 @@ def request_rate_2d(reader, mode, time_interval,
     kwargs_plot = {}
     kwargs_plot.update(kwargs)
 
-    kwargs_plot["xlabel"] = kwargs_plot.get("xlabel", '{} Time'.format("Real" if mode == "r" else "Virtual"))
+    kwargs_plot["xlabel"] = kwargs_plot.get("xlabel", '{} Time'.format("Real" if time_mode == "r" else "Virtual"))
     kwargs_plot["ylabel"] = kwargs_plot.get("ylabel", 'Request Rate (interval={})'.format(time_interval))
     kwargs_plot["title"] = kwargs_plot.get("title", 'Request Rate Plot')
     kwargs_plot["xticks"] = kwargs_plot.get("xticks",
                         ticker.FuncFormatter(lambda x, pos: '{:2.0f}%'.format(x * 100 / len(break_points))))
 
-    assert mode == 'r' or mode == 'v', "currently only support mode r and v, what mode are you using?"
-    break_points = Heatmap.get_breakpoints(reader, mode, time_interval)
+    assert time_mode == 'r' or time_mode == 'v', "currently only support time_mode r and v, what time_mode are you using?"
+    break_points = Heatmap.get_breakpoints(reader, time_mode, time_interval)
 
     l = []
     for i in range(1, len(break_points)):
@@ -82,12 +82,12 @@ def request_rate_2d(reader, mode, time_interval,
     return l
 
 
-def cold_miss_count_2d(reader, mode, time_interval,
+def cold_miss_count_2d(reader, time_mode, time_interval,
                        figname="cold_miss_count2d.png", **kwargs):
     """
     plot the number of cold miss per time_interval
     :param reader:
-    :param mode: either 'r' or 'v' for real time(wall-clock time) or virtual time(reference time)
+    :param time_mode: either 'r' or 'v' for real time(wall-clock time) or virtual time(reference time)
     :param time_interval:
     :param figname:
     :return: the list of data points
@@ -96,14 +96,14 @@ def cold_miss_count_2d(reader, mode, time_interval,
     kwargs_plot = {}
     kwargs_plot.update(kwargs)
 
-    kwargs_plot["xlabel"] = kwargs_plot.get("xlabel", '{} Time'.format("Real" if mode == "r" else "Virtual"))
+    kwargs_plot["xlabel"] = kwargs_plot.get("xlabel", '{} Time'.format("Real" if time_mode == "r" else "Virtual"))
     kwargs_plot["ylabel"] = kwargs_plot.get("ylabel", 'Cold Miss Count (interval={})'.format(time_interval))
     kwargs_plot["title"] = kwargs_plot.get("title", 'Cold Miss Count 2D plot')
     kwargs_plot["xticks"] = kwargs_plot.get("xticks",
                         ticker.FuncFormatter(lambda x, pos: '{:2.0f}%'.format(x * 100 / len(break_points))))
 
-    assert mode == 'r' or mode == 'v', "currently only support mode r and v, what mode are you using?"
-    break_points = Heatmap.get_breakpoints(reader, mode, time_interval)
+    assert time_mode == 'r' or time_mode == 'v', "currently only support time_mode r and v, what time_mode are you using?"
+    break_points = Heatmap.get_breakpoints(reader, time_mode, time_interval)
 
     cold_miss_list = [0] * (len(break_points) - 1)
     seen_set = set()
@@ -121,12 +121,12 @@ def cold_miss_count_2d(reader, mode, time_interval,
     return cold_miss_list
 
 
-def cold_miss_ratio_2d(reader, mode, time_interval,
+def cold_miss_ratio_2d(reader, time_mode, time_interval,
                        figname="cold_miss_ratio2d.png", **kwargs):
     """
     plot the percent of cold miss per time_interval
     :param reader:
-    :param mode: either 'r' or 'v' for real time(wall-clock time) or virtual time(reference time)
+    :param time_mode: either 'r' or 'v' for real time(wall-clock time) or virtual time(reference time)
     :param time_interval:
     :param figname:
     :return: the list of data points
@@ -135,14 +135,14 @@ def cold_miss_ratio_2d(reader, mode, time_interval,
     kwargs_plot = {}
     kwargs_plot.update(kwargs)
 
-    kwargs_plot["xlabel"] = kwargs_plot.get("xlabel", '{} Time'.format("Real" if mode == "r" else "Virtual"))
+    kwargs_plot["xlabel"] = kwargs_plot.get("xlabel", '{} Time'.format("Real" if time_mode == "r" else "Virtual"))
     kwargs_plot["ylabel"] = kwargs_plot.get("ylabel", 'Cold Miss Ratio (interval={})'.format(time_interval))
     kwargs_plot["title"] = kwargs_plot.get("title", 'Cold Miss Ratio 2D plot')
     kwargs_plot["xticks"] = kwargs_plot.get("xticks",
                         ticker.FuncFormatter(lambda x, pos: '{:2.0f}%'.format(x * 100 / len(break_points))))
 
-    assert mode == 'r' or mode == 'v', "currently only support mode r and v, unknown mode {}".format(mode)
-    break_points = Heatmap.get_breakpoints(reader, mode, time_interval)
+    assert time_mode == 'r' or time_mode == 'v', "currently only support time_mode r and v, unknown time_mode {}".format(time_mode)
+    break_points = Heatmap.get_breakpoints(reader, time_mode, time_interval)
 
     cold_miss_list = [0] * (len(break_points) - 1)
     seen_set = set()
@@ -441,14 +441,14 @@ def rt_popularity_2d(reader, granularity=10, logX=True, logY=False, cdf=True,
 
     last_access_time_dic = {}
     rt_dic = defaultdict(int)           # rt -> count
-    line = reader.read_time_request()
+    line = reader.read_time_req()
     while line:
         time, req = line
         time_with_granularity = int(time/granularity)
         if req in last_access_time_dic:
             rt_dic[time_with_granularity - last_access_time_dic[req]] += 1
         last_access_time_dic[req] = time_with_granularity
-        line = reader.read_time_request()
+        line = reader.read_time_req()
 
     max_rt = -1
     for rt, _ in rt_dic.items():
@@ -527,7 +527,7 @@ def interval_hit_ratio_2d(reader, cache_size, decay_coef=0.2,
         req_cnt_interval = 0
 
         # read time and request label
-        line = reader.read_time_request()
+        line = reader.read_time_req()
         t, req = line
         last_time_interval_cutoff = line[0]
 
@@ -547,7 +547,7 @@ def interval_hit_ratio_2d(reader, cache_size, decay_coef=0.2,
             if rd != -1 and rd <= cache_size:
                 hit_cnt_interval += 1
 
-            line = reader.read_time_request()
+            line = reader.read_time_req()
             ind += 1
 
     kwargs_plot = {}

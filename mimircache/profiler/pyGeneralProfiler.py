@@ -53,7 +53,7 @@ def _cal_hit_count_subprocess(cache_class,
     for req in process_reader:
         if n == 0:
             n += 1
-        hit = cache.add_element(req)
+        hit = cache.access(req, )
         if hit:
             n_hits += 1
         else:
@@ -76,6 +76,7 @@ class PyGeneralProfiler:
         self.cache_class = cache_class
         if isinstance(self.cache_class, str):
             self.cache_class = cache_name_to_class(self.cache_class)
+
         self.cache_params = cache_params
         self.cache_size = cache_size
         self.reader = reader
@@ -204,31 +205,3 @@ class PyGeneralProfiler:
 
         return self.hit_ratio
 
-
-if __name__ == "__main__":
-    from mimircache.utils.timer import MyTimer
-    from mimircache import CGeneralProfiler
-
-    CACHE_SIZE = 40000
-    NUM_OF_THREADS = os.cpu_count()
-    # NUM_OF_THREADS = 8
-    BIN_SIZE = CACHE_SIZE // NUM_OF_THREADS // 4 + 1
-
-    reader = VscsiReader("../data/trace.vscsi")
-    # reader = BinaryReader("../data/trace.vscsi", init_params={"label":6, "fmt": "<3I2H2Q"})
-    # reader = BinaryReader("/home/cloudphysics/traces/w106_vscsi1.vscsitrace", init_params={"label":6, "fmt": "<3I2H2Q"})
-
-
-    p0 = PyGeneralProfiler(reader, LRU, cache_size=CACHE_SIZE, bin_size=BIN_SIZE, num_of_threads=NUM_OF_THREADS)
-    p1 = CGeneralProfiler(reader, "LRU", cache_size=CACHE_SIZE, bin_size=BIN_SIZE, num_of_threads=NUM_OF_THREADS)
-    mt = MyTimer()
-    # print(len(p0.get_hit_ratio()))
-    mt.tick()
-    # print(len(p1.get_hit_ratio()))
-    # mt.tick()
-
-    # print(p0.get_hit_count())
-    p0.plotHRC(figname="test.png", no_clear=True, label="LRU", cache_unit_size=1024)
-    # mt.tick()
-    p1.plotHRC(figname="test2.png", no_clear=True, label="LRU2", cache_unit_size=1024)
-    # mt.tick()

@@ -104,7 +104,7 @@ class PyReaderTest(unittest.TestCase):
         first_request = reader.read_one_req()
         self.assertEqual(int(first_request), 42932745)
 
-        t, req = reader.read_time_request()
+        t, req = reader.read_time_req()
         self.assertAlmostEqual(t, 5633898611441.0)
         self.assertEqual(req, 42932746)
 
@@ -123,7 +123,7 @@ class PyReaderTest(unittest.TestCase):
         first_request = reader.read_one_req()
         self.assertEqual(int(first_request), 42932745)
 
-        t, req = reader.read_time_request()
+        t, req = reader.read_time_req()
         self.assertAlmostEqual(t, 5633898611441.0)
         self.assertEqual(req, 42932746)
 
@@ -146,7 +146,7 @@ class PyReaderTest(unittest.TestCase):
         first_request = reader.read_one_req()
         self.assertEqual(first_request, "42932745")
 
-        t, req = reader.read_time_request()
+        t, req = reader.read_time_req()
         self.assertAlmostEqual(t, 5633898611441.0)
         self.assertEqual(req, "42932746")
 
@@ -169,7 +169,7 @@ class PyReaderTest(unittest.TestCase):
         first_request = reader.read_one_req()
         self.assertEqual(first_request, 42932745)
 
-        t, req = reader.read_time_request()
+        t, req = reader.read_time_req()
         self.assertAlmostEqual(t, 5633898611441.0)
         self.assertEqual(req, 42932746)
 

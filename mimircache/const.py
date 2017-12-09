@@ -46,16 +46,19 @@ if len(failed_components):
             format(", ".join(failed_components)), file=sys.stderr)
 
 
-from mimircache.cache.ARC import ARC
-from mimircache.cache.FIFO import FIFO
-from mimircache.cache.LRU import LRU
-from mimircache.cache.MRU import MRU
-from mimircache.cache.Optimal import Optimal
-from mimircache.cache.Random import Random
-from mimircache.cache.S4LRU import S4LRU
-from mimircache.cache.SLRU import SLRU
+from mimircache.cache.arc import ARC
+from mimircache.cache.fifo import FIFO
+from mimircache.cache.lru import LRU
+from mimircache.cache.mru import MRU
+from mimircache.cache.optimal import Optimal
+from mimircache.cache.random import Random
+from mimircache.cache.s4lru import S4LRU
+from mimircache.cache.slru import SLRU
 from mimircache.cache.clock import clock
-
+try:
+    from mimircache.cache.INTERNAL.ASig import ASig
+except:
+    ASig = None
 
 from mimircache.cacheReader.csvReader import CsvReader
 from mimircache.cacheReader.plainReader import PlainReader
@@ -132,6 +135,8 @@ def init_cache_alg_mapping():
     cache_alg_mapping['amp'] = "AMP"
     cache_alg_mapping['pg'] = "PG"
 
+    cache_alg_mapping["asig"] = "ASig"
+
 
 def cache_name_to_class(name):
     """
@@ -162,6 +167,8 @@ def cache_name_to_class(name):
             cache_class = clock
         elif cache == 'FIFO':
             cache_class = FIFO
+        elif cache == "ASig":
+            cache_class = ASig
 
     if cache_class:
         return cache_class

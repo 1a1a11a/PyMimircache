@@ -1,9 +1,9 @@
 # coding=utf-8
-from mimircache.cache.LRU import LRU
-from mimircache.cache.abstractCache import cache
+from mimircache.cache.lru import LRU
+from mimircache.cache.abstractCache import Cache
 
 
-class S4LRU(cache):
+class S4LRU(Cache):
     def __init__(self, cache_size=1000, **kwargs):
         """
         add the fourth part first, then gradually goes up to third, second and first level,
@@ -19,32 +19,34 @@ class S4LRU(cache):
         self.thirdLRU = LRU(self.cache_size // 4)
         self.fourthLRU = LRU(self.cache_size // 4)
 
-    def check_element(self, element):
+    def has(self, req_id, **kwargs):
         """
-        :param element:
+        :param **kwargs:
+        :param req_id:
         :return: whether the given element is in the cache
         """
-        if element in self.firstLRU or element in self.secondLRU or \
-                        element in self.thirdLRU or element in self.fourthLRU:
+        if req_id in self.firstLRU or req_id in self.secondLRU or \
+                        req_id in self.thirdLRU or req_id in self.fourthLRU:
             return True
         else:
             return False
 
-    def _update_element(self, element):
+    def _update(self, req_item, **kwargs):
         """ the given element is in the cache, now update it to new location
-        :param element:
+        :param **kwargs:
+        :param req_item:
         :return: None
         """
-        if element in self.firstLRU:
-            self.firstLRU._update_element(element)
-        elif element in self.secondLRU:
-            # element is in second, remove from second, insert to end of first,
+        if req_item in self.firstLRU:
+            self.firstLRU._update(req_item, )
+        elif req_item in self.secondLRU:
+            # req_item is in second, remove from second, insert to end of first,
             # evict from first to second if needed
-            self._move_to_upper_level(element, self.secondLRU, self.firstLRU)
-        elif element in self.thirdLRU:
-            self._move_to_upper_level(element, self.thirdLRU, self.secondLRU)
-        elif element in self.fourthLRU:
-            self._move_to_upper_level(element, self.fourthLRU, self.thirdLRU)
+            self._move_to_upper_level(req_item, self.secondLRU, self.firstLRU)
+        elif req_item in self.thirdLRU:
+            self._move_to_upper_level(req_item, self.thirdLRU, self.secondLRU)
+        elif req_item in self.fourthLRU:
+            self._move_to_upper_level(req_item, self.fourthLRU, self.thirdLRU)
 
     def _move_to_upper_level(self, element, lowerLRU, upperLRU):
         """
@@ -58,23 +60,24 @@ class S4LRU(cache):
 
         # get the node and remove from lowerLRU
         node = lowerLRU.cacheDict[element]
-        lowerLRU.cacheLinkedList.removeNode(node)
+        lowerLRU.cacheLinkedList.remove_node(node)
         del lowerLRU.cacheDict[element]
 
         # insert into upperLRU
-        evicted_key = upperLRU._insert_element(node.content)
+        evicted_key = upperLRU._insert(node.content, )
 
         # if there are element evicted from upperLRU, add to lowerLRU
         if evicted_key:
-            lowerLRU._insert_element(evicted_key)
+            lowerLRU._insert(evicted_key, )
 
-    def _insert_element(self, element):
+    def _insert(self, req_item, **kwargs):
         """
         the given element is not in the cache, now insert it into cache
-        :param element:
+        :param **kwargs:
+        :param req_item:
         :return: evicted element
         """
-        return self.fourthLRU._insert_element(element)
+        return self.fourthLRU._insert(req_item, )
 
     def _printCacheLine(self):
         print("first: ")
@@ -86,23 +89,25 @@ class S4LRU(cache):
         print("fourth: ")
         self.fourthLRU._printCacheLine()
 
-    def _evict_one_element(self):
+    def evict(self, **kwargs):
         """
         evict one element from the cache line
+        :param **kwargs:
         :return: True on success, False on failure
         """
         pass
 
-    def add_element(self, element):
+    def access(self, req_item, **kwargs):
         """
-        :param element: a cache request, it can be in the cache, or not
+        :param **kwargs: 
+        :param req_item: a cache request, it can be in the cache, or not
         :return: None
         """
-        if self.check_element(element):
-            self._update_element(element)
+        if self.has(req_item, ):
+            self._update(req_item, )
             return True
         else:
-            self._insert_element(element)
+            self._insert(req_item, )
             return False
 
     def __repr__(self):

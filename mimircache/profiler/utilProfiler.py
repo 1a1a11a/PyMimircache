@@ -10,6 +10,7 @@
 
 
 import os
+import math
 try:
     # pypy3 fails on this
     import matplotlib.pyplot
@@ -22,6 +23,47 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 
 from mimircache.utils.printing import *
+
+
+def get_breakpoints(reader, time_mode, time_interval, **kwargs):
+
+    """
+    retrieve the breakpoints given time_mode and time_interval or num_of_pixel_of_time_dim,
+    break point breaks the trace into chunks of given time_interval
+
+    :param reader: reader for reading trace
+    :param time_mode: either real time (r) or virtual time (v)
+    :param time_interval: the intended time_interval of data chunk
+    :param num_of_pixel_of_time_dim: the number of chunks, this is used when it is hard to estimate time_interval,
+                            you only need specify one, either num_of_pixel_of_time_dim or time_interval
+    :param kwargs: not used now
+    :return: a numpy list of break points begin with 0, ends with total_num_requests
+    """
+
+    bp = []
+    if time_mode == "v":
+        num_req = reader.get_num_of_req()
+        for i in range(int(math.ceil(num_req/time_interval))):
+            bp.append(i * time_interval)
+        if bp[-1] != num_req:
+            bp.append(num_req)
+    elif time_mode == "r":
+        bp.append(0)
+        ind = 0
+        line = reader.read_time_req()
+        last_ts = line[0]
+        while line:
+            if line[0] - last_ts > time_interval:
+                bp.append(ind)
+                last_ts = line[0]
+            line = reader.read_time_req()
+            ind += 1
+        if bp[-1] != ind:
+            bp.append(ind)
+    else:
+        raise RuntimeError("unknown time_mode {}".format(time_mode))
+
+    return bp
 
 
 def util_plotHRC(x_list, hit_ratio, **kwargs):
@@ -77,7 +119,8 @@ def draw2d(*args, **kwargs):
         if dname and not os.path.exists(dname):
             os.makedirs(dname)
         plt.savefig(figname, dpi=600)
-        INFO("plot is saved as {}".format(figname))
+        if not kwargs.get("no_print_info", False):
+            INFO("plot is saved as {}".format(figname))
 
     if not kwargs.get("no_show", False):
         try: plt.show()

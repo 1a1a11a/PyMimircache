@@ -18,7 +18,7 @@ class VscsiReader(BinaryReader):
     VscsiReader for vscsi trace
      
     """
-    all = ["read_one_req", "read_time_request", "read_complete_req",
+    all = ["read_one_req", "read_time_req", "read_complete_req",
            "get_average_size", "get_timestamp_list",
            "reset", "copy", "get_params"]
 
@@ -72,10 +72,10 @@ class VscsiReader(BinaryReader):
         """
 
         ts_list = []
-        r = mimircache.c_cacheReader.read_time_request(self.cReader)
+        r = mimircache.c_cacheReader.read_time_req(self.cReader)
         while r:
             ts_list.append(r[0])
-            r = mimircache.c_cacheReader.read_time_request(self.cReader)
+            r = mimircache.c_cacheReader.read_time_req(self.cReader)
         return ts_list
 
     def copy(self, open_c_reader=False):

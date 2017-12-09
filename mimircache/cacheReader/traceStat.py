@@ -10,7 +10,7 @@ from collections import defaultdict
 from mimircache.utils.printing import *
 
 
-class traceStat:
+class TraceStat:
     """
     this class provides stat calculation for a given trace
     """
@@ -46,14 +46,14 @@ class traceStat:
         d = defaultdict(int)
 
         if self.reader.support_real_time:
-            r = self.reader.read_time_request()
+            r = self.reader.read_time_req()
             assert r is not None, "failed to read time and request from reader"
             first_time_stamp = r[0]
             current_time_stamp = -1
             while r:
                 d[r[1]] += 1
                 current_time_stamp = r[0]
-                r = self.reader.read_time_request()
+                r = self.reader.read_time_req()
             last_time_stamp = current_time_stamp
 
             self.time_span = last_time_stamp - first_time_stamp

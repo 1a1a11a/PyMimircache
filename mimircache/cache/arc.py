@@ -5,13 +5,13 @@ ARC algorithm, this algorithm has been modified on 02/14/2017, but not tested, m
 
 from collections import defaultdict
 
-from mimircache.cache.abstractCache import cache
-from mimircache.utils.LinkedList import LinkedList
+from mimircache.cache.abstractCache import Cache
+from mimircache.utils.linkedList import LinkedList
 
 
 
 
-class ARC(cache):
+class ARC(Cache):
     def __init__(self, cache_size=1000, p=0.5, ghostlist_size=-1, **kwargs):
         """
 
@@ -39,12 +39,13 @@ class ARC(cache):
         self.cacheDict2_ghost = defaultdict(
             lambda: 0)  # key -> linked list node (in reality, it should also contains value)
 
-    def check_element(self, element):
+    def has(self, req_id, **kwargs):
         """
-        :param element: the element for search
+        :param **kwargs:
+        :param req_id: the element for search
         :return: whether the given element is in the cache
         """
-        if element in self.cacheDict1 or element in self.cacheDict2:
+        if req_id in self.cacheDict1 or req_id in self.cacheDict2:
             return True
         else:
             return False
@@ -59,24 +60,25 @@ class ARC(cache):
         else:
             return False
 
-    def _update_element(self, element):
+    def _update(self, req_item, **kwargs):
         """ the given element is in the cache, now update it to new location
-        :param element:
+        :param **kwargs:
+        :param req_item:
         :return: None
         """
-        if element in self.cacheDict1:
+        if req_item in self.cacheDict1:
             # move to part2
             # get the node and remove from part1, size of part1 reduced by 1
-            node = self.cacheDict1[element]
+            node = self.cacheDict1[req_item]
 
             if node == self.lru_list_head_p1:
                 self.lru_list_head_p1 = self.lru_list_head_p1.next
-            self.linkedList1.removeNode(node)
+            self.linkedList1.remove_node(node)
 
-            del self.cacheDict1[element]
+            del self.cacheDict1[req_item]
 
             # insert into part2
-            self.linkedList2.insertNodeAtTail(node)
+            self.linkedList2.insert_node_at_tail(node)
             self.cacheDict2[node.content] = node
             # delete one from part1, insert one into part2, the total size should not change, just the balance changes
             # check whether lru_list_head_p2 has been initialized or not
@@ -85,29 +87,30 @@ class ARC(cache):
 
 
         else:
-            node = self.cacheDict2[element]
+            node = self.cacheDict2[req_item]
             if node == self.lru_list_head_p2 and node.next:
                 self.lru_list_head_p2 = self.lru_list_head_p2.next
 
-            self.linkedList2.moveNodeToTail(node)
+            self.linkedList2.move_node_to_tail(node)
 
-    def _insert_element(self, element):
+    def _insert(self, req_item, **kwargs):
         """
         the given element is not in the cache, now insert it into cache
-        :param element:
+        :param **kwargs:
+        :param req_item:
         :return: evicted element or None
         """
         return_content = None
         if self.linkedList1.size + self.linkedList2.size >= self.cache_size:
-            # needs to evict one element, depend on ghost list to decide evict from part1 or part2
-            return_content = self._evict_one_element(element)
+            # needs to evict one req_item, depend on ghost list to decide evict from part1 or part2
+            return_content = self.evict()
 
         # insert into part 1
-        node = self.linkedList1.insertAtTail(element)
-        self.cacheDict1[element] = node
+        node = self.linkedList1.insert_at_tail(req_item)
+        self.cacheDict1[req_item] = node
         if not self.lru_list_head_p1:
             self.lru_list_head_p1 = node
-        self.inserted_element = element
+        self.inserted_element = req_item
         return return_content
 
     def _printCacheLine(self):
@@ -126,10 +129,11 @@ class ARC(cache):
         print(' ')
 
 
-    def _evict_one_element(self):
+    def evict(self, **kwargs):
         """
         evict one element from the cache line into ghost list, then check ghost list,
         if oversize, then evict one from ghost list
+        :param **kwargs:
         :param: element: the missed request
         :return: content of element evicted into ghost list
         """
@@ -144,7 +148,7 @@ class ARC(cache):
 
             if (self.linkedList2.size - len(self.cacheDict2)) > self.ghostlist_size:
                 # the first part is the size of ghost list of part2
-                content = self.linkedList2.removeFromHead()
+                content = self.linkedList2.remove_from_head()
                 if self.cacheDict2_ghost[content] == 1:
                     del self.cacheDict2_ghost[content]
                 else:
@@ -162,7 +166,7 @@ class ARC(cache):
 
             if (self.linkedList1.size - len(self.cacheDict1)) > self.ghostlist_size:
                 # the first part is the size of ghost list of part1
-                content = self.linkedList1.removeFromHead()
+                content = self.linkedList1.remove_from_head()
                 if self.cacheDict1_ghost[content] == 1:
                     del self.cacheDict1_ghost[content]
                 else:
@@ -181,7 +185,7 @@ class ARC(cache):
 
                 if (self.linkedList1.size - len(self.cacheDict1)) > self.ghostlist_size:
                     # the first part is the size of ghost list of part1
-                    content = self.linkedList1.removeFromHead()
+                    content = self.linkedList1.remove_from_head()
                     if self.cacheDict1_ghost[content] == 1:
                         del self.cacheDict1_ghost[content]
                     else:
@@ -197,7 +201,7 @@ class ARC(cache):
 
                 if (self.linkedList2.size - len(self.cacheDict2)) > self.ghostlist_size:
                     # the first part is the size of ghost list of part2
-                    content = self.linkedList2.removeFromHead()
+                    content = self.linkedList2.remove_from_head()
                     if self.cacheDict2_ghost[content] == 1:
                         del self.cacheDict2_ghost[content]
                     else:
@@ -229,18 +233,19 @@ class ARC(cache):
             print(self.lru_list_head_p2)
         assert node2 == self.lru_list_head_p2, "LRU list2 head pointer wrong"
 
-    def add_element(self, element):
+    def access(self, req_item, **kwargs):
         """
-        :param element: the element in the reference, it can be in the cache, or not
+        :param **kwargs: 
+        :param req_item: the element in the reference, it can be in the cache, or not
         :return: None
         """
-        if self.check_element(element):
-            self._update_element(element)
+        if self.has(req_item, ):
+            self._update(req_item, )
             # self.printCacheLine()
             # self._check_lru_list_p()
             return True
         else:
-            self._insert_element(element)
+            self._insert(req_item, )
             # self.printCacheLine()
             # self._check_lru_list_p()
             return False

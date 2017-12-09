@@ -18,7 +18,7 @@ class CsvReader(AbstractReader):
     CsvReader class
     """
     all = ["read_one_req", "read_complete_req", "lines_dict",
-           "lines", "read_time_request", "reset", "copy", "get_params"]
+           "lines", "read_time_req", "reset", "copy", "get_params"]
 
     def __init__(self, file_loc,
                  data_type='c',
@@ -45,8 +45,8 @@ class CsvReader(AbstractReader):
         # self.trace_file = open(file_loc, 'r', encoding='utf-8', errors='ignore')
         self.init_params = init_params
         self.label_column = init_params['label']
-        self.time_column = init_params.get("real_time", -1)
-        self.size_column = init_params.get("size", -1)
+        self.time_column = init_params.get("real_time", )
+        self.size_column = init_params.get("size", )
 
         if self.time_column != -1:
             self.support_real_time = True
@@ -57,8 +57,8 @@ class CsvReader(AbstractReader):
         if block_unit_size != 0:
             assert "size" in init_params, "please provide size_column option to consider request size"
 
-        self.header_bool = init_params.get('header', False)
-        self.delimiter = init_params.get('delimiter', ',')
+        self.header_bool = init_params.get('header', )
+        self.delimiter = init_params.get('delimiter', ",")
 
         if self.header_bool:
             self.headers = [i.strip(string.whitespace) for i in
@@ -150,7 +150,7 @@ class CsvReader(AbstractReader):
             yield line_split
             # raise StopIteration
 
-    def read_time_request(self):
+    def read_time_req(self):
         """
         return real_time information for the request in the form of (time, request)
         :return:

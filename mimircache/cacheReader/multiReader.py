@@ -37,7 +37,7 @@ class MultiReader:
 
         if self.reading_type == "real_time":
             for j in range(len(self.readers)):
-                t, req = self.readers[j].read_time_request()
+                t, req = self.readers[j].read_time_req()
                 self.reader_buffer.append((t, j, req))
                 self.num_of_read += 1
 
@@ -78,7 +78,7 @@ class MultiReader:
         reader = self.readers[pos]
 
         if self.reading_type == "real_time":
-            item = reader.read_time_request()
+            item = reader.read_time_req()
             if item is not None:
                 t, req = item
                 # self.reader_buffer[(pos, req)] = t

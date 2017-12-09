@@ -401,7 +401,7 @@ static PyMethodDef c_cacheReader_funcs[] = {
         accept arguments like 0.5, 0.3 ..."},
     {"skip_N_requests", (PyCFunction)reader_skip_N_requests,
         METH_VARARGS, "skip next N requests"},
-    {"read_time_request", (PyCFunction)reader_read_time_request,
+    {"read_time_req", (PyCFunction)reader_read_time_request,
         METH_VARARGS, "read one element with its real time from reader "
         "in the form of tuple (real time, request)"},
     {"read_complete_req", (PyCFunction)reader_read_complete_req,

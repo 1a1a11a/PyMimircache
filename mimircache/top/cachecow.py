@@ -38,7 +38,7 @@ from mimircache.profiler.cHeatmap import CHeatmap
 from mimircache.profiler.pyHeatmap import PyHeatmap
 
 from mimircache.utils.prepPlotParams import *
-from mimircache.cacheReader.traceStat import traceStat
+from mimircache.cacheReader.traceStat import TraceStat
 from multiprocessing import cpu_count
 from mimircache.profiler.utilProfiler import set_fig
 
@@ -246,7 +246,7 @@ class Cachecow:
         :return: a string of the information above
         """
         assert self.reader, "you haven't provided a data file"
-        return traceStat(self.reader).get_stat()
+        return TraceStat(self.reader).get_stat()
 
 
     def num_of_req(self):
@@ -787,7 +787,7 @@ class Cachecow:
             WARNING("unknown characterize_type {}, supported types: {}".format(characterize_type, supported_types))
             return
 
-        trace_stat = traceStat(self.reader)
+        trace_stat = TraceStat(self.reader)
         if kwargs.get("print_stat", True):
             INFO("trace information ")
             print(trace_stat)
@@ -798,7 +798,7 @@ class Cachecow:
         if characterize_type == "short":
             # short should support [basic stat, HRC of LRU, OPT, cold miss ratio, popularity]
             INFO("now begin to plot cold miss ratio curve")
-            self.twoDPlot("cold_miss_ratio", mode="v", time_interval=trace_stat.num_of_requests//100)
+            self.twoDPlot("cold_miss_ratio", time_mode="v", time_interval=trace_stat.num_of_requests//100)
 
             INFO("now begin to plot popularity curve")
             self.twoDPlot("popularity")
@@ -811,10 +811,10 @@ class Cachecow:
         elif characterize_type == "medium":
             if trace_stat.time_span != 0:
                 INFO("now begin to plot request rate curve")
-                self.twoDPlot("request_rate", mode="r", time_interval=trace_stat.time_span//100)
+                self.twoDPlot("request_rate", time_mode="r", time_interval=trace_stat.time_span//100)
 
             INFO("now begin to plot cold miss ratio curve")
-            self.twoDPlot("cold_miss_ratio", mode="v", time_interval=trace_stat.num_of_requests//100)
+            self.twoDPlot("cold_miss_ratio", time_mode="v", time_interval=trace_stat.num_of_requests//100)
 
             INFO("now begin to plot popularity curve")
             self.twoDPlot("popularity")

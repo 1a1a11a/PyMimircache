@@ -30,7 +30,7 @@ class cachecowTest(unittest.TestCase):
     def _test_overall(self):
         c = Cachecow()
         c.csv("{}/trace.csv".format(DAT_FOLDER),
-              init_params={"header" :True, 'label' :5, 'real_time':2})
+              init_params={"header" :True, 'label' :5, 'real_time':2, "delimiter": ","})
         self.assertEqual(len(c), 113872)
         stat = c.characterize("short", print_stat=False)
         for line in stat:
@@ -72,13 +72,13 @@ class cachecowTest(unittest.TestCase):
 
     def _coretest(self, c, param_set):
         assert "cache_size" in param_set, "require cache_size"
-        if param_set.get("time_mode", None) is None:
+        if param_set.get("time_mode", ) is None:
             self._coretest_basic(c, param_set["cache_size"])
-        elif param_set.get("time_mode", None) == "r":
+        elif param_set.get("time_mode", ) == "r":
             assert "time_interval" in param_set, "require time_interval"
             self._coretest_time(c, param_set["cache_size"], "r", param_set["time_interval"])
             self._coretest_realtime(c, param_set["cache_size"], param_set["time_interval"])
-        elif param_set.get("time_mode", None) == "v":
+        elif param_set.get("time_mode", ) == "v":
             assert "time_interval" in param_set, "require time_interval"
             self._coretest_time(c, param_set["cache_size"], "v", param_set["time_interval"])
 
@@ -124,12 +124,12 @@ class cachecowTest(unittest.TestCase):
                        algorithm1="LRU", algorithm2="MRU",
                        cache_params2=None, num_of_threads=os.cpu_count())
 
-        c.twoDPlot("cold_miss_count", mode=time_mode, time_interval=time_interval)
-        c.twoDPlot("cold_miss_ratio", mode=time_mode, time_interval=time_interval)
+        c.twoDPlot("cold_miss_count", time_mode=time_mode, time_interval=time_interval)
+        c.twoDPlot("cold_miss_ratio", time_mode=time_mode, time_interval=time_interval)
 
 
     def _coretest_realtime(self, c, cache_size, time_interval):
-        c.twoDPlot("request_rate", mode='r', time_interval=time_interval)
+        c.twoDPlot("request_rate", time_mode='r', time_interval=time_interval)
         c.twoDPlot("rt_popularity", granularity=10 * 1000000)
         # c.evictionPlot('r', time_interval, "accumulative_freq", "Optimal", cache_size)
         # c.evictionPlot('r', time_interval, "reuse_dist", "Optimal", cache_size)

@@ -9,7 +9,7 @@ Author: Jason Yang <peter.waynechina@gmail.com> 2016/08
 import math
 
 from mimircache import *
-from mimircache.cache.Optimal import Optimal
+from mimircache.cache.optimal import Optimal
 
 
 def calc_hit_ratio_start_time_end_time_subprocess_general(order, cache, break_points_share_array, reader, q, **kwargs):
@@ -76,7 +76,7 @@ def calc_hit_ratio_start_time_end_time_subprocess_general(order, cache, break_po
             c.ts = line_num
 
         line_num += 1
-        if c.add_element(line):
+        if c.access(line, ):
             total_hc += 1
         else:
             total_mc += 1
@@ -87,7 +87,7 @@ def calc_hit_ratio_start_time_end_time_subprocess_general(order, cache, break_po
             result_list.append((order, pos_in_break_points - 1, hr))
             pos_in_break_points += 1
             # print("{}: {}".format(total_hc, total_mc))
-    q.put(result_list)
+    q.access(result_list, )
     reader_new.close()
 
 
@@ -122,7 +122,7 @@ def calc_hit_ratio_start_time_cache_size_subprocess(order, break_points_share_ar
         accum += rd_distribution[i]
         result_list.append((order, i, accum / num_of_total_request))
 
-    q.put(result_list)
+    q.access(result_list, )
 
 
 def _hit_ratio_start_time_end_time_calc_hit_count(reuse_dist_array, last_access_array, cache_size, begin_pos, end_pos,
@@ -182,7 +182,7 @@ def calc_hit_ratio_start_time_end_time_subprocess(order, break_points_share_arra
         total_hc += hc
         hr = total_hc / (break_points_share_array[i] - break_points_share_array[order])
         result_list.append((order, i - 1, hr))
-    q.put(result_list)
+    q.access(result_list, )
 
 
 def calc_avg_rd_start_time_end_time_subprocess(order, break_points_share_array, reuse_dist_share_array, q, **kwargs):
@@ -210,7 +210,7 @@ def calc_avg_rd_start_time_end_time_subprocess(order, break_points_share_array, 
         if break_points_share_array[i] - break_points_share_array[order] - never_see != 0:
             result_list.append(
                 (order, i - 1, rd / (break_points_share_array[i] - break_points_share_array[order] - never_see)))
-    q.put(result_list)
+    q.access(result_list, )
 
 
 def calc_cold_miss_count_start_time_end_time_subprocess(order, break_points_share_array, reuse_dist_share_array, q,
@@ -239,7 +239,7 @@ def calc_cold_miss_count_start_time_end_time_subprocess(order, break_points_shar
 
         result_list.append((order, i - 1, never_see))
 
-    q.put(result_list)
+    q.access(result_list, )
 
 
 def calc_rd_distribution_subprocess_deprecated(order, break_points_share_array, reuse_dist_share_array, q, **kwargs):
@@ -271,4 +271,4 @@ def calc_rd_distribution_subprocess_deprecated(order, break_points_share_array, 
     for i in range(len(rd_bucket)):
         result_list.append((order, i - 1, rd_bucket[i]))
 
-    q.put(result_list)
+    q.access(result_list, )

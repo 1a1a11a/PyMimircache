@@ -1,9 +1,9 @@
 # coding=utf-8
-from mimircache.cache.LRU import LRU
-from mimircache.cache.abstractCache import cache
+from mimircache.cache.lru import LRU
+from mimircache.cache.abstractCache import Cache
 
 
-class SLRU(cache):
+class SLRU(Cache):
     def __init__(self, cache_size=1000, ratio=1, **kwargs):
         """
 
@@ -17,46 +17,49 @@ class SLRU(cache):
         self.protected = LRU(int(self.cache_size * self.ratio / (self.ratio + 1)))
         self.probationary = LRU(int(self.cache_size * 1 / (self.ratio + 1)))
 
-    def check_element(self, element):
+    def has(self, req_id, **kwargs):
         """
-        :param element:
+        :param **kwargs:
+        :param req_id:
         :return: whether the given element is in the cache
         """
-        if element in self.protected or element in self.probationary:
+        if req_id in self.protected or req_id in self.probationary:
             return True
         else:
             return False
 
-    def _update_element(self, element):
+    def _update(self, req_item, **kwargs):
         """ the given element is in the cache, now update it to new location
-        :param element:
+        :param **kwargs:
+        :param req_item:
         :return: None
         """
-        if element in self.protected:
-            self.protected._update_element(element)
+        if req_item in self.protected:
+            self.protected._update(req_item, )
         else:
-            # element is in probationary, remove from probationary, insert to end of protected,
+            # req_item is in probationary, remove from probationary, insert to end of protected,
             # evict from protected to probationary if needed
 
             # get the node and remove from probationary
-            node = self.probationary.cacheDict[element]
-            self.probationary.cacheLinkedList.removeNode(node)
-            del self.probationary.cacheDict[element]
+            node = self.probationary.cacheDict[req_item]
+            self.probationary.cacheLinkedList.remove_node(node)
+            del self.probationary.cacheDict[req_item]
 
             # insert into protected
-            evicted_key = self.protected._insert_element(node.content)
+            evicted_key = self.protected._insert(node.content, )
 
-            # if there are element evicted from protected area, add to probationary area
+            # if there are req_item evicted from protected area, add to probationary area
             if evicted_key:
-                self.probationary._insert_element(evicted_key)
+                self.probationary._insert(evicted_key, )
 
-    def _insert_element(self, element):
+    def _insert(self, req_item, **kwargs):
         """
         the given element is not in the cache, now insert it into cache
-        :param element:
+        :param **kwargs:
+        :param req_item:
         :return: evicted element
         """
-        return self.probationary._insert_element(element)
+        return self.probationary._insert(req_item, )
 
     def _printCacheLine(self):
         print("protected: ")
@@ -64,24 +67,26 @@ class SLRU(cache):
         print("probationary: ")
         self.probationary._printCacheLine()
 
-    def _evict_one_element(self):
+    def evict(self, **kwargs):
         """
         evict one element from the cache line
+        :param **kwargs:
         :return: True on success, False on failure
         """
         pass
 
-    def add_element(self, element):
+    def access(self, req_item, **kwargs):
         """
-        :param element: a cache request, it can be in the cache, or not
+        :param **kwargs: 
+        :param req_item: a cache request, it can be in the cache, or not
         :return: None
         """
-        if self.check_element(element):
-            self._update_element(element)
+        if self.has(req_item, ):
+            self._update(req_item, )
             # self.printCacheLine()
             return True
         else:
-            self._insert_element(element)
+            self._insert(req_item, )
             # self.printCacheLine()
             return False
 

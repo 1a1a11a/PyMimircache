@@ -80,7 +80,7 @@ Writing your own cache in Python is not difficult, just inherit abstractCache.py
             self.cacheDict = dict()  # key -> linked list node (in reality, it should also contains value)
             self.cache_line_list = []  # to save all the keys, otherwise needs to populate from cache_dict every time
 
-        def check_element(self, element):
+        def get(self, element):
             """
             :param element: the key of cache request
             :return: whether the given key is in the cache or not
@@ -90,7 +90,7 @@ Writing your own cache in Python is not difficult, just inherit abstractCache.py
             else:
                 return False
 
-        def _update_element(self, element):
+        def _update(self, element):
             """ the given element is in the cache, when it is requested again,
              usually we need to update it to new location, but in random, we don't need to do that
             :param element: the key of cache request
@@ -99,14 +99,14 @@ Writing your own cache in Python is not difficult, just inherit abstractCache.py
 
             pass
 
-        def _insert_element(self, element):
+        def _insert(self, element):
             """
             the given element is not in the cache, now insert it into cache
             :param element: the key of cache request
             :return: None
             """
             if len(self.cacheDict) >= self.cache_size:
-                self._evict_one_element()
+                self.evict()
             self.cacheDict[element] = ""
             self.cache_line_list.append(element)
 
@@ -119,7 +119,7 @@ Writing your own cache in Python is not difficult, just inherit abstractCache.py
 
             print(' ')
 
-        def _evict_one_element(self):
+        def evict(self):
             """
             evict one element from the cache line
             if we delete one element from list every time, it would be O(N) on every request, which is too expensive,
@@ -145,16 +145,16 @@ Writing your own cache in Python is not difficult, just inherit abstractCache.py
 
             del self.cacheDict[element]
 
-        def add_element(self, element):
+        def access(self, element):
             """
             :param element: the key of cache request, it can be in the cache, or not in the cache
             :return: True if element in the cache
             """
-            if self.check_element(element):
-                self._update_element(element)
+            if self.get(element):
+                self._update(element)
                 return True
             else:
-                self._insert_element(element)
+                self._insert(element)
                 return False
 
         def __repr__(self):

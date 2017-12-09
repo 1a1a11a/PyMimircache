@@ -1,4 +1,12 @@
 # coding=utf-8
+
+"""
+    A implementation of linkedlist
+
+
+"""
+
+
 class LinkedListNode:
     def __init__(self):
         self.content = None
@@ -22,7 +30,7 @@ class LinkedList:
         self.currentNode = self.head
         # self.max_size = maxlen
 
-    def insertAtTail(self, content, **kargs):
+    def insert_at_tail(self, content, **kargs):
         node = LinkedListNode()
         node.content = content
         if 'id' in kargs:
@@ -39,11 +47,11 @@ class LinkedList:
         self.size += 1
 
         # if self.max_size!=-1 and self.size>self.max_size:
-        #     self.removeFromTail()
+        #     self.remove_from_tail()
 
         return node
 
-    def insertNodeAtTail(self, node):
+    def insert_node_at_tail(self, node):
         node.next = None
         if self.tail:
             # the list is not empty
@@ -57,7 +65,7 @@ class LinkedList:
 
         return node
 
-    def insertAtHead(self, content, **kargs):
+    def insert_at_head(self, content, **kargs):
         node = LinkedListNode()
         node.content = content
         if 'id' in kargs:
@@ -72,7 +80,7 @@ class LinkedList:
         self.size += 1
         return node
 
-    def removeFromTail(self):
+    def remove_from_tail(self):
         tail = self.tail
         self.tail.prev.next = None
         temp = self.tail.prev
@@ -81,10 +89,10 @@ class LinkedList:
         self.size -= 1
         return tail.content
 
-    def removeFromHead(self):
+    def remove_from_head(self):
         if not self.head.next:
             # no node in the list
-            raise RuntimeError("there is no element in the list, cannot removeFromHead")
+            raise RuntimeError("there is no element in the list, cannot remove_from_head")
         headContent = self.head.next.content
         temp = self.head.next.next
         if temp:
@@ -101,7 +109,7 @@ class LinkedList:
         self.size -= 1
         return headContent
 
-    def moveNodeToHead(self, node):
+    def move_node_to_head(self, node):
         if self.head.next != node:
             node.prev.next = node.next
             if node.next:
@@ -114,7 +122,7 @@ class LinkedList:
             self.head.next = node
             node.prev = self.head
 
-    def removeNode(self, node):
+    def remove_node(self, node):
         node.prev.next = node.next
         if self.tail == node:
             self.tail = node.prev
@@ -123,7 +131,7 @@ class LinkedList:
         self.size -= 1
         return node
 
-    def moveNodeToTail(self, node):
+    def move_node_to_tail(self, node):
         if self.tail != node:
             node.prev.next = node.next
             node.next.prev = node.prev
@@ -135,10 +143,10 @@ class LinkedList:
     def set_node_id(self, node, id):
         node.id = id
 
-    def getHeadContent(self):
+    def get_head_content(self):
         return self.head.next.content
 
-    def getTailContent(self):
+    def get_tail_content(self):
         return self.tail.content
 
     def __iter__(self):

@@ -23,7 +23,7 @@ class BinaryReader(AbstractReader):
     BinaryReader class for reading binary trace
     """
     all = ["read_one_req", "read_complete_req", "get_num_of_req", "skip_n_req",
-           "lines", "read_time_request", "reset", "copy", "get_params"]
+           "lines", "read_time_req", "reset", "copy", "get_params"]
 
     def __init__(self, file_loc, init_params, data_type='c',
                  block_unit_size=0, disk_sector_size=0, open_c_reader=True, **kwargs):
@@ -65,8 +65,8 @@ class BinaryReader(AbstractReader):
         self.init_params = init_params
         self.fmt = init_params['fmt']
         self.label_column = init_params['label']
-        self.time_column = init_params.get("real_time", -1)
-        self.size_column = init_params.get("size", -1)
+        self.time_column = init_params.get("real_time", )
+        self.size_column = init_params.get("size", )
 
         self.trace_file = open(file_loc, 'rb')
         self.struct_instance = struct.Struct(self.fmt)
@@ -158,7 +158,7 @@ class BinaryReader(AbstractReader):
             b = self.trace_file.read(self.record_size)
             yield ret
 
-    def read_time_request(self):
+    def read_time_req(self):
         """
         return real_time information for the request in the form of (time, request)
         :return: a tuple of (time, request label)

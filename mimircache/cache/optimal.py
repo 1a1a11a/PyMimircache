@@ -1,7 +1,7 @@
 # coding=utf-8
 
 
-from mimircache.cache.abstractCache import cache
+from mimircache.cache.abstractCache import Cache
 from mimircache.const import CExtensionMode
 if CExtensionMode:
     import mimircache.c_LRUProfiler
@@ -9,7 +9,7 @@ if CExtensionMode:
 from heapdict import heapdict
 
 
-class Optimal(cache):
+class Optimal(Cache):
     def __init__(self, cache_size, reader, **kwargs):
         super().__init__(cache_size, **kwargs)
         # reader.reset()
@@ -25,39 +25,42 @@ class Optimal(cache):
     def get_reversed_reuse_dist(self):
         return mimircache.c_LRUProfiler.get_reversed_reuse_dist(self.reader.cReader)
 
-    def check_element(self, element):
+    def has(self, req_id, **kwargs):
         """
-        :param element:
+        :param **kwargs:
+        :param req_id:
         :return: whether the given element is in the cache
         """
-        if element in self.pq:
+        if req_id in self.pq:
             return True
         else:
             return False
 
-    def _update_element(self, element):
+    def _update(self, req_item, **kwargs):
         """ the given element is in the cache, now update it to new location
-        :param element:
+        :param **kwargs:
+        :param req_item:
         :return: None
         """
 
         if self.next_access[self.ts] != -1:
-            self.pq[element] = -(self.ts + self.next_access[self.ts])
+            self.pq[req_item] = -(self.ts + self.next_access[self.ts])
         else:
-            del self.pq[element]
+            del self.pq[req_item]
 
 
-    def _insert_element(self, element):
+    def _insert(self, req_item, **kwargs):
         """
         the given element is not in the cache, now insert it into cache
-        :param element:
+        :param **kwargs:
+        :param req_item:
         :return: True on success, False on failure
         """
         if self.next_access[self.ts] == -1:
             pass
         else:
-            self.pq[element] = -self.next_access[self.ts] - self.ts
-            # self.seenset.add(element)
+            self.pq[req_item] = -self.next_access[self.ts] - self.ts
+            # self.seenset.add(req_item)
 
     def _printCacheLine(self):
         print("size %d" % len(self.pq))
@@ -65,9 +68,10 @@ class Optimal(cache):
             print(i, end='\t')
         print('')
 
-    def _evict_one_element(self):
+    def evict(self, **kwargs):
         """
         evict one element from the cache line
+        :param **kwargs:
         :return: True on success, False on failure
         """
 
@@ -77,21 +81,22 @@ class Optimal(cache):
         return element
 
 
-    def add_element(self, element):
+    def access(self, req_item, **kwargs):
         """
-        :param element: the element in the reference, it can be in the cache, or not,
+        :param **kwargs: 
+        :param req_item: the element in the reference, it can be in the cache, or not,
                         !!! Attention, for optimal, the element is a tuple of
                         (timestamp, real_request)
         :return: True if element in the cache
         """
-        if self.check_element(element):
-            self._update_element(element)
+        if self.has(req_item, ):
+            self._update(req_item, )
             self.ts += 1
             return True
         else:
-            self._insert_element(element)
+            self._insert(req_item, )
             if len(self.pq) > self.cache_size:
-                self._evict_one_element()
+                self.evict()
             self.ts += 1
             return False
 

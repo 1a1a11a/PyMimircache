@@ -1,14 +1,15 @@
 # coding=utf-8
-from mimircache.cache.LRU import LRU
+from mimircache.cache.lru import LRU
 
 
 class FIFO(LRU):
     def __init__(self, cache_size=1000, **kwargs):
         super().__init__(cache_size, **kwargs)
 
-    def _update_element(self, element):
+    def _update(self, req_item, **kwargs):
         """ the given element is in the cache, now update it to new location
-        :param element:
+        :param **kwargs:
+        :param req_item:
         :return: None
         """
         pass

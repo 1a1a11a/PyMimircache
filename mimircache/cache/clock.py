@@ -1,5 +1,5 @@
 # coding=utf-8
-from mimircache.cache.LRU import LRU
+from mimircache.cache.lru import LRU
 
 
 class clock(LRU):
@@ -12,28 +12,30 @@ class clock(LRU):
         super(clock, self).__init__(cache_size, **kwargs)
         self.hand = None  # points to the node for examination/eviction
 
-    def _update_element(self, element):
+    def _update(self, req_item, **kwargs):
         """ the given element is in the cache, now update it
-        :param element:
+        :param **kwargs:
+        :param req_item:
         :return: None
         """
-        node = self.cacheDict[element]
+        node = self.cacheDict[req_item]
         node.id = 1
 
-    def _insert_element(self, element, evict=True):
+    def _insert(self, req_item, **kwargs):
         """
         the given element is not in the cache, now insert it into cache
-        :param element:
+        :param **kwargs:
+        :param req_item:
         :return: True on success, False on failure
         """
         if self.cacheLinkedList.size >= self.cache_size:
-            self._evict_one_element()
+            self.evict()
 
-        node = self.cacheLinkedList.insertAtTail(element, id=1)
-        self.cacheDict[element] = node
+        node = self.cacheLinkedList.insert_at_tail(req_item, id=1)
+        self.cacheDict[req_item] = node
         if not self.hand:
-            # this is the first element
-            assert self.cacheLinkedList.size == 1, "insert element error"
+            # this is the first req_item
+            assert self.cacheLinkedList.size == 1, "insert req_item error"
             self.hand = node
 
     def _printCacheLine(self):
@@ -64,24 +66,26 @@ class clock(LRU):
             self.hand = node.next
             return node
 
-    def _evict_one_element(self):
+    def evict(self, **kwargs):
         """
         evict one element from the cache line
+        :param **kwargs:
         :return: True on success, False on failure
         """
         node = self._find_evict_node()
-        self.cacheLinkedList.removeNode(node)
+        self.cacheLinkedList.remove_node(node)
         del self.cacheDict[node.content]
 
         return True
 
-    def add_element(self, element):
+    def access(self, req_item, **kwargs):
         """
-        :param element: the element in the reference, it can be in the cache, or not
+        :param **kwargs: 
+        :param req_item: the element in the reference, it can be in the cache, or not
         :return: None
         """
-        if self.check_element(element):
-            self._update_element(element)
+        if self.has(req_item, ):
+            self._update(req_item, )
             # self.printCacheLine()
             if len(self.cacheDict) != self.cacheLinkedList.size:
                 print("1*********########### ERROR detected in LRU size #############***********")
@@ -90,7 +94,7 @@ class clock(LRU):
                 sys.exit(-1)
             return True
         else:
-            self._insert_element(element)
+            self._insert(req_item, )
             # self.printCacheLine()
             if len(self.cacheDict) != self.cacheLinkedList.size:
                 print("2*********########### ERROR detected in LRU size #############***********")

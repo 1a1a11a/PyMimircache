@@ -9,46 +9,49 @@ _evictElement can be called by external functions
 
 import random
 
-from mimircache.cache.abstractCache import cache
+from mimircache.cache.abstractCache import Cache
 
 
-class Random(cache):
+class Random(Cache):
     def __init__(self, cache_size=1000, **kwargs):
         super().__init__(cache_size, **kwargs)
         self.cache_dict = dict()  # key -> linked list node (in reality, it should also contains value)
         self.cache_line_list = [] # to save all the keys, otherwise needs to populate from cache_set every time
 
-    def check_element(self, element):
+    def has(self, req_id, **kwargs):
         """
-        :param element: the key of cache request
+        :param **kwargs:
+        :param req_id: the key of cache request
         :return: whether the given key is in the cache or not
         """
-        if element in self.cache_dict:
+        if req_id in self.cache_dict:
             return True
         else:
             return False
 
-    def _update_element(self, element):
+    def _update(self, req_item, **kwargs):
         """ the given element is in the cache, when it is requested again,
          usually we need to update it to new location, but in random, we don't need to do that
-        :param element: the key of cache request
+        :param **kwargs:
+        :param req_item: the key of cache request
         :return: None
         """
 
         pass
 
-    def _insert_element(self, element):
+    def _insert(self, req_item, **kwargs):
         """
         the given element is not in the cache, now insert it into cache
-        :param element: the key of cache request
+        :param **kwargs:
+        :param req_item: the key of cache request
         :return: None
         """
         if len(self.cache_dict) >= self.cache_size:
             # must use cache_dict here, cache_line_list cannot be used
             # because of the punched holes
-            self._evict_one_element()
-        self.cache_dict[element] = ""
-        self.cache_line_list.append(element)
+            self.evict()
+        self.cache_dict[req_item] = ""
+        self.cache_line_list.append(req_item)
 
     def _printCacheLine(self):
         for i in self.cache_dict:
@@ -59,13 +62,14 @@ class Random(cache):
 
         print(' ')
 
-    def _evict_one_element(self):
+    def evict(self, **kwargs):
         """
         evict one element from the cache line
         if we delete one element from list every time, it would be O(N) on
-        every request, which is too expensive, so we choose to put a hole
+        every request, which is too expensive, so we choose to access a hole
         on the list every time we delete it, when there are too many holes
         we re-generate the cache line list
+        :param **kwargs:
         :return: None
         """
         rand_num = random.randrange(0, len(self.cache_line_list))
@@ -87,16 +91,17 @@ class Random(cache):
 
         del self.cache_dict[element]
 
-    def add_element(self, element):
+    def access(self, req_item, **kwargs):
         """
-        :param element: the key of cache request, it can be in the cache, or not in the cache
+        :param **kwargs: 
+        :param req_item: the key of cache request, it can be in the cache, or not in the cache
         :return: True if element in the cache
         """
-        if self.check_element(element):
-            self._update_element(element)
+        if self.has(req_item, ):
+            self._update(req_item, )
             return True
         else:
-            self._insert_element(element)
+            self._insert(req_item, )
             return False
 
     def __repr__(self):

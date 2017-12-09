@@ -7,8 +7,8 @@
                 To write your own cache replacement algorithm, just use abstractCache.py as base class and override
                 all the methods in abstractCache.py. An example is given below:
 
->>> from mimircache.cache.abstractCache import cache
->>> class Random(cache):
+>>> from mimircache.cache.abstractCache import Cache
+>>> class Random(Cache):
 >>>     def __init__(self, cache_size):
 >>>         super().__init__(cache_size)
 >>>         self.cache_dict = dict()
@@ -24,7 +24,7 @@
 >>>         else:
 >>>             return False
 >>>
->>>     def _update_element(self, element):
+>>>     def _update(self, element):
             ''' the given element is in the cache, when it is requested again,
              usually we need to update it to new location, but in random, we don't need to do that
             :param element: the key of cache request
@@ -39,15 +39,15 @@
             :return: None
             '''
 >>>         if len(self.cache_dict) >= self.cache_size:
->>>             self._evict_one_element()
+>>>             self.evict()
 >>>         self.cache_dict[element] = ""
 >>>         self.cache_line_list.append(element)
 >>>
->>>     def _evict_one_element(self):
+>>>     def evict(self):
             '''
             evict one element from the cache line
             if we delete one element from list every time, it would be O(N) on
-            every request, which is too expensive, so we choose to put a hole
+            every request, which is too expensive, so we choose to access a hole
             on the list every time we delete it, when there are too many holes
             we re-generate the cache line list
             :return: None
@@ -59,7 +59,7 @@
 >>>         rand_num = random.randrange(0, len(self.cache_line_list))
 >>>         element = self.cache_line_list[rand_num]
 >>>         count += 1
-            # mark this element as deleted, put a hole on it
+            # mark this element as deleted, access a hole on it
 >>>         self.cache_line_list[rand_num] = None
 >>>         if count > 10:
                 # if there are too many holes, then we need to resize the list
@@ -68,16 +68,16 @@
 >>>             self.cache_line_list = new_list
 >>>         del self.cache_dict[element]
 >>>
->>>     def add_element(self, element):
+>>>     def access(self, element):
             '''
             :param element: the key of cache request, it can be in the cache, or not in the cache
             :return: True if element in the cache
             '''
->>>         if self.check_element(element):
->>>             self._update_element(element)
+>>>         if self.get(element,):
+>>>             self._update(element,)
 >>>             return True
 >>>         else:
->>>             self._insert_element(element)
+>>>             self._insert(element,)
 >>>             return False
 >>>
 >>>     def __repr__(self):

@@ -52,7 +52,7 @@ class TracePreprocessor:
         writer = TraceBinaryWriter(ofilename, fmt=fmt)
         counter = 0     # number of unique labels
         if has_time:
-            r = self.reader.read_time_request()
+            r = self.reader.read_time_req()
             init_time = r[0]
             while r:
                 h = mmh3.hash(str(r[1])) % self.modulo
@@ -62,7 +62,7 @@ class TracePreprocessor:
                         counter += 1
                     writer.write( (int(r[0] - init_time), mapping_dict[r[1]]) )
                     written_records += 1
-                r = self.reader.read_time_request()
+                r = self.reader.read_time_req()
         else:
             r = self.reader.read_one_req()
             while r:
