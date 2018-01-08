@@ -16,10 +16,10 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MultipleLocator
 
-from mimircache.const import CExtensionMode
+from mimircache.const import ALLOW_C_MIMIRCACHE
 # from mimircache.profiler.cHeatmap import get_breakpoints
 
-if CExtensionMode:
+if ALLOW_C_MIMIRCACHE:
     import mimircache.c_eviction_stat
 from mimircache.const import *
 from mimircache.utils.printing import *
@@ -45,7 +45,7 @@ def eviction_stat_reuse_dist_plot(reader, algorithm, cache_size, mode, time_inte
                                      reader.file_loc[reader.file_loc.rfind('/')+1:], algorithm, cache_size,
                                      mode, time_interval, cache_params), **kwargs)
 
-    alg = cache_alg_mapping[algorithm.lower()]
+    alg = CACHE_NAME_CONVRETER[algorithm.lower()]
     assert alg=="Optimal", "Currently only Optimal is supported"
 
     # get reuse distance of evicted elements by given algorithm
@@ -132,7 +132,7 @@ def eviction_stat_freq_plot(reader, algorithm, cache_size, mode, time_interval,
                                      reader.file_loc[reader.file_loc.rfind('/')+1:], algorithm, cache_size,
                                      mode, time_interval, accumulative, cache_params), **kwargs)
 
-    alg = cache_alg_mapping[algorithm.lower()]
+    alg = CACHE_NAME_CONVRETER[algorithm.lower()]
     stat_type = "freq"
     if accumulative:
         stat_type = "accumulative_freq"

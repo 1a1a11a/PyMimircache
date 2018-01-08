@@ -2,14 +2,14 @@
 from mimircache.cache.lru import LRU
 
 
-class clock(LRU):
+class Clock(LRU):
     """
     second chance page replacement algorithm
     """
 
     def __init__(self, cache_size=1000, **kwargs):
         # use node id to represent the reference bit
-        super(clock, self).__init__(cache_size, **kwargs)
+        super(Clock, self).__init__(cache_size, **kwargs)
         self.hand = None  # points to the node for examination/eviction
 
     def _update(self, req_item, **kwargs):

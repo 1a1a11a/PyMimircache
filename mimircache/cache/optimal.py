@@ -2,8 +2,8 @@
 
 
 from mimircache.cache.abstractCache import Cache
-from mimircache.const import CExtensionMode
-if CExtensionMode:
+from mimircache.const import ALLOW_C_MIMIRCACHE
+if ALLOW_C_MIMIRCACHE:
     import mimircache.c_LRUProfiler
     import mimircache.c_heatmap
 from heapdict import heapdict

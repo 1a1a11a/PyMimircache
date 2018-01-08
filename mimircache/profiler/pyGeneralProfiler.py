@@ -82,7 +82,7 @@ class PyGeneralProfiler:
         self.reader = reader
         self.bin_size = bin_size
         self.num_of_bins = num_of_bins
-        self.num_of_threads = kwargs.get("num_of_threads", DEFAULT_NUM_OF_THREADS)
+        self.num_of_threads = kwargs.get("num_of_threads", DEF_NUM_THREADS)
         self.num_of_trace_elements = 0
 
         assert isinstance(reader, AbstractReader), \
@@ -96,7 +96,7 @@ class PyGeneralProfiler:
 
         if self.bin_size == -1:
             if self.num_of_bins == -1:
-                self.num_of_bins = DEFAULT_BIN_NUM_PROFILER
+                self.num_of_bins = DEF_NUM_BIN_PROF
             self.bin_size = int(math.ceil(self.cache_size / self.num_of_bins)) # this guarantees bin_size >= 1
         else:
             self.num_of_bins = int(math.ceil(self.cache_size / self.bin_size))

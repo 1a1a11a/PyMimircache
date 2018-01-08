@@ -7,9 +7,9 @@
 """
 
 from mimircache.cacheReader.abstractReader import AbstractReader
-from mimircache.const import CExtensionMode
+from mimircache.const import ALLOW_C_MIMIRCACHE
 
-if CExtensionMode:
+if ALLOW_C_MIMIRCACHE:
     import mimircache.c_cacheReader
 
 
@@ -28,9 +28,9 @@ class PlainReader(AbstractReader):
         :param kwargs:              not used now
         """
 
-        super(PlainReader, self).__init__(file_loc, data_type, open_c_reader=open_c_reader)
+        super(PlainReader, self).__init__(file_loc, data_type, open_c_reader=open_c_reader, lock=kwargs.get("lock"))
         self.trace_file = open(file_loc, 'rb')
-        if CExtensionMode and open_c_reader:
+        if ALLOW_C_MIMIRCACHE and open_c_reader:
             self.cReader = mimircache.c_cacheReader.setup_reader(file_loc, 'p', data_type=data_type, block_unit_size=0)
 
     def read_one_req(self):
@@ -58,7 +58,7 @@ class PlainReader(AbstractReader):
         :return: a copied reader
         """
 
-        return PlainReader(self.file_loc, data_type=self.data_type, open_c_reader=open_c_reader)
+        return PlainReader(self.file_loc, data_type=self.data_type, open_c_reader=open_c_reader, lock=self.lock)
 
     def get_params(self):
         """

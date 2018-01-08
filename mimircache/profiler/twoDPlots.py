@@ -28,8 +28,8 @@ from collections import defaultdict
 import matplotlib.ticker as ticker
 from matplotlib import pyplot as plt
 
-from mimircache import CExtensionMode
-if CExtensionMode:
+from mimircache import ALLOW_C_MIMIRCACHE
+if ALLOW_C_MIMIRCACHE:
     from mimircache.profiler.cHeatmap import CHeatmap as Heatmap
     from mimircache.profiler.cLRUProfiler import CLRUProfiler as LRUProfiler
 else:

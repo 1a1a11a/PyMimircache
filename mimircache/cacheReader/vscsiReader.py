@@ -7,9 +7,9 @@
 """
 
 from mimircache.cacheReader.binaryReader import BinaryReader
-from mimircache.const import CExtensionMode
+from mimircache.const import ALLOW_C_MIMIRCACHE
 
-if CExtensionMode:
+if ALLOW_C_MIMIRCACHE:
     import mimircache.c_cacheReader
 
 
@@ -23,7 +23,7 @@ class VscsiReader(BinaryReader):
            "reset", "copy", "get_params"]
 
     def __init__(self, file_loc, vscsi_type=1,
-                 block_unit_size=0, open_c_reader=True):
+                 block_unit_size=0, open_c_reader=True, **kwargs):
         """
         :param file_loc:            location of the file
         :param vscsi_type:          vscsi trace type, can be 1 or 2
@@ -46,7 +46,8 @@ class VscsiReader(BinaryReader):
                                           init_params=init_params,
                                           block_unit_size=block_unit_size,
                                           disk_sector_size=512,
-                                          open_c_reader=open_c_reader)
+                                          open_c_reader=open_c_reader,
+                                          lock=kwargs.get("lock", None))
 
     def get_average_size(self):
         """
@@ -87,7 +88,7 @@ class VscsiReader(BinaryReader):
         :return: a copied reader
         """
 
-        return VscsiReader(self.file_loc, self.vscsi_type, self.block_unit_size, open_c_reader)
+        return VscsiReader(self.file_loc, self.vscsi_type, self.block_unit_size, open_c_reader, self.lock)
 
     def get_params(self):
         """
@@ -99,7 +100,8 @@ class VscsiReader(BinaryReader):
             "file_loc": self.file_loc,
             "vscsi_type": self.vscsi_type,
             "block_unit_size": self.block_unit_size,
-            "open_c_reader": self.open_c_reader
+            "open_c_reader": self.open_c_reader,
+            "lock": self.lock
         }
 
     def __repr__(self):

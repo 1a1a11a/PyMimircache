@@ -6,16 +6,18 @@
 
 """
 
-import os, sys
+import os
+import sys
 try:
     import matplotlib
     matplotlib.use('Agg')
-except:
-    print("WARNING: fail to import matplotlib, plotting function may be limited", file=sys.stderr)
+except Exception as e:
+    print("WARNING: {}, fail to import matplotlib, "
+          "plotting function may be limited".format(e), file=sys.stderr)
 
 
-CWD = os.getcwd()
-sys.path.extend([CWD, os.path.join(CWD, "..")])
+cwd = os.getcwd()
+sys.path.extend([cwd, os.path.join(cwd, "..")])
 
 
 from mimircache.const import *
@@ -28,15 +30,6 @@ from mimircache.top.cachecow import Cachecow
 
 from mimircache.version import __version__
 
-
-
-def init():
-    init_cache_alg_mapping()
-
-
-
-
-init()
 
 
 # import logging

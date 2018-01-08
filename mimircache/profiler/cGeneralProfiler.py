@@ -19,8 +19,8 @@
 import math
 from mimircache.cacheReader.abstractReader import AbstractReader
 from mimircache.utils.printing import *
-from mimircache.const import CExtensionMode
-if CExtensionMode:
+from mimircache.const import ALLOW_C_MIMIRCACHE
+if ALLOW_C_MIMIRCACHE:
     import mimircache.c_generalProfiler
 from mimircache.const import *
 from mimircache.profiler.utilProfiler import util_plotHRC
@@ -50,7 +50,7 @@ class CGeneralProfiler:
         # make sure reader is valid
         self.reader = reader
         self.cache_size = cache_size
-        self.cache_name = cache_alg_mapping[cache_name.lower()]
+        self.cache_name = CACHE_NAME_CONVRETER[cache_name.lower()]
         self.bin_size = bin_size
         self.num_of_bins = num_of_bins
         self.hit_count = None
@@ -59,11 +59,11 @@ class CGeneralProfiler:
         assert isinstance(reader, AbstractReader), \
             "you provided an invalid cacheReader: {}".format(reader)
 
-        assert cache_name.lower() in cache_alg_mapping, \
+        assert cache_name.lower() in CACHE_NAME_CONVRETER, \
             "please check your cache replacement algorithm: " + cache_name
-        assert cache_name.lower() in c_available_cache, \
+        assert cache_name.lower() in C_AVAIL_CACHE, \
             "cGeneralProfiler currently only available on the following caches: {}\n, " \
-            "please use generalProfiler".format(pformat(c_available_cache))
+            "please use generalProfiler".format(pformat(C_AVAIL_CACHE))
 
         assert self.bin_size == -1 or self.num_of_bins == -1, \
             "please don't specify bin_size ({}) and num_of_bins ({}) at the same time".format(self.bin_size, self.num_of_bins)
@@ -73,7 +73,7 @@ class CGeneralProfiler:
 
         if self.bin_size == -1:
             if self.num_of_bins == -1:
-                self.num_of_bins = DEFAULT_BIN_NUM_PROFILER
+                self.num_of_bins = DEF_NUM_BIN_PROF
             self.bin_size = int(math.ceil(self.cache_size / self.num_of_bins)) # this guarantees bin_size >= 1
         else:
             self.num_of_bins = int(math.ceil(self.cache_size / self.bin_size))
@@ -81,7 +81,7 @@ class CGeneralProfiler:
         self.cache_params = cache_params
         if self.cache_params is None:
             self.cache_params = {}
-        self.num_of_threads = kwargs.get("num_of_threads", DEFAULT_NUM_OF_THREADS)
+        self.num_of_threads = kwargs.get("num_of_threads", DEF_NUM_THREADS)
 
         # check whether user want to profling with size
         self.block_unit_size = self.cache_params.get("block_unit_size", 0)
@@ -93,7 +93,7 @@ class CGeneralProfiler:
 
         # if the given file is not embedded reader, needs conversion for C backend
         need_convert = True
-        for instance in c_available_cacheReader:
+        for instance in C_AVAIL_CACHEREADER:
             if isinstance(reader, instance):
                 need_convert = False
                 break

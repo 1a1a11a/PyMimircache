@@ -16,8 +16,8 @@ from matplotlib import colors
 from matplotlib import pyplot as plt
 import matplotlib.ticker as ticker
 
-from mimircache.const import CExtensionMode, DEFAULT_BIN_NUM_PROFILER
-if CExtensionMode:
+from mimircache.const import ALLOW_C_MIMIRCACHE, DEF_NUM_BIN_PROF
+if ALLOW_C_MIMIRCACHE:
     import mimircache.c_heatmap
 from mimircache import const
 from mimircache.utils.printing import *
@@ -196,7 +196,7 @@ class CHeatmap:
                 enable_ihr = kwargs.get("interval_hit_ratio", False) or kwargs.get("enable_ihr", False)
                 ewma_coefficient  = kwargs.get("ewma_coefficient", DEFAULT_EWMA_COEFFICIENT)
 
-            if algorithm.lower() in const.c_available_cache:
+            if algorithm.lower() in const.C_AVAIL_CACHE:
                 xydict = mimircache.c_heatmap.heatmap(reader.cReader, time_mode, plot_type,
                                                       cache_size, algorithm,
                                                       interval_hit_ratio=enable_ihr,
@@ -239,7 +239,7 @@ class CHeatmap:
         elif plot_type == "hr_interval_size":
             assert cache_size != -1, "please provide cache_size parameter for plotting hr_st_et"
             ewma_coefficient = kwargs.get("ewma_coefficient", DEFAULT_EWMA_COEFFICIENT)
-            bin_size = kwargs.get("bin_size", cache_size//DEFAULT_BIN_NUM_PROFILER + 1)
+            bin_size = kwargs.get("bin_size", cache_size // DEF_NUM_BIN_PROF + 1)
 
             xydict = mimircache.c_heatmap.heatmap(reader.cReader, time_mode, plot_type,
                                                   cache_size, algorithm,

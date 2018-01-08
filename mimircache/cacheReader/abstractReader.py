@@ -9,9 +9,10 @@
 import abc
 import os
 from collections import defaultdict
-from mimircache.const import CExtensionMode
+from mimircache.const import ALLOW_C_MIMIRCACHE
+from multiprocessing import Lock
 
-if CExtensionMode:
+if ALLOW_C_MIMIRCACHE:
     import mimircache.c_cacheReader
 
 
@@ -22,7 +23,8 @@ class AbstractReader(metaclass=abc.ABCMeta):
     """
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, file_loc, data_type='c', block_unit_size=0, disk_sector_size=0, open_c_reader=False):
+    def __init__(self, file_loc, data_type='c', block_unit_size=0,
+                 disk_sector_size=0, open_c_reader=False, lock=None):
         """
         the initialization abstract function for cacheReaderAbstract
         :param file_loc:            location of the file
@@ -48,6 +50,7 @@ class AbstractReader(metaclass=abc.ABCMeta):
         self.support_size = False
         self.already_load_rd = False
 
+        self.lock = Lock() if lock is None else lock
         self.counter = 0
         self.num_of_req = -1
         self.num_of_uniq_req = -1

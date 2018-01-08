@@ -27,10 +27,10 @@ from collections import deque
 from multiprocessing import Array, Process, Queue
 
 # this should be replaced by pure python module
-from mimircache.const import CExtensionMode
+from mimircache.const import ALLOW_C_MIMIRCACHE
 # from mimircache.profiler.cHeatmap import get_breakpoints
 
-if CExtensionMode:
+if ALLOW_C_MIMIRCACHE:
     import mimircache.c_heatmap
 from mimircache.profiler.pyHeatmapSubprocess import *
 from mimircache.utils.printing import *
@@ -133,7 +133,7 @@ class PyHeatmap:
             if 'bin_size' in kwargs:
                 kwargs_subprocess["bin_size"] = kwargs['bin_size']
             else:
-                kwargs_subprocess['bin_size'] = int(max_rd / DEFAULT_BIN_NUM_PROFILER)
+                kwargs_subprocess['bin_size'] = int(max_rd / DEF_NUM_BIN_PROF)
 
             result = np.zeros((len(break_points) - 1, max_rd // kwargs_subprocess['bin_size'] + 1), dtype=np.float32)
             result[:] = np.nan

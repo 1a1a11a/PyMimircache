@@ -11,8 +11,8 @@ Author: Jason Yang <peter.waynechina@gmail.com> 2016/07
 import os
 import socket
 from mimircache.const import INTERNAL_USE
-from mimircache.const import CExtensionMode
-if CExtensionMode:
+from mimircache.const import ALLOW_C_MIMIRCACHE
+if ALLOW_C_MIMIRCACHE:
     import mimircache.c_LRUProfiler
 from mimircache.cacheReader.binaryReader import BinaryReader
 from mimircache.cacheReader.abstractReader import AbstractReader

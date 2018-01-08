@@ -11,9 +11,9 @@ import io
 import os
 import struct
 
-from mimircache.const import CExtensionMode
+from mimircache.const import ALLOW_C_MIMIRCACHE
 
-if CExtensionMode:
+if ALLOW_C_MIMIRCACHE:
     import mimircache.c_cacheReader
 from mimircache.cacheReader.abstractReader import AbstractReader
 
@@ -56,7 +56,8 @@ class BinaryReader(AbstractReader):
         :param kwargs:              not used now
         """
 
-        super(BinaryReader, self).__init__(file_loc, data_type, block_unit_size, disk_sector_size, open_c_reader)
+        super(BinaryReader, self).__init__(file_loc, data_type, block_unit_size, disk_sector_size,
+                                           open_c_reader, kwargs.get("lock", None))
         assert 'fmt' in init_params, "please provide format string(fmt) in init_params"
         assert "label" in init_params, "please specify the order of label, beginning from 1"
         if block_unit_size != 0:
@@ -80,7 +81,7 @@ class BinaryReader(AbstractReader):
         if self.size_column != -1:
             self.support_size = True
 
-        if CExtensionMode and open_c_reader:
+        if ALLOW_C_MIMIRCACHE and open_c_reader:
             # the data type here is not real data type, it will auto correct in C
             self.cReader = mimircache.c_cacheReader.setup_reader(file_loc, 'b', data_type=self.data_type,
                                                                  block_unit_size=block_unit_size,
@@ -204,7 +205,7 @@ class BinaryReader(AbstractReader):
 
         return BinaryReader(self.file_loc, self.init_params, data_type=self.data_type,
                             block_unit_size=self.block_unit_size, disk_sector_size=self.disk_sector_size,
-                            open_c_reader=open_c_reader)
+                            open_c_reader=open_c_reader, lock=self.lock)
 
     def get_params(self):
         """
@@ -218,7 +219,8 @@ class BinaryReader(AbstractReader):
             "data_type": self.data_type,
             "block_unit_size": self.block_unit_size,
             "disk_sector_size": self.disk_sector_size,
-            "open_c_reader": self.open_c_reader
+            "open_c_reader": self.open_c_reader,
+            "lock": self.lock
         }
 
     def read_one_element_mmap(self):

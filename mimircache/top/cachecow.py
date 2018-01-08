@@ -12,8 +12,8 @@ Author: Jason Yang <peter.waynechina@gmail.com> 2017/08
 
 """
 from matplotlib.ticker import FuncFormatter
-from mimircache.const import CExtensionMode
-if CExtensionMode:
+from mimircache.const import ALLOW_C_MIMIRCACHE
+if ALLOW_C_MIMIRCACHE:
     import mimircache.c_heatmap
     
 # from mimircache.profiler.evictionStat import *
@@ -364,7 +364,7 @@ class Cachecow:
         :return: a profiler instance
         """
 
-        num_of_threads = kwargs.get("num_of_threads", DEFAULT_NUM_OF_THREADS)
+        num_of_threads = kwargs.get("num_of_threads", DEF_NUM_THREADS)
         assert self.reader is not None, "you haven't opened a trace yet"
 
         if algorithm.lower() == "lru" and not use_general_profiler:
@@ -375,8 +375,8 @@ class Cachecow:
                                                         "larger than trace length({})".format(cache_size,
                                                                                               self.num_of_req())
             if isinstance(algorithm, str):
-                if algorithm.lower() in c_available_cache:
-                    profiler = CGeneralProfiler(self.reader, cache_alg_mapping[algorithm.lower()],
+                if algorithm.lower() in C_AVAIL_CACHE:
+                    profiler = CGeneralProfiler(self.reader, CACHE_NAME_CONVRETER[algorithm.lower()],
                                                 cache_size, bin_size,
                                                 cache_params=cache_params, num_of_threads=num_of_threads)
                 else:
@@ -431,7 +431,7 @@ class Cachecow:
         if plot_type in l:
             hm = PyHeatmap()
         else:
-            if algorithm.lower() in c_available_cache:
+            if algorithm.lower() in C_AVAIL_CACHE:
                 hm = CHeatmap()
 
             else:
@@ -441,7 +441,7 @@ class Cachecow:
                    time_interval=time_interval,
                    num_of_pixels=num_of_pixels,
                    cache_size=cache_size,
-                   algorithm=cache_alg_mapping[algorithm.lower()],
+                   algorithm=CACHE_NAME_CONVRETER[algorithm.lower()],
                    cache_params=cache_params,
                    **kwargs)
 
@@ -464,7 +464,7 @@ class Cachecow:
         """
 
         figname = kwargs.get("figname", 'differential_heatmap.png')
-        num_of_threads = kwargs.get("num_of_threads", DEFAULT_NUM_OF_THREADS)
+        num_of_threads = kwargs.get("num_of_threads", DEF_NUM_THREADS)
         assert self.reader is not None, "you haven't opened a trace yet"
         assert cache_size != -1, "you didn't provide size for cache"
         assert cache_size <= self.num_of_req(), \
@@ -472,21 +472,21 @@ class Cachecow:
                     "trace length({})".format(cache_size, self.num_of_req())
 
 
-        if algorithm1.lower() in c_available_cache and algorithm2.lower() in c_available_cache:
+        if algorithm1.lower() in C_AVAIL_CACHE and algorithm2.lower() in C_AVAIL_CACHE:
             hm = CHeatmap()
             hm.diff_heatmap(self.reader, time_mode, plot_type,
                             cache_size=cache_size,
                             time_interval=time_interval,
                             num_of_pixels=num_of_pixels,
-                            algorithm1=cache_alg_mapping[algorithm1.lower()],
-                            algorithm2=cache_alg_mapping[algorithm2.lower()],
+                            algorithm1=CACHE_NAME_CONVRETER[algorithm1.lower()],
+                            algorithm2=CACHE_NAME_CONVRETER[algorithm2.lower()],
                             cache_params1=cache_params1,
                             cache_params2=cache_params2,
                             **kwargs)
 
         else:
             hm = PyHeatmap()
-            if algorithm1.lower() not in c_available_cache:
+            if algorithm1.lower() not in C_AVAIL_CACHE:
                 xydict1 = hm.calculate_heatmap_dat(self.reader, time_mode, plot_type,
                                                    time_interval=time_interval,
                                                    cache_size=cache_size,
@@ -501,7 +501,7 @@ class Cachecow:
                                                        cache_params=cache_params1,
                                                        num_of_threads=num_of_threads)
 
-            if algorithm2.lower() not in c_available_cache:
+            if algorithm2.lower() not in C_AVAIL_CACHE:
                 xydict2 = hm.calculate_heatmap_dat(self.reader, time_mode, plot_type,
                                                    time_interval=time_interval,
                                                    cache_size=cache_size,
@@ -681,7 +681,7 @@ class Cachecow:
             assert cache_size < self.num_of_req(), "you cannot specify cache size larger than trace length"
 
         if bin_size == -1:
-            bin_size = cache_size // DEFAULT_BIN_NUM_PROFILER + 1
+            bin_size = cache_size // DEF_NUM_BIN_PROF + 1
 
         # check whether profiling with size
         block_unit_size = 0

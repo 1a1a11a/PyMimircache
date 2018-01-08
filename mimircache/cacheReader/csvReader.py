@@ -6,9 +6,9 @@
 
 """
 import string
-from mimircache.const import CExtensionMode
+from mimircache.const import ALLOW_C_MIMIRCACHE
 
-if CExtensionMode:
+if ALLOW_C_MIMIRCACHE:
     import mimircache.c_cacheReader
 from mimircache.cacheReader.abstractReader import AbstractReader
 
@@ -37,7 +37,8 @@ class CsvReader(AbstractReader):
         :param kwargs:              not used now
         """
 
-        super(CsvReader, self).__init__(file_loc, data_type, block_unit_size, disk_sector_size, open_c_reader)
+        super(CsvReader, self).__init__(file_loc, data_type, block_unit_size, disk_sector_size,
+                                        open_c_reader, kwargs.get("lock", None))
         assert init_params is not None, "please provide init_param for csvReader"
         assert "label" in init_params, "please provide label for csv reader"
 
@@ -65,7 +66,7 @@ class CsvReader(AbstractReader):
                             self.trace_file.readline().decode().split(self.delimiter)]
             # self.trace_file.readline()
 
-        if CExtensionMode and open_c_reader:
+        if ALLOW_C_MIMIRCACHE and open_c_reader:
             self.cReader = mimircache.c_cacheReader.setup_reader(file_loc, 'c', data_type=data_type,
                                                                  block_unit_size=block_unit_size,
                                                                  disk_sector_size=disk_sector_size,
@@ -196,7 +197,7 @@ class CsvReader(AbstractReader):
         """
 
         return CsvReader(self.file_loc, self.data_type, self.init_params,
-                         self.block_unit_size, self.disk_sector_size, open_c_reader)
+                         self.block_unit_size, self.disk_sector_size, open_c_reader, self.lock)
 
     def get_params(self):
         """
@@ -210,7 +211,8 @@ class CsvReader(AbstractReader):
             "data_type": self.data_type,
             "block_unit_size": self.block_unit_size,
             "disk_sector_size": self.disk_sector_size,
-            "open_c_reader": self.open_c_reader
+            "open_c_reader": self.open_c_reader,
+            "lock": self.lock
         }
 
     def __next__(self):  # Python 3
