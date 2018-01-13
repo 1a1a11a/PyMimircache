@@ -256,9 +256,6 @@ class CHeatmap:
             yticks = ticker.FuncFormatter(lambda x, _: int(x*bin_size))
             title = "Interval Hit Ratio With Size (ewma {})".format(ewma_coefficient)
 
-            print(xydict.shape)
-            print_list(xydict[:8, 0])
-            print_list(xydict[:8, 1])
             plot_data = xydict
 
             if not figname:

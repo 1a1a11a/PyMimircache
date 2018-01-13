@@ -172,40 +172,40 @@ static void profiler_thread(gpointer data, gpointer user_data){
     result[order]->miss_rate = 1 - result[order]->hit_rate;
 
     
-    if (cache->core->type == e_mimir){ 
-        struct MIMIR_params* MIMIR_params = (struct MIMIR_params*)(cache->cache_params);
-        gint64 prefetch = MIMIR_params->num_of_prefetch_mimir;
-        gint64 hit = MIMIR_params->hit_on_prefetch_mimir;
+    if (cache->core->type == e_Mithril){ 
+        Mithril_params_t* Mithril_params = (Mithril_params_t*)(cache->cache_params);
+        gint64 prefetch = Mithril_params->num_of_prefetch_Mithril;
+        gint64 hit = Mithril_params->hit_on_prefetch_Mithril;
 
         printf("\ncache size %ld, real size: %ld, hit rate %lf, total check %lu, "
-               "mimir prefetch %lu, hit %lu, accuracy: %lf, prefetch table size %u\n",
-               cache->core->size, MIMIR_params->cache->core->size,
+               "Mithril prefetch %lu, hit %lu, accuracy: %lf, prefetch table size %u\n",
+               cache->core->size, Mithril_params->cache->core->size,
                (double)hit_count/(hit_count+miss_count),
-               ((struct MIMIR_params*)(cache->cache_params))->num_of_check,
+               ((Mithril_params_t*)(cache->cache_params))->num_of_check,
                prefetch, hit, (double)hit/prefetch,
-               g_hash_table_size(MIMIR_params->prefetch_hashtable));
+               g_hash_table_size(Mithril_params->prefetch_hashtable));
         
-        if (MIMIR_params->sequential_type == 1){
-            gint64 prefetch2 = ((struct MIMIR_params*)(cache->cache_params))->num_of_prefetch_sequential;
-            gint64 hit2 = ((struct MIMIR_params*)(cache->cache_params))->hit_on_prefetch_sequential;
+        if (Mithril_params->sequential_type == 1){
+            gint64 prefetch2 = ((Mithril_params_t*)(cache->cache_params))->num_of_prefetch_sequential;
+            gint64 hit2 = ((Mithril_params_t*)(cache->cache_params))->hit_on_prefetch_sequential;
             printf("sequential prefetching, prefetch %lu, hit %lu, accuracy %lf\n", prefetch2, hit2, (double)hit2/prefetch2);
-            printf("overall size %ld, hit rate %lf, efficiency %lf\n", MIMIR_params->cache->core->size,
+            printf("overall size %ld, hit rate %lf, efficiency %lf\n", Mithril_params->cache->core->size,
                    (double)hit_count/(hit_count+miss_count), (double)(hit+hit2)/(prefetch+prefetch2));
         }
         
-        if (MIMIR_params->cache->core->type == e_AMP){
-            gint64 prefetch2 = ((struct AMP_params*)(MIMIR_params->cache->cache_params))->num_of_prefetch;
-            gint64 hit2 = ((struct AMP_params*)(MIMIR_params->cache->cache_params))->num_of_hit;
+        if (Mithril_params->cache->core->type == e_AMP){
+            gint64 prefetch2 = ((struct AMP_params*)(Mithril_params->cache->cache_params))->num_of_prefetch;
+            gint64 hit2 = ((struct AMP_params*)(Mithril_params->cache->cache_params))->num_of_hit;
             printf("Mithril_AMP cache size %ld, prefetch %lu, hit %lu, accuracy: %lf, total prefetch %lu, hit %lu, accuracy: %lf\n",
-                   MIMIR_params->cache->core->size, prefetch2, hit2, (double)hit2/prefetch2,
+                   Mithril_params->cache->core->size, prefetch2, hit2, (double)hit2/prefetch2,
                    prefetch+prefetch2, hit+hit2, (double)(hit+hit2)/(prefetch+prefetch2)); 
 
         }
         
         // output association
 //        printf("output association\n");
-//        g_hash_table_foreach (MIMIR_params->prefetch_hashtable,
-//                              printHashTable, MIMIR_params);
+//        g_hash_table_foreach (Mithril_params->prefetch_hashtable,
+//                              printHashTable, Mithril_params);
     }
     
     if (cache->core->type == e_PG){

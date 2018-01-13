@@ -28,6 +28,11 @@ extern "C" {
 #include "Random.h"
 #include "ARC.h"
 #include "SLRU.h"
+
+//#include "akamai.h"
+//#include "new1.h"
+//#include "new2.h"
+
     
 #ifdef ML
 #include "SLRUML.h"
@@ -35,7 +40,8 @@ extern "C" {
 #endif
 //#include "LRFU.h"
     
-#include "mimir.h"
+//#include "mimir.h"
+#include "Mithril.h"
 #include "AMP.h"
 #include "PG.h"
 

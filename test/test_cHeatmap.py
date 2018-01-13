@@ -30,7 +30,6 @@ class cHeatmapTest(unittest.TestCase):
         bpr = cH.get_breakpoints(reader, 'r', time_interval=1000000)
         self.assertEqual(bpr[10], 53)
         bpr = cH.get_breakpoints(reader, 'r', num_of_pixel_of_time_dim=1000)
-        # print(bpr)
         bpv = cH.get_breakpoints(reader, 'v', time_interval=1000)
         self.assertEqual(bpv[10], 10000)
 
@@ -133,8 +132,7 @@ class cHeatmapTest(unittest.TestCase):
         cH.heatmap(reader, 'r', "hit_ratio_start_time_end_time",
                    num_of_pixel_of_time_dim=24, num_of_threads=os.cpu_count(), cache_size=2000,
                    figname="hr_st_et_LRU_cReader_r.png")
-        cH.heatmap(reader, 'r', "hit_ratio_start_time_end_time",
-                   num_of_threads=os.cpu_count(), cache_size=2000)
+
         cH.heatmap(reader, 'r', "rd_distribution",
                    num_of_pixel_of_time_dim=1000, num_of_threads=os.cpu_count())
         cH.heatmap(reader, 'r', "future_rd_distribution",
@@ -163,8 +161,7 @@ class cHeatmapTest(unittest.TestCase):
         cH.heatmap(reader, 'r', "hit_ratio_start_time_end_time",
                    num_of_pixel_of_time_dim=100, num_of_threads=os.cpu_count(), cache_size=2000,
                    figname="hr_st_et_LRU_bReader.png")
-        cH.heatmap(reader, 'r', "hit_ratio_start_time_end_time",
-                   num_of_threads=os.cpu_count(), cache_size=2000)
+
         cH.heatmap(reader, 'r', "rd_distribution",
                    num_of_pixel_of_time_dim=1000, num_of_threads=os.cpu_count())
         cH.heatmap(reader, 'r', "future_rd_distribution",

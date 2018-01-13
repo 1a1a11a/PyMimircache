@@ -158,71 +158,162 @@ struct_cache* build_cache(reader_t* reader,
         init_params->K              = K;
         cache = AMP_init(cache_size, data_type, block_unit_size, (void*)init_params);
     }
-    else if (strcmp(algorithm, "mimir") == 0){
+//    else if (strcmp(algorithm, "mimir") == 0){
+//        gint max_support = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "max_support"));
+//        gint min_support = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "min_support"));
+//        gint confidence = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "confidence"));
+//        gint item_set_size = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "item_set_size"));
+//        gint prefetch_list_size = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "prefetch_list_size"));
+//        gint sequential_type = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "sequential_type"));
+//        gdouble max_metadata_size = (gdouble) PyFloat_AsDouble(PyDict_GetItemString(cache_params, "max_metadata_size"));
+//        gint block_size = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "block_size"));
+//        gint cycle_time = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "cycle_time"));
+//        gint mining_threshold = 5120;
+//        if (PyDict_Contains(cache_params, PyUnicode_FromString("mining_threshold")))
+//            mining_threshold = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "mining_threshold"));
+//
+//        gint AMP_pthreshold = -1;
+//        recording_loc_e recording_loc = miss;
+//        
+//        gint sequential_K = -1;
+//        if (sequential_type != 0)
+//            sequential_K = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "sequential_K"));
+//        gchar* cache_type = "unknown";
+//        
+//        PyObject * temp_bytes = PyUnicode_AsEncodedString(PyDict_GetItemString(cache_params, "cache_type"), "utf-8", "strict"); // Owned reference
+//        if (temp_bytes != NULL) {
+//            cache_type = g_strdup( PyBytes_AS_STRING(temp_bytes) ); // Borrowed pointer
+//            Py_DECREF(temp_bytes);
+//        }
+//        
+//        temp_bytes = NULL;
+//        if (PyDict_Contains(cache_params, PyUnicode_FromString("recording_loc")))
+//            temp_bytes = PyUnicode_AsEncodedString(PyDict_GetItemString(cache_params, "recording_loc"), "utf-8", "strict"); // Owned reference
+//        if (temp_bytes != NULL) {
+//            // Default is record at miss if not set 
+//            if (strcmp(PyBytes_AS_STRING(temp_bytes), "miss") == 0)
+//                recording_loc = miss;
+//            else if (strcmp(PyBytes_AS_STRING(temp_bytes), "evict") == 0)
+//                recording_loc = evict;
+//            else if (strcmp(PyBytes_AS_STRING(temp_bytes), "miss-evict") == 0)
+//                recording_loc = miss_evict;
+//            else if (strcmp(PyBytes_AS_STRING(temp_bytes), "each-req") == 0)
+//                recording_loc = each_req; 
+//            else
+//                ERROR("unknown recording loc %s\n", PyBytes_AS_STRING(temp_bytes));
+//            Py_DECREF(temp_bytes);
+//        }
+//
+//        
+//        if (strcmp(cache_type, "unknown") == 0){
+//            PyErr_SetString(PyExc_RuntimeError, "please provide cache_type\n");
+//            return NULL;
+//        }
+//        if (strcmp(cache_type, "AMP") == 0)
+//            AMP_pthreshold = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "AMP_pthreshold"));
+//        
+//        DEBUG_MSG("cache type %s, max support=%d, min support %d, confidence %d, sequential %d\n",
+//                     cache_type, max_support, min_support, confidence, sequential_K);
+//        
+//        struct MIMIR_init_params *init_params = g_new(struct MIMIR_init_params, 1);
+//        init_params->max_support            = max_support;
+//        init_params->min_support            = min_support;
+//        init_params->cache_type             = cache_type;
+//        init_params->confidence             = confidence;
+//        init_params->recording_loc          = recording_loc;
+//        init_params->item_set_size          = item_set_size;
+//        init_params->prefetch_list_size     = prefetch_list_size;
+//        init_params->block_size             = block_size;
+//        init_params->max_metadata_size      = max_metadata_size;
+//        init_params->sequential_type        = sequential_type;
+//        init_params->sequential_K           = sequential_K;
+//        init_params->AMP_pthreshold         = AMP_pthreshold;
+//        init_params->cycle_time             = cycle_time;
+//        init_params->mining_threshold       = mining_threshold;
+//        
+//        cache = MIMIR_init(cache_size, data_type, block_unit_size, (void*)init_params);
+//    }
+    
+    else if (strcmp(algorithm, "Mithril") == 0){
         gint max_support = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "max_support"));
         gint min_support = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "min_support"));
-        gint confidence = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "confidence"));
-        gint item_set_size = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "item_set_size"));
+        gint lookahead_range = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "lookahead_range"));
         gint prefetch_list_size = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "prefetch_list_size"));
-        gint sequential_type = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "sequential_type"));
         gdouble max_metadata_size = (gdouble) PyFloat_AsDouble(PyDict_GetItemString(cache_params, "max_metadata_size"));
         gint block_size = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "block_size"));
-        gint cycle_time = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "cycle_time"));
-        gint mining_threshold = 5120;
+        
+        
+        gint cycle_time = 2;
+        if (PyDict_Contains(cache_params, PyUnicode_FromString("cycle_time")))
+            cycle_time = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "cycle_time"));
+        
+        gint sequential_type = 0;
+        if (PyDict_Contains(cache_params, PyUnicode_FromString("sequential_type")))
+            sequential_type = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "sequential_type"));
+        
+        gint confidence = 1;
+        if (PyDict_Contains(cache_params, PyUnicode_FromString("confidence")))
+            confidence = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "confidence"));
+
+        gint mining_threshold = MINING_THRESHOLD;
         if (PyDict_Contains(cache_params, PyUnicode_FromString("mining_threshold")))
             mining_threshold = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "mining_threshold"));
-
-        gint AMP_pthreshold = -1;
-        recording_loc_e recording_loc = miss;
+        
         
         gint sequential_K = -1;
         if (sequential_type != 0)
             sequential_K = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "sequential_K"));
-        gchar* cache_type = "unknown";
-        
-        PyObject * temp_bytes = PyUnicode_AsEncodedString(PyDict_GetItemString(cache_params, "cache_type"), "utf-8", "strict"); // Owned reference
-        if (temp_bytes != NULL) {
-            cache_type = g_strdup( PyBytes_AS_STRING(temp_bytes) ); // Borrowed pointer
-            Py_DECREF(temp_bytes);
-        }
-        
-        temp_bytes = NULL;
-        if (PyDict_Contains(cache_params, PyUnicode_FromString("recording_loc")))
-            temp_bytes = PyUnicode_AsEncodedString(PyDict_GetItemString(cache_params, "recording_loc"), "utf-8", "strict"); // Owned reference
-        if (temp_bytes != NULL) {
-            // Default is record at miss if not set 
-            if (strcmp(PyBytes_AS_STRING(temp_bytes), "miss") == 0)
-                recording_loc = miss;
-            else if (strcmp(PyBytes_AS_STRING(temp_bytes), "evict") == 0)
-                recording_loc = evict;
-            else if (strcmp(PyBytes_AS_STRING(temp_bytes), "miss-evict") == 0)
-                recording_loc = miss_evict;
-            else if (strcmp(PyBytes_AS_STRING(temp_bytes), "each-req") == 0)
-                recording_loc = each_req; 
-            else
-                ERROR("unknown recording loc %s\n", PyBytes_AS_STRING(temp_bytes));
-            Py_DECREF(temp_bytes);
-        }
 
         
+        gchar* cache_type = "LRU";
+        if (PyDict_Contains(cache_params, PyUnicode_FromString("cache_type"))){
+            PyObject * temp_bytes = PyUnicode_AsEncodedString(PyDict_GetItemString(cache_params, "cache_type"), "utf-8", "strict"); // Owned reference
+            if (temp_bytes != NULL) {
+                cache_type = g_strdup( PyBytes_AS_STRING(temp_bytes) ); // Borrowed pointer
+                Py_DECREF(temp_bytes);
+            }
+        }
         if (strcmp(cache_type, "unknown") == 0){
             PyErr_SetString(PyExc_RuntimeError, "please provide cache_type\n");
             return NULL;
         }
+        
+        rec_trigger_e rec_trigger = miss;
+        if (PyDict_Contains(cache_params, PyUnicode_FromString("rec_trigger"))){
+            PyObject* temp_bytes = PyUnicode_AsEncodedString(PyDict_GetItemString(cache_params, "rec_trigger"), "utf-8", "strict"); // Owned reference
+            if (temp_bytes != NULL) {
+                // Default is record at miss if not set
+                if (strcmp(PyBytes_AS_STRING(temp_bytes), "miss") == 0)
+                    rec_trigger = miss;
+                else if (strcmp(PyBytes_AS_STRING(temp_bytes), "evict") == 0)
+                    rec_trigger = evict;
+                else if (strcmp(PyBytes_AS_STRING(temp_bytes), "miss_evict") == 0)
+                    rec_trigger = miss_evict;
+                else if (strcmp(PyBytes_AS_STRING(temp_bytes), "each_req") == 0)
+                    rec_trigger = each_req;
+                else
+                    ERROR("unknown recording loc %s\n", PyBytes_AS_STRING(temp_bytes));
+                Py_DECREF(temp_bytes);
+            }
+        }
+        
+        
+
+        gint AMP_pthreshold = -1;
         if (strcmp(cache_type, "AMP") == 0)
             AMP_pthreshold = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "AMP_pthreshold"));
         
         DEBUG_MSG("cache type %s, max support=%d, min support %d, confidence %d, sequential %d\n",
-                     cache_type, max_support, min_support, confidence, sequential_K);
+                  cache_type, max_support, min_support, confidence, sequential_K);
         
-        struct MIMIR_init_params *init_params = g_new(struct MIMIR_init_params, 1);
+        Mithril_init_params_t *init_params = g_new(Mithril_init_params_t, 1);
         init_params->max_support            = max_support;
         init_params->min_support            = min_support;
         init_params->cache_type             = cache_type;
         init_params->confidence             = confidence;
-        init_params->recording_loc          = recording_loc;
-        init_params->item_set_size          = item_set_size;
-        init_params->prefetch_list_size     = prefetch_list_size;
+        init_params->rec_trigger            = rec_trigger;
+        init_params->lookahead_range        = lookahead_range;
+        init_params->pf_list_size           = prefetch_list_size;
         init_params->block_size             = block_size;
         init_params->max_metadata_size      = max_metadata_size;
         init_params->sequential_type        = sequential_type;
@@ -231,20 +322,19 @@ struct_cache* build_cache(reader_t* reader,
         init_params->cycle_time             = cycle_time;
         init_params->mining_threshold       = mining_threshold;
         
-        cache = MIMIR_init(cache_size, data_type, block_unit_size, (void*)init_params);
+        cache = Mithril_init(cache_size, data_type, block_unit_size, (void*)init_params);
     }
+
     
-    
-    
-    // else if (strcmp(algorithm, "akamai") == 0){
-    //     cache = akamai_init(cache_size, data_type, block_unit_size, NULL);
-    // }
-    // else if (strcmp(algorithm, "new1") == 0){
-    //     cache = new1_init(cache_size, data_type, block_unit_size, NULL);
-    // }
-    // else if (strcmp(algorithm, "new2") == 0){
-    //     cache = new2_init(cache_size, data_type, block_unit_size, NULL);
-    // }
+//     else if (strcmp(algorithm, "akamai") == 0){
+//         cache = akamai_init(cache_size, data_type, block_unit_size, NULL);
+//     }
+//     else if (strcmp(algorithm, "new1") == 0){
+//         cache = new1_init(cache_size, data_type, block_unit_size, NULL);
+//     }
+//     else if (strcmp(algorithm, "new2") == 0){
+//         cache = new2_init(cache_size, data_type, block_unit_size, NULL);
+//     }
 
     
     

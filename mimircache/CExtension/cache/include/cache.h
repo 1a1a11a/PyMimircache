@@ -53,10 +53,15 @@ typedef enum{
     e_ML,
     e_YJC,
     
+    e_akamai,
+    e_new1,
+    e_new2, 
+    
     e_SLRUML,
     e_Score,
     
     e_mimir,
+    e_Mithril,
 }cache_type;
 
 
@@ -90,6 +95,7 @@ struct cache_core{
     
     
     
+    /** Jason: need to remove shared struct in cache and move all shared struct into reader **/ 
     int                 cache_debug_level;  // 0 not debug, 1: prepare oracle, 2: compare to oracle
     void*               oracle;
     void*               eviction_array;     // Optimal Eviction Array, either guint64* or char**

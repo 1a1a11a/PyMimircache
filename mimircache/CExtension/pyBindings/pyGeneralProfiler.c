@@ -275,48 +275,6 @@ static PyObject* generalProfiler_get_evict_err_rate(PyObject* self,
 
 
 
-static PyObject* generalProfiler_get_hrpe(PyObject* self,
-                                          PyObject* args,
-                                          PyObject* keywds)
-{
-    PyObject* po;
-    reader_t* reader;
-    long cache_size;
-    static char *kwlist[] = {"reader", "cache_size", NULL};
-    
-    // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Ol", kwlist, &po, &cache_size)) {
-        fprintf(stderr, "parsing argument failed in generalProfiler_get_hit_rate\n");
-        return NULL;
-    }
-
-    if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
-        return NULL;
-    }
-    
-    
-    // get hrpe
-    DEBUG_MSG("before profiling\n");
-    struct HR_PE* hrpe = get_HR_PE(reader, cache_size);
-    DEBUG_MSG("after profiling\n");
-    
-    // create numpy array
-    guint num_of_bins = 18;
-    npy_intp dims[1] = { num_of_bins*4 };
-    PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
-    guint64 i;
-    for(i=0; i<num_of_bins; i++){
-        *(double *)PyArray_GETPTR1((PyArrayObject*)ret_array, i*4) = (double)(hrpe->real_cache_size[i]);
-        *(double *)PyArray_GETPTR1((PyArrayObject*)ret_array, i*4+1) = (double)(hrpe->prefetch[i]);
-        *(double *)PyArray_GETPTR1((PyArrayObject*)ret_array, i*4+2) = hrpe->HR[i];
-        *(double *)PyArray_GETPTR1((PyArrayObject*)ret_array, i*4+3) = hrpe->PE[i];
-    }
-    g_free(hrpe);
-    return ret_array;
-}
-
-
-
 static PyObject* generalProfiler_get_partition(PyObject* self,
                                                PyObject* args,
                                                PyObject* keywds)
@@ -444,10 +402,6 @@ static PyMethodDef c_generalProfiler_funcs[] = {
         METH_VARARGS | METH_KEYWORDS, "get hit count numpy array"},
     {"get_miss_ratio", (PyCFunction)generalProfiler_get_miss_rate,
         METH_VARARGS | METH_KEYWORDS, "get miss rate numpy array"},
-//    {"get_err", (PyCFunction)generalProfiler_get_evict_err_rate,
-//        METH_VARARGS | METH_KEYWORDS, "get err rate numpy array"},
-//    {"get_HR_PE", (PyCFunction)generalProfiler_get_hrpe,
-//        METH_VARARGS | METH_KEYWORDS, "get hit rate and prefetching efficiency"},
     {"get_partition", (PyCFunction)generalProfiler_get_partition,
         METH_VARARGS | METH_KEYWORDS, "get partition results with given alg"},
     {"get_partition_hit_ratio", (PyCFunction)generalProfiler_get_partition_hit_rate,

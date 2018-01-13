@@ -99,7 +99,7 @@ CACHE_NAME_CONVRETER = {"optimal": "Optimal", "opt": "Optimal",
 
                         "lru_k": "LRU_K", "lru_2": "LRU_2",
                         "slru": "SLRU", "s4lru": "S4LRU",
-                        "mimir": "mimir", "mithril": "mithril", "amp": "AMP", "pg": "PG",
+                        "mimir": "mimir", "mithril": "Mithril", "amp": "AMP", "pg": "PG",
 
                         "lrfu": "LRFU", "slruml": "SLRUML", "scoreml": "ScoreML",
 
