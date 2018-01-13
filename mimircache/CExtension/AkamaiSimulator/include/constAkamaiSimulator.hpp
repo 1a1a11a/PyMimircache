@@ -15,7 +15,7 @@
 
 #define NUM_CACHE_LAYERS 2          // currently only support two layers, limited in cacheServerThread::add_original_req 
 
-#define MAX_SERVER_REQ_QUEUE_SIZE 1024
+#define MAX_SERVER_REQ_QUEUE_SIZE 8
 //#define MAX_SERVER_REQ_QUEUE_SIZE 1024*1024
 //#define MAX_SERVER_REQ_QUEUE_SIZE 1024*1024*1024
 
@@ -29,7 +29,7 @@
 //#define SYNCHRONIZATION_TIME_DIFF 120
 
 
-#define L2_COPY 2 
+#define L2_COPY 1 
 
 
 #undef DEBUG_DEADLOCK 

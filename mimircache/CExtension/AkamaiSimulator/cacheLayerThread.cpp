@@ -274,6 +274,7 @@ namespace akamaiSimulator {
                         printf("\n");
                     }
 #endif 
+
                     while (! req_pq.empty()){
                         try{
                             cp = req_pq.top();

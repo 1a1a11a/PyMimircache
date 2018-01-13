@@ -29,10 +29,11 @@ extern "C" {
 #include "ARC.h"
 #include "SLRU.h"
 
-//#include "akamai.h"
-//#include "new1.h"
-//#include "new2.h"
-
+#ifdef akamaiS
+#include "akamai.h"
+#include "new1.h"
+#include "new2.h"
+#endif 
     
 #ifdef ML
 #include "SLRUML.h"

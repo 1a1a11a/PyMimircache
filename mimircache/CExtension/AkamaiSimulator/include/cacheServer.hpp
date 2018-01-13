@@ -44,6 +44,10 @@ extern "C"
 
 
 #define SERVER_NAME_LEN_MAX 22      // this is limited by libketama
+#define BOUNDARY_CHECKING_SIZE  20 
+#define BOUNDARY_SHIFTING_SIZE  20 
+#define DEFAULT_DECAY_COEFFICIENT   0.5
+#define DEFAULT_ADJUST_INTERVAL     20000
 
 
 namespace akamaiSimulator {
@@ -119,6 +123,7 @@ namespace akamaiSimulator {
         unsigned long long *rd_count_array[NUM_CACHE_LAYERS];
         unsigned long long rd_count_array_size[NUM_CACHE_LAYERS];
         
+        double decay_coefficient; 
         unsigned long adjust_interval;
         unsigned long space_optimize_interval;
         
@@ -127,7 +132,7 @@ namespace akamaiSimulator {
         
         
         /* the logic how to adjust boundary */
-        int __how_to_adjust();
+        int __how_to_adjust(int check_range=1);
         
         /** if we don't optimize profiler space usage,
          *  the maximal reuse distance can be infinity 
@@ -141,7 +146,8 @@ namespace akamaiSimulator {
         cacheProfiler(const unsigned long max_cache_size,
                       const unsigned char data_type,
                       unsigned long *layer_size,
-                      const unsigned long adjust_interval=20000,
+                      const double decay_coefficient=DEFAULT_DECAY_COEFFICIENT,
+                      const unsigned long adjust_interval=DEFAULT_ADJUST_INTERVAL,
                       const unsigned long space_optimize_interval=1000000,
                       const unsigned long L1_latency=10,
                       const unsigned long L2_latency=20,
@@ -150,6 +156,7 @@ namespace akamaiSimulator {
         void __init(const unsigned long max_cache_size,
                     const unsigned char data_type,
                     unsigned long *layer_size,
+                    const double decay_coefficient, 
                     const unsigned long adjust_interval,
                     const unsigned long space_optimize_interval,
                     const unsigned long L1_latency,

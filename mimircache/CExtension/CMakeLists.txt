@@ -74,12 +74,9 @@ target_link_libraries(akamaiSimulatorBin libketama cache cacheReader profiler ut
 
 
 
+
 # mkdir build
 # cd    build
-# cmake -G Ninja ..
-# ninja             # Parallel build (no need -j12)
-
-
 # rm -r *; cmake .. -G Ninja; ninja 
 # cmake ..; make -j12 
 

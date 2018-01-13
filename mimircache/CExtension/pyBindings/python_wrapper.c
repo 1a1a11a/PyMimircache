@@ -325,17 +325,18 @@ struct_cache* build_cache(reader_t* reader,
         cache = Mithril_init(cache_size, data_type, block_unit_size, (void*)init_params);
     }
 
-    
-//     else if (strcmp(algorithm, "akamai") == 0){
-//         cache = akamai_init(cache_size, data_type, block_unit_size, NULL);
-//     }
-//     else if (strcmp(algorithm, "new1") == 0){
-//         cache = new1_init(cache_size, data_type, block_unit_size, NULL);
-//     }
-//     else if (strcmp(algorithm, "new2") == 0){
-//         cache = new2_init(cache_size, data_type, block_unit_size, NULL);
-//     }
-
+  
+#ifdef akamaiS
+     else if (strcmp(algorithm, "akamai") == 0){
+         cache = akamai_init(cache_size, data_type, block_unit_size, NULL);
+     }
+     else if (strcmp(algorithm, "new1") == 0){
+         cache = new1_init(cache_size, data_type, block_unit_size, NULL);
+     }
+     else if (strcmp(algorithm, "new2") == 0){
+         cache = new2_init(cache_size, data_type, block_unit_size, NULL);
+     }
+#endif
     
     
     

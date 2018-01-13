@@ -318,7 +318,7 @@ return_res** profiler(reader_t* reader_in,
     }
     
     while (progress < (guint64)num_of_bins-1){
-//            fprintf(stderr, "%.2f%%\n", ((double)progress) / (num_of_bins-1) * 100);
+            fprintf(stderr, "%.2f%%\n", ((double)progress) / (num_of_bins-1) * 100);
             sleep(1);
 //            fprintf(stderr, "\033[A\033[2K\r");
     }

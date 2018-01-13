@@ -70,6 +70,7 @@ namespace akamaiSimulator {
             read_one_element(this->trace_reader, cp);
             while (cp->valid) {
                 
+//                printf("req %s\n", cp->item_p);
 //                if (cp->ts > 9600)
 //                    verbose("server %lu ts %lu real time %ld\n", this->cache_server_id,
 //                            cp->ts, cp->real_time);

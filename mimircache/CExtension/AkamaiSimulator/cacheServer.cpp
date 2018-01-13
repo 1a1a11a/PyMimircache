@@ -87,13 +87,15 @@ namespace akamaiSimulator {
     cacheProfiler::cacheProfiler(const unsigned long max_cache_size,
                                  const unsigned char data_type,
                                  unsigned long *layer_size,
+                                 const double decay_coefficient,
                                  const unsigned long adjust_interval,
                                  const unsigned long space_optimize_interval,
                                  const unsigned long L1_latency,
                                  const unsigned long L2_latency,
                                  const unsigned long Lo_latency){
         this->__init(max_cache_size, data_type,
-                     layer_size, adjust_interval,
+                     layer_size, decay_coefficient,
+                     adjust_interval,
                      space_optimize_interval,
                      L1_latency, L2_latency, Lo_latency);
     }
@@ -102,6 +104,7 @@ namespace akamaiSimulator {
     void cacheProfiler::__init(const unsigned long max_cache_size,
                                const unsigned char data_type,
                                unsigned long *layer_size,
+                               const double decay_coefficient,
                                const unsigned long adjust_interval,
                                const unsigned long space_optimize_interval,
                                const unsigned long L1_latency,
@@ -116,6 +119,7 @@ namespace akamaiSimulator {
         this->max_cache_size = max_cache_size;
         this->data_type = data_type;
         this->adjust_interval = adjust_interval;
+        this->decay_coefficient = decay_coefficient; 
         this->layer_size = layer_size;
         this->space_optimize_interval = space_optimize_interval;
         
@@ -203,7 +207,14 @@ namespace akamaiSimulator {
             else
                 this->last_adjust_ts = this->ts[1];
 
-            int how_to_adjust_flag = this->__how_to_adjust();
+            int how_to_adjust_flag = this->__how_to_adjust(BOUNDARY_CHECKING_SIZE);
+            /* now do an exponential decay for the rd count */
+            for (unsigned long i=0; i<NUM_CACHE_LAYERS; i++){
+                for (unsigned long j=0; j<this->rd_count_array_size[i]; j++){
+                    this->rd_count_array[i][j] = (int) (this->rd_count_array[i][j] * this->decay_coefficient);
+                }
+            }
+            
             /* might need to clear the profiler */
 //            if (how_to_adjust_flag != 0){
 //                for (unsigned long i=0; i<NUM_CACHE_LAYERS; i++)
@@ -218,14 +229,30 @@ namespace akamaiSimulator {
 
 
     
-    int cacheProfiler::__how_to_adjust(){
+    int cacheProfiler::__how_to_adjust(int check_range){
         /** delta1 is the latency change of increasing L1,
          *  less than 0, then shift
          *  (Lo−L2) * RD_2(C_2) − (Lo−L1) * RD_1(C_1+1)
          *  delta2 is the latency change of increasing L2.
          *  (Lo−L1) * RD_1(C_1) - (Lo−L2) * RD_2(C_2+1)
          */
-        long delta1, delta2;
+        long delta1 = 0, delta2 = 0;
+        for (int i=0; i<check_range; i++){
+            if (this->layer_size[1]-i <=0 || this->layer_size[0] + i + 1 >= this->max_cache_size ||
+                this->layer_size[0]-i <=0 || this->layer_size[1] + i + 1 >= this->max_cache_size)
+                break;
+            delta1 += (this->Lo_latency - this->L2_latency) *
+            this->rd_count_array[1][this->layer_size[1]-i] -
+            (this->Lo_latency - this->L1_latency) *
+            this->rd_count_array[0][this->layer_size[0] + i + 1];
+            
+            delta2 += (this->Lo_latency - this->L1_latency) *
+            this->rd_count_array[0][this->layer_size[0]-i] -
+            (this->Lo_latency - this->L2_latency) *
+            this->rd_count_array[1][this->layer_size[1] + i + 1];
+        }
+        
+        /*
         delta1 = (this->Lo_latency - this->L2_latency) *
         this->rd_count_array[1][this->layer_size[1]] -
         (this->Lo_latency - this->L1_latency) *
@@ -236,6 +263,8 @@ namespace akamaiSimulator {
         (this->Lo_latency - this->L2_latency) *
         this->rd_count_array[1][this->layer_size[1] + 1];
         
+         */
+         
         if (this->layer_size[0]+1 >= this->rd_count_array_size[0]){
             error_msg("layer size0 %lu, array size %llu\n",
                       this->layer_size[0], this->rd_count_array_size[0]);
@@ -352,7 +381,8 @@ namespace akamaiSimulator {
         }
         
         this->__init(this->max_cache_size, this->data_type,
-                     this->layer_size, this->adjust_interval,
+                     this->layer_size, this->decay_coefficient, 
+                     this->adjust_interval,
                      this->space_optimize_interval,
                      this->L1_latency, this->L2_latency,
                      this->Lo_latency);
@@ -594,8 +624,8 @@ namespace akamaiSimulator {
                 this->mtx_layer_size.lock();
                 
                 /* add L1 */
-                this->layer_size[0] ++;
-                this->layer_size[1] --;
+                this->layer_size[0] += BOUNDARY_SHIFTING_SIZE;
+                this->layer_size[1] -= BOUNDARY_SHIFTING_SIZE;
                 this->adjust_caches();
                 info("%lu L1 increases\n", cp->ts);
                 
@@ -604,8 +634,8 @@ namespace akamaiSimulator {
             else if (adjust_flag == -1){
                 /* add L2 */
                 this->mtx_layer_size.lock();
-                this->layer_size[0] --;
-                this->layer_size[1] ++;
+                this->layer_size[0] -= BOUNDARY_SHIFTING_SIZE;
+                this->layer_size[1] += BOUNDARY_SHIFTING_SIZE;
                 this->adjust_caches();
                 info("%lu L2 increases\n", cp->ts);
                 

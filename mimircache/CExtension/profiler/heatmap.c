@@ -408,7 +408,7 @@ extern "C"
         while ( progress < break_points->len-1 ){
             fprintf(stderr, "%.2f%%\n", ((double)progress)/break_points->len*100);
             sleep(5);
-            fprintf(stderr, "\033[A\033[2K\r");
+//            fprintf(stderr, "\033[A\033[2K\r");
         }
         
         g_thread_pool_free (gthread_pool, FALSE, TRUE);
@@ -486,7 +486,7 @@ extern "C"
         while ( progress < break_points->len-1 ){
             fprintf(stderr, "%.2lf%%", ((double)progress)/break_points->len*100);
             sleep(5);
-            fprintf(stderr, "\033[A\033[2K\r");
+//            fprintf(stderr, "\033[A\033[2K\r");
         }
         
         g_thread_pool_free (gthread_pool, FALSE, TRUE);
@@ -673,7 +673,7 @@ extern "C"
         while ( progress < (guint) num_of_bins ){
             fprintf(stderr, "%.2f%%\n", ((double)progress)/num_of_bins*100);
             sleep(5);
-            fprintf(stderr, "\033[A\033[2K\r");
+//            fprintf(stderr, "\033[A\033[2K\r");
         }
         
         g_thread_pool_free (gthread_pool, FALSE, TRUE);
