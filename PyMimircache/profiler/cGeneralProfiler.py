@@ -16,6 +16,7 @@
 """
 
 
+import os
 import math
 from PyMimircache.cacheReader.abstractReader import AbstractReader
 from PyMimircache.utils.printing import *
