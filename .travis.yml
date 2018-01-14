@@ -67,7 +67,8 @@
 
 
 
-
+git:
+    submodules: false
 
 language: python
 python:
@@ -78,6 +79,9 @@ python:
 
 
 before_install:
+# Use sed to replace the SSH URL with the public URL, then initialize submodules
+  - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
+  - git submodule update --init --recursive
   - sudo apt-get -qq update
   - sudo apt-get install -y libglib2.0-dev python3-pip python3-matplotlib
 
