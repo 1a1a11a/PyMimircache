@@ -6,7 +6,7 @@ API-cachecow
 .. automodule:: PyMimircache.top.cachecow
    :members:
 
-.. autoclass:: PyMimircache.top.cachecow.cachecow
+.. autoclass:: PyMimircache.top.cachecow.Cachecow
    :members:
 
 

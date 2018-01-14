@@ -13,7 +13,8 @@ sys.path.insert(0, os.path.abspath('_themes'))
 from PyMimircache.version import __version__
 
 
-MOCK_MODULES = ['PyMimircache.CMimircache.GeneralProfiler',
+MOCK_MODULES = ['PyMimircache.CMimircache',
+                'PyMimircache.CMimircache.GeneralProfiler',
                 'PyMimircache.CMimircache.Heatmap',
                 'PyMimircache.CMimircache.LRUProfiler',
                 'PyMimircache.CMimircache.CacheReader',
