@@ -1,12 +1,12 @@
-mimircache
+PyMimircache
 ==========
 
-[![Build Status](https://travis-ci.org/1a1a11a/mimircache.svg?branch=master)](https://travis-ci.org/1a1a11a/mimircache)
-[![Documentation Status](https://readthedocs.org/projects/mimircacheemory/badge/?version=develop)](http://mimircacheemory.readthedocs.io/en/develop/?badge=develop)
-[![GitHub version](https://badge.fury.io/gh/1a1a11a%2Fmimircache.svg)](https://badge.fury.io/gh/1a1a11a%2Fmimircache)
-[![PyPI version](https://badge.fury.io/py/mimirCache.svg)](https://badge.fury.io/py/mimirCache)
+[![Build Status](https://travis-ci.org/1a1a11a/PyMimircache.svg?branch=master)](https://travis-ci.org/1a1a11a/PyMimircache)
+[![Documentation Status](https://readthedocs.org/projects/PyMimircacheemory/badge/?version=develop)](http://PyMimircacheemory.readthedocs.io/en/develop/?badge=develop)
+[![GitHub version](https://badge.fury.io/gh/1a1a11a%2FPyMimircache.svg)](https://badge.fury.io/gh/1a1a11a%2FPyMimircache)
+[![PyPI version](https://badge.fury.io/py/PyMimircache.svg)](https://badge.fury.io/py/PyMimircache)
 
-Mimircache is a cache trace analysis platform that supports
+PyMimircache is a cache trace analysis platform that supports
 
 -   **comparison of different cache replacement algorithms**
 
@@ -23,7 +23,7 @@ And we are actively adding more cache replacement algorithms.
 
 Best of all is that you can easily and quickly **implement your own cache
 replacement algorithm**. [See more information here](http://mimircache.info)
- 
+
 
 Dependency and Installation
 ---------------------------
@@ -33,7 +33,7 @@ Dependency and Installation
 On Ubuntu using the following command to install
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-jason@myMachine: ~$ sudo apt-get install libglib2.0-dev python3-pip, python3-matplotlib 
+jason@myMachine: ~$ sudo apt-get install libglib2.0-dev python3-pip, python3-matplotlib
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #### Python Dependency: numpy, scipy, matplotlib, heapdict, mmh3
@@ -42,34 +42,37 @@ jason@myMachine: ~$ sudo apt-get install libglib2.0-dev python3-pip, python3-mat
 jason@myMachine: ~$ sudo pip3 install heapdict mmh3
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#### Installing mimircache 
+#### Installing PyMimircache
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-jason@myMachine: ~$ sudo pip3 install mimircache
+jason@myMachine: ~$ sudo pip3 install PyMimircache
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #### Compatibility
 
-*mimircache only support Python3 and 64bit platform*
+*PyMimircache only support Python3 and 64bit platform*
  
+#### git clone
+
+git clone needs to add --recurse-submodules option to automatically clone the CMimircache module.
 
 Alternative using docker
 ------------------------
 
-As an alternative, you can use mimircache in a docker container, according to our simple benchmark, the performance difference between using a bare metal and a docker container is less than 10%.
+As an alternative, you can use PyMimircache in a docker container, according to our simple benchmark, the performance difference between using a bare metal and a docker container is less than 10%.
 
 ### Use interactive shell
 
 To enter an interactive shell and do plotting, you can use
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-jason@myMachine: ~$ sudo docker run -it --rm -v $(pwd):/mimircache/scripts -v PATH/TO/DATA:/mimircache/data 1a1a11a/mimircache /bin/bash
+jason@myMachine: ~$ sudo docker run -it --rm -v $(pwd):/PyMimircache/scripts -v PATH/TO/DATA:/PyMimircache/data 1a1a11a/PyMimircache /bin/bash
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 After you run this command, you will be in a shell with everything ready, your
-current directory is mapped to `/mimircache/scripts/` and your data directory is
-mapped to `/mimircache/data`. In addition, we have prepared a test dataset for
-you at `/mimircache/testData`.
+current directory is mapped to `/PyMimircache/scripts/` and your data directory is
+mapped to `/PyMimircache/data`. In addition, we have prepared a test dataset for
+you at `/PyMimircache/testData`.
  
 
 ### Run scripts directly
@@ -78,31 +81,31 @@ If you don't want to use an interactive shell and you have your script ready,
 then you can do
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-jason@myMachine: ~$ docker run --rm -v $(pwd):/mimircache/scripts -v PATH/TO/DATA:/mimircache/data 1a1a11a/mimircache python3 /mimircache/scripts/YOUR_PYTHON_SCRIPT.py 
+jason@myMachine: ~$ docker run --rm -v $(pwd):/PyMimircache/scripts -v PATH/TO/DATA:/PyMimircache/data 1a1a11a/PyMimircache python3 /PyMimircache/scripts/YOUR_PYTHON_SCRIPT.py
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 However, if you are new here or you have trouble using docker to run scripts
 directly, we suggest using interactive shell which can help you debug.
- 
 
-mimircache Tutorial
+
+PyMimircache Tutorial
 -------------------
 
-We have prepared a wonderful tutorial here. [Check here for tutorial](http://mimircacheemory.readthedocs.io)
+We have prepared a wonderful tutorial here. [Check here for tutorial](http://PyMimircacheemory.readthedocs.io)
 
-### mimircache Power
+### PyMimircache Power
 
-**The power of mimircache**
+**The power of PyMimircache**
 
 ```python
->>> import mimircache as m
+>>> import PyMimircache as m
 >>> c = m.Cachecow()
 >>> c.vscsi("trace.vscsi")      # find this data under data folder, other type of data supported too
 >>> print(c.stat())
 	# number of requests: 113872
 	# number of uniq obj/blocks: 48974
 	# cold miss ratio: 0.4301
-	# top N popular (obj, num of requests): 
+	# top N popular (obj, num of requests):
 	# [(3345071, 1630),
 	#  (6160447, 1342),
 	#  (6160455, 1341),
@@ -127,27 +130,27 @@ We have prepared a wonderful tutorial here. [Check here for tutorial](http://mim
 
 ```
 
-| [![HRC](https://github.com/1a1a11a/mimircache/blob/develop/docs/User/images/github_HRC.png)](https://github.com/1a1a11a/mimircache/blob/develop/docs/User/images/github_HRC.png)  | [![Heatmap](https://github.com/1a1a11a/mimircache/blob/develop/docs/User/images/github_heatmap.png)](https://github.com/1a1a11a/mimircache/blob/develop/docs/User/images/github_heatmap.png) |
+| [![HRC](https://github.com/1a1a11a/PyMimircache/blob/develop/docs/User/images/github_HRC.png)](https://github.com/1a1a11a/PyMimircache/blob/develop/docs/User/images/github_HRC.png)  | [![Heatmap](https://github.com/1a1a11a/PyMimircache/blob/develop/docs/User/images/github_heatmap.png)](https://github.com/1a1a11a/PyMimircache/blob/develop/docs/User/images/github_heatmap.png) |
 |:---:|:---:|
-| Hit Ratio Curve | Hit Ratio Heatmap | 
+| Hit Ratio Curve | Hit Ratio Heatmap |
 
 
-Next Major Releases 
-------------------- 
-* **Architecture**: re-write py-mimircache generalProfiler (v0.3.0) 
-* **Architecture**: Separate py-mimircache and C-mimircache to allow them run independently (v0.4.0) 
+Next Major Releases
+-------------------
+* **Architecture**: re-write py-PyMimircache generalProfiler (v0.3.0)
+* **Architecture**: Separate py-PyMimircache and C-PyMimircache to allow them run independently (v0.4.0)
 * **Feature**: Add block/obj size into cache replacement algorithm (v0.5.0)
-* **Feature**: Add parallel support for LRUProfiling (v0.6.0) 
+* **Feature**: Add parallel support for LRUProfiling (v0.6.0)
 * **Feature**: Add sampling layer for all profilers (v0.7.0)
 * **Feature**: Add GPU profiling support (v0.8.0)
 * **Feature**: Add Windows Support (v1.0.0)
 * **Architecture**: C component optimization and allow to be used as an independent caching layer (v2.0.0)
 
- 
+
 Contributing
 ------------
 You are more than welcome to make any contributions. Please create Pull Request for any changes.
 
 LICENSE
-------- 
-mimircache is provided under GPLv3 license.
+-------
+PyMimircache is provided under GPLv3 license.

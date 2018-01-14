@@ -1,0 +1,3 @@
+[submodule "PyMimircache/CExtension/CMimircache"]
+	path = PyMimircache/CExtension/CMimircache
+	url = git@github.com:1a1a11a/CMimircache.git
