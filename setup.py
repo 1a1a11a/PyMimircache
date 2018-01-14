@@ -142,7 +142,7 @@ if _DEBUG:
 
 
 BASE_PATH = "PyMimircache/CMimircache/CMimircache/CMimircache/"
-COMMON_HEADERS = [BASE_PATH + "/headers"] + numpy_headers
+COMMON_HEADERS = [BASE_PATH + "/headers", BASE_PATH + "/dataStructure/include"] +  numpy_headers
 
 
 extensions.append(Extension(
@@ -156,7 +156,7 @@ extensions.append(Extension(
 
 extensions.append(Extension(
     "PyMimircache.CMimircache.LRUProfiler",
-    [BASE_PATH + "/profiler/LRUProfiler.c", BASE_PATH + "/profiler/splay.c"] +
+    [BASE_PATH + "/profiler/LRUProfiler.c", BASE_PATH + "/dataStructure/splay.c"] +
     glob(BASE_PATH + "/cacheReader/*.c") + glob(BASE_PATH + "/utils/*.c") +
     ["PyMimircache/CMimircache/pyBindings/pyLRUProfiler.c"],
     include_dirs=[BASE_PATH + "/cacheReader/include",
@@ -170,6 +170,7 @@ extensions.append(Extension(
     "PyMimircache.CMimircache.GeneralProfiler",
     glob(BASE_PATH + "/profiler/*.c") + glob(BASE_PATH + "/cache/*.c") +
     glob(BASE_PATH + "/cacheReader/*.c") + glob(BASE_PATH + "/utils/*.c") +
+    glob(BASE_PATH + "dataStructure/*.c") +
     ["PyMimircache/CMimircache/pyBindings/pyGeneralProfiler.c",
         "PyMimircache/CMimircache/pyBindings/python_wrapper.c"],
     include_dirs=[BASE_PATH + "/cache/include", BASE_PATH + "/cacheReader/include",
@@ -183,6 +184,7 @@ extensions.append(Extension(
     "PyMimircache.CMimircache.Heatmap",
     glob(BASE_PATH + "/profiler/*.c") + glob(BASE_PATH + "/cache/*.c") +
     glob(BASE_PATH + "/cacheReader/*.c") + glob(BASE_PATH + "/utils/*.c") +
+    glob(BASE_PATH + "dataStructure/*.c") +
     ["PyMimircache/CMimircache/pyBindings/python_wrapper.c",
         "PyMimircache/CMimircache/pyBindings/pyHeatmap.c"],
     include_dirs=[BASE_PATH + "/headers"] +
