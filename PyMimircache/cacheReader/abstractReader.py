@@ -9,11 +9,11 @@
 import abc
 import os
 from collections import defaultdict
-from mimircache.const import ALLOW_C_MIMIRCACHE
-from multiprocessing import Lock
+from PyMimircache.const import ALLOW_C_MIMIRCACHE
+from multiprocessing import Manager, Lock
 
 if ALLOW_C_MIMIRCACHE:
-    import mimircache.c_cacheReader
+    import PyMimircache.CMimircache.CacheReader as c_cacheReader
 
 
 class AbstractReader(metaclass=abc.ABCMeta):
@@ -50,7 +50,11 @@ class AbstractReader(metaclass=abc.ABCMeta):
         self.support_size = False
         self.already_load_rd = False
 
-        self.lock = Lock() if lock is None else lock
+        self.lock = lock
+        if self.lock is None:
+            self._mp_manager = Manager()
+            self.lock = self._mp_manager.Lock()
+
         self.counter = 0
         self.num_of_req = -1
         self.num_of_uniq_req = -1
@@ -62,7 +66,7 @@ class AbstractReader(metaclass=abc.ABCMeta):
         self.counter = 0
         self.trace_file.seek(0, 0)
         if self.cReader:
-            mimircache.c_cacheReader.reset_reader(self.cReader)
+            c_cacheReader.reset_reader(self.cReader)
 
     def get_num_of_req(self):
         """
@@ -77,7 +81,7 @@ class AbstractReader(metaclass=abc.ABCMeta):
         # clear before counting
         self.num_of_req = 0
         if self.cReader:
-            self.num_of_req = mimircache.c_cacheReader.get_num_of_req(self.cReader)
+            self.num_of_req = c_cacheReader.get_num_of_req(self.cReader)
         else:
             while self.read_one_req() is not None:
                 self.num_of_req += 1
@@ -160,12 +164,12 @@ class AbstractReader(metaclass=abc.ABCMeta):
                 if self.trace_file:
                     self.trace_file.close()
                     self.trace_file = None
-                if self.cReader and mimircache.c_cacheReader is not None:
-                    mimircache.c_cacheReader.close_reader(self.cReader)
+                if self.cReader and c_cacheReader is not None:
+                    c_cacheReader.close_reader(self.cReader)
                     self.cReader = None
         except Exception as e:
             # return
-            print("Exception during close reader: {}, ccacheReader={}".format(e, mimircache.c_cacheReader))
+            print("Exception during close reader: {}, ccacheReader={}".format(e, c_cacheReader))
 
     @abc.abstractmethod
     def __next__(self):  # Python 3

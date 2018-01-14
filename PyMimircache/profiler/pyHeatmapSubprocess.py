@@ -8,8 +8,8 @@ Author: Jason Yang <peter.waynechina@gmail.com> 2016/08
 
 import math
 
-from mimircache import *
-from mimircache.cache.optimal import Optimal
+from PyMimircache import *
+from PyMimircache.cache.optimal import Optimal
 
 
 def calc_hit_ratio_start_time_end_time_subprocess_general(order, cache, break_points_share_array, reader, q, **kwargs):

@@ -1,12 +1,15 @@
 # coding=utf-8
 """
 ARC algorithm, this algorithm has been modified on 02/14/2017, but not tested, may contain bugs
+
+NEED RE-IMPLEMENTATION
+
 """
 
 from collections import defaultdict
 
-from mimircache.cache.abstractCache import Cache
-from mimircache.utils.linkedList import LinkedList
+from PyMimircache.cache.abstractCache import Cache
+from PyMimircache.utils.linkedList import LinkedList
 
 
 

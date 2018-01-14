@@ -4,14 +4,14 @@ import unittest
 import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from mimircache import Cachecow
+from PyMimircache import Cachecow
 
 DAT_FOLDER = "../data/"
 if not os.path.exists(DAT_FOLDER):
     if os.path.exists("data/"):
         DAT_FOLDER = "data/"
-    elif os.path.exists("../mimircache/data/"):
-        DAT_FOLDER = "../mimircache/data/"
+    elif os.path.exists("../PyMimircache/data/"):
+        DAT_FOLDER = "../PyMimircache/data/"
 
 class cachecowTest(unittest.TestCase):
     def test_all(self):

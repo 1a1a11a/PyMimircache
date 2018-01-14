@@ -3,15 +3,15 @@
 
 import os
 import unittest
-import mimircache.c_cacheReader as c_cacheReader
-import mimircache.c_LRUProfiler as c_LRUProfiler
-from mimircache.cacheReader.csvReader import CsvReader
-from mimircache.cacheReader.plainReader import PlainReader
-from mimircache.cacheReader.vscsiReader import VscsiReader
-from mimircache.cacheReader.binaryReader import BinaryReader
-from mimircache.profiler.cLRUProfiler import CLRUProfiler
-from mimircache.profiler.cGeneralProfiler import CGeneralProfiler
-from mimircache.profiler.cHeatmap import CHeatmap
+import PyMimircache.CMimircache.CacheReader as c_cacheReader
+import PyMimircache.CMimircache.LRUProfiler as c_LRUProfiler
+from PyMimircache.cacheReader.csvReader import CsvReader
+from PyMimircache.cacheReader.plainReader import PlainReader
+from PyMimircache.cacheReader.vscsiReader import VscsiReader
+from PyMimircache.cacheReader.binaryReader import BinaryReader
+from PyMimircache.profiler.cLRUProfiler import CLRUProfiler
+from PyMimircache.profiler.cGeneralProfiler import CGeneralProfiler
+from PyMimircache.profiler.cHeatmap import CHeatmap
 
 
 DAT_FOLDER = "../data/"
@@ -19,8 +19,8 @@ import os
 if not os.path.exists(DAT_FOLDER):
     if os.path.exists("data/"):
         DAT_FOLDER = "data/"
-    elif os.path.exists("../mimircache/data/"):
-        DAT_FOLDER = "../mimircache/data/"
+    elif os.path.exists("../PyMimircache/data/"):
+        DAT_FOLDER = "../PyMimircache/data/"
 
 
 class cHeatmapTest(unittest.TestCase):

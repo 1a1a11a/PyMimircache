@@ -28,16 +28,16 @@ from collections import defaultdict
 import matplotlib.ticker as ticker
 from matplotlib import pyplot as plt
 
-from mimircache import ALLOW_C_MIMIRCACHE
+from PyMimircache import ALLOW_C_MIMIRCACHE
 if ALLOW_C_MIMIRCACHE:
-    from mimircache.profiler.cHeatmap import CHeatmap as Heatmap
-    from mimircache.profiler.cLRUProfiler import CLRUProfiler as LRUProfiler
+    from PyMimircache.profiler.cHeatmap import CHeatmap as Heatmap
+    from PyMimircache.profiler.cLRUProfiler import CLRUProfiler as LRUProfiler
 else:
     print("not all plots in twoDPlots support Py mode", file=sys.stderr)
     # raise RuntimeError("Py mode is not ready in twoDPlots")
 
-from mimircache.utils.printing import *
-from mimircache.profiler.utilProfiler import draw2d
+from PyMimircache.utils.printing import *
+from PyMimircache.profiler.utilProfiler import draw2d
 
 __all__=[
     "request_rate_2d",

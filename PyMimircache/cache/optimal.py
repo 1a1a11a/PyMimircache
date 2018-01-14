@@ -1,11 +1,11 @@
 # coding=utf-8
 
 
-from mimircache.cache.abstractCache import Cache
-from mimircache.const import ALLOW_C_MIMIRCACHE
+from PyMimircache.cache.abstractCache import Cache
+from PyMimircache.const import ALLOW_C_MIMIRCACHE
 if ALLOW_C_MIMIRCACHE:
-    import mimircache.c_LRUProfiler
-    import mimircache.c_heatmap
+    import PyMimircache.CMimircache.LRUProfiler as c_LRUProfiler
+    import PyMimircache.CMimircache.Heatmap as c_heatmap
 from heapdict import heapdict
 
 
@@ -15,7 +15,7 @@ class Optimal(Cache):
         # reader.reset()
         self.reader = reader
         self.reader.lock.acquire()
-        self.next_access = mimircache.c_heatmap.get_next_access_dist(self.reader.cReader)
+        self.next_access = c_heatmap.get_next_access_dist(self.reader.cReader)
         self.reader.lock.release()
         self.pq = heapdict()
 
@@ -23,7 +23,7 @@ class Optimal(Cache):
         self.ts = 0
 
     def get_reversed_reuse_dist(self):
-        return mimircache.c_LRUProfiler.get_reversed_reuse_dist(self.reader.cReader)
+        return c_LRUProfiler.get_reversed_reuse_dist(self.reader.cReader)
 
     def has(self, req_id, **kwargs):
         """

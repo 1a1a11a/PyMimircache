@@ -6,11 +6,11 @@
 
 """
 
-from mimircache.cacheReader.abstractReader import AbstractReader
-from mimircache.const import ALLOW_C_MIMIRCACHE
+from PyMimircache.cacheReader.abstractReader import AbstractReader
+from PyMimircache.const import ALLOW_C_MIMIRCACHE
 
 if ALLOW_C_MIMIRCACHE:
-    import mimircache.c_cacheReader
+    import PyMimircache.CMimircache.CacheReader as c_cacheReader
 
 
 class PlainReader(AbstractReader):
@@ -31,7 +31,7 @@ class PlainReader(AbstractReader):
         super(PlainReader, self).__init__(file_loc, data_type, open_c_reader=open_c_reader, lock=kwargs.get("lock"))
         self.trace_file = open(file_loc, 'rb')
         if ALLOW_C_MIMIRCACHE and open_c_reader:
-            self.cReader = mimircache.c_cacheReader.setup_reader(file_loc, 'p', data_type=data_type, block_unit_size=0)
+            self.cReader = c_cacheReader.setup_reader(file_loc, 'p', data_type=data_type, block_unit_size=0)
 
     def read_one_req(self):
         """

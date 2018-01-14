@@ -17,13 +17,13 @@
 
 
 import math
-from mimircache.cacheReader.abstractReader import AbstractReader
-from mimircache.utils.printing import *
-from mimircache.const import ALLOW_C_MIMIRCACHE
+from PyMimircache.cacheReader.abstractReader import AbstractReader
+from PyMimircache.utils.printing import *
+from PyMimircache.const import ALLOW_C_MIMIRCACHE
 if ALLOW_C_MIMIRCACHE:
-    import mimircache.c_generalProfiler
-from mimircache.const import *
-from mimircache.profiler.utilProfiler import util_plotHRC
+    import PyMimircache.CMimircache.GeneralProfiler as c_generalProfiler
+from PyMimircache.const import *
+from PyMimircache.profiler.utilProfiler import util_plotHRC
 
 
 class CGeneralProfiler:
@@ -151,7 +151,7 @@ class CGeneralProfiler:
         if self.block_unit_size != 0:
             print("not supported yet")
         else:
-            self.hit_count = mimircache.c_generalProfiler.get_hit_count(self.reader.cReader,
+            self.hit_count = c_generalProfiler.get_hit_count(self.reader.cReader,
                                                               self.cache_name,
                                                               cache_size,
                                                               self.bin_size,
@@ -177,7 +177,7 @@ class CGeneralProfiler:
             sanity_kwargs['end'] = kwargs['end']
 
         # handles both withsize and no size, but currently only storage system trace are supported with size
-        self.hit_ratio = mimircache.c_generalProfiler.get_hit_ratio(self.reader.cReader,
+        self.hit_ratio = c_generalProfiler.get_hit_ratio(self.reader.cReader,
                                                           self.cache_name,
                                                           cache_size,
                                                           bin_size,

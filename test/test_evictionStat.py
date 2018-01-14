@@ -1,16 +1,16 @@
 # # coding=utf-8
 # import unittest
 #
-# from mimircache import *
-# from mimircache.profiler.evictionStat import *
+# from PyMimircache import *
+# from PyMimircache.profiler.evictionStat import *
 #
 # DAT_FOLDER = "../data/"
 # import os
 # if not os.path.exists(DAT_FOLDER):
 #     if os.path.exists("data/"):
 #         DAT_FOLDER = "data/"
-#     elif os.path.exists("../mimircache/data/"):
-#         DAT_FOLDER = "../mimircache/data/"
+#     elif os.path.exists("../PyMimircache/data/"):
+#         DAT_FOLDER = "../PyMimircache/data/"
 #
 # class evictionStat_test(unittest.TestCase):
 #     def test_eviction_stat_reuse_dist(self):

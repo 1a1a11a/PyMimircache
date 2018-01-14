@@ -7,7 +7,7 @@ Basic Plotting
 Basic Plotting
 --------------
 mimircache allows you to plot a variety graphs, including basic graphs to help you get better visualizing and understanding of your data.
-Before plotting, let's talk about the concept of time, there are two types of time concept in mimircache.
+Before plotting, let's talk about the concept of time, there are two types of time concept in PyMimircache.
 
 The first one is called **virtual time**, which basically is the order in the request sequence, so the first request has virtual time 1, the second request has virtual time 2, etc.
 

@@ -1,5 +1,5 @@
 # coding=utf-8
-from mimircache.cache.lru import LRU
+from PyMimircache.cache.lru import LRU
 
 
 class Clock(LRU):

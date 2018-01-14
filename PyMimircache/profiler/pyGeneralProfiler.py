@@ -17,10 +17,10 @@ import numpy as np
 
 from concurrent.futures import as_completed, ProcessPoolExecutor
 
-from mimircache.cacheReader.abstractReader import AbstractReader
-from mimircache.const import *
-from mimircache.utils.printing import *
-from mimircache.profiler.utilProfiler import util_plotHRC
+from PyMimircache.cacheReader.abstractReader import AbstractReader
+from PyMimircache.const import *
+from PyMimircache.utils.printing import *
+from PyMimircache.profiler.utilProfiler import util_plotHRC
 
 
 __all__ = ["PyGeneralProfiler"]

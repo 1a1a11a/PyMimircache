@@ -22,7 +22,7 @@ except:
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 
-from mimircache.utils.printing import *
+from PyMimircache.utils.printing import *
 
 
 def get_breakpoints(reader, time_mode, time_interval, **kwargs):

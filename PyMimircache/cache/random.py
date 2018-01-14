@@ -5,7 +5,7 @@ any more
 """
 
 import random
-from mimircache.cache.abstractCache import Cache
+from PyMimircache.cache.abstractCache import Cache
 
 
 class Random(Cache):

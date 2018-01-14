@@ -9,8 +9,8 @@
 
 
 from collections import OrderedDict
-from mimircache.cache.abstractCache import Cache
-from mimircache.cacheReader.requestItem import Req
+from PyMimircache.cache.abstractCache import Cache
+from PyMimircache.cacheReader.requestItem import Req
 
 
 class LRU(Cache):

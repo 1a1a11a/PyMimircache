@@ -1,6 +1,6 @@
 # coding=utf-8
-from mimircache.cache.lru import LRU
-from mimircache.cache.abstractCache import Cache
+from PyMimircache.cache.lru import LRU
+from PyMimircache.cache.abstractCache import Cache
 
 
 class S4LRU(Cache):

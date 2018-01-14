@@ -24,7 +24,7 @@ Write your own cacheReader
 Writing your own cacheReader is not difficult, just inherit abstractCacheReader.py.
 Here is an example::
 
-    from mimircache.cacheReader.abstractReader import cacheReaderAbstract
+    from PyMimircache.cacheReader.abstractReader import cacheReaderAbstract
 
     class plainCacheReader(cacheReaderAbstract):
         def __init__(self, file_loc):
@@ -72,7 +72,7 @@ Write your own cache replacement algorithm
 
 Writing your own cache in Python is not difficult, just inherit abstractCache.py::
 
-    from mimircache.cache.abstractCache import cache
+    from PyMimircache.cache.abstractCache import cache
 
     class Random(cache):
         def __init__(self, cache_size=1000):

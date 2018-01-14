@@ -10,14 +10,14 @@ Author: Jason Yang <peter.waynechina@gmail.com> 2016/07
 """
 import os
 import socket
-from mimircache.const import INTERNAL_USE
-from mimircache.const import ALLOW_C_MIMIRCACHE
+from PyMimircache.const import INTERNAL_USE
+from PyMimircache.const import ALLOW_C_MIMIRCACHE
 if ALLOW_C_MIMIRCACHE:
-    import mimircache.c_LRUProfiler
-from mimircache.cacheReader.binaryReader import BinaryReader
-from mimircache.cacheReader.abstractReader import AbstractReader
+    import PyMimircache.CMimircache.LRUProfiler as c_LRUProfiler
+from PyMimircache.cacheReader.binaryReader import BinaryReader
+from PyMimircache.cacheReader.abstractReader import AbstractReader
 import matplotlib.pyplot as plt
-from mimircache.utils.printing import *
+from PyMimircache.utils.printing import *
 from matplotlib.ticker import FuncFormatter
 
 class CLRUProfiler:
@@ -87,7 +87,7 @@ class CLRUProfiler:
         """
         assert rd_type == 'rd' or rd_type == 'frd', \
             "please provide a valid reuse distance type, currently support rd and frd"
-        mimircache.c_LRUProfiler.save_reuse_dist(self.reader.cReader, file_loc, rd_type)
+        c_LRUProfiler.save_reuse_dist(self.reader.cReader, file_loc, rd_type)
 
     def load_reuse_dist(self, file_loc, rd_type):
         """
@@ -103,7 +103,7 @@ class CLRUProfiler:
             "please provide a valid reuse distance type, currently support rd and frd"
         if not os.path.exists(file_loc):
             WARNING("pre-computed reuse distance file does not exist")
-        mimircache.c_LRUProfiler.load_reuse_dist(self.reader.cReader, file_loc, rd_type)
+        c_LRUProfiler.load_reuse_dist(self.reader.cReader, file_loc, rd_type)
         self.reader.already_load_rd = True
 
     def _del_reuse_dist_file(self):
@@ -158,7 +158,7 @@ class CLRUProfiler:
             WARNING("not supported yet")
             return None
         else:
-            hit_count = mimircache.c_LRUProfiler.get_hit_count_seq(self.reader.cReader, **kargs)
+            hit_count = c_LRUProfiler.get_hit_count_seq(self.reader.cReader, **kargs)
         return hit_count
 
     def get_hit_ratio(self, **kwargs):
@@ -178,10 +178,10 @@ class CLRUProfiler:
             kargs['end'] = kwargs['end']
 
         if self.block_unit_size != 0 :
-            hit_ratio = mimircache.c_LRUProfiler.get_hit_ratio_with_size(self.reader.cReader,
+            hit_ratio = c_LRUProfiler.get_hit_ratio_with_size(self.reader.cReader,
                                                             block_unit_size=self.block_unit_size, **kargs)
         else:
-            hit_ratio = mimircache.c_LRUProfiler.get_hit_ratio_seq(self.reader.cReader, **kargs)
+            hit_ratio = c_LRUProfiler.get_hit_ratio_seq(self.reader.cReader, **kargs)
         return hit_ratio
 
 
@@ -192,7 +192,7 @@ class CLRUProfiler:
         :param kwargs:
         :return:
         """
-        from mimircache.cacheReader.tracePreprocesser import TracePreprocessor
+        from PyMimircache.cacheReader.tracePreprocesser import TracePreprocessor
         kargs = {}
         if 'cache_size' not in kwargs:
             kargs['cache_size'] = self.cache_size
@@ -210,7 +210,7 @@ class CLRUProfiler:
             print("not supported yet")
             return None
         else:
-            hit_ratio = mimircache.c_LRUProfiler.get_hit_ratio_seq_shards(tempReader.cReader, sample_ratio=sample_ratio,
+            hit_ratio = c_LRUProfiler.get_hit_ratio_seq_shards(tempReader.cReader, sample_ratio=sample_ratio,
                                                        correction=correction, **kargs)
         return hit_ratio
 
@@ -224,7 +224,7 @@ class CLRUProfiler:
         if self.block_unit_size != 0:
             WARNING("reuse distance calculation does not support variable obj size, "
                     "calculating without considering size")
-        rd = mimircache.c_LRUProfiler.get_reuse_dist_seq(self.reader.cReader, **kargs)
+        rd = c_LRUProfiler.get_reuse_dist_seq(self.reader.cReader, **kargs)
         return rd
 
     def get_future_reuse_distance(self, **kargs):
@@ -236,7 +236,7 @@ class CLRUProfiler:
         if self.block_unit_size != 0:
             WARNING("future reuse distance calculation does not support variable obj size, "
                 "calculating without considering size")
-        frd = mimircache.c_LRUProfiler.get_future_reuse_dist(self.reader.cReader, **kargs)
+        frd = c_LRUProfiler.get_future_reuse_dist(self.reader.cReader, **kargs)
         return frd
 
 

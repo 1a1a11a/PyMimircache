@@ -6,11 +6,11 @@
 
 """
 
-from mimircache.cacheReader.binaryReader import BinaryReader
-from mimircache.const import ALLOW_C_MIMIRCACHE
+from PyMimircache.cacheReader.binaryReader import BinaryReader
+from PyMimircache.const import ALLOW_C_MIMIRCACHE
 
 if ALLOW_C_MIMIRCACHE:
-    import mimircache.c_cacheReader
+    import PyMimircache.CMimircache.CacheReader as c_cacheReader
 
 
 class VscsiReader(BinaryReader):
@@ -73,10 +73,10 @@ class VscsiReader(BinaryReader):
         """
 
         ts_list = []
-        r = mimircache.c_cacheReader.read_time_req(self.cReader)
+        r = c_cacheReader.read_time_req(self.cReader)
         while r:
             ts_list.append(r[0])
-            r = mimircache.c_cacheReader.read_time_req(self.cReader)
+            r = c_cacheReader.read_time_req(self.cReader)
         return ts_list
 
     def copy(self, open_c_reader=False):

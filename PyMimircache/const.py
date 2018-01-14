@@ -21,52 +21,52 @@ DEF_NUM_THREADS = os.cpu_count()
 failed_components = []
 failed_reason = set()
 try:
-    import mimircache.c_cacheReader
+    import PyMimircache.CMimircache.CacheReader
 except Exception as e:
     failed_reason.add(e)
-    failed_components.append("c_cacheReader")
+    failed_components.append("CMimircache.CacheReader")
 try:
-    import mimircache.c_LRUProfiler
+    import PyMimircache.CMimircache.LRUProfiler
 except Exception as e:
     failed_reason.add(e)
-    failed_components.append("c_LRUProfiler")
+    failed_components.append("CMimircache.LRUProfiler")
 try:
-    import mimircache.c_generalProfiler
+    import PyMimircache.CMimircache.GeneralProfiler
 except Exception as e:
     failed_reason.add(e)
-    failed_components.append("c_generalProfiler")
+    failed_components.append("CMimircache.GeneralProfiler")
 try:
-    import mimircache.c_heatmap
+    import PyMimircache.CMimircache.Heatmap
 except Exception as e:
     failed_reason.add(e)
-    failed_components.append("c_heatmap")
+    failed_components.append("CMimircache.Heatmap")
 
 if len(failed_components):
     ALLOW_C_MIMIRCACHE = False
-    print("C extension {} import failed, performance will degrade, "
+    print("CMimircache components {} import failed, performance will degrade, "
           "reason: {}, ignore this warning if this is installation".
           format(", ".join(failed_components),
                  ", ".join(["{!s}".format(i) for i in failed_reason])),
           file=sys.stderr)
 
 
-from mimircache.cache.arc import ARC
-from mimircache.cache.fifo import FIFO
-from mimircache.cache.lru import LRU
-from mimircache.cache.mru import MRU
-from mimircache.cache.optimal import Optimal
-from mimircache.cache.random import Random
-from mimircache.cache.s4lru import S4LRU
-from mimircache.cache.slru import SLRU
-from mimircache.cache.clock import Clock
+from PyMimircache.cache.arc import ARC
+from PyMimircache.cache.fifo import FIFO
+from PyMimircache.cache.lru import LRU
+from PyMimircache.cache.mru import MRU
+from PyMimircache.cache.optimal import Optimal
+from PyMimircache.cache.random import Random
+from PyMimircache.cache.s4lru import S4LRU
+from PyMimircache.cache.slru import SLRU
+from PyMimircache.cache.clock import Clock
 
 try:
-    from mimircache.cache.INTERNAL.ASig import ASig
-    from mimircache.cache.INTERNAL.ASig2 import ASig2
-    from mimircache.cache.INTERNAL.ASig3 import ASig3
-    from mimircache.cache.INTERNAL.ASig4 import ASig4
-    from mimircache.cache.INTERNAL.ASig5 import ASig5
-    from mimircache.cache.INTERNAL.ASigOPT import ASigOPT
+    from PyMimircache.cache.INTERNAL.ASig import ASig
+    from PyMimircache.cache.INTERNAL.ASig2 import ASig2
+    from PyMimircache.cache.INTERNAL.ASig3 import ASig3
+    from PyMimircache.cache.INTERNAL.ASig4 import ASig4
+    from PyMimircache.cache.INTERNAL.ASig5 import ASig5
+    from PyMimircache.cache.INTERNAL.ASigOPT import ASigOPT
 except:
     ASig = None
     ASig2 = None
@@ -75,10 +75,10 @@ except:
     ASig5 = None
     ASigOPT = None
 
-from mimircache.cacheReader.csvReader import CsvReader
-from mimircache.cacheReader.plainReader import PlainReader
-from mimircache.cacheReader.vscsiReader import VscsiReader
-from mimircache.cacheReader.binaryReader import BinaryReader
+from PyMimircache.cacheReader.csvReader import CsvReader
+from PyMimircache.cacheReader.plainReader import PlainReader
+from PyMimircache.cacheReader.vscsiReader import VscsiReader
+from PyMimircache.cacheReader.binaryReader import BinaryReader
 
 # global C_AVAIL_CACHE
 C_AVAIL_CACHE = ["lru", "fifo", "optimal", "arc", "random",

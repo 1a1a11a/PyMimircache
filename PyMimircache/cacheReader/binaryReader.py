@@ -11,11 +11,11 @@ import io
 import os
 import struct
 
-from mimircache.const import ALLOW_C_MIMIRCACHE
+from PyMimircache.const import ALLOW_C_MIMIRCACHE
 
 if ALLOW_C_MIMIRCACHE:
-    import mimircache.c_cacheReader
-from mimircache.cacheReader.abstractReader import AbstractReader
+    import PyMimircache.CMimircache.CacheReader as c_cacheReader
+from PyMimircache.cacheReader.abstractReader import AbstractReader
 
 
 class BinaryReader(AbstractReader):
@@ -83,7 +83,7 @@ class BinaryReader(AbstractReader):
 
         if ALLOW_C_MIMIRCACHE and open_c_reader:
             # the data type here is not real data type, it will auto correct in C
-            self.cReader = mimircache.c_cacheReader.setup_reader(file_loc, 'b', data_type=self.data_type,
+            self.cReader = c_cacheReader.setup_reader(file_loc, 'b', data_type=self.data_type,
                                                                  block_unit_size=block_unit_size,
                                                                  disk_sector_size=disk_sector_size,
                                                                  init_params=init_params)

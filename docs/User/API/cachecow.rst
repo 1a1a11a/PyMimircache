@@ -3,10 +3,10 @@
 API-cachecow
 ============
 
-.. automodule:: mimircache.top.cachecow
+.. automodule:: PyMimircache.top.cachecow
    :members:
 
-.. autoclass:: mimircache.top.cachecow.cachecow
+.. autoclass:: PyMimircache.top.cachecow.cachecow
    :members:
 
 

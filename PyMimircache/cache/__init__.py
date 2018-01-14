@@ -1,13 +1,13 @@
 # coding=utf-8
 """
-.. module:: mimircache.cache
+.. module:: PyMimircache.cache
     :platform: Linux, OSX
     :synopsis: The module for all available cache replacement algorithms, currently we have ARC, clock, FIFO,
                 LFU_LRU, LFU_MRU, LFU_RR, LRU, MRU, optimal, Random, SLRU, S4LRU,
                 To write your own cache replacement algorithm, just use abstractCache.py as base class and override
                 all the methods in abstractCache.py. An example is given below:
 
->>> from mimircache.cache.abstractCache import Cache
+>>> from PyMimircache.cache.abstractCache import Cache
 >>> class Random(Cache):
 >>>     def __init__(self, cache_size):
 >>>         super().__init__(cache_size)

@@ -141,51 +141,54 @@ if _DEBUG:
     print("{}".format(extensions))
 
 
-BASE_PATH = "PyMimircache/CExtension/CMimircache/CMimircache/"
+BASE_PATH = "PyMimircache/CMimircache/CMimircache/CMimircache/"
+COMMON_HEADERS = [BASE_PATH + "/headers"] + numpy_headers
+
+
 extensions.append(Extension(
-    "CMimircache.CacheReader",
+    "PyMimircache.CMimircache.CacheReader",
     glob(BASE_PATH + "/cacheReader/*.c") +
-    ["PyMimircache/CExtension/pyBindings/pyReader.c"],
-    include_dirs=[BASE_PATH + "/cacheReader/include"] + numpy_headers,
+    ["PyMimircache/CMimircache/pyBindings/pyReader.c"],
+    include_dirs=[BASE_PATH + "/cacheReader/include"] + COMMON_HEADERS,
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args,
     language="c"))
 
 extensions.append(Extension(
-    "CMimircache.LRUProfiler",
+    "PyMimircache.CMimircache.LRUProfiler",
     [BASE_PATH + "/profiler/LRUProfiler.c", BASE_PATH + "/profiler/splay.c"] +
     glob(BASE_PATH + "/cacheReader/*.c") + glob(BASE_PATH + "/utils/*.c") +
-    ["PyMimircache/CExtension/pyBindings/pyLRUProfiler.c"],
-    include_dirs=[BASE_PATH + "/cacheReader/include", \
-        BASE_PATH + "/profiler/include", BASE_PATH + "/utils/include/", \
-        "PyMimircache/CExtension/pyBindings/include"] + numpy_headers,
+    ["PyMimircache/CMimircache/pyBindings/pyLRUProfiler.c"],
+    include_dirs=[BASE_PATH + "/cacheReader/include",
+        BASE_PATH + "/profiler/include", BASE_PATH + "/utils/include/",
+        "PyMimircache/CMimircache/pyBindings/include"] + COMMON_HEADERS,
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args,
     language="c"))
 
 extensions.append(Extension(
-    "CMimircache.GeneralProfiler",
+    "PyMimircache.CMimircache.GeneralProfiler",
     glob(BASE_PATH + "/profiler/*.c") + glob(BASE_PATH + "/cache/*.c") +
     glob(BASE_PATH + "/cacheReader/*.c") + glob(BASE_PATH + "/utils/*.c") +
-    ["PyMimircache/CExtension/pyBindings/pyGeneralProfiler.c", \
-        "PyMimircache/CExtension/pyBindings/python_wrapper.c"],
-    include_dirs=[BASE_PATH + "/cache/include", BASE_PATH + "/cacheReader/include", \
-        BASE_PATH + "/profiler/include", BASE_PATH + "/utils/include/", \
-        "PyMimircache/CExtension/pyBindings/include"] + numpy_headers,
+    ["PyMimircache/CMimircache/pyBindings/pyGeneralProfiler.c",
+        "PyMimircache/CMimircache/pyBindings/python_wrapper.c"],
+    include_dirs=[BASE_PATH + "/cache/include", BASE_PATH + "/cacheReader/include",
+        BASE_PATH + "/profiler/include", BASE_PATH + "/utils/include/",
+        "PyMimircache/CMimircache/pyBindings/include"] + COMMON_HEADERS,
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args,
     language="c"))
 
 extensions.append(Extension(
-    "CMimircache.Heatmap",
+    "PyMimircache.CMimircache.Heatmap",
     glob(BASE_PATH + "/profiler/*.c") + glob(BASE_PATH + "/cache/*.c") +
     glob(BASE_PATH + "/cacheReader/*.c") + glob(BASE_PATH + "/utils/*.c") +
-    ["PyMimircache/CExtension/pyBindings/python_wrapper.c", \
-        "PyMimircache/CExtension/pyBindings/pyHeatmap.c"],
+    ["PyMimircache/CMimircache/pyBindings/python_wrapper.c",
+        "PyMimircache/CMimircache/pyBindings/pyHeatmap.c"],
     include_dirs=[BASE_PATH + "/headers"] +
-    [BASE_PATH + "/cache/include", BASE_PATH + "/cacheReader/include", \
+    [BASE_PATH + "/cache/include", BASE_PATH + "/cacheReader/include",
         BASE_PATH + "/profiler/include", BASE_PATH + "/utils/include/"] +
-    ["PyMimircache/CExtension/pyBindings/include"] + numpy_headers,
+    ["PyMimircache/CMimircache/pyBindings/include"] + COMMON_HEADERS,
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args,
     language="c"))
@@ -193,20 +196,20 @@ extensions.append(Extension(
 
 # extensions.append(Extension(
 #     "PyMimircache.c_eviction_stat",
-#     glob("PyMimircache/CExtension/profiler/*.c") +
-#     glob("PyMimircache/CExtension/cache/*.c") +
-#     glob("PyMimircache/CExtension/cacheReader/*.c") +
-#     glob("PyMimircache/CExtension/utils/*.c") +
-#     glob("PyMimircache/CExtension/wrapper/*.c") +
-#     ["PyMimircache/CExtension/pyBindings/python_wrapper.c"] +
-#     ["PyMimircache/CExtension/pyBindings/pyEviction_stat.c"],
-#     include_dirs=["PyMimircache/CExtension/headers"] +
-#     ["PyMimircache/CExtension/cache/include"] +
-#     ["PyMimircache/CExtension/cacheReader/include"] +
-#     ["PyMimircache/CExtension/profiler/include"] +
-#     ["PyMimircache/CExtension/utils/include/"] +
-#     ["PyMimircache/CExtension/pyBindings/include"] +
-#     ["PyMimircache/CExtension/headers/cache"] + numpy_headers,
+#     glob("PyMimircache/CMimircache/profiler/*.c") +
+#     glob("PyMimircache/CMimircache/cache/*.c") +
+#     glob("PyMimircache/CMimircache/cacheReader/*.c") +
+#     glob("PyMimircache/CMimircache/utils/*.c") +
+#     glob("PyMimircache/CMimircache/wrapper/*.c") +
+#     ["PyMimircache/CMimircache/pyBindings/python_wrapper.c"] +
+#     ["PyMimircache/CMimircache/pyBindings/pyEviction_stat.c"],
+#     include_dirs=["PyMimircache/CMimircache/headers"] +
+#     ["PyMimircache/CMimircache/cache/include"] +
+#     ["PyMimircache/CMimircache/cacheReader/include"] +
+#     ["PyMimircache/CMimircache/profiler/include"] +
+#     ["PyMimircache/CMimircache/utils/include/"] +
+#     ["PyMimircache/CMimircache/pyBindings/include"] +
+#     ["PyMimircache/CMimircache/headers/cache"] + numpy_headers,
 #     extra_compile_args=extra_compile_args,
 #     extra_link_args=extra_link_args,
 #     language="c"))
@@ -220,9 +223,11 @@ extensions.append(Extension(
 
 
 long_description = ""
-with open("README.md") as f:
-    long_description = f.read()
-
+try:
+    with open("README.md") as f:
+        long_description = f.read()
+except Exception as e:
+    print("failed to read README, {}".format(e))
 
 
 setup(
@@ -238,7 +243,8 @@ setup(
     # include_package_data=True,
     author="Juncheng Yang",
     author_email="peter.waynechina@gmail.com",
-    description="PyMimircache is a C/Python3 platform for analyzing cache traces, developed by Juncheng Yang in Ymir group @ Emory University",
+    description="PyMimircache is a C/Python3 platform for analyzing cache traces, "
+                "developed by Juncheng Yang in Ymir group @ Emory University",
     license="GPLv3",
     keywords="PyMimircache cache LRU simulator Emory Ymir",
     url="http://mimircache.info",
@@ -247,11 +253,12 @@ setup(
     classifiers=[
         "Development Status :: 3 - Alpha",
 
-        # "Topic :: Operating System :: cache analysis"
+        "Topic :: Operating System :: cache analysis"
 
         "Programming Language :: Python :: 3.3",
         "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
     ],
     install_requires=["heapdict", "mmh3", "matplotlib", "numpy"]
 )

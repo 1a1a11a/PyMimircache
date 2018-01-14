@@ -6,15 +6,18 @@ import sys
 import os
 # import sphinx_bootstrap_theme
 
-# Insert mimircache' path into the system.
+# Insert PyMimircache' path into the system.
 sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath('_themes'))
 
-from mimircache.version import __version__
+from PyMimircache.version import __version__
 
 
-MOCK_MODULES = ['mimircache.c_generalProfiler', 'mimircache.c_heatmap', 'mimircache.c_LRUProfiler',
-                'mimircache.c_cacheReader', "mimircache.c_eviction_stat"] 
+MOCK_MODULES = ['PyMimircache.CMimircache.GeneralProfiler',
+                'PyMimircache.CMimircache.Heatmap',
+                'PyMimircache.CMimircache.LRUProfiler',
+                'PyMimircache.CMimircache.CacheReader',
+                "PyMimircache.CMimircache.Eviction_stat"]
                 #, 'c_generalProfiler', 'c_heatmap', 'c_LRUProfiler', 'c_cacheReader']
 
 
@@ -79,7 +82,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'mimircache'
+project = 'PyMimircache'
 copyright = '2016-2017, Juncheng Yang'
 author = 'Juncheng Yang'
 
@@ -157,7 +160,7 @@ html_theme = 'sphinxdoc'
 
 # The name for this set of Sphinx documents.
 # "<project> v<release> documentation" by default.
-html_title = 'mimircache v{}'.format(__version__)
+html_title = 'PyMimircache v{}'.format(__version__)
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 # html_short_title = None
@@ -239,7 +242,7 @@ html_show_sphinx = True
 # html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'mimircachedoc'
+htmlhelp_basename = 'PyMimircacheDoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -261,7 +264,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'mimircache.tex', 'mimircache Documentation',
+    (master_doc, 'PyMimircache.tex', 'PyMimircache Documentation',
      'Juncheng Yang', 'manual'),
 ]
 
@@ -291,7 +294,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'mimircache', 'mimircache Documentation',
+    (master_doc, 'PyMimircache', 'PyMimircache Documentation',
      [author], 1)
 ]
 
@@ -305,8 +308,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'mimircache', 'mimircache Documentation',
-     author, 'mimircache', 'cache platform for analyzing cache trace.',
+    (master_doc, 'PyMimircache', 'PyMimircache Documentation',
+     author, 'Juncheng Yang', 'cache platform for analyzing cache trace.',
      'Miscellaneous'),
 ]
 

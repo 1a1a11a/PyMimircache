@@ -27,14 +27,14 @@ from collections import deque
 from multiprocessing import Array, Process, Queue
 
 # this should be replaced by pure python module
-from mimircache.const import ALLOW_C_MIMIRCACHE
-# from mimircache.profiler.cHeatmap import get_breakpoints
+from PyMimircache.const import ALLOW_C_MIMIRCACHE
+# from PyMimircache.profiler.cHeatmap import get_breakpoints
 
 if ALLOW_C_MIMIRCACHE:
-    import mimircache.c_heatmap
-from mimircache.profiler.pyHeatmapSubprocess import *
-from mimircache.utils.printing import *
-from mimircache.const import *
+    import PyMimircache.CMimircache.Heatmap as c_heatmap
+from PyMimircache.profiler.pyHeatmapSubprocess import *
+from PyMimircache.utils.printing import *
+from PyMimircache.const import *
 
 import matplotlib.ticker as ticker
 import numpy as np
@@ -166,7 +166,7 @@ class PyHeatmap:
                 lambda x, pos: '{:2.0f}%'.format(x * 100 / len(break_points)))
             kwargs_plot['title'] = "hit_ratio_start_time_end_time"
 
-            last_access = mimircache.c_heatmap.get_last_access_dist(reader.cReader)
+            last_access = c_heatmap.get_last_access_dist(reader.cReader)
             last_access_array = Array('l', len(last_access), lock=False)
             for i, j in enumerate(last_access):
                 last_access_array[i] = j

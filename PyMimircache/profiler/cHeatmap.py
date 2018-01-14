@@ -16,12 +16,12 @@ from matplotlib import colors
 from matplotlib import pyplot as plt
 import matplotlib.ticker as ticker
 
-from mimircache.const import ALLOW_C_MIMIRCACHE, DEF_NUM_BIN_PROF
+from PyMimircache.const import ALLOW_C_MIMIRCACHE, DEF_NUM_BIN_PROF
 if ALLOW_C_MIMIRCACHE:
-    import mimircache.c_heatmap
-from mimircache import const
-from mimircache.utils.printing import *
-from mimircache.profiler.utilProfiler import set_fig
+    import PyMimircache.CMimircache.Heatmap as c_heatmap
+from PyMimircache import const
+from PyMimircache.utils.printing import *
+from PyMimircache.profiler.utilProfiler import set_fig
 
 
 
@@ -61,7 +61,7 @@ class CHeatmap:
 
         assert time_interval != -1 or num_of_pixel_of_time_dim != -1, \
             "please provide at least one parameter, time_interval or num_of_pixel_of_time_dim"
-        return mimircache.c_heatmap.get_breakpoints(reader.cReader, time_mode=time_mode,
+        return c_heatmap.get_breakpoints(reader.cReader, time_mode=time_mode,
                                                     time_interval=time_interval,
                                                     num_of_pixel_of_time_dim=num_of_pixel_of_time_dim)
 
@@ -112,7 +112,7 @@ class CHeatmap:
                 ewma_coefficient  = kwargs.get("ewma_coefficient", DEFAULT_EWMA_COEFFICIENT)
 
             if algorithm.lower() in const.C_AVAIL_CACHE:
-                xydict = mimircache.c_heatmap.heatmap(reader.cReader, time_mode, plot_type,
+                xydict = c_heatmap.heatmap(reader.cReader, time_mode, plot_type,
                                                       cache_size, algorithm,
                                                       interval_hit_ratio=enable_ihr,
                                                       ewma_coefficient=ewma_coefficient,
@@ -156,7 +156,7 @@ class CHeatmap:
             ewma_coefficient = kwargs.get("ewma_coefficient", DEFAULT_EWMA_COEFFICIENT)
             bin_size = kwargs.get("bin_size", cache_size // DEF_NUM_BIN_PROF + 1)
 
-            xydict = mimircache.c_heatmap.heatmap(reader.cReader, time_mode, plot_type,
+            xydict = c_heatmap.heatmap(reader.cReader, time_mode, plot_type,
                                                   cache_size, algorithm,
                                                   ewma_coefficient=ewma_coefficient,
                                                   bin_size = bin_size,
@@ -200,7 +200,7 @@ class CHeatmap:
             if not figname:
                 figname = 'rd_distribution.png'
 
-            xydict, log_base = mimircache.c_heatmap.\
+            xydict, log_base = c_heatmap.\
                 hm_rd_distribution(reader.cReader, time_mode,
                                    time_interval=time_interval,
                                    num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
@@ -236,7 +236,7 @@ class CHeatmap:
             if not figname:
                 figname = 'rd_distribution_CDF.png'
 
-            xydict, log_base = mimircache.c_heatmap.\
+            xydict, log_base = c_heatmap.\
                 hm_rd_distribution(reader.cReader, time_mode,
                                    time_interval=time_interval,
                                    num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
@@ -270,7 +270,7 @@ class CHeatmap:
             if not figname:
                 figname = 'future_rd_distribution.png'
 
-            xydict, log_base = mimircache.c_heatmap.\
+            xydict, log_base = c_heatmap.\
                 hm_future_rd_distribution(reader.cReader, time_mode,
                                           time_interval=time_interval,
                                           num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
@@ -303,7 +303,7 @@ class CHeatmap:
             if not figname:
                 figname = 'dist_distribution.png'
 
-            xydict, log_base = mimircache.c_heatmap.\
+            xydict, log_base = c_heatmap.\
                 hm_dist_distribution(reader.cReader, time_mode,
                                      time_interval=time_interval,
                                      num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
@@ -337,7 +337,7 @@ class CHeatmap:
             if not figname:
                 figname = 'rt_distribution.png'
 
-            xydict, log_base = mimircache.c_heatmap.\
+            xydict, log_base = c_heatmap.\
                 hm_reuse_time_distribution(reader.cReader, time_mode,
                                            time_interval=time_interval,
                                            num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
@@ -404,7 +404,7 @@ class CHeatmap:
         if plot_type == "hit_ratio_start_time_end_time" or plot_type == "hr_st_et":
             assert cache_size != -1, "please provide cache_size for plotting hr_st_et"
 
-            xydict = mimircache.c_heatmap.diff_heatmap(reader.cReader, time_mode,
+            xydict = c_heatmap.diff_heatmap(reader.cReader, time_mode,
                                                        "hr_st_et", cache_size,
                                                        algorithm1, algorithm2,
                                                        time_interval=time_interval,

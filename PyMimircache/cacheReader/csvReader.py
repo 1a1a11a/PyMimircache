@@ -6,11 +6,11 @@
 
 """
 import string
-from mimircache.const import ALLOW_C_MIMIRCACHE
+from PyMimircache.const import ALLOW_C_MIMIRCACHE
 
 if ALLOW_C_MIMIRCACHE:
-    import mimircache.c_cacheReader
-from mimircache.cacheReader.abstractReader import AbstractReader
+    import PyMimircache.CMimircache.CacheReader as c_cacheReader
+from PyMimircache.cacheReader.abstractReader import AbstractReader
 
 
 class CsvReader(AbstractReader):
@@ -67,7 +67,7 @@ class CsvReader(AbstractReader):
             # self.trace_file.readline()
 
         if ALLOW_C_MIMIRCACHE and open_c_reader:
-            self.cReader = mimircache.c_cacheReader.setup_reader(file_loc, 'c', data_type=data_type,
+            self.cReader = c_cacheReader.setup_reader(file_loc, 'c', data_type=data_type,
                                                                  block_unit_size=block_unit_size,
                                                                  disk_sector_size=disk_sector_size,
                                                                  init_params=init_params)

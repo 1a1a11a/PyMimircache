@@ -1,5 +1,5 @@
 # coding=utf-8
-from mimircache.cache.abstractCache import Cache
+from PyMimircache.cache.abstractCache import Cache
 
 
 class MRU(Cache):

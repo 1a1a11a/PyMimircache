@@ -9,18 +9,18 @@
 
 import unittest
 
-from mimircache.profiler.cLRUProfiler import CLRUProfiler
-from mimircache.cacheReader.csvReader import CsvReader
-from mimircache.cacheReader.plainReader import PlainReader
-from mimircache.cacheReader.vscsiReader import VscsiReader
+from PyMimircache.profiler.cLRUProfiler import CLRUProfiler
+from PyMimircache.cacheReader.csvReader import CsvReader
+from PyMimircache.cacheReader.plainReader import PlainReader
+from PyMimircache.cacheReader.vscsiReader import VscsiReader
 
 DAT_FOLDER = "../data/"
 import os
 if not os.path.exists(DAT_FOLDER):
     if os.path.exists("data/"):
         DAT_FOLDER = "data/"
-    elif os.path.exists("../mimircache/data/"):
-        DAT_FOLDER = "../mimircache/data/"
+    elif os.path.exists("../PyMimircache/data/"):
+        DAT_FOLDER = "../PyMimircache/data/"
 
 
 class CLRUProfilerTest(unittest.TestCase):

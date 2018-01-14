@@ -11,13 +11,13 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import unittest
 
-from mimircache.cacheReader.csvReader import CsvReader
-from mimircache.cacheReader.plainReader import PlainReader
-from mimircache.cacheReader.vscsiReader import VscsiReader
-from mimircache.cacheReader.binaryReader import BinaryReader
+from PyMimircache.cacheReader.csvReader import CsvReader
+from PyMimircache.cacheReader.plainReader import PlainReader
+from PyMimircache.cacheReader.vscsiReader import VscsiReader
+from PyMimircache.cacheReader.binaryReader import BinaryReader
 
-from mimircache.profiler.cGeneralProfiler import CGeneralProfiler
-from mimircache.profiler.pyGeneralProfiler import PyGeneralProfiler
+from PyMimircache.profiler.cGeneralProfiler import CGeneralProfiler
+from PyMimircache.profiler.pyGeneralProfiler import PyGeneralProfiler
 
 
 
@@ -25,8 +25,8 @@ DAT_FOLDER = "../data/"
 if not os.path.exists(DAT_FOLDER):
     if os.path.exists("data/"):
         DAT_FOLDER = "data/"
-    elif os.path.exists("../mimircache/data/"):
-        DAT_FOLDER = "../mimircache/data/"
+    elif os.path.exists("../PyMimircache/data/"):
+        DAT_FOLDER = "../PyMimircache/data/"
 
 
 class GeneralProfilerTest(unittest.TestCase):

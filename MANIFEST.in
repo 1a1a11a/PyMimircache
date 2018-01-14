@@ -2,15 +2,13 @@
 include README.md
 graft docs
 prune multiMachineProcessing
-prune paper
-prune tVarying 
-graft mimircache/profiler/abstract 
-graft mimircache/CExtension/headers/*
-graft mimircache/CExtension/cache/include
-graft mimircache/CExtension/cacheReader/include
-graft mimircache/CExtension/profiler/include
-graft mimircache/CExtension/pyBindings/include
-graft mimircache/CExtension/utils/include
+
+graft PyMimircache/CMimircache/CMimircache/CMimircache/headers/*
+graft PyMimircache/CMimircache/CMimircache/CMimircache/cache/include
+graft PyMimircache/CMimircache/CMimircache/CMimircache/cacheReader/include
+graft PyMimircache/CMimircache/CMimircache/CMimircache/profiler/include
+graft PyMimircache/CMimircache/CMimircache/CMimircache/utils/include
+graft PyMimircache/CMimircache/pyBindings/include
 include *.py
 
 

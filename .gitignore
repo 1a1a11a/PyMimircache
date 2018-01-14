@@ -1,5 +1,4 @@
 # 1a1a11a
-mimircache/CExtension/makefile
 *A1a1a11a*
 *external*
 *bin*
@@ -13,13 +12,14 @@ mimircache/CExtension/makefile
 *.DS_Store*
 *.bak
 *.nogit*
+*credentials*
 
 
 
 
 
 # Byte-compiled / optimized / DLL files
-__pycache__/
+__pycache__
 *.py[cod]
 *$py.class
 

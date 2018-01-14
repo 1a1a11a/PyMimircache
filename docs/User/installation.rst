@@ -3,7 +3,7 @@
 Installation
 ============
 
-This part of the documentation covers the installation of mimircache. Mimircache currently has the following dependencies:
+This part of the documentation covers the installation of PyMimircache. PyMimircache currently has the following dependencies:
 
 **pkg-config, glib, scipy, numpy, matplotlib**
 
@@ -45,11 +45,11 @@ Installing all dependencies is the same as the one described above.
 Get the Source Code
 ^^^^^^^^^^^^^^^^^^^^
 mimircache is actively developed on GitHub, where the code is
-always available `here <https://github.com/1a1a11a/mimircache/tree/master>`_.
+always available `here <https://github.com/1a1a11a/PyMimircache/tree/master>`_.
 
 You can clone the public repository::
 
-    $ git clone -b master git://github.com/1a1a11a/mimircache.git
+    $ git clone -b master --recurse-submodules git://github.com/1a1a11a/PyMimircache.git
 
 Once you have a copy of the source, you can install it into your site-packages easily::
 

@@ -12,35 +12,32 @@ Author: Jason Yang <peter.waynechina@gmail.com> 2017/08
 
 """
 from matplotlib.ticker import FuncFormatter
-from mimircache.const import ALLOW_C_MIMIRCACHE
+from PyMimircache.const import ALLOW_C_MIMIRCACHE
 if ALLOW_C_MIMIRCACHE:
-    import mimircache.c_heatmap
+    import PyMimircache.CMimircache.Heatmap as c_heatmap
     
-# from mimircache.profiler.evictionStat import *
 try:
-    from mimircache.profiler.twoDPlots import *
+    from PyMimircache.profiler.twoDPlots import *
 except: pass
 
 import os
-import matplotlib
 import matplotlib.pyplot as plt
 
-from mimircache.const import *
-from mimircache.utils.printing import *
-from mimircache.cacheReader.binaryReader import BinaryReader
-from mimircache.cacheReader.csvReader import CsvReader
-from mimircache.cacheReader.plainReader import PlainReader
-from mimircache.cacheReader.vscsiReader import VscsiReader
-from mimircache.profiler.cLRUProfiler import CLRUProfiler as LRUProfiler
-from mimircache.profiler.cGeneralProfiler import CGeneralProfiler
-from mimircache.profiler.pyGeneralProfiler import PyGeneralProfiler
-from mimircache.profiler.cHeatmap import CHeatmap
-from mimircache.profiler.pyHeatmap import PyHeatmap
+from PyMimircache.const import *
+from PyMimircache.utils.printing import *
+from PyMimircache.cacheReader.binaryReader import BinaryReader
+from PyMimircache.cacheReader.csvReader import CsvReader
+from PyMimircache.cacheReader.plainReader import PlainReader
+from PyMimircache.cacheReader.vscsiReader import VscsiReader
+from PyMimircache.profiler.cLRUProfiler import CLRUProfiler as LRUProfiler
+from PyMimircache.profiler.cGeneralProfiler import CGeneralProfiler
+from PyMimircache.profiler.pyGeneralProfiler import PyGeneralProfiler
+from PyMimircache.profiler.cHeatmap import CHeatmap
+from PyMimircache.profiler.pyHeatmap import PyHeatmap
 
-from mimircache.utils.prepPlotParams import *
-from mimircache.cacheReader.traceStat import TraceStat
+from PyMimircache.cacheReader.traceStat import TraceStat
 from multiprocessing import cpu_count
-from mimircache.profiler.utilProfiler import set_fig
+from PyMimircache.profiler.utilProfiler import set_fig
 
 
 class Cachecow:
@@ -494,7 +491,7 @@ class Cachecow:
                                                    cache_params=cache_params1,
                                                    **kwargs)[0]
             else:
-                xydict1 = mimircache.c_heatmap.heatmap(self.reader.cReader, time_mode, plot_type,
+                xydict1 = c_heatmap.heatmap(self.reader.cReader, time_mode, plot_type,
                                                        cache_size=cache_size,
                                                        time_interval=time_interval,
                                                        algorithm=algorithm1,
@@ -509,7 +506,7 @@ class Cachecow:
                                                    cache_params=cache_params2,
                                                    **kwargs)[0]
             else:
-                xydict2 = mimircache.c_heatmap.heatmap(self.reader.cReader, time_mode, plot_type,
+                xydict2 = c_heatmap.heatmap(self.reader.cReader, time_mode, plot_type,
                                                        time_interval=time_interval,
                                                        cache_size=cache_size,
                                                        algorithm=algorithm2,
@@ -774,7 +771,7 @@ class Cachecow:
         * all - most of the available plots with high accuracy, notice it can take **LONG** time on big trace
 
         :param characterize_type: see above, options: short, medium, long, all
-        :param cache_size: estimated cache size for the trace, if -1, mimircache will estimate the cache size
+        :param cache_size: estimated cache size for the trace, if -1, PyMimircache will estimate the cache size
         :param kwargs: print_stat
         :return: trace stat string
         """

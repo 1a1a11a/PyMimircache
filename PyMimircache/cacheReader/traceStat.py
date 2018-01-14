@@ -7,7 +7,7 @@ this module provides the stat of the trace
 
 from pprint import pformat
 from collections import defaultdict
-from mimircache.utils.printing import *
+from PyMimircache.utils.printing import *
 
 
 class TraceStat:

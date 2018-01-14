@@ -1,6 +1,6 @@
 # coding=utf-8
 
-""" mimircache a cache trace analysis platform.
+""" PyMimircache a cache trace analysis platform.
 
 .. moduleauthor:: Juncheng Yang <peter.waynechina@gmail.com>, Ymir Vigfusson
 
@@ -20,15 +20,20 @@ cwd = os.getcwd()
 sys.path.extend([cwd, os.path.join(cwd, "..")])
 
 
-from mimircache.const import *
-from mimircache.profiler.cLRUProfiler import CLRUProfiler as LRUProfiler
-from mimircache.profiler.cGeneralProfiler import CGeneralProfiler
-from mimircache.profiler.pyGeneralProfiler import PyGeneralProfiler
-from mimircache.profiler.cHeatmap import CHeatmap
-from mimircache.profiler.pyHeatmap import PyHeatmap
-from mimircache.top.cachecow import Cachecow
+from PyMimircache.const import *
+from PyMimircache.cacheReader.binaryReader import BinaryReader
+from PyMimircache.cacheReader.vscsiReader import VscsiReader
+from PyMimircache.cacheReader.csvReader import CsvReader
+from PyMimircache.cacheReader.plainReader import PlainReader
 
-from mimircache.version import __version__
+from PyMimircache.profiler.cLRUProfiler import CLRUProfiler as LRUProfiler
+from PyMimircache.profiler.cGeneralProfiler import CGeneralProfiler
+from PyMimircache.profiler.pyGeneralProfiler import PyGeneralProfiler
+from PyMimircache.profiler.cHeatmap import CHeatmap
+from PyMimircache.profiler.pyHeatmap import PyHeatmap
+from PyMimircache.top.cachecow import Cachecow
+
+from PyMimircache.version import __version__
 
 
 
