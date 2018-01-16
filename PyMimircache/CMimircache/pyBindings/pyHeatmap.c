@@ -8,6 +8,7 @@
 
 #include <Python.h>
 #include "heatmap.h"
+#include "profilerUtils.h"
 #include "cache.h"
 #include "FIFO.h"
 #include "Optimal.h"
