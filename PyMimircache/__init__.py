@@ -26,7 +26,7 @@ from PyMimircache.cacheReader.vscsiReader import VscsiReader
 from PyMimircache.cacheReader.csvReader import CsvReader
 from PyMimircache.cacheReader.plainReader import PlainReader
 
-from PyMimircache.profiler.cLRUProfiler import CLRUProfiler as LRUProfiler
+from PyMimircache.profiler.cLRUProfiler import CLRUProfiler as CLRUProfiler
 from PyMimircache.profiler.cGeneralProfiler import CGeneralProfiler
 from PyMimircache.profiler.pyGeneralProfiler import PyGeneralProfiler
 from PyMimircache.profiler.cHeatmap import CHeatmap

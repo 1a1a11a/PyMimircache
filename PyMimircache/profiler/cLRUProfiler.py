@@ -129,13 +129,19 @@ class CLRUProfiler:
         O(NlogN) reuse distance computation, if the data does not exists, then compute it and save it
         :return:
         """
+
+        has_rd = True
         if not self.already_load_rd and not self.reader.already_load_rd:
+            if "/home/cloudphysics/traces/" not in self.reader.file_loc and \
+                    "/home/jason/ALL_DATA" not in self.reader.file_loc:
+                has_rd = False
+
             rd_dat_path = self.reader.file_loc.replace("/home/jason/ALL_DATA/",
                                                        "/research/jason/preComputedData/RD/")
             rd_dat_path = rd_dat_path.replace("/home/cloudphysics/traces/",
                                               "/research/jason/preComputedData/RD/cphyVscsi")
 
-            if os.path.exists(rd_dat_path):
+            if has_rd and os.path.exists(rd_dat_path):
                 DEBUG("loading reuse distance from {}".format(rd_dat_path))
                 self.load_reuse_dist(rd_dat_path, "rd")
             else:
