@@ -6,8 +6,10 @@ from PyMimircache.const import ALLOW_C_MIMIRCACHE
 if ALLOW_C_MIMIRCACHE:
     import PyMimircache.CMimircache.LRUProfiler as c_LRUProfiler
     import PyMimircache.CMimircache.Heatmap as c_heatmap
-from heapdict import heapdict
-
+try:
+    from heapdict import heapdict
+except:
+    print("heapdict is not installed")
 
 class Optimal(Cache):
     def __init__(self, cache_size, reader, **kwargs):

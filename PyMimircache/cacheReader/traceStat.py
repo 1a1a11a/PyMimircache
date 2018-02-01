@@ -96,10 +96,12 @@ class TraceStat:
         :return:
         """
 
-        s = "number of requests: {}\nnumber of uniq obj/blocks: {}\n" \
+        s = "dat: {}\nnumber of requests: {}\nnumber of uniq obj/blocks: {}\n" \
             "cold miss ratio: {:.4f}\ntop N popular (obj, num of requests): \n{}\n" \
             "number of obj/block accessed only once: {}\n" \
-            "frequency mean: {:.2f}\n{}".format(self.num_of_requests, self.num_of_uniq_obj,
+            "frequency mean: {:.2f}\n{}".format(self.reader.file_loc,
+                                                self.num_of_requests,
+                                                self.num_of_uniq_obj,
                                                 self.cold_miss_ratio,
                                                 pformat(self.top_N_popular_obj),
                                                 self.num_of_obj_with_freq_1,

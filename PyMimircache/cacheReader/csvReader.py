@@ -7,6 +7,7 @@
 """
 import string
 from PyMimircache.const import ALLOW_C_MIMIRCACHE
+from PyMimircache.utils.printing import *
 
 if ALLOW_C_MIMIRCACHE:
     import PyMimircache.CMimircache.CacheReader as c_cacheReader
@@ -60,6 +61,9 @@ class CsvReader(AbstractReader):
 
         self.header_bool = init_params.get('header', )
         self.delimiter = init_params.get('delimiter', ",")
+        if "delimiter" not in init_params:
+            INFO("open {} using default delimiter \",\" for CsvReader".format(file_loc))
+
 
         if self.header_bool:
             self.headers = [i.strip(string.whitespace) for i in
@@ -105,7 +109,6 @@ class CsvReader(AbstractReader):
             line = self.trace_file.readline().decode()
         if line:
             line_split = line.strip().split(self.delimiter)
-
             if self.block_unit_size != 0 and self.disk_sector_size != 0:
                 line_split[self.label_column - 1] = line_split[self.label_column - 1] * \
                                                     self.disk_sector_size // self.block_unit_size
@@ -197,7 +200,8 @@ class CsvReader(AbstractReader):
         """
 
         return CsvReader(self.file_loc, self.data_type, self.init_params,
-                         self.block_unit_size, self.disk_sector_size, open_c_reader, self.lock)
+                         self.block_unit_size, self.disk_sector_size, open_c_reader, lock=self.lock)
+
 
     def get_params(self):
         """

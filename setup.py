@@ -213,7 +213,7 @@ extensions.append(Extension(
 #     ["PyMimircache/CMimircache/pyBindings/include"] +
 #     ["PyMimircache/CMimircache/headers/cache"] + numpy_headers,
 #     extra_compile_args=extra_compile_args,
-#     extra_link_args=extra_link_args, 
+#     extra_link_args=extra_link_args,
 #     language="c"))
 
 
@@ -245,23 +245,13 @@ setup(
     # include_package_data=True,
     author="Juncheng Yang",
     author_email="peter.waynechina@gmail.com",
-    description="PyMimircache is a C/Python3 platform for analyzing cache traces, "
+    description="PyMimircache is a Python3 platform for analyzing cache traces, "
                 "developed by Juncheng Yang in Ymir group @ Emory University",
     license="GPLv3",
     keywords="PyMimircache cache LRU simulator Emory Ymir",
     url="http://mimircache.info",
 
     ext_modules=extensions,
-    classifiers=[
-        "Development Status :: 3 - Alpha",
-
-        "Topic :: Operating System :: cache analysis"
-
-        "Programming Language :: Python :: 3.3",
-        "Programming Language :: Python :: 3.4",
-        "Programming Language :: Python :: 3.5",
-        "Programming Language :: Python :: 3.6",
-    ],
     install_requires=["heapdict", "mmh3", "matplotlib", "numpy"]
 )
 

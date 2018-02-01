@@ -601,7 +601,7 @@ class Cachecow:
         elif plot_type == 'mapping':
             namemapping_2d(self.reader, **kwargs)
 
-        elif plot_type == "interval_hit_ratio":
+        elif plot_type == "interval_hit_ratio" or plot_type == "IHRC":
             assert "cache_size" in kwargs, "please provide cache size for interval hit ratio curve plotting"
             return interval_hit_ratio_2d(self.reader, **kwargs)
 
