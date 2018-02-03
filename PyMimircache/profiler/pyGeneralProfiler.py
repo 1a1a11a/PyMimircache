@@ -21,7 +21,7 @@ from concurrent.futures import as_completed, ProcessPoolExecutor
 from PyMimircache.cacheReader.abstractReader import AbstractReader
 from PyMimircache.const import *
 from PyMimircache.utils.printing import *
-from PyMimircache.profiler.utilProfiler import util_plotHRC
+from PyMimircache.profiler.profilerUtils import util_plotHRC
 
 
 __all__ = ["PyGeneralProfiler"]

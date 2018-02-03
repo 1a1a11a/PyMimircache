@@ -25,7 +25,7 @@ import matplotlib.ticker as ticker
 from PyMimircache.utils.printing import *
 
 
-def get_breakpoints(reader, time_mode, time_interval, **kwargs):
+def get_breakpoints(reader, time_mode, time_interval=-1, num_of_pixel_of_time_dim=-1, **kwargs):
 
     """
     retrieve the breakpoints given time_mode and time_interval or num_of_pixel_of_time_dim,
@@ -40,14 +40,29 @@ def get_breakpoints(reader, time_mode, time_interval, **kwargs):
     :return: a numpy list of break points begin with 0, ends with total_num_requests
     """
 
+    assert time_interval!=-1 or num_of_pixel_of_time_dim!=-1, \
+        "please specify at least one of the following: time_interval, num_of_pixel_of_time_dim"
+
     bp = []
     if time_mode == "v":
         num_req = reader.get_num_of_req()
+        if time_interval == -1:
+            time_interval = int(math.ceil(num_req / num_of_pixel_of_time_dim) + 1)
+
         for i in range(int(math.ceil(num_req/time_interval))):
             bp.append(i * time_interval)
         if bp[-1] != num_req:
             bp.append(num_req)
+
     elif time_mode == "r":
+        time_column = getattr(reader, "time_column", -1)
+        assert time_column!=-1, "provided reader does not have time column"
+
+        if time_interval == -1:
+            first_ts = reader.read_first_req()[time_column-1]
+            last_ts = reader.read_last_req()[time_column-1]
+            time_interval = int(math.ceil((last_ts - first_ts) / num_of_pixel_of_time_dim + 1))
+
         bp.append(0)
         ind = 0
         line = reader.read_time_req()

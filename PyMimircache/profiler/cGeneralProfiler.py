@@ -24,7 +24,7 @@ from PyMimircache.const import ALLOW_C_MIMIRCACHE
 if ALLOW_C_MIMIRCACHE:
     import PyMimircache.CMimircache.GeneralProfiler as c_generalProfiler
 from PyMimircache.const import *
-from PyMimircache.profiler.utilProfiler import util_plotHRC
+from PyMimircache.profiler.profilerUtils import util_plotHRC
 
 
 class CGeneralProfiler:

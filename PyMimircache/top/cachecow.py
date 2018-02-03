@@ -37,7 +37,7 @@ from PyMimircache.profiler.pyHeatmap import PyHeatmap
 
 from PyMimircache.cacheReader.traceStat import TraceStat
 from multiprocessing import cpu_count
-from PyMimircache.profiler.utilProfiler import set_fig
+from PyMimircache.profiler.profilerUtils import set_fig
 
 
 class Cachecow:

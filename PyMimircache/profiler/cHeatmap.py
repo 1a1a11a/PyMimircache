@@ -21,7 +21,7 @@ if ALLOW_C_MIMIRCACHE:
     import PyMimircache.CMimircache.Heatmap as c_heatmap
 from PyMimircache import const
 from PyMimircache.utils.printing import *
-from PyMimircache.profiler.utilProfiler import set_fig
+from PyMimircache.profiler.profilerUtils import set_fig
 
 
 
