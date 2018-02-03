@@ -111,6 +111,43 @@ class AbstractReader(metaclass=abc.ABCMeta):
             self.num_of_uniq_req = len(self.get_req_freq_distribution())
         return self.num_of_uniq_req
 
+    def read_first_req(self, label_only=False):
+        """
+        read the first request
+
+        :return: the request label or a list of information
+        """
+
+        self.reset()
+        if label_only:
+            return self.read_one_req()
+        else:
+            return self.read_complete_req()
+
+    def read_last_req(self, label_only=False, max_req_size=102400):
+        """
+        read the last request
+
+        :return: the request label or a list of information
+        """
+
+        self.trace_file.seek(-max_req_size, 2)
+
+        if label_only:
+            read_func = self.read_one_req
+        else:
+            read_func = self.read_complete_req
+
+        last = read_func()
+        new = read_func()
+        while new:
+            last = new
+            new = read_func()
+
+        self.reset()
+        return last
+
+
     def __iter__(self):
         return self
 
@@ -131,6 +168,15 @@ class AbstractReader(metaclass=abc.ABCMeta):
     def read_one_req(self):
         """
         read one request, only return the label of the request
+        :return:
+        """
+        pass
+
+
+    @abc.abstractclassmethod
+    def read_complete_req(self):
+        """
+        read one request with full information
         :return:
         """
         pass

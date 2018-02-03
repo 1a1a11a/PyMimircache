@@ -65,6 +65,7 @@ class BinaryReader(AbstractReader):
 
         self.init_params = init_params
         self.fmt = init_params['fmt']
+        # this number begins from 1, so need to reduce by one before use
         self.label_column = init_params['label']
         self.time_column = init_params.get("real_time", )
         self.size_column = init_params.get("size", )
@@ -143,6 +144,16 @@ class BinaryReader(AbstractReader):
             return ret
         else:
             return None
+
+
+    def read_last_req(self, label_only=False, max_req_size=102400):
+        """
+        read the complete line, including request and its all related info
+        :return: a list of all info in the request
+        """
+
+        return super().read_last_req(label_only, max_req_size=self.record_size)
+
 
     def lines(self):
         """

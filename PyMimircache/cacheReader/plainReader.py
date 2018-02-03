@@ -49,6 +49,9 @@ class PlainReader(AbstractReader):
         else:
             return None
 
+    def read_complete_req(self):
+        return self.read_one_req()
+
     def copy(self, open_c_reader=False):
         """
         reader a deep copy of current reader with everything reset to initial state,
