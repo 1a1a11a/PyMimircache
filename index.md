@@ -8,9 +8,9 @@ you to visualize your cache traces from different perspectives, and it
 incorporates time factor when comparing cache replacement algorithms. [See
 documentation here](http://pymimircache.readthedocs.io)
 
-The target users of PyMimircache are **researchers** and **system administrators**. The goal behind PyMimircache is to provide a platform that
--   allow **researchers** to study and design cache replacement algorithms
-    easily and efficiently.
+The target users of PyMimircache are **researchers** and **system administrators**.
+The goal behind PyMimircache is to provide a platform that
+-   allow **researchers** to study and design cache easily and efficiently.
 -   allow **system administrators** to analyze and visualize their cache
     performance easily and efficiently.
 
@@ -18,11 +18,9 @@ The KEY philosophy is that we would like to design a cache analysis platform
 that is **efficient**, **flexible** and **easy to use**. With these in mind, we
 designed PyMimircache in Python3 for easy usage and we implemented
 state-of-the-art algorithms in C as backend together with parallelism for
-efficiency. However, PyMimircache can also be used without C backend, in other
-words, PyMimircache depends on CMimircache (backend), but you can use either of
-them independently. Besides, PyMimircache allows user to plug in external reader
-for reading special data and allows user to write their own cache replacement
-algorithm easily.
+efficiency. However, PyMimircache can also be used without C backend.
+Besides, PyMimircache allows user to plug in external reader for reading special data
+and allows user to write their own cache replacement algorithm easily.
 
 
 Evaluate and Design Algorithm
@@ -36,7 +34,7 @@ more cache replacement algorithms. For an extensive list of supported cache
 replacement algorithms, see [documentation](http://pymimircache.readthedocs.io).
 
 Best of all is that you can easily and quickly **implement your own cache
-replacement algorithm**.
+related algorithm**.
 
 For all cache replacement algorithms, including the ones built-in and the ones
 you implement yourself, PyMimircache supports several different kinds of
@@ -100,7 +98,4 @@ Three feature provided by PyMimircache are **high performance**,
 Authors and Contributors
 ------------------------
 
-PyMimircache and CMimircache is created by [Juncheng
-Yang](http://junchengyang.com) of [Ymir](http://www.ymsir.com)'s group at Emory
-University with help from a lot of others, both are released on public domain
-under GPLv3.
+PyMimircache and CMimircache is created by [Juncheng Yang](http://junchengyang.com) of [Ymir](http://www.ymsir.com)'s group at Emory University with help from a lot of others, both are released on public domain under GPLv3.
