@@ -16,6 +16,7 @@ ALLOW_C_MIMIRCACHE = True
 INTERNAL_USE = True
 DEF_NUM_BIN_PROF = 100
 DEF_NUM_THREADS = os.cpu_count()
+DEF_EMA_HISTORY_WEIGHT = 0.80
 
 # try to import cMimircache
 failed_components = []

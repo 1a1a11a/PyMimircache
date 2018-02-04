@@ -23,7 +23,7 @@ if not os.path.exists(DAT_FOLDER):
         DAT_FOLDER = "../PyMimircache/data/"
 
 
-class cHeatmapTest(unittest.TestCase):
+class CHeatmapTest(unittest.TestCase):
     def test1_vReader(self):
         print("test1 vReader")
         reader = VscsiReader("{}/trace.vscsi".format(DAT_FOLDER))

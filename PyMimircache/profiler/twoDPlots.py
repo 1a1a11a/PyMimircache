@@ -488,8 +488,9 @@ def rt_popularity_2d(reader, granularity=10, logX=True, logY=False, cdf=True,
     return l
 
 
-def interval_hit_ratio_2d(reader, cache_size, decay_coef=0.2,
-                          time_mode="v", time_interval=10000, figname="IHRC_2d.png",
+def interval_hit_ratio_2d(reader, cache_size, decay_coef=0.8,
+                          time_mode="v", time_interval=10000,
+                          figname="IHRC_2d.png",
                           **kwargs):
     """
     The hit ratio curve over time interval, each pixel in the plot represents the
@@ -503,6 +504,8 @@ def interval_hit_ratio_2d(reader, cache_size, decay_coef=0.2,
     :param figname:
     :return: the list of data points
     """
+
+
     p = LRUProfiler(reader)
     # reuse distance list
     rd_list = p.get_reuse_distance()
