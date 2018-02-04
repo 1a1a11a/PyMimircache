@@ -1,6 +1,6 @@
-title: mimircache
-description: cache analysis platform developed at Emory University
-google_analytics: 
+title: PyMimircache
+description: Python3 cache analysis platform
+google_analytics: UA-80122119-1
 show_downloads: true
 theme: jekyll-theme-cayman
 
