@@ -12,11 +12,11 @@ The architecture of mimircache is shown in the diagram below, it contains three 
 
         API/cachecow
         API/profiler
-        API/profiler/LRUProfiler
+        API/profiler/cLRUProfiler
         API/profiler/cGeneralProfiler
-        API/profiler/twoDPlots
         API/profiler/cHeatmap
-        API/profiler/heatmap
-        API/profiler/generalProfiler
+        API/profiler/pyHeatmap
+        API/profiler/pyGeneralProfiler
+        API/profiler/twoDPlots
         API/cache
         API/cacheReader

@@ -11,6 +11,7 @@
 
 import os
 import math
+import numpy as np
 try:
     # pypy3 fails on this
     import matplotlib.pyplot
@@ -25,7 +26,7 @@ import matplotlib.ticker as ticker
 from PyMimircache.utils.printing import *
 
 
-def get_breakpoints(reader, time_mode, time_interval, **kwargs):
+def get_breakpoints(reader, time_mode, time_interval=-1, num_of_pixel_of_time_dim=-1, **kwargs):
 
     """
     retrieve the breakpoints given time_mode and time_interval or num_of_pixel_of_time_dim,
@@ -40,14 +41,29 @@ def get_breakpoints(reader, time_mode, time_interval, **kwargs):
     :return: a numpy list of break points begin with 0, ends with total_num_requests
     """
 
+    assert time_interval!=-1 or num_of_pixel_of_time_dim!=-1, \
+        "please specify at least one of the following: time_interval, num_of_pixel_of_time_dim"
+
     bp = []
     if time_mode == "v":
         num_req = reader.get_num_of_req()
+        if time_interval == -1:
+            time_interval = int(math.ceil(num_req / num_of_pixel_of_time_dim) + 1)
+
         for i in range(int(math.ceil(num_req/time_interval))):
             bp.append(i * time_interval)
         if bp[-1] != num_req:
             bp.append(num_req)
+
     elif time_mode == "r":
+        time_column = getattr(reader, "time_column", -1)
+        assert time_column!=-1, "provided reader does not have time column"
+
+        if time_interval == -1:
+            first_ts = reader.read_first_req()[time_column-1]
+            last_ts = reader.read_last_req()[time_column-1]
+            time_interval = int(math.ceil((last_ts - first_ts) / num_of_pixel_of_time_dim + 1))
+
         bp.append(0)
         ind = 0
         line = reader.read_time_req()
@@ -128,6 +144,62 @@ def draw2d(*args, **kwargs):
 
     if not kwargs.get("no_clear", False):
         plt.clf()
+
+
+def draw_heatmap(plot_array, **kwargs):
+    filename = kwargs.get("figname", 'heatmap.png')
+
+    if 'filter_count' in kwargs:
+        assert kwargs['filter_count'] > 0, "filter_count must be positive"
+        plot_array = np.ma.array(plot_array, mask=(plot_array<kwargs['filter_count']))
+
+    imshow_kwargs = kwargs.get("imshow_kwargs", {})
+
+    cmap = plt.cm.jet
+    # cmap = plt.get_cmap("Oranges")
+    cmap.set_bad(color='white', alpha=1.)
+
+    # if 1:
+    try:
+        if kwargs.get('fixed_range', False):
+            vmin, vmax = kwargs['fixed_range']
+            img = plt.imshow(plot_array, vmin=vmin, vmax=vmax,
+                             interpolation='nearest', origin='lower',
+                             cmap=cmap, aspect='auto', **imshow_kwargs)
+        else:
+            img = plt.imshow(plot_array, interpolation='nearest',
+                             origin='lower', aspect='auto', cmap=cmap, **imshow_kwargs)
+
+        cb = plt.colorbar(img)
+        set_fig(no_legend=True, **kwargs)
+
+        if not kwargs.get("no_save", False):
+            plt.savefig(filename, dpi=600)
+            INFO("plot is saved as {}".format(filename))
+        if not kwargs.get("no_show", False):
+            try: plt.show()
+            except: pass
+        if not kwargs.get("no_clear", False):
+            try: plt.clf()
+            except: pass
+
+    except Exception as e:
+        try:
+            import time
+            t = int(time.time())
+            WARNING("plotting using imshow failed: {}, "
+                    "now try to save the plotting data to /tmp/heatmap.{}.pickle".format(e, t))
+            import pickle
+            with open("/tmp/heatmap.{}.pickle", 'wb') as ofile:
+                pickle.dump(plot_array, ofile)
+        except Exception as e:
+            WARNING("failed to save plotting data")
+
+        try:
+            plt.pcolormesh(plot_array.T, cmap=cmap)
+            plt.savefig(filename)
+        except Exception as e:
+            WARNING("further plotting using pcolormesh failed" + str(e))
 
 
 def set_fig(**kwargs):

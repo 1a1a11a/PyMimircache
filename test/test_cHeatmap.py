@@ -23,7 +23,7 @@ if not os.path.exists(DAT_FOLDER):
         DAT_FOLDER = "../PyMimircache/data/"
 
 
-class cHeatmapTest(unittest.TestCase):
+class CHeatmapTest(unittest.TestCase):
     def test1_vReader(self):
         print("test1 vReader")
         reader = VscsiReader("{}/trace.vscsi".format(DAT_FOLDER))
@@ -37,9 +37,10 @@ class cHeatmapTest(unittest.TestCase):
         cH.heatmap(reader, 'r', "hr_st_et",
                    time_interval=10000000, num_of_threads=os.cpu_count(),
                    cache_size=200, figname="vReader_hr_st_et_LRU.png")
-        cH.heatmap(reader, 'r', "hr_interval_size",
+        cH.heatmap(reader, 'r', "hr_st_size",
+                   enable_ihr=True,
                    time_interval=10000000, num_of_threads=os.cpu_count(),
-                   cache_size=200, figname="vReader_hr_interval_size.png")
+                   cache_size=200, figname="vReader_ihr_st_size.png")
 
         cH.heatmap(reader, 'r', "rd_distribution",
                    time_interval=10000000, num_of_threads=os.cpu_count(),

@@ -12,6 +12,7 @@ this module provides functions for all the two dimensional figure plotting, curr
     interval_hit_ratio_2d
 
 
+In all these plots, the x-axis should be real or virtual time.
 
     TODO:
         add percentage to rd_popularity_2d
@@ -37,7 +38,7 @@ else:
     # raise RuntimeError("Py mode is not ready in twoDPlots")
 
 from PyMimircache.utils.printing import *
-from PyMimircache.profiler.utilProfiler import draw2d
+from PyMimircache.profiler.profilerUtils import draw2d
 
 __all__=[
     "request_rate_2d",
@@ -141,7 +142,8 @@ def cold_miss_ratio_2d(reader, time_mode, time_interval,
     kwargs_plot["xticks"] = kwargs_plot.get("xticks",
                         ticker.FuncFormatter(lambda x, pos: '{:2.0f}%'.format(x * 100 / len(break_points))))
 
-    assert time_mode == 'r' or time_mode == 'v', "currently only support time_mode r and v, unknown time_mode {}".format(time_mode)
+    assert time_mode == 'r' or time_mode == 'v', \
+        "currently only support time_mode r and v, unknown time_mode {}".format(time_mode)
     break_points = Heatmap.get_breakpoints(reader, time_mode, time_interval)
 
     cold_miss_list = [0] * (len(break_points) - 1)
@@ -486,8 +488,9 @@ def rt_popularity_2d(reader, granularity=10, logX=True, logY=False, cdf=True,
     return l
 
 
-def interval_hit_ratio_2d(reader, cache_size, decay_coef=0.2,
-                          time_mode="v", time_interval=10000, figname="IHRC_2d.png",
+def interval_hit_ratio_2d(reader, cache_size, decay_coef=0.8,
+                          time_mode="v", time_interval=10000,
+                          figname="IHRC_2d.png",
                           **kwargs):
     """
     The hit ratio curve over time interval, each pixel in the plot represents the
@@ -501,6 +504,8 @@ def interval_hit_ratio_2d(reader, cache_size, decay_coef=0.2,
     :param figname:
     :return: the list of data points
     """
+
+
     p = LRUProfiler(reader)
     # reuse distance list
     rd_list = p.get_reuse_distance()

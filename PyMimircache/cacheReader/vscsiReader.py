@@ -88,7 +88,7 @@ class VscsiReader(BinaryReader):
         :return: a copied reader
         """
 
-        return VscsiReader(self.file_loc, self.vscsi_type, self.block_unit_size, open_c_reader, self.lock)
+        return VscsiReader(self.file_loc, self.vscsi_type, self.block_unit_size, open_c_reader, lock=self.lock)
 
     def get_params(self):
         """

@@ -21,7 +21,7 @@ from concurrent.futures import as_completed, ProcessPoolExecutor
 from PyMimircache.cacheReader.abstractReader import AbstractReader
 from PyMimircache.const import *
 from PyMimircache.utils.printing import *
-from PyMimircache.profiler.utilProfiler import util_plotHRC
+from PyMimircache.profiler.profilerUtils import util_plotHRC
 
 
 __all__ = ["PyGeneralProfiler"]
@@ -45,16 +45,15 @@ def _cal_hit_count_subprocess(cache_class,
 
     if cache_params is None:
         cache_params = {}
+
+    # local reader and cache
     process_reader = reader_class(**reader_params)
-    cache = cache_class(cache_size, **cache_params)
+    process_cache = cache_class(cache_size, **cache_params)
     n_hits = 0
     n_misses = 0
 
-    n = 0
     for req in process_reader:
-        if n == 0:
-            n += 1
-        hit = cache.access(req, )
+        hit = process_cache.access(req, )
         if hit:
             n_hits += 1
         else:

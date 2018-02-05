@@ -92,6 +92,8 @@ def get_openmp_flag():
 def get_glib_flag():
     try:
         glib_cflag = subprocess.check_output("pkg-config --cflags glib-2.0", shell=True).decode().strip()
+        if not glib_cflag:
+            raise RuntimeError("cannot find glib cflag")
         return glib_cflag.split()
     except Exception as e:
         print(e)
@@ -100,6 +102,8 @@ def get_glib_flag():
 def get_glib_library():
     try:
         glib_lib = subprocess.check_output("pkg-config --libs glib-2.0 --libs gthread-2.0", shell=True).decode().strip()
+        if not glib_lib:
+            raise RuntimeError("cannot find glib lib")
         return glib_lib.split()
     except Exception as e:
         print(e)

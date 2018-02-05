@@ -1,14 +1,19 @@
-mimircache: a cache trace analysis platform
-===========================================
+PyMimircache: a Python3 cache analysis platform
+===============================================
 
-Release v\ |version|. 
+Release v\ |version|.
 
-Welcome to the documentation of mimircache, a Python3 cache trace analysis platform.
+Welcome to the documentation of PyMimircache, a Python3 cache analysis platform.
+The target users of PyMimircache are **researchers** and **system administrators**. The goal behind PyMimircache is to provide a platform that
 
-**The power of mimircache**:
-    >>> import mimircache as m
-    >>> c = m.Cachecow()
-    >>> c.vscsi("trace.vscsi")      # find this data under data folder, other type of data supported too
+- allow **researchers** to study and design cache replacement algorithms easily and efficiently.
+- allow **system administrators** to analyze and visualize their cache performance easily and efficiently.
+
+
+**The power of PyMimircache**:
+    >>> from PyMimircache import Cachecow
+    >>> c = Cachecow()
+    >>> c.vscsi("trace.vscsi")      # you can find this data under GitHub data folder, other type of data are supported too
     >>> print(c.stat())
     >>> print(c.get_reuse_distance())
     [-1 -1 -1 -1 -1 -1 11 7 11 8 8 8 -1 8]
@@ -24,12 +29,12 @@ Welcome to the documentation of mimircache, a Python3 cache trace analysis platf
     :width: 45%
 .. image::  User/images/github_heatmap.png
     :width: 48%
-    
+
 An example of hit ratio curve plot and hit ratio heatmap.
 
 
-The User Guide 
--------------- 
+The User Guide
+--------------
 .. toctree::
         :maxdepth: 2
 
@@ -49,23 +54,23 @@ The User Guide
 
 
 Supported Features
------------------- 
+------------------
 * Cache replacement algorithms simulation and trace visualization.
-* A variety of cache replacement algorithms support, including LRU, LFU, MRU, FIFO, Clock, Random, ARC, SLRU, optimal and etc. 
+* A variety of cache replacement algorithms, including LRU, LFU, MRU, FIFO, Clock, Random, ARC, SLRU, Optimal and etc.
 * Hit/miss ratio curve(HRC/MRC) plotting.
 * Efficient reuse distance calculation for LRU.
-* Heatmap plotting for visulizing hit/miss ratio change over time, average reuse distance over time, etc.
-* Reuse distance distribution plotting. 
+* Heatmap plotting for visulizing cache dynamics.
+* Reuse distance distribution plotting.
 * Cache replacement algorithm comparison.
 
 
-Customization 
-------------- 
-Now you can customize mimircache to fit your own need, you can
+Customization
+-------------
+Now you can customize PyMimircache to fit your own need, you can
 
-* provide your own cache reader for reading your special cache trace files. 
-* write your own profiling method for different cache replacement algorithms. 
-* write a middleware for sampling your cache traces for analysis. 
+* write your own cache reader for reading your special cache trace files.
+* write your cache replacement algorithms.
+* write a middleware for sampling your cache traces for analysis.
 
 
 

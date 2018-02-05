@@ -14,7 +14,9 @@ PyMimircache is a cache trace analysis platform that supports
 
 -   **easy plugging in your own cache replacement algorithm**
 
+Key idea behind PyMimircache is to provide researchers an easy-to-use and also efficient platform, while provide other users a platform that can be easily to used for data analysis.  
 
+ 
 Current support algorithms include Least Recent Used(LRU), Least Frequent
 Used(LFU), Most Recent Used(MRU), First In First Out(FIFO), Segmented LRU(SLRU),
 Clock, Random, Optimal, Adaptive Replacement Cache(ARC).
@@ -91,7 +93,7 @@ directly, we suggest using interactive shell which can help you debug.
 PyMimircache Tutorial
 -------------------
 
-We have prepared a wonderful tutorial here. [Check here for tutorial](http://PyMimircacheemory.readthedocs.io)
+We have prepared a wonderful tutorial here. [Check here for tutorial](http://pymimircache.readthedocs.io)
 
 ### PyMimircache Power
 
