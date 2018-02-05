@@ -24,45 +24,45 @@ class LRU(Cache):
         super().__init__(cache_size, **kwargs)
         self.cacheline_dict = OrderedDict()
 
-    def has(self, req_id, **kwargs):
+    def has(self, request_id, **kwargs):
         """
         check whether the given id in the cache or not
 
         :return: whether the given element is in the cache
         """
-        if req_id in self.cacheline_dict:
+        if request_id in self.cacheline_dict:
             return True
         else:
             return False
 
-    def _update(self, req_item, **kwargs):
+    def _update(self, request_item, **kwargs):
         """ the given element is in the cache,
         now update cache metadata and its content
 
         :param **kwargs:
-        :param req_item:
+        :param request_item:
         :return: None
         """
 
-        req_id = req_item
-        if isinstance(req_item, Req):
-            req_id = req_item.item_id
+        request_id = request_item
+        if isinstance(request_item, Req):
+            request_id = request_item.item_id
 
-        self.cacheline_dict.move_to_end(req_id)
+        self.cacheline_dict.move_to_end(request_id)
 
-    def _insert(self, req_item, **kwargs):
+    def _insert(self, request_item, **kwargs):
         """
         the given element is not in the cache, now insert it into cache
         :param **kwargs:
-        :param req_item:
+        :param request_item:
         :return: evicted element or None
         """
 
-        req_id = req_item
-        if isinstance(req_item, Req):
-            req_id = req_item.item_id
+        request_id = request_item
+        if isinstance(request_item, Req):
+            request_id = request_item.item_id
 
-        self.cacheline_dict[req_id] = True
+        self.cacheline_dict[request_id] = True
 
     def evict(self, **kwargs):
         """
@@ -72,28 +72,28 @@ class LRU(Cache):
         :return: id of evicted cacheline
         """
 
-        req_id = self.cacheline_dict.popitem(last=False)
-        return req_id
+        request_id = self.cacheline_dict.popitem(last=False)
+        return request_id
 
-    def access(self, req_item, **kwargs):
+    def access(self, request_item, **kwargs):
         """
         request access cache, it updates cache metadata,
         it is the underlying method for both get and put
 
         :param **kwargs:
-        :param req_item: the request from the trace, it can be in the cache, or not
+        :param request_item: the request from the trace, it can be in the cache, or not
         :return: None
         """
 
-        req_id = req_item
-        if isinstance(req_item, Req):
-            req_id = req_item.item_id
+        request_id = request_item
+        if isinstance(request_item, Req):
+            request_id = request_item.item_id
 
-        if self.has(req_id):
-            self._update(req_item)
+        if self.has(request_id):
+            self._update(request_item)
             return True
         else:
-            self._insert(req_item)
+            self._insert(request_item)
             if len(self.cacheline_dict) > self.cache_size:
                 self.evict()
             return False

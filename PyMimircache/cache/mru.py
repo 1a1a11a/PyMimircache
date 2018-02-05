@@ -5,7 +5,7 @@ from PyMimircache.cache.abstractCache import Cache
 class MRU(Cache):
     def __init__(self, cache_size=1000, **kwargs):
         super(MRU, self).__init__(cache_size, **kwargs)
-        self.cacheDict = dict()
+        self.cache_dict = dict()
         self.last_element = None
 
     def has(self, req_id, **kwargs):
@@ -14,7 +14,7 @@ class MRU(Cache):
         :param req_id:
         :return: whether the given element is in the cache
         """
-        if req_id in self.cacheDict:
+        if req_id in self.cache_dict:
             return True
         else:
             return False
@@ -34,16 +34,16 @@ class MRU(Cache):
         :param req_item:
         :return: True on success, False on failure
         """
-        if len(self.cacheDict) == self.cache_size:
+        if len(self.cache_dict) == self.cache_size:
             self.evict()
-        self.cacheDict[req_item] = req_item
+        self.cache_dict[req_item] = req_item
         self.last_element = req_item
 
     def find_evict_key(self):
         return self.last_element
 
     def _printCacheLine(self):
-        for key, value in self.cacheDict.items():
+        for key, value in self.cache_dict.items():
             print("{}: {}".format(key, value))
 
     def evict(self, **kwargs):
@@ -53,7 +53,7 @@ class MRU(Cache):
         :return: True on success, False on failure
         """
         evict_key = self.find_evict_key()
-        del self.cacheDict[evict_key]
+        del self.cache_dict[evict_key]
 
     def access(self, req_item, **kwargs):
         """
@@ -70,7 +70,7 @@ class MRU(Cache):
             return False
 
     def __repr__(self):
-        return "MRU, given size: {}, current size: {}".format(self.cache_size, len(self.cacheDict))
+        return "MRU, given size: {}, current size: {}".format(self.cache_size, len(self.cache_dict))
 
     def __str__(self):
         return self.__repr__()

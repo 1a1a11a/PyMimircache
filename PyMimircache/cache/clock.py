@@ -18,7 +18,7 @@ class Clock(LRU):
         :param request_item:
         :return: None
         """
-        node = self.cacheDict[request_item]
+        node = self.cache_dict[request_item]
         node.id = 1
 
     def _insert(self, request_item, **kwargs):
@@ -32,7 +32,7 @@ class Clock(LRU):
             self.evict()
 
         node = self.cacheLinkedList.insert_at_tail(request_item, id=1)
-        self.cacheDict[request_item] = node
+        self.cache_dict[request_item] = node
         if not self.hand:
             # this is the first request_item
             assert self.cacheLinkedList.size == 1, "insert request_item error"
@@ -74,7 +74,7 @@ class Clock(LRU):
         """
         node = self._find_evict_node()
         self.cacheLinkedList.remove_node(node)
-        del self.cacheDict[node.content]
+        del self.cache_dict[node.content]
 
         return True
 
@@ -87,22 +87,22 @@ class Clock(LRU):
         if self.has(request_item, ):
             self._update(request_item, )
             # self.printCacheLine()
-            if len(self.cacheDict) != self.cacheLinkedList.size:
+            if len(self.cache_dict) != self.cacheLinkedList.size:
                 print(
                     "1*********########### ERROR detected in LRU size #############***********")
                 print("{}: {}".format(
-                    self.cacheLinkedList.size, len(self.cacheDict)))
+                    self.cacheLinkedList.size, len(self.cache_dict)))
                 import sys
                 sys.exit(-1)
             return True
         else:
             self._insert(request_item, )
             # self.printCacheLine()
-            if len(self.cacheDict) != self.cacheLinkedList.size:
+            if len(self.cache_dict) != self.cacheLinkedList.size:
                 print(
                     "2*********########### ERROR detected in LRU size #############***********")
                 print("{}: {}".format(
-                    self.cacheLinkedList.size, len(self.cacheDict)))
+                    self.cacheLinkedList.size, len(self.cache_dict)))
                 import sys
                 sys.exit(-1)
             return False

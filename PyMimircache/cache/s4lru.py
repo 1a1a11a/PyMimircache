@@ -59,9 +59,9 @@ class S4LRU(Cache):
         """
 
         # get the node and remove from lowerLRU
-        node = lowerLRU.cacheDict[element]
+        node = lowerLRU.cache_dict[element]
         lowerLRU.cacheLinkedList.remove_node(node)
-        del lowerLRU.cacheDict[element]
+        del lowerLRU.cache_dict[element]
 
         # insert into upperLRU
         evicted_key = upperLRU._insert(node.content, )

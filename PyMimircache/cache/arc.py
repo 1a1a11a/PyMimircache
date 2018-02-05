@@ -34,12 +34,12 @@ class ARC(Cache):
         self.lru_list_head_p2 = None
 
         # key -> linked list node (in reality, it should also contains value)
-        self.cacheDict1 = dict()
+        self.cache_dict1 = dict()
         # key -> linked list node (in reality, it should also contains value)
-        self.cacheDict2 = dict()
-        self.cacheDict1_ghost = defaultdict(
+        self.cache_dict2 = dict()
+        self.cache_dict1_ghost = defaultdict(
             lambda: 0)  # key -> linked list node (in reality, it should also contains value)
-        self.cacheDict2_ghost = defaultdict(
+        self.cache_dict2_ghost = defaultdict(
             lambda: 0)  # key -> linked list node (in reality, it should also contains value)
 
     def has(self, req_id, **kwargs):
@@ -48,7 +48,7 @@ class ARC(Cache):
         :param req_id: the element for search
         :return: whether the given element is in the cache
         """
-        if req_id in self.cacheDict1 or req_id in self.cacheDict2:
+        if req_id in self.cache_dict1 or req_id in self.cache_dict2:
             return True
         else:
             return False
@@ -58,7 +58,7 @@ class ARC(Cache):
         :param element: the element for search
         :return: whether the given element is in the cache
         """
-        if element in self.cacheDict1_ghost or element in self.cacheDict2_ghost:
+        if element in self.cache_dict1_ghost or element in self.cache_dict2_ghost:
             return True
         else:
             return False
@@ -69,27 +69,27 @@ class ARC(Cache):
         :param req_item:
         :return: None
         """
-        if req_item in self.cacheDict1:
+        if req_item in self.cache_dict1:
             # move to part2
             # get the node and remove from part1, size of part1 reduced by 1
-            node = self.cacheDict1[req_item]
+            node = self.cache_dict1[req_item]
 
             if node == self.lru_list_head_p1:
                 self.lru_list_head_p1 = self.lru_list_head_p1.next
             self.linkedList1.remove_node(node)
 
-            del self.cacheDict1[req_item]
+            del self.cache_dict1[req_item]
 
             # insert into part2
             self.linkedList2.insert_node_at_tail(node)
-            self.cacheDict2[node.content] = node
+            self.cache_dict2[node.content] = node
             # delete one from part1, insert one into part2, the total size should not change, just the balance changes
             # check whether lru_list_head_p2 has been initialized or not
             if not self.lru_list_head_p2:
                 self.lru_list_head_p2 = node
 
         else:
-            node = self.cacheDict2[req_item]
+            node = self.cache_dict2[req_item]
             if node == self.lru_list_head_p2 and node.next:
                 self.lru_list_head_p2 = self.lru_list_head_p2.next
 
@@ -109,7 +109,7 @@ class ARC(Cache):
 
         # insert into part 1
         node = self.linkedList1.insert_at_tail(req_item)
-        self.cacheDict1[req_item] = node
+        self.cache_dict1[req_item] = node
         if not self.lru_list_head_p1:
             self.lru_list_head_p1 = node
         self.inserted_element = req_item
@@ -140,89 +140,89 @@ class ARC(Cache):
         """
         return_content = None
 
-        if self.inserted_element and self.inserted_element in self.cacheDict1_ghost and len(self.cacheDict2) > 0:
+        if self.inserted_element and self.inserted_element in self.cache_dict1_ghost and len(self.cache_dict2) > 0:
             # evict one from part2 LRU, add into ghost list
             return_content = content = self.lru_list_head_p2.content
-            del self.cacheDict2[content]
+            del self.cache_dict2[content]
             self.lru_list_head_p2 = self.lru_list_head_p2.next
-            self.cacheDict2_ghost[content] += 1
+            self.cache_dict2_ghost[content] += 1
 
-            if (self.linkedList2.size - len(self.cacheDict2)) > self.ghostlist_size:
+            if (self.linkedList2.size - len(self.cache_dict2)) > self.ghostlist_size:
                 # the first part is the size of ghost list of part2
                 content = self.linkedList2.remove_from_head()
-                if self.cacheDict2_ghost[content] == 1:
-                    del self.cacheDict2_ghost[content]
+                if self.cache_dict2_ghost[content] == 1:
+                    del self.cache_dict2_ghost[content]
                 else:
-                    self.cacheDict2_ghost[content] -= 1
+                    self.cache_dict2_ghost[content] -= 1
                 assert (self.linkedList2.size -
-                        len(self.cacheDict2)) == self.ghostlist_size
+                        len(self.cache_dict2)) == self.ghostlist_size
 
-        elif self.inserted_element and self.inserted_element in self.cacheDict2_ghost and len(self.cacheDict1) > 0:
+        elif self.inserted_element and self.inserted_element in self.cache_dict2_ghost and len(self.cache_dict1) > 0:
             # evict one from part1 LRU, add into ghost list
             return_content = content = self.lru_list_head_p1.content
-            del self.cacheDict1[content]
+            del self.cache_dict1[content]
 
             self.lru_list_head_p1 = self.lru_list_head_p1.next
-            self.cacheDict1_ghost[content] += 1
+            self.cache_dict1_ghost[content] += 1
 
-            if (self.linkedList1.size - len(self.cacheDict1)) > self.ghostlist_size:
+            if (self.linkedList1.size - len(self.cache_dict1)) > self.ghostlist_size:
                 # the first part is the size of ghost list of part1
                 content = self.linkedList1.remove_from_head()
-                if self.cacheDict1_ghost[content] == 1:
-                    del self.cacheDict1_ghost[content]
+                if self.cache_dict1_ghost[content] == 1:
+                    del self.cache_dict1_ghost[content]
                 else:
-                    self.cacheDict1_ghost[content] -= 1
+                    self.cache_dict1_ghost[content] -= 1
                 assert (self.linkedList1.size -
-                        len(self.cacheDict1)) == self.ghostlist_size
+                        len(self.cache_dict1)) == self.ghostlist_size
 
         else:
             # not in any ghost list, check p value
-            if len(self.cacheDict2) == 0 or len(self.cacheDict1) / len(self.cacheDict2) > self.p:
+            if len(self.cache_dict2) == 0 or len(self.cache_dict1) / len(self.cache_dict2) > self.p:
                 # remove from part1
                 return_content = content = self.lru_list_head_p1.content
-                del self.cacheDict1[content]
+                del self.cache_dict1[content]
 
                 self.lru_list_head_p1 = self.lru_list_head_p1.next
-                self.cacheDict1_ghost[content] += 1
+                self.cache_dict1_ghost[content] += 1
 
-                if (self.linkedList1.size - len(self.cacheDict1)) > self.ghostlist_size:
+                if (self.linkedList1.size - len(self.cache_dict1)) > self.ghostlist_size:
                     # the first part is the size of ghost list of part1
                     content = self.linkedList1.remove_from_head()
-                    if self.cacheDict1_ghost[content] == 1:
-                        del self.cacheDict1_ghost[content]
+                    if self.cache_dict1_ghost[content] == 1:
+                        del self.cache_dict1_ghost[content]
                     else:
-                        self.cacheDict1_ghost[content] -= 1
+                        self.cache_dict1_ghost[content] -= 1
                     assert (self.linkedList1.size -
-                            len(self.cacheDict1)) == self.ghostlist_size
+                            len(self.cache_dict1)) == self.ghostlist_size
             else:
                 # remove from part2
                 return_content = content = self.lru_list_head_p2.content
-                del self.cacheDict2[content]
+                del self.cache_dict2[content]
 
                 self.lru_list_head_p2 = self.lru_list_head_p2.next
-                self.cacheDict2_ghost[content] += 1
+                self.cache_dict2_ghost[content] += 1
 
-                if (self.linkedList2.size - len(self.cacheDict2)) > self.ghostlist_size:
+                if (self.linkedList2.size - len(self.cache_dict2)) > self.ghostlist_size:
                     # the first part is the size of ghost list of part2
                     content = self.linkedList2.remove_from_head()
-                    if self.cacheDict2_ghost[content] == 1:
-                        del self.cacheDict2_ghost[content]
+                    if self.cache_dict2_ghost[content] == 1:
+                        del self.cache_dict2_ghost[content]
                     else:
-                        self.cacheDict2_ghost[content] -= 1
+                        self.cache_dict2_ghost[content] -= 1
                     assert (self.linkedList2.size -
-                            len(self.cacheDict2)) == self.ghostlist_size
+                            len(self.cache_dict2)) == self.ghostlist_size
 
         return return_content
 
     # for debug
     def _check_lru_list_p(self):
-        size1 = sum(i for i in self.cacheDict1_ghost.values())
+        size1 = sum(i for i in self.cache_dict1_ghost.values())
         node1 = self.linkedList1.head.next
         for i in range(size1):
             node1 = node1.next
         assert node1 == self.lru_list_head_p1, "LRU list1 head pointer wrong"
 
-        size2 = sum(i for i in self.cacheDict2_ghost.values())
+        size2 = sum(i for i in self.cache_dict2_ghost.values())
         node2 = self.linkedList2.head.next
         for i in range(size2):
             node2 = node2.next

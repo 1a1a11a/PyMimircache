@@ -42,9 +42,9 @@ class SLRU(Cache):
             # evict from protected to probationary if needed
 
             # get the node and remove from probationary
-            node = self.probationary.cacheDict[req_item]
+            node = self.probationary.cache_dict[req_item]
             self.probationary.cacheLinkedList.remove_node(node)
-            del self.probationary.cacheDict[req_item]
+            del self.probationary.cache_dict[req_item]
 
             # insert into protected
             evicted_key = self.protected._insert(node.content, )
