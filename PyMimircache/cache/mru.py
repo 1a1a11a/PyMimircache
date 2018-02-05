@@ -42,7 +42,7 @@ class MRU(Cache):
     def find_evict_key(self):
         return self.last_element
 
-    def _printCacheLine(self):
+    def _print_cache_line(self):
         for key, value in self.cache_dict.items():
             print("{}: {}".format(key, value))
 

@@ -110,7 +110,7 @@ Writing your own cache in Python is not difficult, just inherit abstractCache.py
             self.cache_dict[element] = ""
             self.cache_line_list.append(element)
 
-        def _printCacheLine(self):
+        def _print_cache_line(self):
             for i in self.cache_dict:
                 try:
                     print(i.content, end='\t')

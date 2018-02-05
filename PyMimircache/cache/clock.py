@@ -12,33 +12,33 @@ class Clock(LRU):
         super(Clock, self).__init__(cache_size, **kwargs)
         self.hand = None  # points to the node for examination/eviction
 
-    def _update(self, request_item, **kwargs):
+    def _update(self, req_item, **kwargs):
         """ the given element is in the cache, now update it
         :param **kwargs:
-        :param request_item:
+        :param req_item:
         :return: None
         """
-        node = self.cache_dict[request_item]
+        node = self.cache_dict[req_item]
         node.id = 1
 
-    def _insert(self, request_item, **kwargs):
+    def _insert(self, req_item, **kwargs):
         """
         the given element is not in the cache, now insert it into cache
         :param **kwargs:
-        :param request_item:
+        :param req_item:
         :return: True on success, False on failure
         """
         if self.cache_linked_list.size >= self.cache_size:
             self.evict()
 
-        node = self.cache_linked_list.insert_at_tail(request_item, id=1)
-        self.cache_dict[request_item] = node
+        node = self.cache_linked_list.insert_at_tail(req_item, id=1)
+        self.cache_dict[req_item] = node
         if not self.hand:
-            # this is the first request_item
-            assert self.cache_linked_list.size == 1, "insert request_item error"
+            # this is the first req_item
+            assert self.cache_linked_list.size == 1, "insert req_item error"
             self.hand = node
 
-    def _printCacheLine(self):
+    def _print_cache_line(self):
         for i in self.cache_linked_list:
             try:
                 print("{}({})".format(i.content, i.id), end='\t')
@@ -78,14 +78,14 @@ class Clock(LRU):
 
         return True
 
-    def access(self, request_item, **kwargs):
+    def access(self, req_item, **kwargs):
         """
         :param **kwargs: 
-        :param request_item: the element in the reference, it can be in the cache, or not
+        :param req_item: the element in the reference, it can be in the cache, or not
         :return: None
         """
-        if self.has(request_item, ):
-            self._update(request_item, )
+        if self.has(req_item, ):
+            self._update(req_item, )
             # self.printCacheLine()
             if len(self.cache_dict) != self.cache_linked_list.size:
                 print(
@@ -96,7 +96,7 @@ class Clock(LRU):
                 sys.exit(-1)
             return True
         else:
-            self._insert(request_item, )
+            self._insert(req_item, )
             # self.printCacheLine()
             if len(self.cache_dict) != self.cache_linked_list.size:
                 print(

@@ -7,7 +7,6 @@
 
 """
 
-
 from collections import OrderedDict
 from PyMimircache.cache.abstractCache import Cache
 from PyMimircache.cacheReader.requestItem import Req
@@ -24,45 +23,45 @@ class LRU(Cache):
         super().__init__(cache_size, **kwargs)
         self.cacheline_dict = OrderedDict()
 
-    def has(self, request_id, **kwargs):
+    def has(self, req_id, **kwargs):
         """
         check whether the given id in the cache or not
 
         :return: whether the given element is in the cache
         """
-        if request_id in self.cacheline_dict:
+        if req_id in self.cacheline_dict:
             return True
         else:
             return False
 
-    def _update(self, request_item, **kwargs):
+    def _update(self, req_item, **kwargs):
         """ the given element is in the cache,
         now update cache metadata and its content
 
         :param **kwargs:
-        :param request_item:
+        :param req_item:
         :return: None
         """
 
-        request_id = request_item
-        if isinstance(request_item, Req):
-            request_id = request_item.item_id
+        req_id = req_item
+        if isinstance(req_item, Req):
+            req_id = req_item.item_id
 
-        self.cacheline_dict.move_to_end(request_id)
+        self.cacheline_dict.move_to_end(req_id)
 
-    def _insert(self, request_item, **kwargs):
+    def _insert(self, req_item, **kwargs):
         """
         the given element is not in the cache, now insert it into cache
         :param **kwargs:
-        :param request_item:
+        :param req_item:
         :return: evicted element or None
         """
 
-        request_id = request_item
-        if isinstance(request_item, Req):
-            request_id = request_item.item_id
+        req_id = req_item
+        if isinstance(req_item, Req):
+            req_id = req_item.item_id
 
-        self.cacheline_dict[request_id] = True
+        self.cacheline_dict[req_id] = True
 
     def evict(self, **kwargs):
         """
@@ -72,28 +71,28 @@ class LRU(Cache):
         :return: id of evicted cacheline
         """
 
-        request_id = self.cacheline_dict.popitem(last=False)
-        return request_id
+        req_id = self.cacheline_dict.popitem(last=False)
+        return req_id
 
-    def access(self, request_item, **kwargs):
+    def access(self, req_item, **kwargs):
         """
         request access cache, it updates cache metadata,
         it is the underlying method for both get and put
 
         :param **kwargs:
-        :param request_item: the request from the trace, it can be in the cache, or not
+        :param req_item: the request from the trace, it can be in the cache, or not
         :return: None
         """
 
-        request_id = request_item
-        if isinstance(request_item, Req):
-            request_id = request_item.item_id
+        req_id = req_item
+        if isinstance(req_item, Req):
+            req_id = req_item.item_id
 
-        if self.has(request_id):
-            self._update(request_item)
+        if self.has(req_id):
+            self._update(req_item)
             return True
         else:
-            self._insert(request_item)
+            self._insert(req_item)
             if len(self.cacheline_dict) > self.cache_size:
                 self.evict()
             return False
@@ -103,4 +102,5 @@ class LRU(Cache):
 
     def __repr__(self):
         return "LRU cache of size: {}, current size: {}, {}".\
-            format(self.cache_size, self.cache_linked_list.size, super().__repr__())
+            format(self.cache_size, self.cache_linked_list.size,
+                   super().__repr__())

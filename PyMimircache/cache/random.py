@@ -55,7 +55,7 @@ class Random(Cache):
 
         self.cache_set.add(req_item)
 
-    def _printCacheLine(self):
+    def _print_cache_line(self):
         for i in self.cache_set:
             try:
                 print(i.content, end='\t')

@@ -115,7 +115,7 @@ class ARC(Cache):
         self.inserted_element = req_item
         return return_content
 
-    def _printCacheLine(self):
+    def _print_cache_line(self):
         print('list 1(including ghost list): ')
         for i in self.linkedList1:
             try:

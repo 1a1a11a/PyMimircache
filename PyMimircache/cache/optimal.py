@@ -63,7 +63,7 @@ class Optimal(Cache):
             self.pq[req_item] = -self.next_access[self.ts] - self.ts
             # self.seenset.add(req_item)
 
-    def _printCacheLine(self):
+    def _print_cache_line(self):
         print("size %d" % len(self.pq))
         for i in self.pq:
             print(i, end='\t')

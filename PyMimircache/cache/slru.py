@@ -62,11 +62,11 @@ class SLRU(Cache):
         """
         return self.probationary._insert(req_item, )
 
-    def _printCacheLine(self):
+    def _print_cache_line(self):
         print("protected: ")
-        self.protected._printCacheLine()
+        self.protected._print_cache_line()
         print("probationary: ")
-        self.probationary._printCacheLine()
+        self.probationary._print_cache_line()
 
     def evict(self, **kwargs):
         """

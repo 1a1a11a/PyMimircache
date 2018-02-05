@@ -79,15 +79,15 @@ class S4LRU(Cache):
         """
         return self.fourthLRU._insert(req_item, )
 
-    def _printCacheLine(self):
+    def _print_cache_line(self):
         print("first: ")
-        self.firstLRU._printCacheLine()
+        self.firstLRU._print_cache_line()
         print("second: ")
-        self.secondLRU._printCacheLine()
+        self.secondLRU._print_cache_line()
         print("third: ")
-        self.thirdLRU._printCacheLine()
+        self.thirdLRU._print_cache_line()
         print("fourth: ")
-        self.fourthLRU._printCacheLine()
+        self.fourthLRU._print_cache_line()
 
     def evict(self, **kwargs):
         """
