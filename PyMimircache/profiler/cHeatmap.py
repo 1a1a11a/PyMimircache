@@ -74,7 +74,7 @@ class CHeatmap:
                 **kwargs):
         """
 
-        This functions provides heatmap plotting
+        This functions provides different types of heatmap plotting
 
         :param reader: the reader instance for data input
         :param time_mode: either real time (r) or virtual time (v),
@@ -85,7 +85,7 @@ class CHeatmap:
         :param time_interval: the time interval of each pixel
         :param num_of_pixel_of_time_dim: if don't want to specify time_interval, you can also specify how many pixels you want
         :param cache_params: params used in cache
-        :param kwargs: include num_of_threads, figname, ewma_coefficient(default: 0.8)
+        :param kwargs: include num_of_threads, figname, enable_ihr, ema_coef(default: 0.8)
         :return:
 
 
@@ -93,7 +93,6 @@ class CHeatmap:
         plot_type                       required parameters         descriptions
         ============================  ========================  ===========================================================================
         "hr_st_et"                      cache_size              hit ratio with regarding to start time (x) and end time (y)
-        "hr_interval_size"              cache_size              interval hit ratio with regarding to time (x) and size (y)
         "hr_st_size"                    NOT IMPLEMENTED         hit ratio with reagarding to start time (x) and size (y)
         "avg_rd_st_et"                  NOT IMPLEMENTED         average reuse distance with regaarding to start time (x) and end time (y)
         "rd_distribution"               N/A                     reuse distance distribution (y) vs time (x)
@@ -111,11 +110,13 @@ class CHeatmap:
         reader.reset()
 
         cache_size = kwargs.get("cache_size", -1)
-        figname = kwargs.get("figname", "heatmap.png")
+        figname = kwargs.get("figname", "CHeatmap_{}.png".format(plot_type))
         num_of_threads = kwargs.get("num_of_threads", os.cpu_count())
         assert time_mode in ["r", "v"], "Cannot recognize this time_mode, "\
                                         "it can only be either real time(r) or virtual time(v), " \
                                         "but you give {}".format(time_mode)
+        assert algorithm.lower() in const.C_AVAIL_CACHE, \
+            "No support for given algorithm in CMimircache, please try PyHeatmap" + str(algorithm)
 
 
         if plot_type == "hit_ratio_start_time_end_time" or plot_type == "hr_st_et":
@@ -126,23 +127,20 @@ class CHeatmap:
             # the hit ratio in current time interval, the ewma_coefficient specifies the ratio of
             # history hit ratio in the calculation
             enable_ihr = False
-            ewma_coefficient  = DEF_EMA_HISTORY_WEIGHT
+            ema_coef  = DEF_EMA_HISTORY_WEIGHT
             if 'interval_hit_ratio'in kwargs or "enable_ihr" in kwargs:
                 enable_ihr = kwargs.get("interval_hit_ratio", False) or kwargs.get("enable_ihr", False)
-                ewma_coefficient  = kwargs.get("ewma_coefficient", DEF_EMA_HISTORY_WEIGHT)
+                ema_coef  = kwargs.get("ema_coef", DEF_EMA_HISTORY_WEIGHT)
 
-            if algorithm.lower() in const.C_AVAIL_CACHE:
-                xydict = c_heatmap.heatmap(reader.cReader, time_mode, plot_type,
-                                                      cache_size, algorithm,
-                                                      interval_hit_ratio=enable_ihr,
-                                                      ewma_coefficient=ewma_coefficient,
-                                                      time_interval=time_interval,
-                                                      num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
-                                                      cache_params=cache_params,
-                                                      num_of_threads=num_of_threads)
-            else:
-                raise RuntimeError("haven't provided support given algorithm in C yet: " + str(algorithm))
-                pass
+            xydict = c_heatmap.heatmap(reader.cReader, time_mode, plot_type,
+                                                  cache_size, algorithm,
+                                                  interval_hit_ratio=enable_ihr,
+                                                  ewma_coefficient=ema_coef,
+                                                  time_interval=time_interval,
+                                                  num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
+                                                  cache_params=cache_params,
+                                                  num_of_threads=num_of_threads)
+
 
             text = "      " \
                    "cache size: {},\n      cache type: {},\n      " \
@@ -152,8 +150,7 @@ class CHeatmap:
 
             # coordinate to put the text
             x1, y1 = xydict.shape
-            x1 = int(x1 / 2.8)
-            y1 /= 8
+            x1, y1 = int(x1 / 2.8), y1 / 8
 
             xlabel = 'Start Time ({})'.format(time_mode)
             xticks = ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (xydict.shape[1]-1)))
@@ -163,22 +160,32 @@ class CHeatmap:
             ax = plt.gca()
             ax.text(x1, y1, text)  # , fontsize=20)  , color='blue')
 
-            if not figname:
-                figname = '_'.join([algorithm, str(cache_size), plot_type]) + '.png'
-
             plot_data = np.ma.array(xydict, mask=np.tri(len(xydict), dtype=int).T)
             self.draw_heatmap(plot_data, figname=figname, fixed_range=(0, 1),
                               xlabel=xlabel, ylabel=ylabel, xticks=xticks, yticks=yticks)
 
 
-        elif plot_type == "hr_interval_size":
-            assert cache_size != -1, "please provide cache_size parameter for plotting hr_st_et"
-            ewma_coefficient = kwargs.get("ewma_coefficient", DEF_EMA_HISTORY_WEIGHT)
+        elif plot_type == "hit_ratio_start_time_cache_size" or plot_type == "hr_st_size":
+            assert cache_size != -1, "please provide cache_size parameter for plotting ihr_st_size"
+
+            enable_ihr = False
+            ema_coef  = DEF_EMA_HISTORY_WEIGHT
             bin_size = kwargs.get("bin_size", cache_size // DEF_NUM_BIN_PROF + 1)
+            if 'interval_hit_ratio'in kwargs or "enable_ihr" in kwargs:
+                enable_ihr = kwargs.get("interval_hit_ratio", False) or kwargs.get("enable_ihr", False)
+                ema_coef  = kwargs.get("ema_coef", DEF_EMA_HISTORY_WEIGHT)
+
+            # a temporary fix as hr_st_size is not implemented in C, only hr_st_size with enable_ihr
+
+            if not enable_ihr:
+                raise RuntimeError("NOT Implemented")
+
+            else:
+                plot_type = "hr_interval_size"
 
             xydict = c_heatmap.heatmap(reader.cReader, time_mode, plot_type,
                                                   cache_size, algorithm,
-                                                  ewma_coefficient=ewma_coefficient,
+                                                  ewma_coefficient=ema_coef,
                                                   bin_size = bin_size,
                                                   time_interval=time_interval,
                                                   num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
@@ -189,17 +196,12 @@ class CHeatmap:
             xticks = ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (xydict.shape[1]-1)))
             ylabel = "Cache Size"
             yticks = ticker.FuncFormatter(lambda x, _: int(x*bin_size))
-            title = "Interval Hit Ratio With Size (ewma {})".format(ewma_coefficient)
 
             plot_data = xydict
-
-            if not figname:
-                figname = '_'.join([algorithm, str(cache_size), plot_type]) + '.png'
             self.draw_heatmap(plot_data, figname=figname, fixed_range=(0, 1),
-                              xlabel=xlabel, ylabel=ylabel, xticks=xticks, yticks=yticks, title=title)
+                              xlabel=xlabel, ylabel=ylabel, xticks=xticks, yticks=yticks)
 
-        elif plot_type == "hit_ratio_start_time_cache_size" or plot_type == "hr_st_size":
-            raise RuntimeError("NOT Implemented")
+
 
 
         elif plot_type == "avg_rd_start_time_end_time" or plot_type == "avg_rd_st_et":
@@ -211,9 +213,6 @@ class CHeatmap:
 
 
         elif plot_type == "rd_distribution":
-            if not figname:
-                figname = 'rd_distribution.png'
-
             xydict, log_base = c_heatmap.\
                 hm_rd_distribution(reader.cReader, time_mode,
                                    time_interval=time_interval,
@@ -247,9 +246,6 @@ class CHeatmap:
 
 
         elif plot_type == "rd_distribution_CDF":
-            if not figname:
-                figname = 'rd_distribution_CDF.png'
-
             xydict, log_base = c_heatmap.\
                 hm_rd_distribution(reader.cReader, time_mode,
                                    time_interval=time_interval,
@@ -281,9 +277,6 @@ class CHeatmap:
 
 
         elif plot_type == "future_rd_distribution":
-            if not figname:
-                figname = 'future_rd_distribution.png'
-
             xydict, log_base = c_heatmap.\
                 hm_future_rd_distribution(reader.cReader, time_mode,
                                           time_interval=time_interval,
@@ -314,9 +307,6 @@ class CHeatmap:
                               imshow_kwargs=imshow_kwargs)
 
         elif plot_type == "dist_distribution":
-            if not figname:
-                figname = 'dist_distribution.png'
-
             xydict, log_base = c_heatmap.\
                 hm_dist_distribution(reader.cReader, time_mode,
                                      time_interval=time_interval,
@@ -348,9 +338,6 @@ class CHeatmap:
 
 
         elif plot_type == "reuse_time_distribution" or plot_type == "rt_distribution":
-            if not figname:
-                figname = 'rt_distribution.png'
-
             xydict, log_base = c_heatmap.\
                 hm_reuse_time_distribution(reader.cReader, time_mode,
                                            time_interval=time_interval,

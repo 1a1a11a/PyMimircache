@@ -7,10 +7,10 @@ The study of cache has a long history, however, there is no single open-source p
 
 The target users of PyMimircache are **researchers** and **system administrators**. The goal behind PyMimircache is to provide a platform that
 
-- allow **researchers** to study and design cache replacement algorithms easily and efficiently.
+- allow **researchers** to study and design cache easily and efficiently.
 - allow **system administrators** to analyze and visualize their cache performance easily and efficiently.
 
-The KEY philosophy is that we would like to design a cache analysis platform that is **efficient**, **flexible** and **easy to use**. With two in mind, we designed PyMimircache in Python3 for easy use and we implemented state-of-the-art algorithms in C as backend for efficiency. However, PyMimircache can also be used without C backend, in other words, PyMimircache depends on CMimircache (backend), but you can either of them independently.
+The KEY philosophy is that we would like to design a cache analysis platform that is **efficient**, **flexible** and **easy to use**. With these in mind, we designed PyMimircache in Python3 for easy usage and we implemented state-of-the-art algorithms in C as backend for efficiency. However, PyMimircache can also be used without C backend, in other words, PyMimircache depends on CMimircache (backend), but you can use either of them independently. Besides, PyMimircache allows user to plug in external reader for reading special data and allows user to write their own cache replacement algorithm easily.
 
 
 Evaluate and Design Algorithm
@@ -35,11 +35,11 @@ In this part, we have figures that show you the hit ratio over time, request rat
 
 Performance, Flexibility and Easy-to-Use
 ****************************************
-Three feature provided by PyMimircache are **high performance**, **flexible on input**, and **easy to use**.
+Three feature provided by PyMimircache are **high performance**, **flexibility**, and **easy usage**.
 
 - **Performance**: PyMimircache uses CMimircache with state-of-the-art algorithm as backend for best performance.
 - **Flexibility**: PyMimircache can also be used without CMimircache, thus using all Python based modules. However, both usages have the same interface, no need to learn different tools. Besides, PyMimircache supports three types of readers, PlainReader for reading plain text data, CsvReader for reading csv data, BinaryReader for reading arbitrary binary data. We also supports VscsiReader for reading vscsi data, which is a special type of binary data. If your data is in special format, don't worry, you can easily implement your own reader, within a few lines, you are good to go!
-- **Easy-to-use**: We provide Cachecow as the top level interface, with provides most of the common usages. Besides, you can easily plug in new algorithms to see whether it can provide better performance than existing algorithms.
+- **Easy Usage**: We provide Cachecow as the top level interface, with provides most of the common usages. Besides, you can easily plug in new algorithms to see whether it can provide better performance than existing algorithms.
 
 
 Work in Progress
