@@ -28,8 +28,8 @@ class ARC(Cache):
         self.inserted_element = None    # used to record the element just inserted
 
         # dict/list2 is for referenced more than once
-        self.linkedList1 = LinkedList()
-        self.linkedList2 = LinkedList()
+        self.linked_list_1 = LinkedList()
+        self.linked_list_2 = LinkedList()
         self.lru_list_head_p1 = None
         self.lru_list_head_p2 = None
 
@@ -76,12 +76,12 @@ class ARC(Cache):
 
             if node == self.lru_list_head_p1:
                 self.lru_list_head_p1 = self.lru_list_head_p1.next
-            self.linkedList1.remove_node(node)
+            self.linked_list_1.remove_node(node)
 
             del self.cache_dict1[req_item]
 
             # insert into part2
-            self.linkedList2.insert_node_at_tail(node)
+            self.linked_list_2.insert_node_at_tail(node)
             self.cache_dict2[node.content] = node
             # delete one from part1, insert one into part2, the total size should not change, just the balance changes
             # check whether lru_list_head_p2 has been initialized or not
@@ -93,7 +93,7 @@ class ARC(Cache):
             if node == self.lru_list_head_p2 and node.next:
                 self.lru_list_head_p2 = self.lru_list_head_p2.next
 
-            self.linkedList2.move_node_to_tail(node)
+            self.linked_list_2.move_node_to_tail(node)
 
     def _insert(self, req_item, **kwargs):
         """
@@ -103,12 +103,12 @@ class ARC(Cache):
         :return: evicted element or None
         """
         return_content = None
-        if self.linkedList1.size + self.linkedList2.size >= self.cache_size:
+        if self.linked_list_1.size + self.linked_list_2.size >= self.cache_size:
             # needs to evict one req_item, depend on ghost list to decide evict from part1 or part2
             return_content = self.evict()
 
         # insert into part 1
-        node = self.linkedList1.insert_at_tail(req_item)
+        node = self.linked_list_1.insert_at_tail(req_item)
         self.cache_dict1[req_item] = node
         if not self.lru_list_head_p1:
             self.lru_list_head_p1 = node
@@ -117,13 +117,13 @@ class ARC(Cache):
 
     def _print_cache_line(self):
         print('list 1(including ghost list): ')
-        for i in self.linkedList1:
+        for i in self.linked_list_1:
             try:
                 print(i.content, end='\t')
             except:
                 print(i.content)
         print('\nlist 2(including ghost list): ')
-        for i in self.linkedList2:
+        for i in self.linked_list_2:
             try:
                 print(i.content, end='\t')
             except:
@@ -147,14 +147,14 @@ class ARC(Cache):
             self.lru_list_head_p2 = self.lru_list_head_p2.next
             self.cache_dict2_ghost[content] += 1
 
-            if (self.linkedList2.size - len(self.cache_dict2)) > self.ghostlist_size:
+            if (self.linked_list_2.size - len(self.cache_dict2)) > self.ghostlist_size:
                 # the first part is the size of ghost list of part2
-                content = self.linkedList2.remove_from_head()
+                content = self.linked_list_2.remove_from_head()
                 if self.cache_dict2_ghost[content] == 1:
                     del self.cache_dict2_ghost[content]
                 else:
                     self.cache_dict2_ghost[content] -= 1
-                assert (self.linkedList2.size -
+                assert (self.linked_list_2.size -
                         len(self.cache_dict2)) == self.ghostlist_size
 
         elif self.inserted_element and self.inserted_element in self.cache_dict2_ghost and len(self.cache_dict1) > 0:
@@ -165,14 +165,14 @@ class ARC(Cache):
             self.lru_list_head_p1 = self.lru_list_head_p1.next
             self.cache_dict1_ghost[content] += 1
 
-            if (self.linkedList1.size - len(self.cache_dict1)) > self.ghostlist_size:
+            if (self.linked_list_1.size - len(self.cache_dict1)) > self.ghostlist_size:
                 # the first part is the size of ghost list of part1
-                content = self.linkedList1.remove_from_head()
+                content = self.linked_list_1.remove_from_head()
                 if self.cache_dict1_ghost[content] == 1:
                     del self.cache_dict1_ghost[content]
                 else:
                     self.cache_dict1_ghost[content] -= 1
-                assert (self.linkedList1.size -
+                assert (self.linked_list_1.size -
                         len(self.cache_dict1)) == self.ghostlist_size
 
         else:
@@ -185,14 +185,14 @@ class ARC(Cache):
                 self.lru_list_head_p1 = self.lru_list_head_p1.next
                 self.cache_dict1_ghost[content] += 1
 
-                if (self.linkedList1.size - len(self.cache_dict1)) > self.ghostlist_size:
+                if (self.linked_list_1.size - len(self.cache_dict1)) > self.ghostlist_size:
                     # the first part is the size of ghost list of part1
-                    content = self.linkedList1.remove_from_head()
+                    content = self.linked_list_1.remove_from_head()
                     if self.cache_dict1_ghost[content] == 1:
                         del self.cache_dict1_ghost[content]
                     else:
                         self.cache_dict1_ghost[content] -= 1
-                    assert (self.linkedList1.size -
+                    assert (self.linked_list_1.size -
                             len(self.cache_dict1)) == self.ghostlist_size
             else:
                 # remove from part2
@@ -202,14 +202,14 @@ class ARC(Cache):
                 self.lru_list_head_p2 = self.lru_list_head_p2.next
                 self.cache_dict2_ghost[content] += 1
 
-                if (self.linkedList2.size - len(self.cache_dict2)) > self.ghostlist_size:
+                if (self.linked_list_2.size - len(self.cache_dict2)) > self.ghostlist_size:
                     # the first part is the size of ghost list of part2
-                    content = self.linkedList2.remove_from_head()
+                    content = self.linked_list_2.remove_from_head()
                     if self.cache_dict2_ghost[content] == 1:
                         del self.cache_dict2_ghost[content]
                     else:
                         self.cache_dict2_ghost[content] -= 1
-                    assert (self.linkedList2.size -
+                    assert (self.linked_list_2.size -
                             len(self.cache_dict2)) == self.ghostlist_size
 
         return return_content
@@ -217,13 +217,13 @@ class ARC(Cache):
     # for debug
     def _check_lru_list_p(self):
         size1 = sum(i for i in self.cache_dict1_ghost.values())
-        node1 = self.linkedList1.head.next
+        node1 = self.linked_list_1.head.next
         for i in range(size1):
             node1 = node1.next
         assert node1 == self.lru_list_head_p1, "LRU list1 head pointer wrong"
 
         size2 = sum(i for i in self.cache_dict2_ghost.values())
-        node2 = self.linkedList2.head.next
+        node2 = self.linked_list_2.head.next
         for i in range(size2):
             node2 = node2.next
         print(size2)
@@ -256,4 +256,4 @@ class ARC(Cache):
 
     def __repr__(self):
         return "ARC, given size: {}, current part1 size: {}, part2 size: {}".format(
-            self.cache_size, self.linkedList1.size, self.linkedList2.size)
+            self.cache_size, self.linked_list_1.size, self.linked_list_2.size)

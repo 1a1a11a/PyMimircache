@@ -7,6 +7,7 @@ any more
 import random
 from PyMimircache.cache.abstractCache import Cache
 
+
 class Random(Cache):
     def __init__(self, cache_size=1000, **kwargs):
         super().__init__(cache_size, **kwargs)
