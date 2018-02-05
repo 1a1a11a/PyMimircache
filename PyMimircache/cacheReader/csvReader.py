@@ -181,6 +181,16 @@ class CsvReader(AbstractReader):
         else:
             return None
 
+    def skip_n_req(self, n):
+        """
+        skip N requests from current position
+
+        :param n: the number of requests to skip
+        """
+
+        for i in range(n):
+            self.read_one_req()
+
     def reset(self):
         """
         reset reader to initial state

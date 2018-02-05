@@ -52,6 +52,17 @@ class PlainReader(AbstractReader):
     def read_complete_req(self):
         return self.read_one_req()
 
+    def skip_n_req(self, n):
+        """
+        skip N requests from current position
+
+        :param n: the number of requests to skip
+        """
+
+        for i in range(n):
+            self.read_one_req()
+
+
     def copy(self, open_c_reader=False):
         """
         reader a deep copy of current reader with everything reset to initial state,

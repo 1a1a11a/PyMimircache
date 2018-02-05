@@ -147,12 +147,21 @@ class AbstractReader(metaclass=abc.ABCMeta):
         self.reset()
         return last
 
+    def skip_n_req(self, n):
+        """
+        an efficient way to skip N requests from current position
+
+        :param n: the number of requests to skip
+        """
+
+        pass
+
 
     def __iter__(self):
         return self
 
-    # noinspection PyMissingOrEmptyDocstring
     def next(self):
+        """ part of the iterator implemetation """
         return self.__next__()
 
     def __len__(self):

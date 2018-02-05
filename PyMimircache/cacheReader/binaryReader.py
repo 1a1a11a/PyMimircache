@@ -203,6 +203,7 @@ class BinaryReader(AbstractReader):
 
         :param n: the number of requests to skip
         """
+
         self.trace_file.seek(struct.calcsize(self.fmt) * n, io.SEEK_CUR)
 
     def copy(self, open_c_reader=False):
