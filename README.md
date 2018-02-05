@@ -93,7 +93,7 @@ directly, we suggest using interactive shell which can help you debug.
 PyMimircache Tutorial
 -------------------
 
-We have prepared a wonderful tutorial here. [Check here for tutorial](http://PyMimircacheemory.readthedocs.io)
+We have prepared a wonderful tutorial here. [Check here for tutorial](http://pymimircache.readthedocs.io)
 
 ### PyMimircache Power
 
