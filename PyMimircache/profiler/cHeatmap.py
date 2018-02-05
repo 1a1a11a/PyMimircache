@@ -145,8 +145,7 @@ class CHeatmap:
             text = "      " \
                    "cache size: {},\n      cache type: {},\n      " \
                    "time type:  {},\n      time interval: {},\n      " \
-                   "plot type: \n{}".format(cache_size,
-                                            algorithm, time_mode, time_interval, plot_type)
+                   "plot type: {}".format(cache_size, algorithm, time_mode, time_interval, plot_type)
 
             # coordinate to put the text
             x1, y1 = xydict.shape
@@ -160,7 +159,7 @@ class CHeatmap:
             ax = plt.gca()
             ax.text(x1, y1, text)  # , fontsize=20)  , color='blue')
 
-            plot_data = np.ma.array(xydict, mask=np.tri(len(xydict), dtype=int).T)
+            plot_data = np.ma.array(xydict, mask=np.tri(len(xydict), k=-1, dtype=int).T)
             self.draw_heatmap(plot_data, figname=figname, fixed_range=(0, 1),
                               xlabel=xlabel, ylabel=ylabel, xticks=xticks, yticks=yticks)
 
