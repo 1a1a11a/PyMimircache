@@ -130,10 +130,9 @@ class CHeatmap:
             ema_coef  = DEF_EMA_HISTORY_WEIGHT
             if 'interval_hit_ratio'in kwargs or "enable_ihr" in kwargs:
                 enable_ihr = kwargs.get("interval_hit_ratio", False) or kwargs.get("enable_ihr", False)
-
                 ema_coef  = kwargs.get("ema_coef", DEF_EMA_HISTORY_WEIGHT)
 
-            xydict = c_heatmap.heatmap(reader.cReader, time_mode, plot_type,
+            xydict = c_heatmap.heatmap(reader.c_reader, time_mode, plot_type,
                                                   cache_size, algorithm,
                                                   interval_hit_ratio=enable_ihr,
                                                   ewma_coefficient=ema_coef,
@@ -143,11 +142,11 @@ class CHeatmap:
                                                   num_of_threads=num_of_threads)
 
 
-
             text = "      " \
                    "cache size: {},\n      cache type: {},\n      " \
                    "time type:  {},\n      time interval: {},\n      " \
-                   "plot type: {}".format(cache_size, algorithm, time_mode, time_interval, plot_type)
+                   "plot type: \n{}".format(cache_size,
+                                            algorithm, time_mode, time_interval, plot_type)
 
             # coordinate to put the text
             x1, y1 = xydict.shape
@@ -161,7 +160,7 @@ class CHeatmap:
             ax = plt.gca()
             ax.text(x1, y1, text)  # , fontsize=20)  , color='blue')
 
-            plot_data = np.ma.array(xydict, mask=np.tri(len(xydict), k=-1, dtype=int).T)
+            plot_data = np.ma.array(xydict, mask=np.tri(len(xydict), dtype=int).T)
             self.draw_heatmap(plot_data, figname=figname, fixed_range=(0, 1),
                               xlabel=xlabel, ylabel=ylabel, xticks=xticks, yticks=yticks)
 
@@ -175,6 +174,14 @@ class CHeatmap:
             if 'interval_hit_ratio'in kwargs or "enable_ihr" in kwargs:
                 enable_ihr = kwargs.get("interval_hit_ratio", False) or kwargs.get("enable_ihr", False)
                 ema_coef  = kwargs.get("ema_coef", DEF_EMA_HISTORY_WEIGHT)
+
+            # a temporary fix as hr_st_size is not implemented in C, only hr_st_size with enable_ihr
+
+            if not enable_ihr:
+                raise RuntimeError("NOT Implemented")
+
+            else:
+                plot_type = "hr_interval_size"
 
             # a temporary fix as hr_st_size is not implemented in C, only hr_st_size with enable_ihr
 
