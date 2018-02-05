@@ -12,30 +12,30 @@ class Clock(LRU):
         super(Clock, self).__init__(cache_size, **kwargs)
         self.hand = None  # points to the node for examination/eviction
 
-    def _update(self, req_item, **kwargs):
+    def _update(self, request_item, **kwargs):
         """ the given element is in the cache, now update it
         :param **kwargs:
-        :param req_item:
+        :param request_item:
         :return: None
         """
-        node = self.cacheDict[req_item]
+        node = self.cacheDict[request_item]
         node.id = 1
 
-    def _insert(self, req_item, **kwargs):
+    def _insert(self, request_item, **kwargs):
         """
         the given element is not in the cache, now insert it into cache
         :param **kwargs:
-        :param req_item:
+        :param request_item:
         :return: True on success, False on failure
         """
         if self.cacheLinkedList.size >= self.cache_size:
             self.evict()
 
-        node = self.cacheLinkedList.insert_at_tail(req_item, id=1)
-        self.cacheDict[req_item] = node
+        node = self.cacheLinkedList.insert_at_tail(request_item, id=1)
+        self.cacheDict[request_item] = node
         if not self.hand:
-            # this is the first req_item
-            assert self.cacheLinkedList.size == 1, "insert req_item error"
+            # this is the first request_item
+            assert self.cacheLinkedList.size == 1, "insert request_item error"
             self.hand = node
 
     def _printCacheLine(self):
@@ -78,27 +78,31 @@ class Clock(LRU):
 
         return True
 
-    def access(self, req_item, **kwargs):
+    def access(self, request_item, **kwargs):
         """
         :param **kwargs: 
-        :param req_item: the element in the reference, it can be in the cache, or not
+        :param request_item: the element in the reference, it can be in the cache, or not
         :return: None
         """
-        if self.has(req_item, ):
-            self._update(req_item, )
+        if self.has(request_item, ):
+            self._update(request_item, )
             # self.printCacheLine()
             if len(self.cacheDict) != self.cacheLinkedList.size:
-                print("1*********########### ERROR detected in LRU size #############***********")
-                print("{}: {}".format(self.cacheLinkedList.size, len(self.cacheDict)))
+                print(
+                    "1*********########### ERROR detected in LRU size #############***********")
+                print("{}: {}".format(
+                    self.cacheLinkedList.size, len(self.cacheDict)))
                 import sys
                 sys.exit(-1)
             return True
         else:
-            self._insert(req_item, )
+            self._insert(request_item, )
             # self.printCacheLine()
             if len(self.cacheDict) != self.cacheLinkedList.size:
-                print("2*********########### ERROR detected in LRU size #############***********")
-                print("{}: {}".format(self.cacheLinkedList.size, len(self.cacheDict)))
+                print(
+                    "2*********########### ERROR detected in LRU size #############***********")
+                print("{}: {}".format(
+                    self.cacheLinkedList.size, len(self.cacheDict)))
                 import sys
                 sys.exit(-1)
             return False

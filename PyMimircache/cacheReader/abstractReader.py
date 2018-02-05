@@ -36,7 +36,7 @@ class AbstractReader(metaclass=abc.ABCMeta):
 
         self.file_loc = file_loc
         self.trace_file = None
-        self.cReader = None
+        self.c_reader = None
         self.data_type = data_type
         self.block_unit_size = block_unit_size
         self.disk_sector_size = disk_sector_size
@@ -65,8 +65,8 @@ class AbstractReader(metaclass=abc.ABCMeta):
         """
         self.counter = 0
         self.trace_file.seek(0, 0)
-        if self.cReader:
-            c_cacheReader.reset_reader(self.cReader)
+        if self.c_reader:
+            c_cacheReader.reset_reader(self.c_reader)
 
     def get_num_of_req(self):
         """
@@ -80,8 +80,8 @@ class AbstractReader(metaclass=abc.ABCMeta):
 
         # clear before counting
         self.num_of_req = 0
-        if self.cReader:
-            self.num_of_req = c_cacheReader.get_num_of_req(self.cReader)
+        if self.c_reader:
+            self.num_of_req = c_cacheReader.get_num_of_req(self.c_reader)
         else:
             while self.read_one_req() is not None:
                 self.num_of_req += 1
@@ -156,7 +156,7 @@ class AbstractReader(metaclass=abc.ABCMeta):
 
     def close(self):
         """
-        close reader, this is used to close the cReader, which will not be automatically closed
+        close reader, this is used to close the c_reader, which will not be automatically closed
         :return:
         """
         try:
@@ -164,9 +164,9 @@ class AbstractReader(metaclass=abc.ABCMeta):
                 if self.trace_file:
                     self.trace_file.close()
                     self.trace_file = None
-                if self.cReader and c_cacheReader is not None:
-                    c_cacheReader.close_reader(self.cReader)
-                    self.cReader = None
+                if self.c_reader and c_cacheReader is not None:
+                    c_cacheReader.close_reader(self.c_reader)
+                    self.c_reader = None
         except Exception as e:
             # return
             print("Exception during close reader: {}, ccacheReader={}".format(e, c_cacheReader))

@@ -73,10 +73,10 @@ class VscsiReader(BinaryReader):
         """
 
         ts_list = []
-        r = c_cacheReader.read_time_req(self.cReader)
+        r = c_cacheReader.read_time_req(self.c_reader)
         while r:
             ts_list.append(r[0])
-            r = c_cacheReader.read_time_req(self.cReader)
+            r = c_cacheReader.read_time_req(self.c_reader)
         return ts_list
 
     def copy(self, open_c_reader=False):

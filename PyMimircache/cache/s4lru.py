@@ -26,7 +26,7 @@ class S4LRU(Cache):
         :return: whether the given element is in the cache
         """
         if req_id in self.firstLRU or req_id in self.secondLRU or \
-                        req_id in self.thirdLRU or req_id in self.fourthLRU:
+                req_id in self.thirdLRU or req_id in self.fourthLRU:
             return True
         else:
             return False

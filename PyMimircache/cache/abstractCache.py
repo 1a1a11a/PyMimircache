@@ -1,14 +1,10 @@
 # coding=utf-8
 """
     An abstract cache for cache replacement algorithms
-
-
     Author: Jason Yang <peter.waynechina@gmail.com> 2016/05
-
 """
 
 import abc
-
 
 class Cache:
     __metaclass__ = abc.ABCMeta
@@ -25,7 +21,6 @@ class Cache:
         if self.cache_size <= 0:
             raise RuntimeError("cache size cannot be smaller than or equal 0")
 
-
     @abc.abstractclassmethod
     def evict(self, **kwargs):
         """
@@ -36,68 +31,50 @@ class Cache:
         raise NotImplementedError("evict is not implemented")
 
     @abc.abstractclassmethod
-    def access(self, req_item, **kwargs):
+    def access(self, request_item, **kwargs):
         """
         a general method shared by get and access, if an algorithm does not distinguish between
         get and access, then you can just use this
         :param **kwargs:
-        :param req_item: the element in the reference, it can be in the cache, or not
+        :param request_item: the element in the reference, it can be in the cache, or not
         :return: -1 if not in cache, otherwise old rank (if there is) or 1
         """
         raise NotImplementedError("access is not implemented")
 
     @abc.abstractclassmethod
-    def has(self, req_item, **kwargs):
+    def has(self, request_item, **kwargs):
         """
-        whether the cache has the request or not
+        whether the cache has the request item or not
         :param **kwargs:
-        :param req_item: the element in the reference, it can be in the cache, or not
+        :param request_item: the element in the reference, it can be in the cache, or not
         :return: -1 if not in cache, otherwise old rank (if there is) or 1
         """
         raise NotImplementedError("access is not implemented")
 
-    # this two are removed because we add the operation into Req Class
-    # def get(self, req_id, **kwargs):
-    #     """
-    #     :param **kwargs:
-    #     :param req_id: the element for search
-    #     :return: a bool whether the given element is in the cache
-    #     """
-    #     self.access(req_item, **kwargs)
-    #
-    # def put(self, req_item, **kwargs):
-    #     """
-    #     :param **kwargs:
-    #     :param req_item: the element in the reference, it can be in the cache, or not
-    #     :return: -1 if not in cache, otherwise old rank (if there is) or 1
-    #     """
-    #     self.access(req_item, **kwargs)
-
     @abc.abstractclassmethod
-    def _update(self, req_item, **kwargs):
+    def _update(self, request_item, **kwargs):
         """ the given element is in the cache, now update it, the following information will be updated
         cache replacement algorithm related metadata
         real request data (not used in current version)
 
         :param **kwargs:
-        :param req_item:
+        :param request_item:
         :return: True on success, False on failure
         """
         raise NotImplementedError("_update is not implemented")
 
     @abc.abstractclassmethod
-    def _insert(self, req_item, **kwargs):
+    def _insert(self, request_item, **kwargs):
         """
         the given element is not in the cache, now insert it into cache
         :param **kwargs:
-        :param req_item:
+        :param request_item:
         :return: True on success, False on failure
         """
         raise NotImplementedError("_insert is not implemented")
 
-
-    def __contains__(self, req_id):
-        return bool(self.has(req_id))
+    def __contains__(self, request_id):
+        return bool(self.has(request_id))
 
     def __repr__(self):
         return "abstract cache class, {}".format(super().__repr__())

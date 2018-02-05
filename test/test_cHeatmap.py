@@ -86,8 +86,8 @@ class cHeatmapTest(unittest.TestCase):
                         figname="pReader_diff_hr_st_et.png")
 
 
-    def test3_cReader_v(self):
-        print("test3 cReader v")
+    def test3_c_reader_v(self):
+        print("test3 c_reader v")
         reader = CsvReader("{}/trace.csv".format(DAT_FOLDER),
                            init_params={"header":True, "label":5})
         cH = CHeatmap()
@@ -97,27 +97,27 @@ class cHeatmapTest(unittest.TestCase):
         # cH.heatmap(reader, 'v', "hit_ratio_start_time_end_time",
         #            num_of_pixel_of_time_dim=24,
         #            num_of_threads=os.cpu_count(), cache_size=2000,
-        #            figname="hr_st_et_LRU_cReader_v.png")
+        #            figname="hr_st_et_LRU_c_reader_v.png")
 
         cH.heatmap(reader, 'v', "rd_distribution",
                    num_of_pixel_of_time_dim=200,
                    num_of_threads=os.cpu_count(),
-                   figname="cReader_rd_dist.png")
+                   figname="c_reader_rd_dist.png")
 
         cH.heatmap(reader, 'v', "rd_distribution_CDF",
                    num_of_pixel_of_time_dim=1000,
                    num_of_threads=os.cpu_count(),
-                   figname="cReader_rd_CDF_dist.png")
+                   figname="c_reader_rd_CDF_dist.png")
 
         cH.heatmap(reader, 'v', "future_rd_distribution",
                    num_of_pixel_of_time_dim=1000,
                    num_of_threads=os.cpu_count(),
-                   figname="cReader_frd_dist.png")
+                   figname="c_reader_frd_dist.png")
 
         cH.heatmap(reader, 'v', "hit_ratio_start_time_end_time",
                    num_of_pixel_of_time_dim=24, algorithm="FIFO",
                    num_of_threads=os.cpu_count(), cache_size=2000,
-                   figname="cReader_hr_st_et_FIFO.png")
+                   figname="c_reader_hr_st_et_FIFO.png")
 
         cH.diff_heatmap(reader, 'v', "hit_ratio_start_time_end_time",
                         time_interval=10000, cache_size=200,
@@ -125,8 +125,8 @@ class cHeatmapTest(unittest.TestCase):
                         cache_params2=None, num_of_threads=os.cpu_count())
 
 
-    def test4_cReader_r(self):
-        print("test4 cReader r")
+    def test4_c_reader_r(self):
+        print("test4 c_reader r")
         reader = CsvReader("{}/trace.csv".format(DAT_FOLDER),
                            init_params={"header":True, "label":5, 'real_time':2})
         cH = CHeatmap()
@@ -135,7 +135,7 @@ class cHeatmapTest(unittest.TestCase):
 
         cH.heatmap(reader, 'r', "hit_ratio_start_time_end_time",
                    num_of_pixel_of_time_dim=24, num_of_threads=os.cpu_count(), cache_size=2000,
-                   figname="hr_st_et_LRU_cReader_r.png")
+                   figname="hr_st_et_LRU_c_reader_r.png")
 
         cH.heatmap(reader, 'r', "rd_distribution",
                    num_of_pixel_of_time_dim=1000, num_of_threads=os.cpu_count())

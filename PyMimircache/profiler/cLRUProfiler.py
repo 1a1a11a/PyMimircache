@@ -87,7 +87,7 @@ class CLRUProfiler:
         """
         assert rd_type == 'rd' or rd_type == 'frd', \
             "please provide a valid reuse distance type, currently support rd and frd"
-        c_LRUProfiler.save_reuse_dist(self.reader.cReader, file_loc, rd_type)
+        c_LRUProfiler.save_reuse_dist(self.reader.c_reader, file_loc, rd_type)
 
     def load_reuse_dist(self, file_loc, rd_type):
         """
@@ -103,7 +103,7 @@ class CLRUProfiler:
             "please provide a valid reuse distance type, currently support rd and frd"
         if not os.path.exists(file_loc):
             WARNING("pre-computed reuse distance file does not exist")
-        c_LRUProfiler.load_reuse_dist(self.reader.cReader, file_loc, rd_type)
+        c_LRUProfiler.load_reuse_dist(self.reader.c_reader, file_loc, rd_type)
         self.reader.already_load_rd = True
 
     def _del_reuse_dist_file(self):
@@ -164,7 +164,7 @@ class CLRUProfiler:
             WARNING("not supported yet")
             return None
         else:
-            hit_count = c_LRUProfiler.get_hit_count_seq(self.reader.cReader, **kargs)
+            hit_count = c_LRUProfiler.get_hit_count_seq(self.reader.c_reader, **kargs)
         return hit_count
 
     def get_hit_ratio(self, **kwargs):
@@ -184,10 +184,10 @@ class CLRUProfiler:
             kargs['end'] = kwargs['end']
 
         if self.block_unit_size != 0 :
-            hit_ratio = c_LRUProfiler.get_hit_ratio_with_size(self.reader.cReader,
+            hit_ratio = c_LRUProfiler.get_hit_ratio_with_size(self.reader.c_reader,
                                                             block_unit_size=self.block_unit_size, **kargs)
         else:
-            hit_ratio = c_LRUProfiler.get_hit_ratio_seq(self.reader.cReader, **kargs)
+            hit_ratio = c_LRUProfiler.get_hit_ratio_seq(self.reader.c_reader, **kargs)
         return hit_ratio
 
 
@@ -216,7 +216,7 @@ class CLRUProfiler:
             print("not supported yet")
             return None
         else:
-            hit_ratio = c_LRUProfiler.get_hit_ratio_seq_shards(tempReader.cReader, sample_ratio=sample_ratio,
+            hit_ratio = c_LRUProfiler.get_hit_ratio_seq_shards(tempReader.c_reader, sample_ratio=sample_ratio,
                                                        correction=correction, **kargs)
         return hit_ratio
 
@@ -230,7 +230,7 @@ class CLRUProfiler:
         if self.block_unit_size != 0:
             WARNING("reuse distance calculation does not support variable obj size, "
                     "calculating without considering size")
-        rd = c_LRUProfiler.get_reuse_dist_seq(self.reader.cReader, **kargs)
+        rd = c_LRUProfiler.get_reuse_dist_seq(self.reader.c_reader, **kargs)
         return rd
 
     def get_future_reuse_distance(self, **kargs):
@@ -242,7 +242,7 @@ class CLRUProfiler:
         if self.block_unit_size != 0:
             WARNING("future reuse distance calculation does not support variable obj size, "
                 "calculating without considering size")
-        frd = c_LRUProfiler.get_future_reuse_dist(self.reader.cReader, **kargs)
+        frd = c_LRUProfiler.get_future_reuse_dist(self.reader.c_reader, **kargs)
         return frd
 
 

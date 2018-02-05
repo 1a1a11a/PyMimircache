@@ -11,21 +11,21 @@ try:
 except:
     print("heapdict is not installed")
 
+
 class Optimal(Cache):
     def __init__(self, cache_size, reader, **kwargs):
         super().__init__(cache_size, **kwargs)
         # reader.reset()
         self.reader = reader
         self.reader.lock.acquire()
-        self.next_access = c_heatmap.get_next_access_dist(self.reader.cReader)
+        self.next_access = c_heatmap.get_next_access_dist(self.reader.c_reader)
         self.reader.lock.release()
         self.pq = heapdict()
-
 
         self.ts = 0
 
     def get_reversed_reuse_dist(self):
-        return c_LRUProfiler.get_reversed_reuse_dist(self.reader.cReader)
+        return c_LRUProfiler.get_reversed_reuse_dist(self.reader.c_reader)
 
     def has(self, req_id, **kwargs):
         """
@@ -49,7 +49,6 @@ class Optimal(Cache):
             self.pq[req_item] = -(self.ts + self.next_access[self.ts])
         else:
             del self.pq[req_item]
-
 
     def _insert(self, req_item, **kwargs):
         """
@@ -82,7 +81,6 @@ class Optimal(Cache):
         # print("evicting "+str(element))
         return element
 
-
     def access(self, req_item, **kwargs):
         """
         :param **kwargs: 
@@ -105,5 +103,3 @@ class Optimal(Cache):
     def __repr__(self):
         return "Optimal Cache, current size: {}".\
             format(self.cache_size, super().__repr__())
-
-

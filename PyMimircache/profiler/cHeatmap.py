@@ -61,7 +61,7 @@ class CHeatmap:
 
         assert time_interval != -1 or num_of_pixel_of_time_dim != -1, \
             "please provide at least one parameter, time_interval or num_of_pixel_of_time_dim"
-        return c_heatmap.get_breakpoints(reader.cReader, time_mode=time_mode,
+        return c_heatmap.get_breakpoints(reader.c_reader, time_mode=time_mode,
                                                     time_interval=time_interval,
                                                     num_of_pixel_of_time_dim=num_of_pixel_of_time_dim)
 
@@ -112,7 +112,7 @@ class CHeatmap:
                 ewma_coefficient  = kwargs.get("ewma_coefficient", DEFAULT_EWMA_COEFFICIENT)
 
             if algorithm.lower() in const.C_AVAIL_CACHE:
-                xydict = c_heatmap.heatmap(reader.cReader, time_mode, plot_type,
+                xydict = c_heatmap.heatmap(reader.c_reader, time_mode, plot_type,
                                                       cache_size, algorithm,
                                                       interval_hit_ratio=enable_ihr,
                                                       ewma_coefficient=ewma_coefficient,
@@ -156,7 +156,7 @@ class CHeatmap:
             ewma_coefficient = kwargs.get("ewma_coefficient", DEFAULT_EWMA_COEFFICIENT)
             bin_size = kwargs.get("bin_size", cache_size // DEF_NUM_BIN_PROF + 1)
 
-            xydict = c_heatmap.heatmap(reader.cReader, time_mode, plot_type,
+            xydict = c_heatmap.heatmap(reader.c_reader, time_mode, plot_type,
                                                   cache_size, algorithm,
                                                   ewma_coefficient=ewma_coefficient,
                                                   bin_size = bin_size,
@@ -201,7 +201,7 @@ class CHeatmap:
                 figname = 'rd_distribution.png'
 
             xydict, log_base = c_heatmap.\
-                hm_rd_distribution(reader.cReader, time_mode,
+                hm_rd_distribution(reader.c_reader, time_mode,
                                    time_interval=time_interval,
                                    num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
                                    num_of_threads=num_of_threads)
@@ -237,7 +237,7 @@ class CHeatmap:
                 figname = 'rd_distribution_CDF.png'
 
             xydict, log_base = c_heatmap.\
-                hm_rd_distribution(reader.cReader, time_mode,
+                hm_rd_distribution(reader.c_reader, time_mode,
                                    time_interval=time_interval,
                                    num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
                                    num_of_threads=num_of_threads, CDF=1)
@@ -271,7 +271,7 @@ class CHeatmap:
                 figname = 'future_rd_distribution.png'
 
             xydict, log_base = c_heatmap.\
-                hm_future_rd_distribution(reader.cReader, time_mode,
+                hm_future_rd_distribution(reader.c_reader, time_mode,
                                           time_interval=time_interval,
                                           num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
                                           num_of_threads=num_of_threads)
@@ -304,7 +304,7 @@ class CHeatmap:
                 figname = 'dist_distribution.png'
 
             xydict, log_base = c_heatmap.\
-                hm_dist_distribution(reader.cReader, time_mode,
+                hm_dist_distribution(reader.c_reader, time_mode,
                                      time_interval=time_interval,
                                      num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
                                      num_of_threads=num_of_threads)
@@ -338,7 +338,7 @@ class CHeatmap:
                 figname = 'rt_distribution.png'
 
             xydict, log_base = c_heatmap.\
-                hm_reuse_time_distribution(reader.cReader, time_mode,
+                hm_reuse_time_distribution(reader.c_reader, time_mode,
                                            time_interval=time_interval,
                                            num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
                                            num_of_threads=num_of_threads)
@@ -404,7 +404,7 @@ class CHeatmap:
         if plot_type == "hit_ratio_start_time_end_time" or plot_type == "hr_st_et":
             assert cache_size != -1, "please provide cache_size for plotting hr_st_et"
 
-            xydict = c_heatmap.diff_heatmap(reader.cReader, time_mode,
+            xydict = c_heatmap.diff_heatmap(reader.c_reader, time_mode,
                                                        "hr_st_et", cache_size,
                                                        algorithm1, algorithm2,
                                                        time_interval=time_interval,

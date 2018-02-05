@@ -12,8 +12,6 @@ from PyMimircache.cache.abstractCache import Cache
 from PyMimircache.utils.linkedList import LinkedList
 
 
-
-
 class ARC(Cache):
     def __init__(self, cache_size=1000, p=0.5, ghostlist_size=-1, **kwargs):
         """
@@ -35,8 +33,10 @@ class ARC(Cache):
         self.lru_list_head_p1 = None
         self.lru_list_head_p2 = None
 
-        self.cacheDict1 = dict()  # key -> linked list node (in reality, it should also contains value)
-        self.cacheDict2 = dict()  # key -> linked list node (in reality, it should also contains value)
+        # key -> linked list node (in reality, it should also contains value)
+        self.cacheDict1 = dict()
+        # key -> linked list node (in reality, it should also contains value)
+        self.cacheDict2 = dict()
         self.cacheDict1_ghost = defaultdict(
             lambda: 0)  # key -> linked list node (in reality, it should also contains value)
         self.cacheDict2_ghost = defaultdict(
@@ -88,7 +88,6 @@ class ARC(Cache):
             if not self.lru_list_head_p2:
                 self.lru_list_head_p2 = node
 
-
         else:
             node = self.cacheDict2[req_item]
             if node == self.lru_list_head_p2 and node.next:
@@ -131,7 +130,6 @@ class ARC(Cache):
                 print(i.content)
         print(' ')
 
-
     def evict(self, **kwargs):
         """
         evict one element from the cache line into ghost list, then check ghost list,
@@ -156,8 +154,8 @@ class ARC(Cache):
                     del self.cacheDict2_ghost[content]
                 else:
                     self.cacheDict2_ghost[content] -= 1
-                assert (self.linkedList2.size - len(self.cacheDict2)) == self.ghostlist_size
-
+                assert (self.linkedList2.size -
+                        len(self.cacheDict2)) == self.ghostlist_size
 
         elif self.inserted_element and self.inserted_element in self.cacheDict2_ghost and len(self.cacheDict1) > 0:
             # evict one from part1 LRU, add into ghost list
@@ -174,7 +172,8 @@ class ARC(Cache):
                     del self.cacheDict1_ghost[content]
                 else:
                     self.cacheDict1_ghost[content] -= 1
-                assert (self.linkedList1.size - len(self.cacheDict1)) == self.ghostlist_size
+                assert (self.linkedList1.size -
+                        len(self.cacheDict1)) == self.ghostlist_size
 
         else:
             # not in any ghost list, check p value
@@ -193,7 +192,8 @@ class ARC(Cache):
                         del self.cacheDict1_ghost[content]
                     else:
                         self.cacheDict1_ghost[content] -= 1
-                    assert (self.linkedList1.size - len(self.cacheDict1)) == self.ghostlist_size
+                    assert (self.linkedList1.size -
+                            len(self.cacheDict1)) == self.ghostlist_size
             else:
                 # remove from part2
                 return_content = content = self.lru_list_head_p2.content
@@ -209,7 +209,8 @@ class ARC(Cache):
                         del self.cacheDict2_ghost[content]
                     else:
                         self.cacheDict2_ghost[content] -= 1
-                    assert (self.linkedList2.size - len(self.cacheDict2)) == self.ghostlist_size
+                    assert (self.linkedList2.size -
+                            len(self.cacheDict2)) == self.ghostlist_size
 
         return return_content
 

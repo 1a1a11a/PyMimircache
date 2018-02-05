@@ -166,7 +166,7 @@ class PyHeatmap:
                 lambda x, pos: '{:2.0f}%'.format(x * 100 / len(break_points)))
             kwargs_plot['title'] = "hit_ratio_start_time_end_time"
 
-            last_access = c_heatmap.get_last_access_dist(reader.cReader)
+            last_access = c_heatmap.get_last_access_dist(reader.c_reader)
             last_access_array = Array('l', len(last_access), lock=False)
             for i, j in enumerate(last_access):
                 last_access_array[i] = j

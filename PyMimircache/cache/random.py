@@ -11,8 +11,10 @@ from PyMimircache.cache.abstractCache import Cache
 class Random(Cache):
     def __init__(self, cache_size=1000, **kwargs):
         super().__init__(cache_size, **kwargs)
-        self.cache_set = set()  # key -> linked list node (in reality, it should also contains value)
-        self.cache_line_list = [] # to save all the keys, otherwise needs to populate from cache_set every time
+        # key -> linked list node (in reality, it should also contains value)
+        self.cache_set = set()
+        # to save all the keys, otherwise needs to populate from cache_set every time
+        self.cache_line_list = []
 
     def has(self, req_id, **kwargs):
         """

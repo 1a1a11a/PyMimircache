@@ -14,7 +14,8 @@ class SLRU(Cache):
         super().__init__(cache_size, **kwargs)
         self.ratio = ratio
         # Maybe use two linkedlist and a dict will be more efficient?
-        self.protected = LRU(int(self.cache_size * self.ratio / (self.ratio + 1)))
+        self.protected = LRU(
+            int(self.cache_size * self.ratio / (self.ratio + 1)))
         self.probationary = LRU(int(self.cache_size * 1 / (self.ratio + 1)))
 
     def has(self, req_id, **kwargs):
