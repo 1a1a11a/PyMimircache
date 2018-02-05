@@ -103,4 +103,4 @@ class LRU(Cache):
 
     def __repr__(self):
         return "LRU cache of size: {}, current size: {}, {}".\
-            format(self.cache_size, self.cacheLinkedList.size, super().__repr__())
+            format(self.cache_size, self.cache_linked_list.size, super().__repr__())

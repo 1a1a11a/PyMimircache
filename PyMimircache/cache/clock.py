@@ -28,18 +28,18 @@ class Clock(LRU):
         :param request_item:
         :return: True on success, False on failure
         """
-        if self.cacheLinkedList.size >= self.cache_size:
+        if self.cache_linked_list.size >= self.cache_size:
             self.evict()
 
-        node = self.cacheLinkedList.insert_at_tail(request_item, id=1)
+        node = self.cache_linked_list.insert_at_tail(request_item, id=1)
         self.cache_dict[request_item] = node
         if not self.hand:
             # this is the first request_item
-            assert self.cacheLinkedList.size == 1, "insert request_item error"
+            assert self.cache_linked_list.size == 1, "insert request_item error"
             self.hand = node
 
     def _printCacheLine(self):
-        for i in self.cacheLinkedList:
+        for i in self.cache_linked_list:
             try:
                 print("{}({})".format(i.content, i.id), end='\t')
             except:
@@ -53,7 +53,7 @@ class Clock(LRU):
             self.hand = node.next
             if not self.hand:
                 # tail
-                self.hand = self.cacheLinkedList.next
+                self.hand = self.cache_linked_list.next
             return node
         else:
             # set reference bit to 0
@@ -62,7 +62,7 @@ class Clock(LRU):
                 node = node.next
                 if not node:
                     # tail
-                    node = self.cacheLinkedList.head.next
+                    node = self.cache_linked_list.head.next
             self.hand = node.next
             return node
 
@@ -73,7 +73,7 @@ class Clock(LRU):
         :return: True on success, False on failure
         """
         node = self._find_evict_node()
-        self.cacheLinkedList.remove_node(node)
+        self.cache_linked_list.remove_node(node)
         del self.cache_dict[node.content]
 
         return True
@@ -87,26 +87,26 @@ class Clock(LRU):
         if self.has(request_item, ):
             self._update(request_item, )
             # self.printCacheLine()
-            if len(self.cache_dict) != self.cacheLinkedList.size:
+            if len(self.cache_dict) != self.cache_linked_list.size:
                 print(
                     "1*********########### ERROR detected in LRU size #############***********")
                 print("{}: {}".format(
-                    self.cacheLinkedList.size, len(self.cache_dict)))
+                    self.cache_linked_list.size, len(self.cache_dict)))
                 import sys
                 sys.exit(-1)
             return True
         else:
             self._insert(request_item, )
             # self.printCacheLine()
-            if len(self.cache_dict) != self.cacheLinkedList.size:
+            if len(self.cache_dict) != self.cache_linked_list.size:
                 print(
                     "2*********########### ERROR detected in LRU size #############***********")
                 print("{}: {}".format(
-                    self.cacheLinkedList.size, len(self.cache_dict)))
+                    self.cache_linked_list.size, len(self.cache_dict)))
                 import sys
                 sys.exit(-1)
             return False
 
     def __repr__(self):
         return "second chance cache, given size: {}, current size: {}, {}".format(
-            self.cache_size, self.cacheLinkedList.size, super().__repr__())
+            self.cache_size, self.cache_linked_list.size, super().__repr__())

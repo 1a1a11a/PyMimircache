@@ -60,7 +60,7 @@ class S4LRU(Cache):
 
         # get the node and remove from lowerLRU
         node = lowerLRU.cache_dict[element]
-        lowerLRU.cacheLinkedList.remove_node(node)
+        lowerLRU.cache_linked_list.remove_node(node)
         del lowerLRU.cache_dict[element]
 
         # insert into upperLRU
@@ -113,5 +113,5 @@ class S4LRU(Cache):
     def __repr__(self):
         return "S4LRU, given size: {}, current 1st part size: {}, current 2nd size: {}, \
             current 3rd part size: {}, current fourth part size: {}". \
-            format(self.cache_size, self.firstLRU.cacheLinkedList.size, self.secondLRU.cacheLinkedList.size,
-                   self.thirdLRU.cacheLinkedList.size, self.fourthLRU.cacheLinkedList.size)
+            format(self.cache_size, self.firstLRU.cache_linked_list.size, self.secondLRU.cache_linked_list.size,
+                   self.thirdLRU.cache_linked_list.size, self.fourthLRU.cache_linked_list.size)

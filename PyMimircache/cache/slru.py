@@ -43,7 +43,7 @@ class SLRU(Cache):
 
             # get the node and remove from probationary
             node = self.probationary.cache_dict[req_item]
-            self.probationary.cacheLinkedList.remove_node(node)
+            self.probationary.cache_linked_list.remove_node(node)
             del self.probationary.cache_dict[req_item]
 
             # insert into protected
@@ -95,4 +95,4 @@ class SLRU(Cache):
         return "SLRU, given size: {}, given protected part size: {}, given probationary part size: {}, \
             current protected part size: {}, current probationary size: {}". \
             format(self.cache_size, self.protected.cache_size, self.probationary.cache_size,
-                   self.protected.cacheLinkedList.size, self.probationary.cacheLinkedList.size)
+                   self.protected.cache_linked_list.size, self.probationary.cache_linked_list.size)
