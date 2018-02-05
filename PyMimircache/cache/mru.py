@@ -61,7 +61,6 @@ class MRU(Cache):
         :param req_item: the element in the reference, it can be in the cache, or not
         :return: -1 if not in cache, otherwise old rank
         """
-        # print(req_item, end=': \t')
         if self.has(req_item, ):
             self._update(req_item, )
             return True

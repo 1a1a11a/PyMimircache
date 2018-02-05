@@ -15,13 +15,12 @@ except:
 class Optimal(Cache):
     def __init__(self, cache_size, reader, **kwargs):
         super().__init__(cache_size, **kwargs)
-        # reader.reset()
+
         self.reader = reader
         self.reader.lock.acquire()
         self.next_access = c_heatmap.get_next_access_dist(self.reader.c_reader)
         self.reader.lock.release()
         self.pq = heapdict()
-
         self.ts = 0
 
     def get_reversed_reuse_dist(self):
@@ -61,7 +60,6 @@ class Optimal(Cache):
             pass
         else:
             self.pq[req_item] = -self.next_access[self.ts] - self.ts
-            # self.seenset.add(req_item)
 
     def _print_cache_line(self):
         print("size %d" % len(self.pq))
@@ -77,8 +75,6 @@ class Optimal(Cache):
         """
 
         element = self.pq.popitem()[0]
-        # self.seenset.remove(element)
-        # print("evicting "+str(element))
         return element
 
     def access(self, req_item, **kwargs):

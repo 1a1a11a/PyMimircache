@@ -84,11 +84,9 @@ class SLRU(Cache):
         """
         if self.has(req_item, ):
             self._update(req_item, )
-            # self.printCacheLine()
             return True
         else:
             self._insert(req_item, )
-            # self.printCacheLine()
             return False
 
     def __repr__(self):

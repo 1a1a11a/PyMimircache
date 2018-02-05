@@ -86,7 +86,6 @@ class Clock(LRU):
         """
         if self.has(req_item, ):
             self._update(req_item, )
-            # self.printCacheLine()
             if len(self.cache_dict) != self.cache_linked_list.size:
                 print(
                     "1*********########### ERROR detected in LRU size #############***********")
@@ -97,7 +96,6 @@ class Clock(LRU):
             return True
         else:
             self._insert(req_item, )
-            # self.printCacheLine()
             if len(self.cache_dict) != self.cache_linked_list.size:
                 print(
                     "2*********########### ERROR detected in LRU size #############***********")
