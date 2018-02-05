@@ -491,7 +491,7 @@ class Cachecow:
                                                    cache_params=cache_params1,
                                                    **kwargs)[0]
             else:
-                xydict1 = c_heatmap.heatmap(self.reader.cReader, time_mode, plot_type,
+                xydict1 = c_heatmap.heatmap(self.reader.c_reader, time_mode, plot_type,
                                                        cache_size=cache_size,
                                                        time_interval=time_interval,
                                                        algorithm=algorithm1,
@@ -506,7 +506,7 @@ class Cachecow:
                                                    cache_params=cache_params2,
                                                    **kwargs)[0]
             else:
-                xydict2 = c_heatmap.heatmap(self.reader.cReader, time_mode, plot_type,
+                xydict2 = c_heatmap.heatmap(self.reader.c_reader, time_mode, plot_type,
                                                        time_interval=time_interval,
                                                        cache_size=cache_size,
                                                        algorithm=algorithm2,

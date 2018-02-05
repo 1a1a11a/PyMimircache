@@ -6,7 +6,6 @@ this module contains the CacheLine class, which describes a cacheLine
 """
 
 
-
 class CacheLine:
     def __init__(self, item_id, size=1, op=None, cost=-1, **kwargs):
         self._item_id = item_id
@@ -29,7 +28,3 @@ class CacheLine:
     @property
     def cost(self):
         return self._cost
-
-
-
-

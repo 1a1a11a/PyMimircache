@@ -16,4 +16,4 @@ class FIFO(LRU):
 
     def __repr__(self):
         return "FIFO cache of size {}, current size: {}, {}".format(
-            self.cache_size, self.cacheLinkedList.size, super().__repr__())
+            self.cache_size, self.cache_linked_list.size, super().__repr__())

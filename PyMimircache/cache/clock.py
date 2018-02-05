@@ -18,7 +18,7 @@ class Clock(LRU):
         :param req_item:
         :return: None
         """
-        node = self.cacheDict[req_item]
+        node = self.cache_dict[req_item]
         node.id = 1
 
     def _insert(self, req_item, **kwargs):
@@ -28,18 +28,18 @@ class Clock(LRU):
         :param req_item:
         :return: True on success, False on failure
         """
-        if self.cacheLinkedList.size >= self.cache_size:
+        if self.cache_linked_list.size >= self.cache_size:
             self.evict()
 
-        node = self.cacheLinkedList.insert_at_tail(req_item, id=1)
-        self.cacheDict[req_item] = node
+        node = self.cache_linked_list.insert_at_tail(req_item, id=1)
+        self.cache_dict[req_item] = node
         if not self.hand:
             # this is the first req_item
-            assert self.cacheLinkedList.size == 1, "insert req_item error"
+            assert self.cache_linked_list.size == 1, "insert req_item error"
             self.hand = node
 
-    def _printCacheLine(self):
-        for i in self.cacheLinkedList:
+    def _print_cache_line(self):
+        for i in self.cache_linked_list:
             try:
                 print("{}({})".format(i.content, i.id), end='\t')
             except:
@@ -53,7 +53,7 @@ class Clock(LRU):
             self.hand = node.next
             if not self.hand:
                 # tail
-                self.hand = self.cacheLinkedList.next
+                self.hand = self.cache_linked_list.next
             return node
         else:
             # set reference bit to 0
@@ -62,7 +62,7 @@ class Clock(LRU):
                 node = node.next
                 if not node:
                     # tail
-                    node = self.cacheLinkedList.head.next
+                    node = self.cache_linked_list.head.next
             self.hand = node.next
             return node
 
@@ -73,8 +73,8 @@ class Clock(LRU):
         :return: True on success, False on failure
         """
         node = self._find_evict_node()
-        self.cacheLinkedList.remove_node(node)
-        del self.cacheDict[node.content]
+        self.cache_linked_list.remove_node(node)
+        del self.cache_dict[node.content]
 
         return True
 
@@ -86,23 +86,25 @@ class Clock(LRU):
         """
         if self.has(req_item, ):
             self._update(req_item, )
-            # self.printCacheLine()
-            if len(self.cacheDict) != self.cacheLinkedList.size:
-                print("1*********########### ERROR detected in LRU size #############***********")
-                print("{}: {}".format(self.cacheLinkedList.size, len(self.cacheDict)))
+            if len(self.cache_dict) != self.cache_linked_list.size:
+                print(
+                    "1*********########### ERROR detected in LRU size #############***********")
+                print("{}: {}".format(
+                    self.cache_linked_list.size, len(self.cache_dict)))
                 import sys
                 sys.exit(-1)
             return True
         else:
             self._insert(req_item, )
-            # self.printCacheLine()
-            if len(self.cacheDict) != self.cacheLinkedList.size:
-                print("2*********########### ERROR detected in LRU size #############***********")
-                print("{}: {}".format(self.cacheLinkedList.size, len(self.cacheDict)))
+            if len(self.cache_dict) != self.cache_linked_list.size:
+                print(
+                    "2*********########### ERROR detected in LRU size #############***********")
+                print("{}: {}".format(
+                    self.cache_linked_list.size, len(self.cache_dict)))
                 import sys
                 sys.exit(-1)
             return False
 
     def __repr__(self):
         return "second chance cache, given size: {}, current size: {}, {}".format(
-            self.cache_size, self.cacheLinkedList.size, super().__repr__())
+            self.cache_size, self.cache_linked_list.size, super().__repr__())

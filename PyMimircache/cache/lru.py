@@ -7,7 +7,6 @@
 
 """
 
-
 from collections import OrderedDict
 from PyMimircache.cache.abstractCache import Cache
 from PyMimircache.cacheReader.requestItem import Req
@@ -18,11 +17,11 @@ class LRU(Cache):
     LRU class for simulating a LRU cache
 
     """
+
     def __init__(self, cache_size, **kwargs):
 
         super().__init__(cache_size, **kwargs)
         self.cacheline_dict = OrderedDict()
-
 
     def has(self, req_id, **kwargs):
         """
@@ -50,7 +49,6 @@ class LRU(Cache):
 
         self.cacheline_dict.move_to_end(req_id)
 
-
     def _insert(self, req_item, **kwargs):
         """
         the given element is not in the cache, now insert it into cache
@@ -65,7 +63,6 @@ class LRU(Cache):
 
         self.cacheline_dict[req_id] = True
 
-
     def evict(self, **kwargs):
         """
         evict one cacheline from the cache
@@ -76,7 +73,6 @@ class LRU(Cache):
 
         req_id = self.cacheline_dict.popitem(last=False)
         return req_id
-
 
     def access(self, req_item, **kwargs):
         """
@@ -101,10 +97,10 @@ class LRU(Cache):
                 self.evict()
             return False
 
-
     def __len__(self):
         return len(self.cacheline_dict)
 
     def __repr__(self):
         return "LRU cache of size: {}, current size: {}, {}".\
-            format(self.cache_size, self.cacheLinkedList.size, super().__repr__())
+            format(self.cache_size, self.cache_linked_list.size,
+                   super().__repr__())

@@ -14,10 +14,10 @@ class S4LRU(Cache):
         super(S4LRU, self).__init__(cache_size, **kwargs)
 
         # Maybe use four linkedlist and a dict will be more efficient?
-        self.firstLRU = LRU(self.cache_size // 4)
-        self.secondLRU = LRU(self.cache_size // 4)
-        self.thirdLRU = LRU(self.cache_size // 4)
-        self.fourthLRU = LRU(self.cache_size // 4)
+        self.first_lru = LRU(self.cache_size // 4)
+        self.second_lru = LRU(self.cache_size // 4)
+        self.third_lru = LRU(self.cache_size // 4)
+        self.fourth_lru = LRU(self.cache_size // 4)
 
     def has(self, req_id, **kwargs):
         """
@@ -25,8 +25,8 @@ class S4LRU(Cache):
         :param req_id:
         :return: whether the given element is in the cache
         """
-        if req_id in self.firstLRU or req_id in self.secondLRU or \
-                        req_id in self.thirdLRU or req_id in self.fourthLRU:
+        if req_id in self.first_lru or req_id in self.second_lru or \
+                req_id in self.third_lru or req_id in self.fourth_lru:
             return True
         else:
             return False
@@ -37,16 +37,19 @@ class S4LRU(Cache):
         :param req_item:
         :return: None
         """
-        if req_item in self.firstLRU:
-            self.firstLRU._update(req_item, )
-        elif req_item in self.secondLRU:
+        if req_item in self.first_lru:
+            self.first_lru._update(req_item, )
+        elif req_item in self.second_lru:
             # req_item is in second, remove from second, insert to end of first,
             # evict from first to second if needed
-            self._move_to_upper_level(req_item, self.secondLRU, self.firstLRU)
-        elif req_item in self.thirdLRU:
-            self._move_to_upper_level(req_item, self.thirdLRU, self.secondLRU)
-        elif req_item in self.fourthLRU:
-            self._move_to_upper_level(req_item, self.fourthLRU, self.thirdLRU)
+            self._move_to_upper_level(
+                req_item, self.second_lru, self.first_lru)
+        elif req_item in self.third_lru:
+            self._move_to_upper_level(
+                req_item, self.third_lru, self.second_lru)
+        elif req_item in self.fourth_lru:
+            self._move_to_upper_level(
+                req_item, self.fourth_lru, self.third_lru)
 
     def _move_to_upper_level(self, element, lowerLRU, upperLRU):
         """
@@ -59,9 +62,9 @@ class S4LRU(Cache):
         """
 
         # get the node and remove from lowerLRU
-        node = lowerLRU.cacheDict[element]
-        lowerLRU.cacheLinkedList.remove_node(node)
-        del lowerLRU.cacheDict[element]
+        node = lowerLRU.cache_dict[element]
+        lowerLRU.cache_linked_list.remove_node(node)
+        del lowerLRU.cache_dict[element]
 
         # insert into upperLRU
         evicted_key = upperLRU._insert(node.content, )
@@ -77,17 +80,17 @@ class S4LRU(Cache):
         :param req_item:
         :return: evicted element
         """
-        return self.fourthLRU._insert(req_item, )
+        return self.fourth_lru._insert(req_item, )
 
-    def _printCacheLine(self):
+    def _print_cache_line(self):
         print("first: ")
-        self.firstLRU._printCacheLine()
+        self.first_lru._print_cache_line()
         print("second: ")
-        self.secondLRU._printCacheLine()
+        self.second_lru._print_cache_line()
         print("third: ")
-        self.thirdLRU._printCacheLine()
+        self.third_lru._print_cache_line()
         print("fourth: ")
-        self.fourthLRU._printCacheLine()
+        self.fourth_lru._print_cache_line()
 
     def evict(self, **kwargs):
         """
@@ -113,5 +116,5 @@ class S4LRU(Cache):
     def __repr__(self):
         return "S4LRU, given size: {}, current 1st part size: {}, current 2nd size: {}, \
             current 3rd part size: {}, current fourth part size: {}". \
-            format(self.cache_size, self.firstLRU.cacheLinkedList.size, self.secondLRU.cacheLinkedList.size,
-                   self.thirdLRU.cacheLinkedList.size, self.fourthLRU.cacheLinkedList.size)
+            format(self.cache_size, self.first_lru.cache_linked_list.size, self.second_lru.cache_linked_list.size,
+                   self.third_lru.cache_linked_list.size, self.fourth_lru.cache_linked_list.size)

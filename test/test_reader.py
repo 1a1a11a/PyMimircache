@@ -26,7 +26,7 @@ if not os.path.exists(DAT_FOLDER):
 
 
 class CReaderTest(unittest.TestCase):
-    def test_cReader_vscsi(self):
+    def test_c_reader_vscsi(self):
         reader = c_cacheReader.setup_reader("{}/trace.vscsi".format(DAT_FOLDER), 'v')
         lines = c_cacheReader.get_num_of_req(reader)
         self.assertEqual(lines, 113872)
@@ -39,7 +39,7 @@ class CReaderTest(unittest.TestCase):
         self.assertEqual(int(first_request), 42932745)
         c_cacheReader.close_reader(reader)
 
-    def test_cReader_plain(self):
+    def test_c_reader_plain(self):
         reader = c_cacheReader.setup_reader("{}/trace.txt".format(DAT_FOLDER), 'p')
         lines = c_cacheReader.get_num_of_req(reader)
         self.assertEqual(lines, 113872)
@@ -51,7 +51,7 @@ class CReaderTest(unittest.TestCase):
         self.assertEqual(int(first_request), 42932745)
         c_cacheReader.close_reader(reader)
 
-    def test_cReader_csv(self):
+    def test_c_reader_csv(self):
         reader = c_cacheReader.setup_reader("{}/trace.csv".format(DAT_FOLDER), 'c', data_type='c',
                                             init_params={"header": True, "delimiter": ",", "label": 5, "size": 4})
         lines = c_cacheReader.get_num_of_req(reader)
@@ -64,7 +64,7 @@ class CReaderTest(unittest.TestCase):
         self.assertEqual(first_request, "42932745")
         c_cacheReader.close_reader(reader)
 
-    def test_cReader_binary(self):
+    def test_c_reader_binary(self):
         reader = c_cacheReader.setup_reader("{}/trace.vscsi".format(DAT_FOLDER), 'b', data_type='l',
                                             init_params={"label": 6, "real_time": 7, "fmt": "<3I2H2Q"})
         lines = c_cacheReader.get_num_of_req(reader)
@@ -77,7 +77,7 @@ class CReaderTest(unittest.TestCase):
         self.assertEqual(int(first_request), 42932745)
         c_cacheReader.close_reader(reader)
 
-    def test_cReader_potpourri(self):
+    def test_c_reader_potpourri(self):
         v_reader = c_cacheReader.setup_reader("{}/trace.vscsi".format(DAT_FOLDER), 'v')
         c_reader = c_cacheReader.setup_reader("{}/trace.csv".format(DAT_FOLDER), 'c', data_type='l',
                                              init_params={"header": True, "delimiter": ",", "label": 5, "size": 4})

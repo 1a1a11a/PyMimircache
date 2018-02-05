@@ -75,7 +75,7 @@ Writing your own cache in Python is not difficult, just inherit abstractCache.py
     class Random(cache):
         def __init__(self, cache_size=1000):
             super().__init__(cache_size)
-            self.cacheDict = dict()  # key -> linked list node (in reality, it should also contains value)
+            self.cache_dict = dict()  # key -> linked list node (in reality, it should also contains value)
             self.cache_line_list = []  # to save all the keys, otherwise needs to populate from cache_dict every time
 
         def get(self, element):
@@ -83,7 +83,7 @@ Writing your own cache in Python is not difficult, just inherit abstractCache.py
             :param element: the key of cache request
             :return: whether the given key is in the cache or not
             """
-            if element in self.cacheDict:
+            if element in self.cache_dict:
                 return True
             else:
                 return False
@@ -103,13 +103,13 @@ Writing your own cache in Python is not difficult, just inherit abstractCache.py
             :param element: the key of cache request
             :return: None
             """
-            if len(self.cacheDict) >= self.cache_size:
+            if len(self.cache_dict) >= self.cache_size:
                 self.evict()
-            self.cacheDict[element] = ""
+            self.cache_dict[element] = ""
             self.cache_line_list.append(element)
 
-        def _printCacheLine(self):
-            for i in self.cacheDict:
+        def _print_cache_line(self):
+            for i in self.cache_dict:
                 try:
                     print(i.content, end='\t')
                 except:
@@ -141,7 +141,7 @@ Writing your own cache in Python is not difficult, just inherit abstractCache.py
                 del self.cache_line_list
                 self.cache_line_list = new_list
 
-            del self.cacheDict[element]
+            del self.cache_dict[element]
 
         def access(self, element):
             """
@@ -157,7 +157,7 @@ Writing your own cache in Python is not difficult, just inherit abstractCache.py
 
         def __repr__(self):
             return "Random Replacement, given size: {}, current size: {}".format(self.cache_size,
-                                                                                 len(self.cacheDict),
+                                                                                 len(self.cache_dict),
                                                                                  super().__repr__())
 
 The usage of new cache replacement algorithm is the same as the one in last section, just replace the algorithm string

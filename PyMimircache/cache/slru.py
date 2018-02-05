@@ -14,7 +14,8 @@ class SLRU(Cache):
         super().__init__(cache_size, **kwargs)
         self.ratio = ratio
         # Maybe use two linkedlist and a dict will be more efficient?
-        self.protected = LRU(int(self.cache_size * self.ratio / (self.ratio + 1)))
+        self.protected = LRU(
+            int(self.cache_size * self.ratio / (self.ratio + 1)))
         self.probationary = LRU(int(self.cache_size * 1 / (self.ratio + 1)))
 
     def has(self, req_id, **kwargs):
@@ -41,9 +42,9 @@ class SLRU(Cache):
             # evict from protected to probationary if needed
 
             # get the node and remove from probationary
-            node = self.probationary.cacheDict[req_item]
-            self.probationary.cacheLinkedList.remove_node(node)
-            del self.probationary.cacheDict[req_item]
+            node = self.probationary.cache_dict[req_item]
+            self.probationary.cache_linked_list.remove_node(node)
+            del self.probationary.cache_dict[req_item]
 
             # insert into protected
             evicted_key = self.protected._insert(node.content, )
@@ -61,11 +62,11 @@ class SLRU(Cache):
         """
         return self.probationary._insert(req_item, )
 
-    def _printCacheLine(self):
+    def _print_cache_line(self):
         print("protected: ")
-        self.protected._printCacheLine()
+        self.protected._print_cache_line()
         print("probationary: ")
-        self.probationary._printCacheLine()
+        self.probationary._print_cache_line()
 
     def evict(self, **kwargs):
         """
@@ -83,15 +84,13 @@ class SLRU(Cache):
         """
         if self.has(req_item, ):
             self._update(req_item, )
-            # self.printCacheLine()
             return True
         else:
             self._insert(req_item, )
-            # self.printCacheLine()
             return False
 
     def __repr__(self):
         return "SLRU, given size: {}, given protected part size: {}, given probationary part size: {}, \
             current protected part size: {}, current probationary size: {}". \
             format(self.cache_size, self.protected.cache_size, self.probationary.cache_size,
-                   self.protected.cacheLinkedList.size, self.probationary.cacheLinkedList.size)
+                   self.protected.cache_linked_list.size, self.probationary.cache_linked_list.size)

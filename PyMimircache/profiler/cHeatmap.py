@@ -61,7 +61,7 @@ class CHeatmap:
 
         assert time_interval != -1 or num_of_pixel_of_time_dim != -1, \
             "please provide at least one parameter, time_interval or num_of_pixel_of_time_dim"
-        return c_heatmap.get_breakpoints(reader.cReader, time_mode=time_mode,
+        return c_heatmap.get_breakpoints(reader.c_reader, time_mode=time_mode,
                                                     time_interval=time_interval,
                                                     num_of_pixel_of_time_dim=num_of_pixel_of_time_dim)
 
@@ -132,7 +132,7 @@ class CHeatmap:
                 enable_ihr = kwargs.get("interval_hit_ratio", False) or kwargs.get("enable_ihr", False)
                 ema_coef  = kwargs.get("ema_coef", DEF_EMA_HISTORY_WEIGHT)
 
-            xydict = c_heatmap.heatmap(reader.cReader, time_mode, plot_type,
+            xydict = c_heatmap.heatmap(reader.c_reader, time_mode, plot_type,
                                                   cache_size, algorithm,
                                                   interval_hit_ratio=enable_ihr,
                                                   ewma_coefficient=ema_coef,
@@ -145,7 +145,8 @@ class CHeatmap:
             text = "      " \
                    "cache size: {},\n      cache type: {},\n      " \
                    "time type:  {},\n      time interval: {},\n      " \
-                   "plot type: {}".format(cache_size, algorithm, time_mode, time_interval, plot_type)
+                   "plot type: \n{}".format(cache_size,
+                                            algorithm, time_mode, time_interval, plot_type)
 
             # coordinate to put the text
             x1, y1 = xydict.shape
@@ -159,7 +160,7 @@ class CHeatmap:
             ax = plt.gca()
             ax.text(x1, y1, text)  # , fontsize=20)  , color='blue')
 
-            plot_data = np.ma.array(xydict, mask=np.tri(len(xydict), k=-1, dtype=int).T)
+            plot_data = np.ma.array(xydict, mask=np.tri(len(xydict), dtype=int).T)
             self.draw_heatmap(plot_data, figname=figname, fixed_range=(0, 1),
                               xlabel=xlabel, ylabel=ylabel, xticks=xticks, yticks=yticks)
 
@@ -182,7 +183,15 @@ class CHeatmap:
             else:
                 plot_type = "hr_interval_size"
 
-            xydict = c_heatmap.heatmap(reader.cReader, time_mode, plot_type,
+            # a temporary fix as hr_st_size is not implemented in C, only hr_st_size with enable_ihr
+
+            if not enable_ihr:
+                raise RuntimeError("NOT Implemented")
+
+            else:
+                plot_type = "hr_interval_size"
+
+            xydict = c_heatmap.heatmap(reader.c_reader, time_mode, plot_type,
                                                   cache_size, algorithm,
                                                   ewma_coefficient=ema_coef,
                                                   bin_size = bin_size,
@@ -213,7 +222,7 @@ class CHeatmap:
 
         elif plot_type == "rd_distribution":
             xydict, log_base = c_heatmap.\
-                hm_rd_distribution(reader.cReader, time_mode,
+                hm_rd_distribution(reader.c_reader, time_mode,
                                    time_interval=time_interval,
                                    num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
                                    num_of_threads=num_of_threads)
@@ -246,7 +255,7 @@ class CHeatmap:
 
         elif plot_type == "rd_distribution_CDF":
             xydict, log_base = c_heatmap.\
-                hm_rd_distribution(reader.cReader, time_mode,
+                hm_rd_distribution(reader.c_reader, time_mode,
                                    time_interval=time_interval,
                                    num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
                                    num_of_threads=num_of_threads, CDF=1)
@@ -277,7 +286,7 @@ class CHeatmap:
 
         elif plot_type == "future_rd_distribution":
             xydict, log_base = c_heatmap.\
-                hm_future_rd_distribution(reader.cReader, time_mode,
+                hm_future_rd_distribution(reader.c_reader, time_mode,
                                           time_interval=time_interval,
                                           num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
                                           num_of_threads=num_of_threads)
@@ -307,7 +316,7 @@ class CHeatmap:
 
         elif plot_type == "dist_distribution":
             xydict, log_base = c_heatmap.\
-                hm_dist_distribution(reader.cReader, time_mode,
+                hm_dist_distribution(reader.c_reader, time_mode,
                                      time_interval=time_interval,
                                      num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
                                      num_of_threads=num_of_threads)
@@ -338,7 +347,7 @@ class CHeatmap:
 
         elif plot_type == "reuse_time_distribution" or plot_type == "rt_distribution":
             xydict, log_base = c_heatmap.\
-                hm_reuse_time_distribution(reader.cReader, time_mode,
+                hm_reuse_time_distribution(reader.c_reader, time_mode,
                                            time_interval=time_interval,
                                            num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
                                            num_of_threads=num_of_threads)
@@ -402,7 +411,7 @@ class CHeatmap:
         if plot_type == "hit_ratio_start_time_end_time" or plot_type == "hr_st_et":
             assert cache_size != -1, "please provide cache_size for plotting hr_st_et"
 
-            xydict = c_heatmap.diff_heatmap(reader.cReader, time_mode,
+            xydict = c_heatmap.diff_heatmap(reader.c_reader, time_mode,
                                                        "hr_st_et", cache_size,
                                                        algorithm1, algorithm2,
                                                        time_interval=time_interval,

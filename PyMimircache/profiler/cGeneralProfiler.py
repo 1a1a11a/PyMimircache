@@ -152,7 +152,7 @@ class CGeneralProfiler:
         if self.block_unit_size != 0:
             print("not supported yet")
         else:
-            self.hit_count = c_generalProfiler.get_hit_count(self.reader.cReader,
+            self.hit_count = c_generalProfiler.get_hit_count(self.reader.c_reader,
                                                               self.cache_name,
                                                               cache_size,
                                                               self.bin_size,
@@ -178,7 +178,7 @@ class CGeneralProfiler:
             sanity_kwargs['end'] = kwargs['end']
 
         # handles both withsize and no size, but currently only storage system trace are supported with size
-        self.hit_ratio = c_generalProfiler.get_hit_ratio(self.reader.cReader,
+        self.hit_ratio = c_generalProfiler.get_hit_ratio(self.reader.c_reader,
                                                           self.cache_name,
                                                           cache_size,
                                                           bin_size,

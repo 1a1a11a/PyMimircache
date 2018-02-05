@@ -35,7 +35,7 @@ Dependency and Installation
 On Ubuntu using the following command to install
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-jason@myMachine: ~$ sudo apt-get install libglib2.0-dev python3-pip, python3-matplotlib
+jason@myMachine: ~$ sudo apt-get install libglib2.0-dev python3-pip python3-matplotlib
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #### Python Dependency: numpy, scipy, matplotlib, heapdict, mmh3
