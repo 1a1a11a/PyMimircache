@@ -25,18 +25,22 @@ Author: Jason Yang <peter.waynechina@gmail.com> 2016/08
 import pickle
 from collections import deque
 from multiprocessing import Array, Process, Queue
+from concurrent.futures import as_completed, ProcessPoolExecutor
 
 # this should be replaced by pure python module
 from PyMimircache.const import ALLOW_C_MIMIRCACHE
-# from PyMimircache.profiler.cHeatmap import get_breakpoints
-
 if ALLOW_C_MIMIRCACHE:
     import PyMimircache.CMimircache.Heatmap as c_heatmap
 from PyMimircache.profiler.pyHeatmapSubprocess import *
+from PyMimircache.profiler.profilerUtils import get_breakpoints, draw_heatmap
+from PyMimircache.profiler.pyHeatmapAux import *
+from PyMimircache.profiler.utils.dist import get_last_access_dist
 from PyMimircache.utils.printing import *
 from PyMimircache.const import *
+from PyMimircache.const import ALLOW_C_MIMIRCACHE, DEF_NUM_BIN_PROF, DEF_EMA_HISTORY_WEIGHT
 
 import matplotlib.ticker as ticker
+from matplotlib import colors
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -44,328 +48,100 @@ from matplotlib import pyplot as plt
 
 
 class PyHeatmap:
+    """
+    heatmap class for plotting heatmaps in Python
+    """
+
+    all = ["heatmap", "diff_heatmap"]
+
     def __init__(self):
-        # if not os.path.exists('temp/'):
-        #     os.mkdir('temp')
+        """ nothing needs to be done, not using all static method due to consistency between profilers """
         pass
 
-    @staticmethod
-    def get_breakpoints(reader, time_mode,
-                        time_interval=-1,
+
+    def compute_heatmap(self,
+                        reader, plot_type, time_mode, time_interval,
+                        cache_size=-1,
                         num_of_pixel_of_time_dim=-1,
-                        **kwargs):
-        """
-        retrieve the breakpoints given time_mode and time_interval or num_of_pixel_of_time_dim,
-        break point breaks the trace into chunks of given time_interval
-
-        :param reader: reader for reading trace
-        :param time_mode: either real time (r) or virtual time (v)
-        :param time_interval: the intended time_interval of data chunk
-        :param num_of_pixel_of_time_dim: the number of chunks, this is used when it is hard to estimate time_interval,
-                                you only need specify one, either num_of_pixel_of_time_dim or time_interval
-        :param kwargs: not used now
-        :return: a numpy list of break points begin with 0, ends with total_num_requests
-        """
-
-        assert time_interval != -1 or num_of_pixel_of_time_dim != -1, \
-            "please provide at least one parameter, time_interval or num_of_pixel_of_time_dim"
-        pass
-
-
-        """
-        components down need re-write 
-        """
-
-
-    def _prepare_reuse_distance_and_break_points(self, mode, reader,
-                                                 time_interval=-1, num_of_pixels=-1,
-                                                 calculate=True, save=False,
-                                                 **kwargs):
-        reader.reset()
-
-        break_points = []
-
-        if calculate:
-            # build profiler for extracting reuse distance (For LRU)
-            p = LRUProfiler(reader)
-            reuse_dist = p.get_reuse_distance()
-
-            if save:
-                # needs to save the data
-                if not os.path.exists('temp/'):
-                    os.makedirs('temp/')
-                with open('temp/reuse.dat', 'wb') as ofile:
-                    # pickle.dump(reuse_dist_python_list, ofile)
-                    pickle.dump(reuse_dist, ofile)
-
-        else:
-            # the reuse distance has already been calculated, just load it
-            with open('temp/reuse.dat', 'rb') as ifile:
-                # reuse_dist_python_list = pickle.load(ifile)
-                reuse_dist = pickle.load(ifile)
-
-            breakpoints_filename = 'temp/break_points_' + mode + str(time_interval) + '.dat'
-            # check whether the break points distribution table has been calculated
-            if os.path.exists(breakpoints_filename):
-                with open(breakpoints_filename, 'rb') as ifile:
-                    break_points = pickle.load(ifile)
-
-        # check break points are loaded or not, if not need to calculate it
-        if not break_points:
-            break_points = CHeatmap.get_breakpoints(reader, mode,
-                                                      time_interval=time_interval,
-                                                      num_of_pixels=num_of_pixels)
-            if save:
-                with open('temp/break_points_' + mode + str(time_interval) + '.dat', 'wb') as ifile:
-                    pickle.dump(break_points, ifile)
-
-        return reuse_dist, break_points
-
-    def _prepare_multiprocess_params_LRU(self, mode, plot_type, break_points, **kwargs):
-        # create the array for storing results
-        # result is a dict: (x, y) -> heat, x, y is the left, lower point of heat square
-
-        kwargs_subprocess = {}  # kw dictionary for passing parameters to subprocess
-        kwargs_plot = {}  # kw dictionary passed to plotting functions
-        if plot_type == "hit_ratio_start_time_cache_size":
-            max_rd = max(kwargs['reuse_dist'])
-            kwargs_subprocess['max_rd'] = max_rd
-            if 'bin_size' in kwargs:
-                kwargs_subprocess["bin_size"] = kwargs['bin_size']
-            else:
-                kwargs_subprocess['bin_size'] = int(max_rd / DEF_NUM_BIN_PROF)
-
-            result = np.zeros((len(break_points) - 1, max_rd // kwargs_subprocess['bin_size'] + 1), dtype=np.float32)
-            result[:] = np.nan
-            func_pointer = calc_hit_ratio_start_time_cache_size_subprocess
-            kwargs_plot['yticks'] = ticker.FuncFormatter(
-                lambda x, pos: '{:2.0f}'.format(kwargs_subprocess['bin_size'] * x))
-            kwargs_plot['xlabel'] = 'time({})'.format(mode)
-            kwargs_plot['ylabel'] = 'cache size'
-            kwargs_plot['zlabel'] = 'hit rate'
-            kwargs_plot['title'] = "hit rate start time cache size"
-
-            # plt.gca().yaxis.set_major_formatter(
-            #     ticker.FuncFormatter(lambda x, pos: '{:2.0f}'.format(kwargs_subprocess['bin_size'] * x)))
-
-        elif plot_type == "hit_ratio_start_time_end_time":
-            # (x,y) means from time x to time y
-            assert 'reader' in kwargs, 'please provide reader as keyword argument'
-            assert 'cache_size' in kwargs, 'please provide cache_size as keyword argument'
-
-            reader = kwargs['reader']
-            kwargs_subprocess['cache_size'] = kwargs['cache_size']
-            array_len = len(break_points) - 1
-            result = np.zeros((array_len, array_len), dtype=np.float32)
-            # result[:] = np.nan
-            func_pointer = calc_hit_ratio_start_time_end_time_subprocess
-
-            kwargs_plot['xlabel'] = 'time({})'.format(mode)
-            kwargs_plot['ylabel'] = 'time({})'.format(mode)
-            kwargs_plot['yticks'] = ticker.FuncFormatter(
-                lambda x, pos: '{:2.0f}%'.format(x * 100 / len(break_points)))
-            kwargs_plot['title'] = "hit_ratio_start_time_end_time"
-
-            last_access = c_heatmap.get_last_access_dist(reader.c_reader)
-            last_access_array = Array('l', len(last_access), lock=False)
-            for i, j in enumerate(last_access):
-                last_access_array[i] = j
-            kwargs_subprocess['last_access_array'] = last_access_array
-
-
-        elif plot_type == "avg_rd_start_time_end_time":
-            # (x,y) means from time x to time y
-            kwargs_plot['xlabel'] = 'time({})'.format(mode)
-            kwargs_plot['ylabel'] = 'time({})'.format(mode)
-            kwargs_plot['title'] = "avg_rd_start_time_end_time"
-
-            array_len = len(break_points) - 1
-            result = np.zeros((array_len, array_len), dtype=np.float32)
-            result[:] = np.nan
-            func_pointer = calc_avg_rd_start_time_end_time_subprocess
-
-        elif plot_type == "cold_miss_count_start_time_end_time":
-            # (x,y) means from time x to time y
-            kwargs_plot['xlabel'] = 'time({})'.format(mode)
-            kwargs_plot['ylabel'] = 'cold miss count'
-            kwargs_plot['title'] = "cold_miss_count_start_time_end_time"
-            array_len = len(break_points) - 1
-            result = np.zeros((array_len, array_len), dtype=np.float32)
-            result[:] = np.nan
-            func_pointer = calc_cold_miss_count_start_time_end_time_subprocess
-
-        else:
-            raise RuntimeError("cannot recognize plot type")
-
-        kwargs_plot['xticks'] = ticker.FuncFormatter(lambda x, pos: '{:2.0f}%'.format(x * 100 / len(break_points)))
-
-        return result, kwargs_subprocess, kwargs_plot, func_pointer
-
-    def calculate_heatmap_dat(self, reader, mode, plot_type, time_interval=-1, num_of_pixels=-1,
-                              algorithm="LRU", cache_params=None, num_of_threads=4, **kwargs):
+                        num_of_threads=os.cpu_count(), **kwargs):
         """
             calculate the data for plotting heatmap
 
-        :param time_interval:
-        :param num_of_pixels:
-        :param algorithm:
-        :param cache_params:
-        :param num_of_threads:
-        :param mode: mode can be either virtual time(v) or real time(r)
-        :param reader: for reading the trace file
-        :param plot_type: the type of heatmap to generate, possible choices are:
-        1. hit_ratio_start_time_end_time
-        2. hit_ratio_start_time_cache_size
-        3. avg_rd_start_time_end_time
-        4. cold_miss_count_start_time_end_time
-        5. rd_distribution
-        6.
-
-        :param kwargs: possible key-arg includes the type of cache replacement algorithms(cache),
-
-        :return: a two-dimension list, the first dimension is x, the second dimension is y, the value is the heat value
+        :param reader: reader for data
+        :param plot_type: types of data, see heatmap (function) for details
+        :param time_mode: real time (r) or virtual time (v)
+        :param time_interval: the window size in computation
+        :param cache_size: size of cache
+        :param num_of_pixel_of_time_dim: as an alternative to time_interval, useful when you don't know the trace time span
+        :param num_of_threads: number of threads/processes to use for computation, default: all
+        :param kwargs: cache_params,
+        :return:  a two-dimension list, the first dimension is x, the second dimension is y, the value is the heat value
         """
 
-        if algorithm == "LRU":
-            reuse_dist, break_points = self._prepare_reuse_distance_and_break_points(
-                mode, reader, time_interval=time_interval, num_of_pixels=num_of_pixels, **kwargs)
 
-            # create shared memory for child process
-            reuse_dist_share_array = Array('l', len(reuse_dist), lock=False)
-            for i, j in enumerate(reuse_dist):
-                reuse_dist_share_array[i] = j
+        bp = get_breakpoints(reader, time_mode, time_interval, num_of_pixel_of_time_dim)
+        ppe = ProcessPoolExecutor(max_workers=num_of_threads)
+        futures_dict = {}
+        progress = 0
+        xydict = np.zeros((len(bp)-1, len(bp)-1))
 
-            result, kwargs_subprocess, kwargs_plot, func_pointer = self._prepare_multiprocess_params_LRU(mode,
-                                                                                                         plot_type,
-                                                                                                         break_points,
-                                                                                                         reuse_dist=reuse_dist_share_array,
-                                                                                                         reader=reader,
-                                                                                                         **kwargs)
 
-        else:
-            assert 'cache_size' in kwargs, "you didn't provide cache_size parameter"
-            if isinstance(algorithm, str):
-                algorithm = cache_name_to_class(algorithm)
+        if plot_type in [
+            "avg_rd_st_et",
+            "rd_distribution",
+            "rd_distribution_CDF",
+            "future_rd_distribution",
+            "dist_distribution",
+            "rt_distribution"
+        ]:
+            pass
 
-            # prepare break points
-            if mode[0] == 'r' or mode[0] == 'v':
-                break_points = CHeatmap.get_breakpoints(reader, mode[0],
-                                                          time_interval=time_interval,
-                                                          num_of_pixels=num_of_pixels)
+        elif plot_type == "hr_st_et":
+            ema_coef = kwargs.get("ema_coef", DEF_EMA_HISTORY_WEIGHT)
+            enable_ihr = kwargs.get("interval_hit_ratio", False) or kwargs.get("enable_ihr", False)
+
+
+            if kwargs.get("algorithm", "LRU").lower() == "lru":
+                #TODO: replace CLRUProfiler with PyLRUProfiler
+                rd = CLRUProfiler(reader).get_reuse_distance()
+                last_access_dist = get_last_access_dist(reader)
+
+                for i in range(len(bp) - 1):
+                    futures_dict[ppe.submit(cal_hr_list_LRU, rd, last_access_dist,
+                                            cache_size, bp, i, enable_ihr=enable_ihr, ema_coef=ema_coef)] = i
             else:
-                raise RuntimeError("unrecognized mode, it can only be r or v")
+                reader_params = reader.get_params()
+                reader_params["open_c_reader"] = False
+                cache_class = cache_name_to_class(kwargs.get("algorithm"))
+                cache_params = kwargs.get("cache_params", {})
 
-            result, kwargs_subprocess, kwargs_plot, func_pointer = self._prepare_multiprocess_params_LRU(mode,
-                                                                                                         plot_type,
-                                                                                                         break_points,
-                                                                                                         reader=reader,
-                                                                                                         **kwargs)
-            kwargs_subprocess['cache_params'] = cache_params
+                for i in range(len(bp) - 1):
+                    futures_dict[ppe.submit(cal_hr_list_general, reader.__class__, reader_params,
+                                            cache_class, cache_size, bp, i, cache_params=cache_params)] = i
 
-        # create shared memory for break points
-        break_points_share_array = Array('i', len(break_points), lock=False)
-        for i, j in enumerate(break_points):
-            break_points_share_array[i] = j
+        elif plot_type == "hr_st_size":
+            raise RuntimeError("Not Implemented")
 
-        # Jason: memory usage can be optimized by not copying whole reuse distance array in each sub process
-        # Jason: change to process pool for efficiency
-        map_list = deque()
-        for i in range(len(break_points) - 1):
-            map_list.append(i)
+        elif plot_type == "KL_st_et":
+            rd = CLRUProfiler(reader).get_reuse_distance()
 
-        q = Queue()
-        process_pool = []
-        process_count = 0
-        result_count = 0
-        map_list_pos = 0
-        while result_count < len(map_list):
-            if process_count < num_of_threads and map_list_pos < len(map_list):
-                # LRU related heatmaps
-                if algorithm == LRU:
-                    p = Process(target=func_pointer,
-                                args=(map_list[map_list_pos], break_points_share_array, reuse_dist_share_array, q),
-                                kwargs=kwargs_subprocess)
-                else:
-
-                    p = Process(target=calc_hit_ratio_start_time_end_time_subprocess_general,
-                                args=(map_list[map_list_pos], algorithm, break_points_share_array, reader, q),
-                                kwargs=kwargs_subprocess)
-
-                p.start()
-                process_pool.append(p)
-                process_count += 1
-                map_list_pos += 1
-            else:
-                rl = q.get()
-                for r in rl:
-                    # print("[{}][{}] = {}".format(r[0], r[1], r[2]))
-                    result[r[0]][r[1]] = r[2]
-                process_count -= 1
-                result_count += 1
-            print("%2.2f%%" % (result_count / len(map_list) * 100), end='\r')
-        for p in process_pool:
-            p.join()
-
-        # old 0510
-        # with Pool(processes=self.num_of_threads) as p:
-        #     for ret_list in p.imap_unordered(_calc_hit_ratio_subprocess, map_list,
-        #                                      chunksize=10):
-        #         count += 1
-        #         print("%2.2f%%" % (count / len(map_list) * 100), end='\r')
-        #         for r in ret_list:  # l is a list of (x, y, hr)
-        #             result[r[0]][r[1]] = r[2]
-
-        return result.T, kwargs_plot
-
-
-    @staticmethod
-    def draw_heatmap(xydict, **kwargs):
-        if 'figname' in kwargs:
-            filename = kwargs['figname']
         else:
-            filename = 'heatmap.png'
+            ppe.shutdown()
+            raise RuntimeError("{} is not a valid heatmap type".format(plot_type))
 
-        masked_array = np.ma.array(xydict, mask=np.isnan(xydict))
 
-        # print(masked_array)
-        cmap = plt.cm.jet
-        cmap.set_bad('w', 1.)
+        last_progress_print_time = time.time()
+        for future in as_completed(futures_dict):
+            result = future.result()
+            xydict[-len(result):, futures_dict[future]] = np.array(result)
+            # print("{} {}".format(xydict[futures_dict[future]], np.array(result)))
+            progress += 1
+            if time.time() - last_progress_print_time > 20:
+                INFO("{:.2f}%".format(progress / len(futures_dict) * 100), end="\r")
+                last_progress_print_time = time.time()
 
-        if 'fixed_range' in kwargs and kwargs['fixed_range']:
-            img = plt.imshow(masked_array, vmin=0, vmax=1, interpolation='nearest', origin='lower',
-                             aspect='auto')
-        else:
-            img = plt.imshow(masked_array, interpolation='nearest', origin='lower', aspect='auto')
-
-        cb = plt.colorbar(img)
-        if 'text' in kwargs:
-            (length1, length2) = masked_array.shape
-            ax = plt.gca()
-            ax.text(length2 // 3, length1 // 8, kwargs['text'], fontsize=20)  # , color='blue')
-
-        if 'xlabel' in kwargs:
-            plt.xlabel(kwargs['xlabel'])
-        if 'ylabel' in kwargs:
-            plt.ylabel(kwargs['ylabel'])
-        if 'xticks' in kwargs:
-            plt.gca().xaxis.set_major_formatter(kwargs['xticks'])
-        if 'yticks' in kwargs:
-            plt.gca().yaxis.set_major_formatter(kwargs['yticks'])
-        if 'title' in kwargs:
-            plt.title(kwargs['title'])
-
-        # # # change tick from arbitrary number to real time
-        # if 'change_label' in kwargs and kwargs['change_label'] and 'interval' in kwargs:
-        #     ticks = ticker.FuncFormatter(lambda x, pos: '{:2.2f}'.format(x * kwargs['interval'] / (10 ** 6) / 3600))
-        #     plt.gca().xaxis.set_major_formatter(ticks)
-        #     plt.gca().yaxis.set_major_formatter(ticks)
-        #     plt.xlabel("time/hour")
-        #     plt.ylabel("time/hour")
-
-        # plt.show()
-        plt.savefig(filename, dpi=600)
-        INFO("plot is saved at the same directory")
-        plt.clf()
+        ppe.shutdown()
+        return xydict
 
 
     @staticmethod
@@ -415,46 +191,270 @@ class PyHeatmap:
         plt.show()
         plt.savefig(filename, dpi=600)
 
-    def __del_manual__(self):
-        """
-        cleaning
-        :return:
-        """
-        if os.path.exists('temp/'):
-            for filename in os.listdir('temp/'):
-                os.remove('temp/' + filename)
-            os.rmdir('temp/')
 
-    def heatmap(self, reader, mode, plot_type,
-                time_interval=-1, num_of_pixels=-1,
-                algorithm="LRU", cache_params=None, **kwargs):
+    def heatmap(self, reader, time_mode, plot_type,
+                algorithm="LRU",
+                time_interval=-1,
+                num_of_pixel_of_time_dim=-1,
+                cache_params=None,
+                **kwargs):
         """
 
-        :param time_interval:
-        :param num_of_pixels:
-        :param algorithm:
-        :param cache_params:
-        :param plot_type:
-        :param mode:
-        :param reader:
-        :param kwargs: include num_of_threads, figname
+        This functions provides different types of heatmap plotting
+
+        :param reader: the reader instance for data input
+        :param time_mode: either real time (r) or virtual time (v),
+                    real time is wall clock time, it needs the reader containing real time info
+                    virtual time is the reference number, aka. the number of requests
+        :param plot_type: different types of heatmap, supported heatmaps are listed in the table below
+        :param algorithm: cache replacement algorithm (default: LRU)
+        :param time_interval: the time interval of each pixel
+        :param num_of_pixel_of_time_dim: if don't want to specify time_interval, you can also specify how many pixels you want
+        :param cache_params: params used in cache
+        :param kwargs: include num_of_threads, figname, enable_ihr, ema_coef (default: 0.8), plot_kwargs, filter_rd, filter_count
         :return:
+
+
+        ============================  ========================  ===========================================================================
+        plot_type                       required parameters         descriptions
+        ============================  ========================  ===========================================================================
+        "hr_st_et"                      cache_size              hit ratio with regarding to start time (x) and end time (y)
+        "hr_st_size"                    NOT IMPLEMENTED         hit ratio with reagarding to start time (x) and size (y)
+        "avg_rd_st_et"                  NOT IMPLEMENTED         average reuse distance with regaarding to start time (x) and end time (y)
+        "rd_distribution"               N/A                     reuse distance distribution (y) vs time (x)
+        "rd_distribution_CDF"           N/A                     reuse distance distribution CDF (y) vs time (x)
+        "future_rd_distribution"        N/A                     future reuse distance distribution (y) vs time (x)
+        "dist_distribution"             N/A                     absolute distance distribution (y) vs time (x)
+        "rt_distribution"               N/A                     reuse time distribution (y) vs time (x)
+        ============================  ========================  ===========================================================================
+
+
         """
+
         reader.reset()
 
-        if mode == 'r' or mode == 'v':
-            xydict, kwargs_plot = self.calculate_heatmap_dat(reader, mode, plot_type, algorithm=algorithm,
-                                                             time_interval=time_interval, num_of_pixels=num_of_pixels,
-                                                             cache_params=cache_params, **kwargs)
+        cache_size = kwargs.get("cache_size", -1)
+        figname = kwargs.get("figname", "PyHeatmap_{}.png".format(plot_type))
+        num_of_threads = kwargs.get("num_of_threads", os.cpu_count())
+        if cache_params is None: cache_params = {}
+        plot_kwargs = kwargs.get("plot_kwargs", {"figname": figname})
+        assert time_mode in ["r", "v"], "Cannot recognize this time_mode, "\
+                                        "it can only be either real time(r) or virtual time(v), " \
+                                        "but you give {}".format(time_mode)
+
+
+        if plot_type == "hr_st_et":
+            assert cache_size != -1, "please provide cache_size parameter for plotting hr_st_et"
+            # this is used to specify the type of hit ratio for each pixel, when it is False, it means
+            # the hit ratio is the overall hit ratio from the beginning of trace,
+            # if True, then the hit ratio will be exponentially decayed moving average hit ratio from beginning plus
+            # the hit ratio in current time interval, the ewma_coefficient specifies the weight of
+            # history hit ratio in the calculation
+            enable_ihr = kwargs.get("interval_hit_ratio", False) or kwargs.get("enable_ihr", False)
+            ema_coef  = kwargs.get("ema_coef", DEF_EMA_HISTORY_WEIGHT)
+
+            xydict = self.compute_heatmap(reader, plot_type, time_mode, time_interval,
+                                          cache_size=cache_size,
+                                          algorithm=algorithm,
+                                          enable_ihr=enable_ihr,
+                                          ema_coef=ema_coef,
+                                          num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
+                                          cache_params=cache_params,
+                                          num_of_threads=num_of_threads)
+
+
+            text = "cache size: {},\ncache type: {},\ntime mode:  {},\ntime interval: {},\n" \
+                   "plot type:  {}".format(cache_size, algorithm, time_mode, time_interval, plot_type)
+
+            # coordinate to put the text
+            x1, y1 = xydict.shape
+            x1, y1 = int(x1 / 2.4), y1/8
+            ax = plt.gca()
+            ax.text(x1, y1, text)  # , fontsize=20)  , color='blue')
+
+            plot_kwargs["xlabel"]  = plot_kwargs.get("xlabel", 'Start Time ({})'.format(time_mode))
+            plot_kwargs["xticks"]  = plot_kwargs.get("xticks", ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (xydict.shape[1]-1))))
+            plot_kwargs["ylabel"]  = plot_kwargs.get("ylabel", "End Time ({})".format(time_mode))
+            plot_kwargs["yticks"]  = plot_kwargs.get("yticks", ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (xydict.shape[1]-1))))
+            plot_kwargs["imshow_kwargs"] = {"vmin": 0, "vmax": 1}
+
+            plot_data = np.ma.array(xydict, mask=np.tri(len(xydict), k=-1, dtype=int).T)
+
+
+        elif plot_type == "hr_st_size":
+            # hit ratio with start time and cache size
+            assert cache_size != -1, "please provide cache_size parameter for plotting hr_interval_size"
+            bin_size = kwargs.get("bin_size", cache_size // DEF_NUM_BIN_PROF + 1)
+            enable_ihr = kwargs.get("interval_hit_ratio", False) or kwargs.get("enable_ihr", False)
+            ema_coef  = kwargs.get("ema_coef", DEF_EMA_HISTORY_WEIGHT)
+
+            xydict = self.compute_heatmap(reader, plot_type, time_mode, time_interval,
+                                          cache_size=cache_size,
+                                          algorithm=algorithm,
+                                          enable_ihr=enable_ihr,
+                                          ema_coef=ema_coef,
+                                          bin_size = bin_size,
+                                          num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
+                                          cache_params=cache_params,
+                                          num_of_threads=num_of_threads)
+
+            plot_kwargs["xlabel"]  = plot_kwargs.get("xlabel", 'Time ({})'.format(time_mode))
+            plot_kwargs["xticks"]  = plot_kwargs.get("xticks", ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (xydict.shape[1]-1))))
+            plot_kwargs["ylabel"]  = plot_kwargs.get("ylabel", "Cache Size")
+            plot_kwargs["yticks"]  = plot_kwargs.get("yticks", ticker.FuncFormatter(lambda x, _: int(x*bin_size)))
+            plot_kwargs["imshow_kwargs"] = {"vmin": 0, "vmax": 1}
+
+            plot_data = xydict
+
+
+        elif plot_type == "KL_st_et":
+            xydict = self.compute_heatmap(reader, plot_type, time_mode, time_interval,
+                                          num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
+                                          num_of_threads=num_of_threads)
+
+            text = "time type:  {},\ntime interval: {},\nplot type:  {}".format(time_mode, time_interval, plot_type)
+
+            # coordinate to put the text
+            x1, y1 = xydict.shape
+            x1, y1 = int(x1 / 2), y1/8
+            ax = plt.gca()
+            ax.text(x1, y1, text)  # , fontsize=20)  , color='blue')
+
+            plot_kwargs["xlabel"]  = plot_kwargs.get("xlabel", 'Start Time ({})'.format(time_mode))
+            plot_kwargs["xticks"]  = plot_kwargs.get("xticks", ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (xydict.shape[1]-1))))
+            plot_kwargs["ylabel"]  = plot_kwargs.get("ylabel", "End Time ({})".format(time_mode))
+            plot_kwargs["yticks"]  = plot_kwargs.get("yticks", ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (xydict.shape[1]-1))))
+
+            plot_data = np.ma.array(xydict, mask=np.tri(len(xydict), k=-1, dtype=int).T)
+
+
+        elif plot_type == "avg_rd_start_time_end_time" or plot_type == "avg_rd_st_et":
+            raise RuntimeError("NOT Implemented")
+
+
+        elif plot_type == "cold_miss_count_start_time_end_time":
+            raise RuntimeError("this plot is deprecated")
+
+
+        elif plot_type == "rd_distribution":
+            xydict, log_base = c_heatmap.\
+                hm_rd_distribution(reader.cReader, time_mode,
+                                   time_interval=time_interval,
+                                   num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
+                                   num_of_threads=num_of_threads)
+
+            plot_kwargs["xlabel"]  = plot_kwargs.get("xlabel", '{} Time'.format("Real" if time_mode=="r" else "Virtual"))
+            plot_kwargs["xticks"]  = plot_kwargs.get("xticks", ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (xydict.shape[1]-1))))
+            plot_kwargs["ylabel"]  = plot_kwargs.get("ylabel", "Reuse Distance")
+            plot_kwargs["yticks"]  = plot_kwargs.get("yticks", ticker.FuncFormatter(lambda x, _: '{:2.0f}'.format(log_base ** x-1)))
+            plot_kwargs["imshow_kwargs"] = {"norm": colors.LogNorm()}
+
+            plot_data = xydict
+            np.ma.masked_where(plot_data==0, plot_data, copy=False)
+
+
+        elif plot_type == "rd_distribution_CDF":
+            xydict, log_base = c_heatmap.\
+                hm_rd_distribution(reader.cReader, time_mode,
+                                   time_interval=time_interval,
+                                   num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
+                                   num_of_threads=num_of_threads, CDF=1)
+
+            plot_kwargs["xlabel"]  = plot_kwargs.get("xlabel", '{} Time'.format("Real" if time_mode=="r" else "Virtual"))
+            plot_kwargs["xticks"]  = plot_kwargs.get("xticks", ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (xydict.shape[1]-1))))
+            plot_kwargs["ylabel"]  = plot_kwargs.get("ylabel", "Reuse Distance (CDF)")
+            plot_kwargs["yticks"]  = plot_kwargs.get("yticks", ticker.FuncFormatter(lambda x, _: '{:2.0f}'.format(log_base ** x-1)))
+            plot_kwargs["imshow_kwargs"] = {"norm": colors.LogNorm()}
+
+
+            plot_data = xydict
+            np.ma.masked_where(plot_data==0, plot_data, copy=False)
+
+
+        elif plot_type == "future_rd_distribution":
+            xydict, log_base = c_heatmap.\
+                hm_future_rd_distribution(reader.cReader, time_mode,
+                                          time_interval=time_interval,
+                                          num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
+                                          num_of_threads=num_of_threads)
+
+
+            plot_kwargs["xlabel"]  = plot_kwargs.get("xlabel", '{} Time'.format("Real" if time_mode=="r" else "Virtual"))
+            plot_kwargs["xticks"]  = plot_kwargs.get("xticks", ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (xydict.shape[1]-1))))
+            plot_kwargs["ylabel"]  = plot_kwargs.get("ylabel", "Future Reuse Distance")
+            plot_kwargs["yticks"]  = plot_kwargs.get("yticks", ticker.FuncFormatter(lambda x, _: '{:2.0f}'.format(log_base ** x-1)))
+            plot_kwargs["imshow_kwargs"] = {"norm": colors.LogNorm()}
+
+
+            plot_data = xydict
+            np.ma.masked_where(plot_data==0, plot_data, copy=False)
+
+
+        elif plot_type == "dist_distribution":
+            xydict, log_base = c_heatmap.\
+                hm_dist_distribution(reader.cReader, time_mode,
+                                     time_interval=time_interval,
+                                     num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
+                                     num_of_threads=num_of_threads)
+
+            plot_kwargs["xlabel"]  = plot_kwargs.get("xlabel", '{} Time'.format("Real" if time_mode=="r" else "Virtual"))
+            plot_kwargs["xticks"]  = plot_kwargs.get("xticks", ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (xydict.shape[1]-1))))
+            plot_kwargs["ylabel"]  = plot_kwargs.get("ylabel", "Distance")
+            plot_kwargs["yticks"]  = plot_kwargs.get("yticks", ticker.FuncFormatter(lambda x, _: '{:2.0f}'.format(log_base ** x-1)))
+            plot_kwargs["imshow_kwargs"] = {"norm": colors.LogNorm()}
+
+
+            plot_data = xydict
+            np.ma.masked_where(plot_data==0, plot_data, copy=False)
+
+
+        elif plot_type == "rt_distribution":
+            xydict, log_base = c_heatmap.\
+                hm_reuse_time_distribution(reader.cReader, time_mode,
+                                           time_interval=time_interval,
+                                           num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
+                                           num_of_threads=num_of_threads)
+
+            plot_kwargs["xlabel"]  = plot_kwargs.get("xlabel", '{} Time'.format("Real" if time_mode=="r" else "Virtual"))
+            plot_kwargs["xticks"]  = plot_kwargs.get("xticks", ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (xydict.shape[1]-1))))
+            plot_kwargs["ylabel"]  = plot_kwargs.get("ylabel", "Reuse Time")
+            plot_kwargs["yticks"]  = plot_kwargs.get("yticks", ticker.FuncFormatter(lambda x, _: '{:2.0f}'.format(log_base ** x-1)))
+            plot_kwargs["imshow_kwargs"] = {"norm": colors.LogNorm()}
+
+
+            plot_data = xydict
+            np.ma.masked_where(plot_data==0, plot_data, copy=False)
+
+            if 'filter_rt' in kwargs:
+                assert kwargs['filter_rt'] > 0, "filter_rt must be positive"
+                index_pos = int(np.log(kwargs['filter_rt'])/np.log(log_base))
+                plot_data[:index_pos+1, :] = 0
+
+
         else:
-            raise RuntimeError("Cannot recognize this mode, it can only be either real time(r) or virtual time(v), "
-                               "but you input %s" % mode)
+            raise RuntimeError("PyHeatmap does not support {}"
+                "please check documentation".format(plot_type))
 
-        kwargs_plot.update(kwargs)
-        self.draw_heatmap(xydict, **kwargs_plot)
+
+        if 'filter_rd' in kwargs:
+            # make reuse distance < filter_rd invisible, this can be useful
+            # when the low-reuse-distance request dominates, which makes the heatmap hard to read
+            assert kwargs['filter_rd'] > 0, "filter_rd must be positive"
+            index_pos = int(np.log(kwargs['filter_rd'])/np.log(log_base))
+            plot_data[:index_pos+1, :] = 0
+
+        if 'filter_count' in kwargs:
+            assert kwargs['filter_count'] > 0, "filter_count must be positive"
+            plot_data = np.ma.array(plot_data, mask=(plot_data < kwargs['filter_count']))
+
+
+        draw_heatmap(plot_data, **plot_kwargs)
         reader.reset()
 
-        # self.__del_manual__()
 
+if __name__ == "__main__":
+    from PyMimircache import *
 
-
+    reader = VscsiReader("../../data/trace.vscsi")
+    ph = PyHeatmap()
+    ph.heatmap(reader, "r", "hr_st_et", time_interval=200 * 1000000, cache_size=2000)

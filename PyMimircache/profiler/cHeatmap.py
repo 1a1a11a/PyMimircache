@@ -28,18 +28,16 @@ from PyMimircache.profiler.profilerUtils import set_fig
 
 class CHeatmap:
     """
-    heatmap class for plotting heatmaps
+    heatmap class for plotting heatmaps in C
     """
 
     all = ["heatmap", "diff_heatmap"]
 
 
     def __init__(self, **kwargs):
-        if "reader" in kwargs:
-            self.reader = kwargs["reader"]
-            raise RuntimeWarning("reader set is not enabled")
+        """ nothing needs to be done, not using all static method due to consistency between profilers """
+        pass
 
-        self.other_plot_kwargs = {}
 
     @staticmethod
     def get_breakpoints(reader, time_mode,
@@ -142,15 +140,13 @@ class CHeatmap:
                                                   num_of_threads=num_of_threads)
 
 
-            text = "      " \
-                   "cache size: {},\n      cache type: {},\n      " \
-                   "time type:  {},\n      time interval: {},\n      " \
-                   "plot type: \n{}".format(cache_size,
-                                            algorithm, time_mode, time_interval, plot_type)
+            text = "cache size: {},\ncache type: {},\n" \
+                   "time type:  {},\ntime interval: {},\n" \
+                   "plot type: {}".format(cache_size, algorithm, time_mode, time_interval, plot_type)
 
             # coordinate to put the text
             x1, y1 = xydict.shape
-            x1, y1 = int(x1 / 2.8), y1 / 8
+            x1, y1 = int(x1 / 2), y1 / 8
 
             xlabel = 'Start Time ({})'.format(time_mode)
             xticks = ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (xydict.shape[1]-1)))
@@ -420,13 +416,12 @@ class CHeatmap:
                                                        cache_params2=cache_params2,
                                                        num_of_threads=num_of_threads)
 
-            text = "      differential heatmap\n      cache size: {},\n      cache type: ({}-{})/{},\n" \
-                   "      time type: {},\n      time interval: {},\n      plot type: \n{}".format(
+            text = "differential heatmap\ncache size: {},\ncache type: ({}-{})/{},\n" \
+                   "time type: {},\ntime interval: {},\nplot type: \n{}".format(
                 cache_size, algorithm2, algorithm1, algorithm1, time_mode, time_interval, plot_type)
 
             x1, y1 = xydict.shape
-            x1 = int(x1 / 2.8)
-            y1 /= 8
+            x1, y1 = int(x1 / 2.4), y1/8
 
             title = "Differential Heatmap"
             xlabel = 'Start Time ({})'.format(time_mode)
