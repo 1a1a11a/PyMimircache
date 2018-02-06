@@ -136,9 +136,9 @@ def cache_name_to_class(cache_name):
         return cache_class
     else:
         raise RuntimeError("cannot recognize given cache replacement algorithm {}, "
-                           "supported algorithms {}".format(name, CACHE_NAME_CONVRETER.values()))
+                           "supported algorithms {}".format(cache_name, CACHE_NAME_CONVRETER.values()))
 
 
-__all__ = ["ALLOW_C_MIMIRCACHE", "INTERNAL_USE", "DEF_NUM_BIN_PROF", "DEF_NUM_THREADS",
+__all__ = ["ALLOW_C_MIMIRCACHE", "INTERNAL_USE", "DEF_NUM_BIN_PROF", "DEF_NUM_THREADS", "DEF_EMA_HISTORY_WEIGHT",
            "C_AVAIL_CACHE", "C_AVAIL_CACHEREADER", "CACHE_NAME_CONVRETER", "CACHE_NAME_TO_CLASS_DICT",
            "cache_name_to_class"]
