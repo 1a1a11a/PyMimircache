@@ -34,6 +34,9 @@ An example of hit ratio curve plot and hit ratio heatmap.
     >>> c.heatmap('r', "hit_ratio_start_time_end_time", time_interval=10000000)
 
 
+<br />
+<br />
+
 
 The User Guide
 --------------
@@ -89,3 +92,9 @@ Indices and tables
 ==================
 
 * :ref:`search`
+
+
+
+.. |br| raw:: html
+
+   <br />
