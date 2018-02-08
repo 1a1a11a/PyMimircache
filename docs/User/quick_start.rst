@@ -13,7 +13,7 @@ Let's begin by getting a cachecow object from PyMimircache:
 
 Open Trace File
 ---------------
-Now let's open a trace file, your have three choices for opening different types of trace files, choose the one suits your need.
+Now let's open a trace file. You have three choices for opening different types of trace files. Choose the one that suits your needs.
 
 
 >>> c.open("trace/file/location")
@@ -56,7 +56,7 @@ Profiler and Profiling
 Now cachecow supports basic profiling, to conduct complex profiling, you still need to get a profiler.
 With a profiler, you can obtain the reuse distance of a request, the hit count and hit ratio of at a certain size, you can even directly plot the hit ratio curve (HRC). See :ref:`here<profiling>` for details.
 
-cachecow supports two type of profiling right now, calculate reuse distance and calculate hit ratio, the syntax are listed below.
+cachecow supports two type of profiling right now, calculate reuse distance and calculate hit ratio. The syntax is listed below.
 
 >>> # get an array of reuse distance
 >>> c.get_reuse_distance()
@@ -95,7 +95,7 @@ See :ref:`API-twoDPlots<API>` section and :ref:`basic plotting<basic_plotting>` 
 Hit Ratio Curve Plotting
 ------------------------
 
-cachecow supports plotting against a list of cache replacement algorithms, the syntax is here.
+cachecow supports plotting against a list of cache replacement algorithms, using the following syntax:
 
 >>> plotHRCs(algorithm_list, cache_params=(), cache_size=-1, bin_size=-1, auto_resize=True, figname="HRC.png", **kwargs)
 

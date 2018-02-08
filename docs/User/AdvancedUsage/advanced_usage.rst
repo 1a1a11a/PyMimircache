@@ -3,17 +3,23 @@
 Advanced Usages
 ===============
 
-mimircache and its components
------------------------------
-Current version of mimircache is composed of three main components, the first one is cache, which simulates corresponding cache replacement algorithm,
-the second one is cacheReader, which provides all the necessary functions for reading and examing trace data file, and most important of all, for extracting data for profiling.
-The third type of objects are the profilers. Currently, we have three kinds of profilers, the first one is LRU profiler, specially tailored for LRU;
-the second one is a general profiler for profiling all non-LRU cache replacement algorithms;
-the third profiler is heatmap plot engine, currently supports a variety of heatmap.
-LRUProfiler is in C, so it is pretty fast, the rest two profilers have corresponding C implementation (cGeneralProfiler and cHeatmap) used for caches available in C.
+PyMimircache and its components
+-------------------------------
+Current version of PyMimircache is composed of three main components.
 
-Each components have some more functions than described in tutorial, read the source code or raise a new issue in github
-if you want to know more or have questions.
+The first one is cache, which simulates corresponding cache replacement algorithm.
+
+the second one is cacheReader, which provides all the necessary functions for reading and examing trace data file.
+
+Most important of all, the third component is profilers, which extract data for profiling.
+
+Currently, we have three kinds of profilers, the first one is LRU profiler, specially tailored for LRU;
+the second one is a general profiler for profiling all non-LRU cache replacement algorithms;
+the third profiler is a heatmap plot engine, which currently supports a variety of heatmaps.
+LRUProfiler is in C, so it is pretty fast.
+The other two profilers have corresponding C implementation (cGeneralProfiler and cHeatmap) used for caches available in C.
+
+Each component has more functionality than described in tutorial, read the source code or raise a new issue in github if you want to know more or have questions.
 
 
 .. _create_new_cache_reader:
