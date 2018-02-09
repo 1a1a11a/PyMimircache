@@ -2,9 +2,16 @@ PyMimircache
 ==========
 
 [![Build Status](https://travis-ci.org/1a1a11a/PyMimircache.svg?branch=master)](https://travis-ci.org/1a1a11a/PyMimircache)
-[![Documentation Status](https://readthedocs.org/projects/PyMimircache/badge/?version=develop)](http://PyMimircache.readthedocs.io/en/develop/?badge=develop)
+[![Documentation Status](https://readthedocs.org/projects/pymimircache/badge/?version=develop)](http://pymimircache.readthedocs.io/en/develop/?badge=develop)
 [![GitHub version](https://badge.fury.io/gh/1a1a11a%2FPyMimircache.svg)](https://badge.fury.io/gh/1a1a11a%2FPyMimircache)
 [![PyPI version](https://badge.fury.io/py/PyMimircache.svg)](https://badge.fury.io/py/PyMimircache)
+
+NEWS
+----
+
+PyMimircache to appear at FAST tutorial. 
+
+
 
 PyMimircache is a cache trace analysis platform that supports
 
@@ -14,13 +21,15 @@ PyMimircache is a cache trace analysis platform that supports
 
 -   **easy plugging in your own cache replacement algorithm**
 
-Key idea behind PyMimircache is to provide researchers an easy-to-use and also efficient platform, while provide other users a platform that can be easily to used for data analysis.  
-
+Main users of PyMimircache includes **researchers** and **system administrators**, PyMimircache provides researchers an easy tool to 
+study existing algorithms, devise and test new algorithms. While PyMimircache provides system administrators a simple tool helping 
+them visualize and understand their cache. 
+  
+PyMimircache is an independent Python3 platform that supports all the described features. 
+Besides it also bundles with CMimircache for better performance. If you need a C/C++ platform, please check out CMimircache. 
  
-Current support algorithms include Least Recent Used(LRU), Least Frequent
-Used(LFU), Most Recent Used(MRU), First In First Out(FIFO), Segmented LRU(SLRU),
-Clock, Random, Optimal, Adaptive Replacement Cache(ARC).
-
+PyMimircache current supports algorithms include Least Recent Used(LRU), Least Frequent Used(LFU), 
+Most Recent Used(MRU), First In First Out(FIFO), Segmented LRU(SLRU), Clock, Random, Optimal, Adaptive Replacement Cache(ARC).
 And we are actively adding more cache replacement algorithms.
 
 Best of all is that you can easily and quickly **implement your own cache
@@ -56,7 +65,8 @@ jason@myMachine: ~$ sudo pip3 install PyMimircache
  
 #### git clone
 
-git clone needs to add --recurse-submodules option to automatically clone the CMimircache module.
+If you use Github repo, after git clone, do `git submodules update --init` to clone the CMimircache module.
+
 
 Alternative using docker
 ------------------------
@@ -100,8 +110,8 @@ We have prepared a wonderful tutorial here. [Check here for tutorial](http://pym
 **The power of PyMimircache**
 
 ```python
->>> import PyMimircache as m
->>> c = m.Cachecow()
+>>> from PyMimircache import Cachecow
+>>> c = Cachecow()
 >>> c.vscsi("trace.vscsi")      # find this data under data folder, other type of data supported too
 >>> print(c.stat())
 	# number of requests: 113872
@@ -139,14 +149,15 @@ We have prepared a wonderful tutorial here. [Check here for tutorial](http://pym
 
 Next Major Releases
 -------------------
-* **Architecture**: re-write py-PyMimircache generalProfiler (v0.3.0)
-* **Architecture**: Separate py-PyMimircache and C-PyMimircache to allow them run independently (v0.4.0)
-* **Feature**: Add block/obj size into cache replacement algorithm (v0.5.0)
-* **Feature**: Add parallel support for LRUProfiling (v0.6.0)
-* **Feature**: Add sampling layer for all profilers (v0.7.0)
-* **Feature**: Add GPU profiling support (v0.8.0)
-* **Feature**: Add Windows Support (v1.0.0)
-* **Architecture**: C component optimization and allow to be used as an independent caching layer (v2.0.0)
+* **Architecture**: re-write PyMimircache pyGeneralProfiler (v0.3.0) [Done]
+* **Architecture**: Separate mimircache into PyMimircache and CMimircache (v0.4.0) [Done]
+* **Architecture**: Remove all CMimircache dependency in PyMimircache to allow CMimircache run independently (v0.5.0) 
+* **Feature**: Add block/obj size into cache replacement algorithm (v0.6.0)
+* **Feature**: Add parallel support for LRUProfiling (v0.7.0)
+* **Feature**: Add sampling layer for all profilers (v0.8.0)
+* **Milestone**: Allow mimircache to interact with Memcached and Redis (v1.0.0)
+* **Feature**: Add GPU profiling support (v1.2.0)
+* **Feature**: Add Full Windows Support (v2.0.0)
 
 
 Contributing

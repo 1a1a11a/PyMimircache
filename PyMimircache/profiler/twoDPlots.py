@@ -1,18 +1,21 @@
 # coding=utf-8
 """
 this module provides functions for all the two dimensional figure plotting, currently including:
+    ### time related ###
     request_rate_2d,
     cold_miss_count_2d,
     cold_miss_ratio_2d,
     namemapping_2d (mapping block to a LBA) for visulization of scan and so on
+    interval_hit_ratio_2d
+
+    ### static ###
     popularity_2d  (frequency popularity)
     rd_freq_popularity_2d,
     rd_popularity_2d,
     rt_popularity_2d,
-    interval_hit_ratio_2d
 
 
-In all these plots, the x-axis should be real or virtual time.
+In time related plots, the x-axis should be real or virtual time.
 
     TODO:
         add percentage to rd_popularity_2d
@@ -44,7 +47,8 @@ __all__=[
     "request_rate_2d",
     "cold_miss_count_2d",
     "cold_miss_ratio_2d",
-    "namemapping_2d",
+    # "namemapping_2d",
+    "scan_vis_2d",
     "popularity_2d",
     "rd_freq_popularity_2d",
     "rd_popularity_2d",
@@ -162,7 +166,7 @@ def cold_miss_ratio_2d(reader, time_mode, time_interval,
     return cold_miss_list
 
 
-def namemapping_2d(reader, partial_ratio=0.1, figname=None, **kwargs):
+def scan_vis_2d(reader, partial_ratio=0.1, figname=None, **kwargs):
     """
     rename all the ojbID for items in the trace for visualization of trace
     so the first obj is renamed to 1, the second obj is renamed to 2, etc.

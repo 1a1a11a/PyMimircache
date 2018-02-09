@@ -417,7 +417,7 @@ class CHeatmap:
                                                        num_of_threads=num_of_threads)
 
             text = "differential heatmap\ncache size: {},\ncache type: ({}-{})/{},\n" \
-                   "time type: {},\ntime interval: {},\nplot type: \n{}".format(
+                   "time type: {},\ntime interval: {},\nplot type: {}".format(
                 cache_size, algorithm2, algorithm1, algorithm1, time_mode, time_interval, plot_type)
 
             x1, y1 = xydict.shape

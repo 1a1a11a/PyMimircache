@@ -1,7 +1,7 @@
 # coding=utf-8
 
 """
-this module offer the upper level API to user, it currently supports four types of operations,
+this module offers the upper level API to user, it currently supports four types of operations,
 
 * **trace loading**
 * **trace information retrieving**
@@ -443,7 +443,7 @@ class Cachecow:
                    **kwargs)
 
 
-    def diff_heatmap(self, time_mode, plot_type, algorithm1, time_interval=-1, num_of_pixels=-1,
+    def diff_heatmap(self, time_mode, plot_type, algorithm1="LRU", time_interval=-1, num_of_pixels=-1,
                      algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs):
         """
         Plot the differential heatmap between two algorithms by alg2 - alg1
@@ -550,7 +550,7 @@ class Cachecow:
                 plot type               required parameters         Description
         ========================  ============================  =================================================
             cold_miss_count         time_mode, time_interval     cold miss count VS time
-            cold_miss_ratio         time_mode, time_interval     coid miss ratio VS time
+            cold_miss_ratio         time_mode, time_interval     cold miss ratio VS time
             request_rate            time_mode, time_interval     num of requests VS time
             popularity              NA                           Percentage of obj VS frequency
             rd_popularity           NA                           Num of req VS reuse distance
@@ -598,8 +598,8 @@ class Cachecow:
         elif plot_type == "rt_popularity":
             return rt_popularity_2d(self.reader, **kwargs)
 
-        elif plot_type == 'mapping':
-            namemapping_2d(self.reader, **kwargs)
+        elif plot_type == 'scan_vis':
+            scan_vis_2d(self.reader, **kwargs)
 
         elif plot_type == "interval_hit_ratio" or plot_type == "IHRC":
             assert "cache_size" in kwargs, "please provide cache size for interval hit ratio curve plotting"
