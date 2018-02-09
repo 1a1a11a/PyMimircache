@@ -1,11 +1,14 @@
 # coding=utf-8
 
+"""
+    a cache simulating optimal with oracle predicting next access
+
+
+    Author: Juncheng Yang <peter.waynechina@gmail.com> 2016/08
+"""
 
 from PyMimircache.cache.abstractCache import Cache
-from PyMimircache.const import ALLOW_C_MIMIRCACHE
-if ALLOW_C_MIMIRCACHE:
-    import PyMimircache.CMimircache.LRUProfiler as c_LRUProfiler
-    import PyMimircache.CMimircache.Heatmap as c_heatmap
+from PyMimircache.profiler.utils.dist import get_next_access_dist
 try:
     from heapdict import heapdict
 except:
@@ -15,16 +18,13 @@ except:
 class Optimal(Cache):
     def __init__(self, cache_size, reader, **kwargs):
         super().__init__(cache_size, **kwargs)
-
         self.reader = reader
         self.reader.lock.acquire()
-        self.next_access = c_heatmap.get_next_access_dist(self.reader.c_reader)
+        self.next_access = get_next_access_dist(self.reader)
         self.reader.lock.release()
         self.pq = heapdict()
         self.ts = 0
 
-    def get_reversed_reuse_dist(self):
-        return c_LRUProfiler.get_reversed_reuse_dist(self.reader.c_reader)
 
     def has(self, req_id, **kwargs):
         """
@@ -36,6 +36,11 @@ class Optimal(Cache):
             return True
         else:
             return False
+
+    def set_init_ts(self, ts):
+        """ this is used for synchronizing ts in profiler if the
+        trace is not ran from the beginning of the reader"""
+        self.ts = ts
 
     def _update(self, req_item, **kwargs):
         """ the given element is in the cache, now update it to new location

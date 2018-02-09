@@ -43,11 +43,13 @@ def _cal_hit_count_subprocess(cache_class,
     :return: a tuple of number of hits and number of misses
     """
 
-    if cache_params is None:
-        cache_params = {}
-
     # local reader and cache
     process_reader = reader_class(**reader_params)
+
+    if cache_params is None:
+        cache_params = {}
+    if cache_class.__name__ == "Optimal":
+        cache_params["reader"] = process_reader
     process_cache = cache_class(cache_size, **cache_params)
     n_hits = 0
     n_misses = 0

@@ -13,7 +13,7 @@ Supported Trace File Type
 
 How to Open a Trace File
 ------------------------
-Now let's open a trace file, your have three choices for opening different types of trace files, choose the one suits your need.
+Now let's open a trace file. You have three choices for opening different types of trace files. Choose the one that suits your needs.
 
 >>> import mimircache as m
 >>> c = m.cachecow()
@@ -47,7 +47,7 @@ Now let's open a trace file, your have three choices for opening different types
 
 OK, data is ready, now let's play!
 
-If you want to read your data from cachecow, you can simply use cachecow as an iterator, for example, doing the following:
+If you want to read your data from cachecow, you can simply use cachecow as an iterator. For example, do the following:
 
 >>> for request in c:
 >>>     print(c)

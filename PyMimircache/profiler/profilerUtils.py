@@ -11,6 +11,8 @@
 
 import os
 import math
+import time
+import pickle
 import numpy as np
 try:
     # pypy3 fails on this
@@ -149,26 +151,14 @@ def draw2d(*args, **kwargs):
 def draw_heatmap(plot_array, **kwargs):
     filename = kwargs.get("figname", 'heatmap.png')
 
-    if 'filter_count' in kwargs:
-        assert kwargs['filter_count'] > 0, "filter_count must be positive"
-        plot_array = np.ma.array(plot_array, mask=(plot_array<kwargs['filter_count']))
-
-    imshow_kwargs = kwargs.get("imshow_kwargs", {})
-
-    cmap = plt.cm.jet
-    # cmap = plt.get_cmap("Oranges")
-    cmap.set_bad(color='white', alpha=1.)
-
-    # if 1:
     try:
-        if kwargs.get('fixed_range', False):
-            vmin, vmax = kwargs['fixed_range']
-            img = plt.imshow(plot_array, vmin=vmin, vmax=vmax,
-                             interpolation='nearest', origin='lower',
-                             cmap=cmap, aspect='auto', **imshow_kwargs)
-        else:
-            img = plt.imshow(plot_array, interpolation='nearest',
-                             origin='lower', aspect='auto', cmap=cmap, **imshow_kwargs)
+        cmap = plt.cm.jet
+        # cmap = plt.get_cmap("Oranges")
+        cmap.set_bad(color='white', alpha=1.)
+
+        imshow_kwargs = kwargs.get("imshow_kwargs", {})
+        img = plt.imshow(plot_array, interpolation='nearest', origin='lower',
+                         aspect='auto', cmap=cmap, **imshow_kwargs)
 
         cb = plt.colorbar(img)
         set_fig(no_legend=True, **kwargs)
@@ -185,17 +175,16 @@ def draw_heatmap(plot_array, **kwargs):
 
     except Exception as e:
         try:
-            import time
             t = int(time.time())
-            WARNING("plotting using imshow failed: {}, "
-                    "now try to save the plotting data to /tmp/heatmap.{}.pickle".format(e, t))
-            import pickle
             with open("/tmp/heatmap.{}.pickle", 'wb') as ofile:
                 pickle.dump(plot_array, ofile)
+            WARNING("plotting using imshow failed: {}, "
+                    "now try to save the plotting data to /tmp/heatmap.{}.pickle".format(e, t))
         except Exception as e:
             WARNING("failed to save plotting data")
 
         try:
+            cmap = plt.get_cmap("Oranges")
             plt.pcolormesh(plot_array.T, cmap=cmap)
             plt.savefig(filename)
         except Exception as e:
