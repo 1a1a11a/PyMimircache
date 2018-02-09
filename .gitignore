@@ -87,3 +87,6 @@ oldModule/
 
 # pycharm
 .idea/
+
+# vscode
+.vscode/
