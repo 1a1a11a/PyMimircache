@@ -22,22 +22,23 @@ Author: Jason Yang <peter.waynechina@gmail.com> 2016/08
 
 """
 
-import pickle
-from collections import deque
-from multiprocessing import Array, Process, Queue
+import os
 from concurrent.futures import as_completed, ProcessPoolExecutor
 
 # this should be replaced by pure python module
+from PyMimircache.const import DEF_NUM_BIN_PROF, DEF_EMA_HISTORY_WEIGHT
+
 from PyMimircache.const import ALLOW_C_MIMIRCACHE
 if ALLOW_C_MIMIRCACHE:
     import PyMimircache.CMimircache.Heatmap as c_heatmap
-from PyMimircache.profiler.pyHeatmapSubprocess import *
+    from PyMimircache.profiler.cLRUProfiler import CLRUProfiler as LRUProfiler
+else:
+    from PyMimircache.profiler.pyLRUProfiler import PyLRUProfiler as LRUProfiler
 from PyMimircache.profiler.profilerUtils import get_breakpoints, draw_heatmap
 from PyMimircache.profiler.pyHeatmapAux import *
 from PyMimircache.profiler.utils.dist import get_last_access_dist
 from PyMimircache.utils.printing import *
-from PyMimircache.const import *
-from PyMimircache.const import ALLOW_C_MIMIRCACHE, DEF_NUM_BIN_PROF, DEF_EMA_HISTORY_WEIGHT
+# from PyMimircache.const import *
 
 import matplotlib.ticker as ticker
 from matplotlib import colors
@@ -103,7 +104,7 @@ class PyHeatmap:
 
             if kwargs.get("algorithm", "LRU").lower() == "lru":
                 #TODO: replace CLRUProfiler with PyLRUProfiler
-                rd = CLRUProfiler(reader).get_reuse_distance()
+                rd = LRUProfiler(reader).get_reuse_distance()
                 last_access_dist = get_last_access_dist(reader)
 
                 for i in range(len(bp) - 1):
@@ -123,7 +124,11 @@ class PyHeatmap:
             raise RuntimeError("Not Implemented")
 
         elif plot_type == "KL_st_et":
-            rd = CLRUProfiler(reader).get_reuse_distance()
+            rd = LRUProfiler(reader).get_reuse_distance()
+
+            for i in range(len(bp) - 1):
+                futures_dict[ppe.submit(cal_KL, rd, bp, i)] = i
+
 
         else:
             ppe.shutdown()
@@ -212,7 +217,7 @@ class PyHeatmap:
         :param num_of_pixel_of_time_dim: if don't want to specify time_interval, you can also specify how many pixels you want
         :param cache_params: params used in cache
         :param kwargs: include num_of_threads, figname, enable_ihr, ema_coef (default: 0.8), plot_kwargs, filter_rd, filter_count
-        :return:
+        :return: a numpy two dimensional array
 
 
         ============================  ========================  ===========================================================================
@@ -275,7 +280,7 @@ class PyHeatmap:
             plot_kwargs["xlabel"]  = plot_kwargs.get("xlabel", 'Start Time ({})'.format(time_mode))
             plot_kwargs["xticks"]  = plot_kwargs.get("xticks", ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (xydict.shape[1]-1))))
             plot_kwargs["ylabel"]  = plot_kwargs.get("ylabel", "End Time ({})".format(time_mode))
-            plot_kwargs["yticks"]  = plot_kwargs.get("yticks", ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (xydict.shape[1]-1))))
+            plot_kwargs["yticks"]  = plot_kwargs.get("yticks", ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (xydict.shape[0]-1))))
             plot_kwargs["imshow_kwargs"] = {"vmin": 0, "vmax": 1}
 
             plot_data = np.ma.array(xydict, mask=np.tri(len(xydict), k=-1, dtype=int).T)
@@ -323,7 +328,7 @@ class PyHeatmap:
             plot_kwargs["xlabel"]  = plot_kwargs.get("xlabel", 'Start Time ({})'.format(time_mode))
             plot_kwargs["xticks"]  = plot_kwargs.get("xticks", ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (xydict.shape[1]-1))))
             plot_kwargs["ylabel"]  = plot_kwargs.get("ylabel", "End Time ({})".format(time_mode))
-            plot_kwargs["yticks"]  = plot_kwargs.get("yticks", ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (xydict.shape[1]-1))))
+            plot_kwargs["yticks"]  = plot_kwargs.get("yticks", ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (xydict.shape[0]-1))))
 
             plot_data = np.ma.array(xydict, mask=np.tri(len(xydict), k=-1, dtype=int).T)
 
@@ -450,6 +455,7 @@ class PyHeatmap:
 
         draw_heatmap(plot_data, **plot_kwargs)
         reader.reset()
+        return plot_data
 
 
 if __name__ == "__main__":
@@ -457,4 +463,5 @@ if __name__ == "__main__":
 
     reader = VscsiReader("../../data/trace.vscsi")
     ph = PyHeatmap()
-    ph.heatmap(reader, "r", "hr_st_et", time_interval=200 * 1000000, cache_size=2000)
+    # ph.heatmap(reader, "r", "hr_st_et", time_interval=200 * 1000000, cache_size=2000)
+    ph.heatmap(reader, "r", "KL_st_et", time_interval=20 * 1000000)
