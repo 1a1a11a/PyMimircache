@@ -1,31 +1,26 @@
 # coding=utf-8
 
 """
-this module deals with LRU related profiling,
-it uses O(nlogn) algorithm to profile without sampling
-Current implementation is using single thread, TODO: implement parallel parda
+    this module deals with LRU related profiling,
+    it uses O(nlogn) algorithm to profile without sampling
+    This module is not finished
 
-Author: Jason Yang <peter.waynechina@gmail.com> 2016/07
+    Author: Jason Yang <peter.waynechina@gmail.com> 2016/07
 
 """
+
 import os
 import socket
 from PyMimircache.const import INTERNAL_USE
-from PyMimircache.const import ALLOW_C_MIMIRCACHE
-if ALLOW_C_MIMIRCACHE:
-    import PyMimircache.CMimircache.LRUProfiler as c_LRUProfiler
-else:
-    raise RuntimeError("CLRUProfiler must be used with ALLOW_C_MIMIRCACHE enabled, "
-                       "ALLOW_C_MIMIRCACHE is not enabled because they are compiled")
 from PyMimircache.cacheReader.binaryReader import BinaryReader
 from PyMimircache.cacheReader.abstractReader import AbstractReader
 import matplotlib.pyplot as plt
 from PyMimircache.utils.printing import *
 from matplotlib.ticker import FuncFormatter
 
-class CLRUProfiler:
+class PyLRUProfiler:
     """
-    LRUProfiler in C
+    LRUProfiler in Python
 
     """
     all = ["get_hit_count",
@@ -38,7 +33,7 @@ class CLRUProfiler:
 
     def __init__(self, reader, cache_size=-1, cache_params=None, **kwargs):
         """
-        initialize a CLRUProfiler
+        initialize a PyLRUProfiler
 
         :param reader: reader for feeding data into profiler
         :param cache_size: size of cache, if -1, then use max possible size
@@ -90,7 +85,7 @@ class CLRUProfiler:
         """
         assert rd_type == 'rd' or rd_type == 'frd', \
             "please provide a valid reuse distance type, currently support rd and frd"
-        c_LRUProfiler.save_reuse_dist(self.reader.c_reader, file_loc, rd_type)
+        raise RuntimeError("Not Implemented")
 
     def load_reuse_dist(self, file_loc, rd_type):
         """
@@ -106,24 +101,8 @@ class CLRUProfiler:
             "please provide a valid reuse distance type, currently support rd and frd"
         if not os.path.exists(file_loc):
             WARNING("pre-computed reuse distance file does not exist")
-        c_LRUProfiler.load_reuse_dist(self.reader.c_reader, file_loc, rd_type)
+        raise RuntimeError("Not Implemented")
         self.reader.already_load_rd = True
-
-    def _del_reuse_dist_file(self):
-        """
-        an internal function that deletes the pre-computed reuse distance
-        """
-
-        assert INTERNAL_USE == True, "this function is only used internally"
-        rd_dat_path = self.reader.file_loc.replace("/home/jason/ALL_DATA/",
-                                                   "/research/jason/preComputedData/RD/")
-        rd_dat_path = rd_dat_path.replace("/home/cloudphysics/traces/",
-                                          "/research/jason/preComputedData/RD/cphyVscsi")
-
-        if not os.path.exists(rd_dat_path):
-            WARNING("pre-computed reuse distance file does not exist")
-        else:
-            os.remove(rd_dat_path)
 
 
     def use_precomputedRD(self):
@@ -164,10 +143,10 @@ class CLRUProfiler:
         if 'cache_size' not in kargs:
             kargs['cache_size'] = self.cache_size
         if self.block_unit_size != 0:
-            WARNING("not supported yet")
+            raise RuntimeError("not supported yet")
             return None
         else:
-            hit_count = c_LRUProfiler.get_hit_count_seq(self.reader.c_reader, **kargs)
+            raise RuntimeError("Not Implemented")
         return hit_count
 
     def get_hit_ratio(self, **kwargs):
@@ -187,9 +166,11 @@ class CLRUProfiler:
             kargs['end'] = kwargs['end']
 
         if self.block_unit_size != 0 :
+            raise RuntimeError("Not Implemented")
             hit_ratio = c_LRUProfiler.get_hit_ratio_with_size(self.reader.c_reader,
                                                             block_unit_size=self.block_unit_size, **kargs)
         else:
+            raise RuntimeError("Not Implemented")
             hit_ratio = c_LRUProfiler.get_hit_ratio_seq(self.reader.c_reader, **kargs)
         return hit_ratio
 
@@ -219,6 +200,7 @@ class CLRUProfiler:
             print("not supported yet")
             return None
         else:
+            raise RuntimeError("Not Implemented")
             hit_ratio = c_LRUProfiler.get_hit_ratio_seq_shards(tempReader.c_reader, sample_ratio=sample_ratio,
                                                        correction=correction, **kargs)
         return hit_ratio
@@ -233,7 +215,7 @@ class CLRUProfiler:
         if self.block_unit_size != 0:
             WARNING("reuse distance calculation does not support variable obj size, "
                     "calculating without considering size")
-        rd = c_LRUProfiler.get_reuse_dist_seq(self.reader.c_reader, **kargs)
+        raise RuntimeError("Not Implemented")
         return rd
 
     def get_future_reuse_distance(self, **kargs):
@@ -245,7 +227,7 @@ class CLRUProfiler:
         if self.block_unit_size != 0:
             WARNING("future reuse distance calculation does not support variable obj size, "
                 "calculating without considering size")
-        frd = c_LRUProfiler.get_future_reuse_dist(self.reader.c_reader, **kargs)
+        raise RuntimeError("Not Implemented")
         return frd
 
 
