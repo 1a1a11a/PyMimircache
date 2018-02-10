@@ -7,9 +7,9 @@
 """
 
 from PyMimircache.cacheReader.abstractReader import AbstractReader
-from PyMimircache.const import ALLOW_C_MIMIRCACHE
+from PyMimircache.const import ALLOW_C_MIMIRCACHE, INSTALL_PHASE
 
-if ALLOW_C_MIMIRCACHE:
+if ALLOW_C_MIMIRCACHE and not INSTALL_PHASE:
     import PyMimircache.CMimircache.CacheReader as c_cacheReader
 
 

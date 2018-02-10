@@ -32,8 +32,8 @@ from collections import defaultdict
 import matplotlib.ticker as ticker
 from matplotlib import pyplot as plt
 
-from PyMimircache import ALLOW_C_MIMIRCACHE
-if ALLOW_C_MIMIRCACHE:
+from PyMimircache.const import ALLOW_C_MIMIRCACHE, INSTALL_PHASE
+if ALLOW_C_MIMIRCACHE and not INSTALL_PHASE:
     from PyMimircache.profiler.cHeatmap import CHeatmap as Heatmap
     from PyMimircache.profiler.cLRUProfiler import CLRUProfiler as LRUProfiler
 else:

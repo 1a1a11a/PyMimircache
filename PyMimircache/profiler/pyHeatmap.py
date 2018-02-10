@@ -28,8 +28,8 @@ from concurrent.futures import as_completed, ProcessPoolExecutor
 # this should be replaced by pure python module
 from PyMimircache.const import DEF_NUM_BIN_PROF, DEF_EMA_HISTORY_WEIGHT
 
-from PyMimircache.const import ALLOW_C_MIMIRCACHE
-if ALLOW_C_MIMIRCACHE:
+from PyMimircache.const import ALLOW_C_MIMIRCACHE, INSTALL_PHASE
+if ALLOW_C_MIMIRCACHE and not INSTALL_PHASE:
     import PyMimircache.CMimircache.Heatmap as c_heatmap
     from PyMimircache.profiler.cLRUProfiler import CLRUProfiler as LRUProfiler
 else:

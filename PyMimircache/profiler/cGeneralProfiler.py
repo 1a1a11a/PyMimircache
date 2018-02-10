@@ -20,8 +20,8 @@ import os
 import math
 from PyMimircache.cacheReader.abstractReader import AbstractReader
 from PyMimircache.utils.printing import *
-from PyMimircache.const import ALLOW_C_MIMIRCACHE
-if ALLOW_C_MIMIRCACHE:
+from PyMimircache.const import ALLOW_C_MIMIRCACHE, INSTALL_PHASE
+if ALLOW_C_MIMIRCACHE and not INSTALL_PHASE:
     import PyMimircache.CMimircache.GeneralProfiler as c_generalProfiler
 from PyMimircache.const import *
 from PyMimircache.profiler.profilerUtils import util_plotHRC

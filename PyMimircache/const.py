@@ -12,6 +12,7 @@ import os
 import sys
 
 # const
+INSTALL_PHASE = False
 ALLOW_C_MIMIRCACHE = True
 INTERNAL_USE = True
 DEF_NUM_BIN_PROF = 100

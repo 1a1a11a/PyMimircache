@@ -12,8 +12,8 @@ Author: Jason Yang <peter.waynechina@gmail.com> 2017/08
 
 """
 from matplotlib.ticker import FuncFormatter
-from PyMimircache.const import ALLOW_C_MIMIRCACHE
-if ALLOW_C_MIMIRCACHE:
+from PyMimircache.const import ALLOW_C_MIMIRCACHE, INSTALL_PHASE
+if ALLOW_C_MIMIRCACHE and not INSTALL_PHASE:
     import PyMimircache.CMimircache.Heatmap as c_heatmap
     
 try:

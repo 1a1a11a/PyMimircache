@@ -12,11 +12,10 @@ import os
 import socket
 from PyMimircache.const import INTERNAL_USE
 from PyMimircache.const import ALLOW_C_MIMIRCACHE
-if ALLOW_C_MIMIRCACHE:
+from PyMimircache.const import INSTALL_PHASE
+if ALLOW_C_MIMIRCACHE and not INSTALL_PHASE:
     import PyMimircache.CMimircache.LRUProfiler as c_LRUProfiler
-else:
-    raise RuntimeError("CLRUProfiler must be used with ALLOW_C_MIMIRCACHE enabled, "
-                       "ALLOW_C_MIMIRCACHE is not enabled because they are compiled")
+
 from PyMimircache.cacheReader.binaryReader import BinaryReader
 from PyMimircache.cacheReader.abstractReader import AbstractReader
 import matplotlib.pyplot as plt
