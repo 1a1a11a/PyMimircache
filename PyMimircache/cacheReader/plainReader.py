@@ -50,6 +50,10 @@ class PlainReader(AbstractReader):
             return None
 
     def read_complete_req(self):
+        """
+        read all information about one record, which is the same as read_one_req for PlainReader
+        """
+
         return self.read_one_req()
 
     def skip_n_req(self, n):

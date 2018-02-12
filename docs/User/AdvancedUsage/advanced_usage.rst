@@ -30,22 +30,86 @@ Write your own cacheReader
 Writing your own cacheReader is not difficult, just inherit abstractCacheReader.py.
 Here is an example::
 
-    from PyMimircache.cacheReader.abstractReader import cacheReaderAbstract
+    from PyMimircache.cacheReader.abstractReader import AbstractReader
 
-    class plainCacheReader(cacheReaderAbstract):
-        def __init__(self, file_loc):
-            super(plainCacheReader, self).__init__(file_loc)
-            self.trace_file = open(file_loc, 'r')
+    class PlainReader(AbstractReader):
+        """
+        PlainReader class
+
+        """
+        all = ["read_one_req", "copy", "get_params"]
+
+        def __init__(self, file_loc, data_type='c', open_c_reader=True, **kwargs):
+            """
+            :param file_loc:            location of the file
+            :param data_type:           type of data, can be "l" for int/long, "c" for string
+            :param open_c_reader:       bool for whether open reader in C backend
+            :param kwargs:              not used now
+            """
+
+            super(PlainReader, self).__init__(file_loc, data_type, open_c_reader=open_c_reader, lock=kwargs.get("lock"))
+            self.trace_file = open(file_loc, 'rb')
+            if ALLOW_C_MIMIRCACHE and open_c_reader:
+                self.c_reader = c_cacheReader.setup_reader(file_loc, 'p', data_type=data_type, block_unit_size=0)
 
         def read_one_req(self):
+            """
+            read one request
+            :return: a request
+            """
             super().read_one_req()
-            line = self.trace_file.readline()
-            if line:
+
+            line = self.trace_file.readline().decode()
+            while line and len(line.strip()) == 0:
+                line = self.trace_file.readline().decode()
+
+            if line and len(line.strip()):
                 return line.strip()
             else:
                 return None
 
-        def __next__(self):
+        def read_complete_req(self):
+            """
+            read all information about one record, which is the same as read_one_req for PlainReader
+            """
+
+            return self.read_one_req()
+
+        def skip_n_req(self, n):
+            """
+            skip N requests from current position
+
+            :param n: the number of requests to skip
+            """
+
+            for i in range(n):
+                self.read_one_req()
+
+
+        def copy(self, open_c_reader=False):
+            """
+            reader a deep copy of current reader with everything reset to initial state,
+            the returned reader should not interfere with current reader
+
+            :param open_c_reader: whether open_c_reader_or_not, default not open
+            :return: a copied reader
+            """
+
+            return PlainReader(self.file_loc, data_type=self.data_type, open_c_reader=open_c_reader, lock=self.lock)
+
+        def get_params(self):
+            """
+            return all the parameters for this reader instance in a dictionary
+            :return: a dictionary containing all parameters
+            """
+
+            return {
+                "file_loc": self.file_loc,
+                "data_type": self.data_type,
+                "open_c_reader": self.open_c_reader
+            }
+
+        def __next__(self):  # Python 3
             super().__next__()
             element = self.trace_file.readline().strip()
             if element:
@@ -54,7 +118,7 @@ Here is an example::
                 raise StopIteration
 
         def __repr__(self):
-            return "basic cache reader, cache trace separated by line, %s" % super().__repr__()
+            return "PlainReader of trace {}".format(self.file_loc)
 
 
 After writing your own cache reader, you can use it on generalProfiler and heatmap, for example:
@@ -76,97 +140,101 @@ the third parameter is cache size, the fourth parameter is bin_size, and it can 
 Write your own cache replacement algorithm
 ------------------------------------------
 
-Writing your own cache in Python is not difficult, just inherit abstractCache.py::
+Writing your own cache in Python is not difficult, just inherit Cache.py::
 
-    from PyMimircache.cache.abstractCache import cache
+    from PyMimircache.cache.abstractCache import Cache
 
-    class Random(cache):
-        def __init__(self, cache_size=1000):
-            super().__init__(cache_size)
-            self.cache_dict = dict()  # key -> linked list node (in reality, it should also contains value)
-            self.cache_line_list = []  # to save all the keys, otherwise needs to populate from cache_dict every time
+    class LRU(Cache):
+        """
+        LRU class for simulating a LRU cache
 
-        def get(self, element):
+        """
+
+        def __init__(self, cache_size, **kwargs):
+
+            super().__init__(cache_size, **kwargs)
+            self.cacheline_dict = OrderedDict()
+
+        def has(self, req_id, **kwargs):
             """
-            :param element: the key of cache request
-            :return: whether the given key is in the cache or not
+            check whether the given id in the cache or not
+
+            :return: whether the given element is in the cache
             """
-            if element in self.cache_dict:
+            if req_id in self.cacheline_dict:
                 return True
             else:
                 return False
 
-        def _update(self, element):
-            """ the given element is in the cache, when it is requested again,
-             usually we need to update it to new location, but in random, we don't need to do that
-            :param element: the key of cache request
+        def _update(self, req_item, **kwargs):
+            """ the given element is in the cache,
+            now update cache metadata and its content
+
+            :param **kwargs:
+            :param req_item:
             :return: None
             """
 
-            pass
+            req_id = req_item
+            if isinstance(req_item, Req):
+                req_id = req_item.item_id
 
-        def _insert(self, element):
+            self.cacheline_dict.move_to_end(req_id)
+
+        def _insert(self, req_item, **kwargs):
             """
             the given element is not in the cache, now insert it into cache
-            :param element: the key of cache request
+            :param **kwargs:
+            :param req_item:
+            :return: evicted element or None
+            """
+
+            req_id = req_item
+            if isinstance(req_item, Req):
+                req_id = req_item.item_id
+
+            self.cacheline_dict[req_id] = True
+
+        def evict(self, **kwargs):
+            """
+            evict one cacheline from the cache
+
+            :param **kwargs:
+            :return: id of evicted cacheline
+            """
+
+            req_id = self.cacheline_dict.popitem(last=False)
+            return req_id
+
+        def access(self, req_item, **kwargs):
+            """
+            request access cache, it updates cache metadata,
+            it is the underlying method for both get and put
+
+            :param **kwargs:
+            :param req_item: the request from the trace, it can be in the cache, or not
             :return: None
             """
-            if len(self.cache_dict) >= self.cache_size:
-                self.evict()
-            self.cache_dict[element] = ""
-            self.cache_line_list.append(element)
 
-        def _print_cache_line(self):
-            for i in self.cache_dict:
-                try:
-                    print(i.content, end='\t')
-                except:
-                    print(i.content)
+            req_id = req_item
+            if isinstance(req_item, Req):
+                req_id = req_item.item_id
 
-            print(' ')
-
-        def evict(self):
-            """
-            evict one element from the cache line
-            if we delete one element from list every time, it would be O(N) on every request, which is too expensive,
-            so we choose to put a hole on the list every time we delete it, when there are too many holes we re-generate the cache line list
-            :return: None
-            """
-            rand_num = random.randrange(0, len(self.cache_line_list))
-            element = self.cache_line_list[rand_num]
-            count = 0
-            while not element:
-                rand_num = random.randrange(0, len(self.cache_line_list))
-                element = self.cache_line_list[rand_num]
-                count += 1
-
-            # mark this element as deleted, put a hole on it
-            self.cache_line_list[rand_num] = None
-
-            if count > 10:
-                # if there are too many holes, then we need to resize the list
-                new_list = [e for e in self.cache_line_list if e]
-                del self.cache_line_list
-                self.cache_line_list = new_list
-
-            del self.cache_dict[element]
-
-        def access(self, element):
-            """
-            :param element: the key of cache request, it can be in the cache, or not in the cache
-            :return: True if element in the cache
-            """
-            if self.get(element):
-                self._update(element)
+            if self.has(req_id):
+                self._update(req_item)
                 return True
             else:
-                self._insert(element)
+                self._insert(req_item)
+                if len(self.cacheline_dict) > self.cache_size:
+                    self.evict()
                 return False
 
+        def __len__(self):
+            return len(self.cacheline_dict)
+
         def __repr__(self):
-            return "Random Replacement, given size: {}, current size: {}".format(self.cache_size,
-                                                                                 len(self.cache_dict),
-                                                                                 super().__repr__())
+            return "LRU cache of size: {}, current size: {}, {}".\
+                format(self.cache_size, len(self.cacheline_dict), super().__repr__())
 
 The usage of new cache replacement algorithm is the same as the one in last section, just replace the algorithm string
 with your algorithm class.

@@ -142,4 +142,4 @@ def cache_name_to_class(cache_name):
 
 __all__ = ["ALLOW_C_MIMIRCACHE", "INTERNAL_USE", "DEF_NUM_BIN_PROF", "DEF_NUM_THREADS", "DEF_EMA_HISTORY_WEIGHT",
            "C_AVAIL_CACHE", "C_AVAIL_CACHEREADER", "CACHE_NAME_CONVRETER", "CACHE_NAME_TO_CLASS_DICT",
-           "cache_name_to_class"]
+           "cache_name_to_class", "INSTALL_PHASE"]

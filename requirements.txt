@@ -1,3 +1,5 @@
+setuptools
+wheel
 numpy
 matplotlib==2.0.0
 HeapDict>=1.0

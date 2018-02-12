@@ -153,9 +153,9 @@ COMMON_HEADERS = [BASE_PATH + "/headers", BASE_PATH + "/dataStructure/include"] 
 
 extensions.append(Extension(
     "PyMimircache.CMimircache.CacheReader",
-    glob(BASE_PATH + "/cacheReader/*.c") +
+    glob(BASE_PATH + "/cacheReader/*.c") + glob(BASE_PATH + "/utils/*.c") +
     ["PyMimircache/CMimircache/pyBindings/pyReader.c"],
-    include_dirs=[BASE_PATH + "/cacheReader/include"] + COMMON_HEADERS,
+    include_dirs=[BASE_PATH + "/cacheReader/include", BASE_PATH + "/utils/include/",] + COMMON_HEADERS,
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args,
     language="c"))
@@ -242,7 +242,7 @@ setup(
     name="PyMimircache",
     version=__version__,
     packages = ["PyMimircache", "PyMimircache.cache", "PyMimircache.cacheReader",
-    "PyMimircache.profiler", "PyMimircache.utils", "PyMimircache.top"],
+    "PyMimircache.profiler", "PyMimircache.profiler.utils", "PyMimircache.utils", "PyMimircache.top"],
     # modules =
     # package_data={"plain": ["PyMimircache/data/trace.txt"],
     #               "csv": ["PyMimircache/data/trace.csv"],

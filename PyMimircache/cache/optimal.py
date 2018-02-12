@@ -9,10 +9,12 @@
 
 from PyMimircache.cache.abstractCache import Cache
 from PyMimircache.profiler.utils.dist import get_next_access_dist
-try:
-    from heapdict import heapdict
-except:
-    print("heapdict is not installed")
+from PyMimircache.const import INSTALL_PHASE
+if not INSTALL_PHASE:
+    try:
+        from heapdict import heapdict
+    except:
+        print("heapdict is not installed")
 
 
 class Optimal(Cache):

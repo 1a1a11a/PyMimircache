@@ -72,7 +72,7 @@ class CLRUProfiler:
         self.already_load_rd = False
         if INTERNAL_USE and not kwargs.get("no_load_rd", False) and \
                 socket.gethostname().lower() in ["master", "node2", "node3"] and \
-                ".." not in reader.file_loc:
+                ".." not in reader.file_loc and os.path.dirname(reader.file_loc):
             if not reader.already_load_rd:
                 self.use_precomputedRD()
                 self.already_load_rd = True

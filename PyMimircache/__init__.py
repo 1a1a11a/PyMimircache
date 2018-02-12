@@ -21,17 +21,18 @@ sys.path.extend([cwd, os.path.join(cwd, "..")])
 
 
 from PyMimircache.const import *
-from PyMimircache.cacheReader.binaryReader import BinaryReader
-from PyMimircache.cacheReader.vscsiReader import VscsiReader
-from PyMimircache.cacheReader.csvReader import CsvReader
-from PyMimircache.cacheReader.plainReader import PlainReader
+if not INSTALL_PHASE:
+    from PyMimircache.cacheReader.binaryReader import BinaryReader
+    from PyMimircache.cacheReader.vscsiReader import VscsiReader
+    from PyMimircache.cacheReader.csvReader import CsvReader
+    from PyMimircache.cacheReader.plainReader import PlainReader
 
-from PyMimircache.profiler.cLRUProfiler import CLRUProfiler as CLRUProfiler
-from PyMimircache.profiler.cGeneralProfiler import CGeneralProfiler
-from PyMimircache.profiler.pyGeneralProfiler import PyGeneralProfiler
-from PyMimircache.profiler.cHeatmap import CHeatmap
-from PyMimircache.profiler.pyHeatmap import PyHeatmap
-from PyMimircache.top.cachecow import Cachecow
+    from PyMimircache.profiler.cLRUProfiler import CLRUProfiler as CLRUProfiler
+    from PyMimircache.profiler.cGeneralProfiler import CGeneralProfiler
+    from PyMimircache.profiler.pyGeneralProfiler import PyGeneralProfiler
+    from PyMimircache.profiler.cHeatmap import CHeatmap
+    from PyMimircache.profiler.pyHeatmap import PyHeatmap
+    from PyMimircache.top.cachecow import Cachecow
 
 from PyMimircache.version import __version__
 

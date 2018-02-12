@@ -3,9 +3,10 @@ include README.md
 graft docs
 prune multiMachineProcessing
 
-graft PyMimircache/CMimircache/CMimircache/CMimircache/headers/*
+graft PyMimircache/CMimircache/CMimircache/CMimircache/headers
 graft PyMimircache/CMimircache/CMimircache/CMimircache/cache/include
 graft PyMimircache/CMimircache/CMimircache/CMimircache/cacheReader/include
+graft PyMimircache/CMimircache/CMimircache/CMimircache/dataStructure/include
 graft PyMimircache/CMimircache/CMimircache/CMimircache/profiler/include
 graft PyMimircache/CMimircache/CMimircache/CMimircache/utils/include
 graft PyMimircache/CMimircache/pyBindings/include

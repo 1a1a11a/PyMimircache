@@ -61,7 +61,6 @@ def _cal_hit_count_subprocess(cache_class,
         else:
             n_misses += 1
     process_reader.close()
-    # print("size {} \t {}: {}".format(cache_size, n_hits, n_misses))
     return n_hits, n_misses
 
 
@@ -181,6 +180,7 @@ class PyGeneralProfiler:
         :return: a numpy array, with hit ratio corresponding to size [0, bin_size, bin_size*2 ...]
         """
 
+        print("run pyProfiler")
         if not self.has_ran:
             self._run()
         return self.hit_ratio
