@@ -19,6 +19,9 @@ import matplotlib.ticker as ticker
 from PyMimircache.const import ALLOW_C_MIMIRCACHE, DEF_NUM_BIN_PROF, DEF_EMA_HISTORY_WEIGHT, INSTALL_PHASE
 if ALLOW_C_MIMIRCACHE and not INSTALL_PHASE:
     import PyMimircache.CMimircache.Heatmap as c_heatmap
+else:
+    raise RuntimeError("CMimircache is not successfully installed, modules beginning with C are all disabled")
+
 from PyMimircache import const
 from PyMimircache.utils.printing import *
 from PyMimircache.profiler.profilerUtils import set_fig
@@ -108,6 +111,7 @@ class CHeatmap:
         reader.reset()
 
         cache_size = kwargs.get("cache_size", -1)
+        plot_kwargs = {}
         figname = kwargs.get("figname", "CHeatmap_{}.png".format(plot_type))
         num_of_threads = kwargs.get("num_of_threads", os.cpu_count())
         assert time_mode in ["r", "v"], "Cannot recognize this time_mode, "\
@@ -179,13 +183,6 @@ class CHeatmap:
             else:
                 plot_type = "hr_interval_size"
 
-            # a temporary fix as hr_st_size is not implemented in C, only hr_st_size with enable_ihr
-
-            if not enable_ihr:
-                raise RuntimeError("NOT Implemented")
-
-            else:
-                plot_type = "hr_interval_size"
 
             xydict = c_heatmap.heatmap(reader.c_reader, time_mode, plot_type,
                                                   cache_size, algorithm,
@@ -205,6 +202,34 @@ class CHeatmap:
             self.draw_heatmap(plot_data, figname=figname, fixed_range=(0, 1),
                               xlabel=xlabel, ylabel=ylabel, xticks=xticks, yticks=yticks)
 
+
+
+        elif plot_type == "opt_effective_size":
+            assert cache_size != -1, "please provide cache_size parameter for plotting opt_effective_size"
+
+            bin_size = kwargs.get("bin_size", cache_size // DEF_NUM_BIN_PROF + 1)
+            use_percent = kwargs.get("use_percent", False)
+            xydict = c_heatmap.heatmap(reader.c_reader, time_mode, plot_type,
+                                                  cache_size, "Optimal",
+                                                  bin_size = bin_size,
+                                                  time_interval=time_interval,
+                                                  num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
+                                                  cache_params=None,
+                                                  use_percent=use_percent,
+                                                  num_of_threads=num_of_threads)
+
+            xlabel = 'Time ({})'.format(time_mode)
+            xticks = ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (xydict.shape[1]-1)))
+            ylabel = "Cache Size"
+            yticks = ticker.FuncFormatter(lambda x, _: int(x*bin_size))
+            if use_percent:
+                plot_kwargs = {"vmin": 0, "vmax":1}
+
+            plot_data = xydict
+            self.draw_heatmap(plot_data, figname=figname,
+                              xlabel=xlabel, ylabel=ylabel,
+                              xticks=xticks, yticks=yticks,
+                              **plot_kwargs)
 
 
 

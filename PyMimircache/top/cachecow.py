@@ -12,10 +12,19 @@ Author: Jason Yang <peter.waynechina@gmail.com> 2017/08
 
 """
 from matplotlib.ticker import FuncFormatter
+import numpy as np
+import matplotlib.ticker as ticker
 from PyMimircache.const import ALLOW_C_MIMIRCACHE, INSTALL_PHASE
 if ALLOW_C_MIMIRCACHE and not INSTALL_PHASE:
     import PyMimircache.CMimircache.Heatmap as c_heatmap
-    
+    from PyMimircache.profiler.cLRUProfiler import CLRUProfiler as LRUProfiler
+    from PyMimircache.profiler.cGeneralProfiler import CGeneralProfiler as CGeneralProfiler
+    from PyMimircache.profiler.cHeatmap import CHeatmap as CHeatmap
+else:
+    from PyMimircache.profiler.pyGeneralProfiler import PyGeneralProfiler as PyGeneralProfiler
+    from PyMimircache.profiler.pyHeatmap import PyHeatmap as PyHeatmap
+
+from PyMimircache.profiler.profilerUtils import draw_heatmap
 try:
     from PyMimircache.profiler.twoDPlots import *
 except: pass
@@ -29,11 +38,6 @@ from PyMimircache.cacheReader.binaryReader import BinaryReader
 from PyMimircache.cacheReader.csvReader import CsvReader
 from PyMimircache.cacheReader.plainReader import PlainReader
 from PyMimircache.cacheReader.vscsiReader import VscsiReader
-from PyMimircache.profiler.cLRUProfiler import CLRUProfiler as LRUProfiler
-from PyMimircache.profiler.cGeneralProfiler import CGeneralProfiler
-from PyMimircache.profiler.pyGeneralProfiler import PyGeneralProfiler
-from PyMimircache.profiler.cHeatmap import CHeatmap
-from PyMimircache.profiler.pyHeatmap import PyHeatmap
 
 from PyMimircache.cacheReader.traceStat import TraceStat
 from multiprocessing import cpu_count
@@ -301,7 +305,7 @@ class Cachecow:
         if isinstance(p, LRUProfiler):
             for i in range(len(hc)-2):
                 hit_count_dict[i] = hc[i]
-        elif isinstance(p, CGeneralProfiler) or isinstance(p, PyGeneralProfiler):
+        elif isinstance(p, GeneralProfiler):
             for i in range(len(hc)):
                 hit_count_dict[i * p.bin_size] = hc[i]
         return hit_count_dict
@@ -335,7 +339,7 @@ class Cachecow:
         if isinstance(p, LRUProfiler):
             for i in range(len(hr)-2):
                 hit_ratio_dict[i] = hr[i]
-        elif isinstance(p, CGeneralProfiler) or isinstance(p, PyGeneralProfiler):
+        elif isinstance(p, GeneralProfiler):
             for i in range(len(hr)):
                 hit_ratio_dict[i * p.bin_size] = hr[i]
         return hit_ratio_dict
@@ -372,10 +376,15 @@ class Cachecow:
                                                         "larger than trace length({})".format(cache_size,
                                                                                               self.num_of_req())
             if isinstance(algorithm, str):
-                if algorithm.lower() in C_AVAIL_CACHE:
-                    profiler = CGeneralProfiler(self.reader, CACHE_NAME_CONVRETER[algorithm.lower()],
+                if ALLOW_C_MIMIRCACHE:
+                    if algorithm.lower() in C_AVAIL_CACHE:
+                        profiler = CGeneralProfiler(self.reader, CACHE_NAME_CONVRETER[algorithm.lower()],
                                                 cache_size, bin_size,
                                                 cache_params=cache_params, num_of_threads=num_of_threads)
+                    else:
+                        profiler = PyGeneralProfiler(self.reader, self.cacheclass_mapping[algorithm.lower()],
+                                                   cache_size, bin_size,
+                                                   cache_params=cache_params, num_of_threads=num_of_threads)
                 else:
                     profiler = PyGeneralProfiler(self.reader, self.cacheclass_mapping[algorithm.lower()],
                                                  cache_size, bin_size,
@@ -423,16 +432,11 @@ class Cachecow:
                     "you cannot specify cache size({}) larger than " \
                     "trace length({})".format(cache_size, self.num_of_req())
 
-        l = ["avg_rd_start_time_end_time", "hit_ratio_start_time_cache_size"]
+        if algorithm.lower() in C_AVAIL_CACHE:
+            hm = CHeatmap()
 
-        if plot_type in l:
-            hm = PyHeatmap()
         else:
-            if algorithm.lower() in C_AVAIL_CACHE:
-                hm = CHeatmap()
-
-            else:
-                hm = PyHeatmap()
+            hm = PyHeatmap()
 
         hm.heatmap(self.reader, time_mode, plot_type,
                    time_interval=time_interval,
@@ -484,7 +488,7 @@ class Cachecow:
         else:
             hm = PyHeatmap()
             if algorithm1.lower() not in C_AVAIL_CACHE:
-                xydict1 = hm.calculate_heatmap_dat(self.reader, time_mode, plot_type,
+                xydict1 = hm.compute_heatmap(self.reader, time_mode, plot_type,
                                                    time_interval=time_interval,
                                                    cache_size=cache_size,
                                                    algorithm=algorithm1,
@@ -499,7 +503,7 @@ class Cachecow:
                                                        num_of_threads=num_of_threads)
 
             if algorithm2.lower() not in C_AVAIL_CACHE:
-                xydict2 = hm.calculate_heatmap_dat(self.reader, time_mode, plot_type,
+                xydict2 = hm.compute_heatmap(self.reader, time_mode, plot_type,
                                                    time_interval=time_interval,
                                                    cache_size=cache_size,
                                                    algorithm=algorithm2,
@@ -513,31 +517,28 @@ class Cachecow:
                                                        cache_params=cache_params2,
                                                        num_of_threads=num_of_threads)
 
-            cHm = CHeatmap()
-            text = "      differential heatmap\n      cache size: {},\n      cache type: ({}-{})/{},\n" \
-                   "      time type: {},\n      time interval: {},\n      plot type: \n{}".format(
+            text = "differential heatmap\ncache size: {},\ncache type: ({}-{})/{},\n" \
+                   "time type: {},\ntime interval: {},\nplot type: \n{}".format(
                 cache_size, algorithm2, algorithm1, algorithm1, time_mode, time_interval, plot_type)
 
             x1, y1 = xydict1.shape
-            x1 = int(x1 / 2.8)
-            y1 /= 8
-            if time_mode == 'r':
-                time_mode_string = "Real"
-            elif time_mode == "v":
-                time_mode_string = "Virtual"
-            else:
-                raise RuntimeError("unknown time time_mode {}".format(time_mode))
+            x1, y1 = int(x1 / 2.8), y1/8
+            ax = plt.gca()
+            ax.text(x1, y1, text)
 
-            cHm.set_plot_params('x', '{} Time'.format(time_mode_string), xydict=xydict1,
-                                label='Start Time ({})'.format(time_mode_string),
-                                text=(x1, y1, text))
-            cHm.set_plot_params('y', '{} Time'.format(time_mode_string), xydict=xydict1,
-                                label='End Time ({})'.format(time_mode_string),
-                                fixed_range=(-1, 1))
             np.seterr(divide='ignore', invalid='ignore')
+            plot_data = (xydict2 - xydict1) / xydict1
+            plot_data = np.ma.array(plot_data, mask=np.tri(len(plot_data), k=-1, dtype=int).T)
 
-            plot_dict = (xydict2 - xydict1) / xydict1
-            cHm.draw_heatmap(plot_dict, figname=figname)
+            plot_kwargs = {}
+            plot_kwargs["xlabel"]  = plot_kwargs.get("xlabel", 'Start Time ({})'.format(time_mode))
+            plot_kwargs["xticks"]  = plot_kwargs.get("xticks", ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (plot_data.shape[1]-1))))
+            plot_kwargs["ylabel"]  = plot_kwargs.get("ylabel", "End Time ({})".format(time_mode))
+            plot_kwargs["yticks"]  = plot_kwargs.get("yticks", ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (plot_data.shape[0]-1))))
+            plot_kwargs["imshow_kwargs"] = {"vmin": -1, "vmax": 1}
+
+
+            draw_heatmap(plot_data, **plot_kwargs)
 
 
 

@@ -216,14 +216,13 @@ class AbstractReader(metaclass=abc.ABCMeta):
         """
         try:
             if self is not None:
-                if self.trace_file:
+                if getattr(self, "trace_file", None):
                     self.trace_file.close()
                     self.trace_file = None
-                if self.c_reader and c_cacheReader is not None:
+                if getattr(self, "c_reader", None) and globals().get("c_cacheReader", None) is not None:
                     c_cacheReader.close_reader(self.c_reader)
                     self.c_reader = None
         except Exception as e:
-            # return
             print("Exception during close reader: {}, ccacheReader={}".format(e, c_cacheReader))
 
     @abc.abstractmethod
