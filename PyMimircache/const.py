@@ -20,36 +20,37 @@ DEF_NUM_THREADS = os.cpu_count()
 DEF_EMA_HISTORY_WEIGHT = 0.80
 
 # try to import cMimircache
-failed_components = []
-failed_reason = set()
-try:
-    import PyMimircache.CMimircache.CacheReader
-except Exception as e:
-    failed_reason.add(e)
-    failed_components.append("CMimircache.CacheReader")
-try:
-    import PyMimircache.CMimircache.LRUProfiler
-except Exception as e:
-    failed_reason.add(e)
-    failed_components.append("CMimircache.LRUProfiler")
-try:
-    import PyMimircache.CMimircache.GeneralProfiler
-except Exception as e:
-    failed_reason.add(e)
-    failed_components.append("CMimircache.GeneralProfiler")
-try:
-    import PyMimircache.CMimircache.Heatmap
-except Exception as e:
-    failed_reason.add(e)
-    failed_components.append("CMimircache.Heatmap")
+if not INSTALL_PHASE and ALLOW_C_MIMIRCACHE:
+    failed_components = []
+    failed_reason = set()
+    try:
+        import PyMimircache.CMimircache.CacheReader
+    except Exception as e:
+        failed_reason.add(e)
+        failed_components.append("CMimircache.CacheReader")
+    try:
+        import PyMimircache.CMimircache.LRUProfiler
+    except Exception as e:
+        failed_reason.add(e)
+        failed_components.append("CMimircache.LRUProfiler")
+    try:
+        import PyMimircache.CMimircache.GeneralProfiler
+    except Exception as e:
+        failed_reason.add(e)
+        failed_components.append("CMimircache.GeneralProfiler")
+    try:
+        import PyMimircache.CMimircache.Heatmap
+    except Exception as e:
+        failed_reason.add(e)
+        failed_components.append("CMimircache.Heatmap")
 
-if len(failed_components):
-    ALLOW_C_MIMIRCACHE = False
-    print("CMimircache components {} import failed, performance will degrade, "
-          "reason: {}, ignore this warning if this is installation".
-          format(", ".join(failed_components),
-                 ", ".join(["{!s}".format(i) for i in failed_reason])),
-          file=sys.stderr)
+    if len(failed_components):
+        ALLOW_C_MIMIRCACHE = False
+        print("CMimircache components {} import failed, performance will degrade, "
+              "reason: {}, ignore this warning if this is installation".
+              format(", ".join(failed_components),
+                     ", ".join(["{!s}".format(i) for i in failed_reason])),
+              file=sys.stderr)
 
 
 from PyMimircache.cache.arc import ARC

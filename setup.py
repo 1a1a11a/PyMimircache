@@ -13,12 +13,14 @@ import subprocess
 import tempfile
 import sysconfig
 # from Cython.Build import cythonize
-from PyMimircache.version import __version__
+
 import PyMimircache.const
+PyMimircache.const.INSTALL_PHASE = True
+from PyMimircache.version import __version__
+
 
 _DEBUG = False
 _DEBUG_LEVEL = 0
-PyMimircache.const.INSTALL_PHASE = True
 
 # --------------------- Initialization ------------------------------
 
