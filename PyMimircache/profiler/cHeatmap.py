@@ -20,7 +20,8 @@ from PyMimircache.const import ALLOW_C_MIMIRCACHE, DEF_NUM_BIN_PROF, DEF_EMA_HIS
 if ALLOW_C_MIMIRCACHE and not INSTALL_PHASE:
     import PyMimircache.CMimircache.Heatmap as c_heatmap
 else:
-    raise RuntimeError("CMimircache is not successfully installed, modules beginning with C are all disabled")
+    if not INSTALL_PHASE:
+        raise RuntimeError("CMimircache is not successfully installed, modules beginning with C are all disabled")
 
 from PyMimircache import const
 from PyMimircache.utils.printing import *
@@ -204,13 +205,13 @@ class CHeatmap:
 
 
 
-        elif plot_type == "opt_effective_size":
-            assert cache_size != -1, "please provide cache_size parameter for plotting opt_effective_size"
+        elif plot_type == "effective_size":
+            assert cache_size != -1, "please provide cache_size parameter for plotting effective_size"
 
             bin_size = kwargs.get("bin_size", cache_size // DEF_NUM_BIN_PROF + 1)
             use_percent = kwargs.get("use_percent", False)
             xydict = c_heatmap.heatmap(reader.c_reader, time_mode, plot_type,
-                                                  cache_size, "Optimal",
+                                                  cache_size, algorithm,
                                                   bin_size = bin_size,
                                                   time_interval=time_interval,
                                                   num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
