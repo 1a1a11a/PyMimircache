@@ -20,6 +20,7 @@ print_level     verbosity
 import sys
 import time
 import traceback
+import inspect
 from threading import Lock
 from pprint import pprint, pformat
 
@@ -106,8 +107,10 @@ def DEBUG(s, end="\n"):
     """
     if print_level <= 2:
         printing_lock.acquire()
-        print('[DEBUG]:   {}: {}{}{}'.format(time.strftime("%H:%M:%S", time.localtime(time.time())),
-                                           COLOR_LIGHT_PURPLE, s, COLOR_END), end=end)
+        previous_frame = inspect.currentframe().f_back
+        (filename, line_number, function_name, lines, index) = inspect.getframeinfo(previous_frame)
+        print('[DEBUG]:   {}: {}{}:{} {}{}'.format(time.strftime("%H:%M:%S", time.localtime(time.time())),
+                                           COLOR_LIGHT_PURPLE, filename.split("/")[-1], line_number, s, COLOR_END), end=end)
         printing_lock.release()
 
 def INFO(s, end="\n"):
@@ -116,8 +119,10 @@ def INFO(s, end="\n"):
     """
     if print_level <= 3:
         printing_lock.acquire()
-        print('[INFO]:    {}: {}{}{}'.format(time.strftime("%H:%M:%S", time.localtime(time.time())),
-                                              COLOR_YELLOW, s, COLOR_END), end=end)
+        previous_frame = inspect.currentframe().f_back
+        (filename, line_number, function_name, lines, index) = inspect.getframeinfo(previous_frame)
+        print('[INFO]:    {}: {}{}:{} {}{}'.format(time.strftime("%H:%M:%S", time.localtime(time.time())),
+                                              COLOR_YELLOW, filename.split("/")[-1], line_number, s, COLOR_END), end=end)
         printing_lock.release()
 
 def WARNING(s, end="\n"):
@@ -126,8 +131,11 @@ def WARNING(s, end="\n"):
     """
     if print_level <= 4:
         printing_lock.acquire()
-        print('[WARNING]: {}: {}{}{}'.format(time.strftime("%H:%M:%S", time.localtime(time.time())),
-                                             COLOR_PURPLE, s, COLOR_END), file=sys.stderr, end=end)
+        previous_frame = inspect.currentframe().f_back
+        (filename, line_number, function_name, lines, index) = inspect.getframeinfo(previous_frame)
+        print('[WARNING]: {}: {}{}:{} {}{}'.format(time.strftime("%m-%d-%Y %H:%M:%S", time.localtime(time.time())),
+                                             COLOR_PURPLE, filename.split("/")[-1], line_number, s, COLOR_END),
+              file=sys.stderr, end=end)
         printing_lock.release()
 
 def ERROR(s, end="\n"):
@@ -136,8 +144,10 @@ def ERROR(s, end="\n"):
     """
     if print_level <= 5:
         printing_lock.acquire()
-        print('[ERROR]:   {}: {}{}{}'.format(time.strftime("%H:%M:%S", time.localtime(time.time())),
-                                           COLOR_RED, s, COLOR_END), file=sys.stderr, end=end)
+        previous_frame = inspect.currentframe().f_back
+        (filename, line_number, function_name, lines, index) = inspect.getframeinfo(previous_frame)
+        print('[ERROR]:   {}: {}{}:{} {}{}'.format(time.strftime("%H:%M:%S", time.localtime(time.time())),
+                                           COLOR_RED, filename.split("/")[-1], line_number, s, COLOR_END), file=sys.stderr, end=end)
         printing_lock.release()
 
 
