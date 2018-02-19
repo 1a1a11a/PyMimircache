@@ -8,6 +8,7 @@
 
 #include <Python.h>
 #include "const.h"
+#include "logging.h"
 #include "reader.h"
 #include "csvReader.h"
 #include "binaryReader.h"
@@ -90,9 +91,9 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
 
 
         if (((csvReader_init_params*)init_params)->has_header)
-            DEBUG_MSG("csv data has header");
+            DEBUG("csv data has header");
 
-        DEBUG_MSG("delimiter %d(%c)\n", ((csvReader_init_params*)init_params)->delimiter,
+        DEBUG("delimiter %d(%c)\n", ((csvReader_init_params*)init_params)->delimiter,
                   ((csvReader_init_params*)init_params)->delimiter);
     }
 
@@ -139,7 +140,7 @@ static PyObject* reader_setup_reader(PyObject* self, PyObject* args, PyObject* k
 
         Py_UCS1* py_ucs1 = PyUnicode_1BYTE_DATA(py_fmt);
 
-        DEBUG_MSG("binary fmt %s\n", py_ucs1);
+        DEBUG("binary fmt %s\n", py_ucs1);
         strcpy(bin_init_params->fmt, (char*) py_ucs1);
 
     }

@@ -149,42 +149,36 @@ static PyObject* heatmap_computation(PyObject* self,
     double ewma_coefficient_lf;
     int interval_hit_ratio = 0;
     long time_interval = 0;
+    int use_percent = 0;
     long bin_size = 0;
     long num_of_pixel_of_time_dim = 120;
     struct_cache* cache;
 
     static char *kwlist[] = {"reader", "time_mode", "plot_type", "cache_size", "algorithm",
-        "interval_hit_ratio", "ewma_coefficient",
+        "interval_hit_ratio", "ewma_coefficient", "use_percent",
         "time_interval", "bin_size", "num_of_pixel_of_time_dim",
         "cache_params", "num_of_threads", NULL};
 
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Ossls|$pdlllOi",kwlist,
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Ossls|$pdplllOi",kwlist,
                                      &po, &time_mode, &plot_type_s, &cache_size, &algorithm,
-                                     &interval_hit_ratio, &ewma_coefficient_lf,
+                                     &interval_hit_ratio, &ewma_coefficient_lf, &use_percent,
                                      &time_interval, &bin_size, &num_of_pixel_of_time_dim,
                                      &cache_params, &num_of_threads)) {
         ERROR("parsing argument failed in heatmap_computation\n");
         return NULL;
     }
 
-    //    if (time_interval_x == -1 && num_of_pixels_x == -1){
-    //        WARNING("time_interval_x and num_of_pixels_x can not both be -1, "
-    //                "use 120 as default for now\n");
-    //        num_of_pixels_x = 120;
-    //    }
-    //    if (time_interval_y == -1 && num_of_pixels_y == -1){
-    //        WARNING("time_interval_xy and num_of_pixels_y can not both be -1, "
-    //                "use 120 as default for now\n");
-    //        num_of_pixels_y = 120;
-
-    INFO("plot type: %s, interval hit ratio_bool: %d, ewma_coefficient: %.2lf, "
-         "cache size: %ld, time_mode: %s, num_of_pixel_of_time_dim: %ld, "
-         "time_interval: %ld, "
-         "bin_size: %ld, num_of_threads: %d\n", plot_type_s,
-         interval_hit_ratio, ewma_coefficient_lf, cache_size,
-         time_mode, num_of_pixel_of_time_dim,
-         time_interval, bin_size, num_of_threads);
+    VERBOSE("%s: "
+         "cache size: %ld, bin_size: %ld, "
+         "time_mode: %s, interval: %ld, n_pixel: %ld, "
+         "ihr: %d, ema_coef: %.2lf, use_percent: %d "
+         "num_of_threads: %d\n",
+         plot_type_s,
+         cache_size, bin_size,
+         time_mode, time_interval, num_of_pixel_of_time_dim,
+         interval_hit_ratio, ewma_coefficient_lf, use_percent,
+         num_of_threads);
 
     if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
         ERROR("reader is NULL\n");
@@ -192,13 +186,21 @@ static PyObject* heatmap_computation(PyObject* self,
     }
 
     // build cache
-    if (strcmp(algorithm, "LRU") == 0){
-        cache = cache_init(cache_size, reader->base->type, 0);
-        cache->core->type = e_LRU;
-    }
-    else
-        cache = build_cache(reader, cache_size, algorithm, cache_params, 0);
+    cache = build_cache(reader, cache_size, algorithm, cache_params, 0);
 
+//    if (strcmp(algorithm, "LRU") == 0){
+//        cache = cache_init(cache_size, reader->base->type, 0);
+//        cache->core->type = e_LRU;
+//    }
+//    else
+//        cache = build_cache(reader, cache_size, algorithm, cache_params, 0);
+
+    // prepare heatmap computing params
+    hm_comp_params_t hm_comp_params;
+    hm_comp_params.bin_size_ld = bin_size;
+    hm_comp_params.ewma_coefficient_lf = ewma_coefficient_lf;
+    hm_comp_params.interval_hit_ratio_b = interval_hit_ratio;
+    hm_comp_params.use_percent_b = use_percent;
 
     // verify plot type and check parameters
     if (strcmp(plot_type_s, "hr_st_et") == 0 || \
@@ -259,11 +261,23 @@ static PyObject* heatmap_computation(PyObject* self,
     }
 
 
-    else if (strcmp(plot_type_s, "cold_miss_count_start_time_end_time") == 0){
-        plot_type = cmc_st_et;
-        WARNING("this plot type should be deprecated now\n");
-    }
+    else if (strcmp(plot_type_s, "effective_size") == 0){
+        plot_type = effective_size;
+//        cache = build_cache(reader, cache_size, "Optimal", NULL, 0);
 
+        if (bin_size <= 0){
+            WARNING("bin_size can not be 0 or -1 for effective_size, "
+                    "use cache//120 as default for now\n");
+            bin_size = cache_size/120;
+        }
+
+        if (time_interval <= 0 && num_of_pixel_of_time_dim <= 1){
+            WARNING("time_interval and num_of_pixel_of_time_dim "
+                    "can not be 0/1/-1 at the same time, "
+                    "use 120 as default for now\n");
+            num_of_pixel_of_time_dim = 120;
+        }
+    }
 
     else if (strcmp(plot_type_s, "rd_distribution") == 0){
         printf("please use function heatmap_rd_distribution\n");
@@ -279,11 +293,9 @@ static PyObject* heatmap_computation(PyObject* self,
     draw_dict* dd = heatmap(reader, cache,
                             *time_mode,
                             time_interval,
-                            bin_size,
                             num_of_pixel_of_time_dim,
                             plot_type,
-                            interval_hit_ratio,
-                            ewma_coefficient_lf,
+                            &hm_comp_params,
                             num_of_threads);
 
     // create numpy array
@@ -317,6 +329,9 @@ static PyObject* heatmap_computation(PyObject* self,
     }
     return ret_array;
 }
+
+
+/** Jason: Why did I use two functions instead of one? **/
 
 static PyObject* differential_heatmap_with_Optimal(PyObject* self,
                                                    PyObject* args,
@@ -374,6 +389,12 @@ static PyObject* differential_heatmap_with_Optimal(PyObject* self,
         cache = build_cache(reader, cache_size, algorithm, cache_params, 0);
 
 
+    // prepare heatmap computing params
+    hm_comp_params_t hm_comp_params;
+    hm_comp_params.bin_size_ld = bin_size;
+    hm_comp_params.ewma_coefficient_lf = ewma_coefficient;
+    hm_comp_params.interval_hit_ratio_b = interval_hit_ratio;
+    
     // verify plot type and check parameters
     if (strcmp(plot_type_s, "hr_st_et") == 0 || \
         strcmp(plot_type_s, "hit_ratio_start_time_end_time") == 0){
@@ -446,12 +467,10 @@ static PyObject* differential_heatmap_with_Optimal(PyObject* self,
                                          cache,
                                          optimal,
                                          *time_mode,
-                                         bin_size,
                                          time_interval,
                                          num_of_pixel_of_time_dim,
                                          plot_type,
-                                         interval_hit_ratio,
-                                         ewma_coefficient,
+                                         &hm_comp_params,
                                          num_of_threads);
 
     // create numpy array
@@ -530,8 +549,13 @@ static PyObject* differential_heatmap_py(PyObject* self,
         return NULL;
     }
 
+    // prepare heatmap computing params
+    hm_comp_params_t hm_comp_params;
+    hm_comp_params.bin_size_ld = bin_size;
+    hm_comp_params.ewma_coefficient_lf = ewma_coefficient;
+    hm_comp_params.interval_hit_ratio_b = interval_hit_ratio;
 
-    INFO("plot type: %s, interval hit ratio_bool: %d, ewma_coefficient: %.2lf, "
+    VERBOSE("plot type: %s, interval hit ratio_bool: %d, ewma_coefficient: %.2lf, "
          "cache size: %ld, time_mode: %s, num_of_pixel_of_time_dim: %ld, "
          "time_interval: %ld, "
          "bin_size: %ld, num_of_threads: %d\n", plot_type_s,
@@ -625,12 +649,10 @@ static PyObject* differential_heatmap_py(PyObject* self,
                                          cache[0],
                                          cache[1],
                                          *time_mode,
-                                         bin_size,
                                          time_interval,
                                          num_of_pixel_of_time_dim,
                                          plot_type,
-                                         interval_hit_ratio,
-                                         ewma_coefficient,
+                                         &hm_comp_params,
                                          num_of_threads);
 
     // create numpy array
@@ -692,15 +714,15 @@ static PyObject* heatmap_rd_distribution_py(PyObject* self,
     if (time_interval == -1 && num_of_pixel_of_time_dim == -1)
         num_of_pixel_of_time_dim = 120;
 
-
+  
     draw_dict* dd;
     if (CDF){
-        dd = heatmap(reader, NULL, *mode, time_interval, -1, num_of_pixel_of_time_dim,
-                     rd_distribution_CDF, 0, 0, num_of_threads);
+        dd = heatmap(reader, NULL, *mode, time_interval, num_of_pixel_of_time_dim,
+                     rd_distribution_CDF, NULL, num_of_threads);
     }
     else
-        dd = heatmap(reader, NULL, *mode, time_interval, -1, num_of_pixel_of_time_dim,
-                     rd_distribution, 0, 0, num_of_threads);
+        dd = heatmap(reader, NULL, *mode, time_interval, num_of_pixel_of_time_dim,
+                     rd_distribution, NULL, num_of_threads);
 
     // create numpy array
     npy_intp dims[2] = { dd->ylength, dd->xlength };
@@ -781,8 +803,8 @@ static PyObject* heatmap_future_rd_distribution_py(PyObject* self,
         num_of_pixel_of_time_dim = 120;
 
 
-    draw_dict* dd = heatmap(reader, NULL, *mode, time_interval, -1, num_of_pixel_of_time_dim,
-                            future_rd_distribution, 0, 0, num_of_threads);
+    draw_dict* dd = heatmap(reader, NULL, *mode, time_interval, num_of_pixel_of_time_dim,
+                            future_rd_distribution, NULL, num_of_threads);
 
     // create numpy array
     npy_intp dims[2] = { dd->ylength, dd->xlength };
@@ -849,8 +871,8 @@ static PyObject* heatmap_dist_distribution_py(PyObject* self,
         num_of_pixel_of_time_dim = 120;
 
 
-    draw_dict* dd = heatmap(reader, NULL, *mode, time_interval, -1, num_of_pixel_of_time_dim,
-                            dist_distribution, 0, 0, num_of_threads);
+    draw_dict* dd = heatmap(reader, NULL, *mode, time_interval, num_of_pixel_of_time_dim,
+                            dist_distribution, NULL, num_of_threads);
 
     // create numpy array
     npy_intp dims[2] = { dd->ylength, dd->xlength };
@@ -902,8 +924,8 @@ static PyObject* heatmap_rt_distribution_py(PyObject* self,
         num_of_pixel_of_time_dim = 120;
 
 
-    draw_dict* dd = heatmap(reader, NULL, *mode, time_interval, -1, num_of_pixel_of_time_dim,
-                            rt_distribution, 0, 0, num_of_threads);
+    draw_dict* dd = heatmap(reader, NULL, *mode, time_interval, num_of_pixel_of_time_dim,
+                            rt_distribution, NULL, num_of_threads);
 
     // create numpy array
     npy_intp dims[2] = { dd->ylength, dd->xlength };

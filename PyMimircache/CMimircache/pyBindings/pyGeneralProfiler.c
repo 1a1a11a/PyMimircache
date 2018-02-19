@@ -18,6 +18,7 @@
 #include "LRU_K.h"
 #include <math.h>
 #include "python_wrapper.h"
+#include "logging.h"
 
 
 /* TODO:
@@ -56,7 +57,7 @@ static PyObject* generalProfiler_get_hit_rate(PyObject* self,
     if(begin == -1)
         begin = 0;
 
-    DEBUG_MSG("bin size: %d, threads: %d\n", bin_size, num_of_threads);
+    DEBUG("bin size: %d, threads: %d\n", bin_size, num_of_threads);
 
     if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
@@ -66,10 +67,10 @@ static PyObject* generalProfiler_get_hit_rate(PyObject* self,
     cache = build_cache(reader, cache_size, algorithm, cache_params, begin);
 
     // get hit rate
-    DEBUG_MSG("before profiling\n");
+    DEBUG("before profiling\n");
     return_res_t** results = profiler(reader, cache, num_of_threads, bin_size,
                                     (gint64)begin, (gint64)end);
-    DEBUG_MSG("after profiling\n");
+    DEBUG("after profiling\n");
 
     // create numpy array
     guint num_of_bins = ceil((double) cache_size/bin_size)+1;
@@ -125,7 +126,7 @@ static PyObject* generalProfiler_get_hit_count(PyObject* self,
     if(begin == -1)
         begin = 0;
 
-    DEBUG_MSG("bin size: %d, threads: %d\n", bin_size, num_of_threads);
+    DEBUG("bin size: %d, threads: %d\n", bin_size, num_of_threads);
 
     if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
@@ -136,10 +137,10 @@ static PyObject* generalProfiler_get_hit_count(PyObject* self,
 
 
     // get hit rate
-    DEBUG_MSG("before profiling\n");
+    DEBUG("before profiling\n");
     return_res_t** results = profiler(reader, cache, num_of_threads, bin_size,
                                     (gint64)begin, (gint64)end);
-    DEBUG_MSG("after profiling\n");
+    DEBUG("after profiling\n");
 
     // create numpy array
     guint num_of_bins = ceil((double) cache_size/bin_size)+1;
@@ -187,7 +188,7 @@ static PyObject* generalProfiler_get_miss_rate(PyObject* self,
     if(begin == -1)
         begin = 0;
 
-    DEBUG_MSG("bin size: %d, threads: %d\n", bin_size, num_of_threads);
+    DEBUG("bin size: %d, threads: %d\n", bin_size, num_of_threads);
 
     if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
@@ -198,10 +199,10 @@ static PyObject* generalProfiler_get_miss_rate(PyObject* self,
 
 
     // get hit rate
-    DEBUG_MSG("before profiling\n");
+    DEBUG("before profiling\n");
     return_res_t** results = profiler(reader, cache, num_of_threads, bin_size,
                                     (gint64)begin, (gint64)end);
-    DEBUG_MSG("after profiling\n");
+    DEBUG("after profiling\n");
 
     // create numpy array
     guint num_of_bins = ceil((double) cache_size/bin_size)+1;
@@ -308,9 +309,9 @@ static PyObject* generalProfiler_get_partition(PyObject* self,
 
 
     // get partition
-    DEBUG_MSG("partitions %i, %ld before getting partition\n", n_partitions, cache_size);
+    DEBUG("partitions %i, %ld before getting partition\n", n_partitions, cache_size);
     partition_t* partitions = get_partition(reader, cache, n_partitions);
-    DEBUG_MSG("after getting partition\n");
+    DEBUG("after getting partition\n");
 
     // create numpy array
     npy_intp dims[2] = { n_partitions, partitions->partition_history[0]->len };

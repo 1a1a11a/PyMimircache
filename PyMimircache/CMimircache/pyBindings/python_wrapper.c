@@ -93,7 +93,7 @@ struct_cache* build_cache(reader_t* reader,
         if (temp_bytes != NULL) {
             strcpy(init_params->hint_loc, PyBytes_AS_STRING(temp_bytes) ); // Borrowed pointer
             Py_DECREF(temp_bytes);
-            DEBUG_MSG("SLRUML hint_loc %s\n", init_params->hint_loc);
+            DEBUG("SLRUML hint_loc %s\n", init_params->hint_loc);
         }
         else{
             strcpy(init_params->hint_loc, "hint");
@@ -109,7 +109,7 @@ struct_cache* build_cache(reader_t* reader,
         if (temp_bytes != NULL) {
             strcpy(init_params->hint_loc, PyBytes_AS_STRING(temp_bytes) ); // Borrowed pointer
             Py_DECREF(temp_bytes);
-            DEBUG_MSG("ScoreML hint_loc %s\n", init_params->hint_loc);
+            DEBUG("ScoreML hint_loc %s\n", init_params->hint_loc);
         }
         else{
             strcpy(init_params->hint_loc, "hint");
@@ -125,7 +125,7 @@ struct_cache* build_cache(reader_t* reader,
         init_params->K = K;
         init_params->maxK = K;
         cache = LRU_K_init(cache_size, data_type, block_unit_size, (void*)init_params);
-        DEBUG_MSG("cache->K = %d, maxK = %d\n",
+        DEBUG("cache->K = %d, maxK = %d\n",
                   ((struct LRU_K_params*)(cache->cache_params))->K,
                   ((struct LRU_K_params*)(cache->cache_params))->maxK);
         
@@ -142,7 +142,7 @@ struct_cache* build_cache(reader_t* reader,
             init_params->cache_type = g_strdup( PyBytes_AS_STRING(temp_bytes) ); // Borrowed pointer
             Py_DECREF(temp_bytes);
         }
-        DEBUG_MSG("PG lookahead %d, max_meta_data %lf, prefetch_threshold %lf, cache type %s\n",
+        DEBUG("PG lookahead %d, max_meta_data %lf, prefetch_threshold %lf, cache type %s\n",
                   init_params->lookahead, init_params->max_meta_data,
                   init_params->prefetch_threshold, init_params->cache_type);
         cache = PG_init(cache_size, data_type, block_unit_size, (void*)init_params);
@@ -150,7 +150,7 @@ struct_cache* build_cache(reader_t* reader,
     else if (strcmp(algorithm, "AMP") == 0){
         gint threshold = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "pthreshold"));
         gint K = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "K"));
-        DEBUG_MSG("AMP K %d, threshold %d\n", K, threshold);
+        DEBUG("AMP K %d, threshold %d\n", K, threshold);
         struct AMP_init_params *init_params = g_new(struct AMP_init_params, 1);
         init_params->APT            = 4;
         init_params->read_size      = 1;
@@ -212,7 +212,7 @@ struct_cache* build_cache(reader_t* reader,
 //        if (strcmp(cache_type, "AMP") == 0)
 //            AMP_pthreshold = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "AMP_pthreshold"));
 //        
-//        DEBUG_MSG("cache type %s, max support=%d, min support %d, confidence %d, sequential %d\n",
+//        DEBUG("cache type %s, max support=%d, min support %d, confidence %d, sequential %d\n",
 //                     cache_type, max_support, min_support, confidence, sequential_K);
 //        
 //        struct MIMIR_init_params *init_params = g_new(struct MIMIR_init_params, 1);
@@ -303,7 +303,7 @@ struct_cache* build_cache(reader_t* reader,
         if (strcmp(cache_type, "AMP") == 0)
             AMP_pthreshold = (gint) PyLong_AsLong(PyDict_GetItemString(cache_params, "AMP_pthreshold"));
         
-        DEBUG_MSG("cache type %s, max support=%d, min support %d, confidence %d, sequential %d\n",
+        DEBUG("cache type %s, max support=%d, min support %d, confidence %d, sequential %d\n",
                   cache_type, max_support, min_support, confidence, sequential_K);
         
         Mithril_init_params_t *init_params = g_new(Mithril_init_params_t, 1);
