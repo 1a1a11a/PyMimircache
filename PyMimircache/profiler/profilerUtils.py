@@ -152,13 +152,15 @@ def draw_heatmap(plot_array, **kwargs):
     filename = kwargs.get("figname", 'heatmap.png')
 
     try:
-        cmap = plt.cm.jet
-        # cmap = plt.get_cmap("Oranges")
-        cmap.set_bad(color='white', alpha=1.)
-
         imshow_kwargs = kwargs.get("imshow_kwargs", {})
+        if "cmap" not in imshow_kwargs:
+            imshow_kwargs["cmap"] = plt.cm.jet
+        else:
+            imshow_kwargs["cmap"] = plt.get_cmap(imshow_kwargs["cmap"])
+        imshow_kwargs["cmap"].set_bad(color='white', alpha=1.)
+
         img = plt.imshow(plot_array, interpolation='nearest', origin='lower',
-                         aspect='auto', cmap=cmap, **imshow_kwargs)
+                         aspect='auto', **imshow_kwargs)
 
         cb = plt.colorbar(img)
         set_fig(no_legend=True, **kwargs)
@@ -176,12 +178,12 @@ def draw_heatmap(plot_array, **kwargs):
     except Exception as e:
         try:
             t = int(time.time())
-            with open("/tmp/heatmap.{}.pickle", 'wb') as ofile:
+            with open("/tmp/heatmap.{}.pickle".format(t), 'wb') as ofile:
                 pickle.dump(plot_array, ofile)
             WARNING("plotting using imshow failed: {}, "
                     "now try to save the plotting data to /tmp/heatmap.{}.pickle".format(e, t))
         except Exception as e:
-            WARNING("failed to save plotting data")
+            ERROR("failed to save plotting data")
 
         try:
             cmap = plt.get_cmap("Oranges")
