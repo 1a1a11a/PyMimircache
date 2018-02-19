@@ -21,11 +21,11 @@ if ALLOW_C_MIMIRCACHE and not INSTALL_PHASE:
     import PyMimircache.CMimircache.Heatmap as c_heatmap
 else:
     if not INSTALL_PHASE:
-        raise RuntimeError("CMimircache is not successfully installed, modules beginning with C are all disabled")
+        print("CMimircache is not successfully installed, modules beginning with C are all disabled")
 
 from PyMimircache import const
 from PyMimircache.utils.printing import *
-from PyMimircache.profiler.profilerUtils import set_fig
+from PyMimircache.profiler.profilerUtils import set_fig, draw_heatmap
 
 
 
@@ -112,9 +112,10 @@ class CHeatmap:
         reader.reset()
 
         cache_size = kwargs.get("cache_size", -1)
-        plot_kwargs = {}
         figname = kwargs.get("figname", "CHeatmap_{}.png".format(plot_type))
         num_of_threads = kwargs.get("num_of_threads", os.cpu_count())
+        if cache_params is None: cache_params = {}
+        plot_kwargs = kwargs.get("plot_kwargs", {"figname": figname})
         assert time_mode in ["r", "v"], "Cannot recognize this time_mode, "\
                                         "it can only be either real time(r) or virtual time(v), " \
                                         "but you give {}".format(time_mode)
@@ -219,18 +220,16 @@ class CHeatmap:
                                                   use_percent=use_percent,
                                                   num_of_threads=num_of_threads)
 
-            xlabel = 'Time ({})'.format(time_mode)
-            xticks = ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (xydict.shape[1]-1)))
-            ylabel = "Cache Size"
-            yticks = ticker.FuncFormatter(lambda x, _: int(x*bin_size))
+            plot_kwargs["xlabel"]  = plot_kwargs.get("xlabel", 'Time ({})'.format(time_mode))
+            plot_kwargs["xticks"]  = plot_kwargs.get("xticks", ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (xydict.shape[1]-1))))
+            plot_kwargs["ylabel"]  = plot_kwargs.get("ylabel", "Cache Size")
+            plot_kwargs["yticks"]  = plot_kwargs.get("yticks", ticker.FuncFormatter(lambda x, _: int(x*bin_size)))
+            plot_kwargs["imshow_kwargs"] = {"cmap": "Oranges"}
             if use_percent:
-                plot_kwargs = {"vmin": 0, "vmax":1}
+                plot_kwargs["imshow_kwargs"].update({"vmin": 0, "vmax":1})
 
             plot_data = xydict
-            self.draw_heatmap(plot_data, figname=figname,
-                              xlabel=xlabel, ylabel=ylabel,
-                              xticks=xticks, yticks=yticks,
-                              **plot_kwargs)
+            draw_heatmap(plot_data, **plot_kwargs)
 
 
 
@@ -496,9 +495,12 @@ class CHeatmap:
 
         imshow_kwargs = kwargs.get("imshow_kwargs", {})
 
-        cmap = plt.cm.jet
+        if "cmap" not in imshow_kwargs:
+            imshow_kwargs["cmap"] = plt.cm.jet
+        else:
+            imshow_kwargs["cmap"] = plt.get_cmap(imshow_kwargs["cmap"])
         # cmap = plt.get_cmap("Oranges")
-        cmap.set_bad(color='white', alpha=1.)
+        imshow_kwargs["cmap"].set_bad(color='white', alpha=1.)
 
         # if 1:
         try:
@@ -506,10 +508,10 @@ class CHeatmap:
                 vmin, vmax = kwargs['fixed_range']
                 img = plt.imshow(plot_array, vmin=vmin, vmax=vmax,
                                  interpolation='nearest', origin='lower',
-                                 cmap=cmap, aspect='auto', **imshow_kwargs)
+                                 aspect='auto', **imshow_kwargs)
             else:
                 img = plt.imshow(plot_array, interpolation='nearest',
-                                 origin='lower', aspect='auto', cmap=cmap, **imshow_kwargs)
+                                 origin='lower', aspect='auto', **imshow_kwargs)
 
             cb = plt.colorbar(img)
             set_fig(no_legend=True, **kwargs)
@@ -531,13 +533,13 @@ class CHeatmap:
                 WARNING("plotting using imshow failed: {}, "
                         "now try to save the plotting data to /tmp/heatmap.{}.pickle".format(e, t))
                 import pickle
-                with open("/tmp/heatmap.{}.pickle", 'wb') as ofile:
+                with open("/tmp/heatmap.{}.pickle".format(t), 'wb') as ofile:
                     pickle.dump(plot_array, ofile)
             except Exception as e:
-                WARNING("failed to save plotting data")
+                ERROR("failed to save plotting data")
 
             try:
-                plt.pcolormesh(plot_array.T, cmap=cmap)
+                plt.pcolormesh(plot_array.T)
                 plt.savefig(filename)
             except Exception as e:
                 WARNING("further plotting using pcolormesh failed" + str(e))
