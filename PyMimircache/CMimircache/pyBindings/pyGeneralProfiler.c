@@ -47,10 +47,10 @@ static PyObject* generalProfiler_get_hit_ratio(PyObject* self,
         "cache_params", "num_of_threads", NULL};
 
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osli|Ois", kwlist, &po,
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osli|Oi", kwlist, &po,
                                      &algorithm, &cache_size, &bin_size,
                                      &cache_params, &num_of_threads)) {
-        ERROR("parsing argument failed in %s", __func__);
+        ERROR("parsing argument failed");
         return NULL;
     }
 
@@ -319,7 +319,7 @@ static PyObject* generalProfiler_get_eviction_age(PyObject* self,
     if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osli|Oi", kwlist, &po,
                                      &algorithm, &cache_size, &bin_size,
                                      &cache_params, &num_of_threads)) {
-        ERROR("parsing argument failed in %s", __func__);
+        ERROR("parsing argument failed");
         return NULL;
     }
     
