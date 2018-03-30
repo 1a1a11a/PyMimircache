@@ -305,7 +305,7 @@ class Cachecow:
         if isinstance(p, LRUProfiler):
             for i in range(len(hc)-2):
                 hit_count_dict[i] = hc[i]
-        elif isinstance(p, GeneralProfiler):
+        elif isinstance(p, CGeneralProfiler) or isinstance(p, PyGeneralProfiler):
             for i in range(len(hc)):
                 hit_count_dict[i * p.bin_size] = hc[i]
         return hit_count_dict
@@ -339,7 +339,7 @@ class Cachecow:
         if isinstance(p, LRUProfiler):
             for i in range(len(hr)-2):
                 hit_ratio_dict[i] = hr[i]
-        elif isinstance(p, GeneralProfiler):
+        elif isinstance(p, CGeneralProfiler) or isinstance(p, PyGeneralProfiler):
             for i in range(len(hr)):
                 hit_ratio_dict[i * p.bin_size] = hr[i]
         return hit_ratio_dict
@@ -530,7 +530,7 @@ class Cachecow:
             plot_data = (xydict2 - xydict1) / xydict1
             plot_data = np.ma.array(plot_data, mask=np.tri(len(plot_data), k=-1, dtype=int).T)
 
-            plot_kwargs = {}
+            plot_kwargs = {"figname": figname}
             plot_kwargs["xlabel"]  = plot_kwargs.get("xlabel", 'Start Time ({})'.format(time_mode))
             plot_kwargs["xticks"]  = plot_kwargs.get("xticks", ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (plot_data.shape[1]-1))))
             plot_kwargs["ylabel"]  = plot_kwargs.get("ylabel", "End Time ({})".format(time_mode))
@@ -665,7 +665,7 @@ class Cachecow:
         save_gradually          =       kwargs.get("save_gradually",        False)
         threshold               =       kwargs.get('auto_resize_threshold', 0.98)
         label                   =       kwargs.get("label",                 algorithm_list)
-        xlabel                  =       kwargs.get("xlable",                "Cache Size (Items)")
+        xlabel                  =       kwargs.get("xlabel",                "Cache Size (Items)")
         ylabel                  =       kwargs.get("ylabel",                "Hit Ratio")
         title                   =       kwargs.get("title",                 "Hit Ratio Curve")
 
