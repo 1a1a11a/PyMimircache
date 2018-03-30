@@ -145,6 +145,13 @@ class GeneralProfilerTest(unittest.TestCase):
         p2.plotHRC(figname="test_b_py.png", cache_unit_size=32*1024)
         reader.close()
 
+    def test_cGeneralProfiler(self):
+        reader = BinaryReader("{}/trace.vscsi".format(DAT_FOLDER),
+                              init_params={"label":6, "real_time":7, "fmt": "<3I2H2Q"})
+
+        p1 = CGeneralProfiler(reader, "FIFO", cache_size=2000, bin_size=200, num_of_threads=os.cpu_count())
+        ea = p1.get_eviction_age()
+
 
 if __name__ == "__main__":
     unittest.main()

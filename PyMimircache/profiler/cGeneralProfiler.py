@@ -132,6 +132,31 @@ class CGeneralProfiler:
         return cls.__name__
 
 
+    def get_eviction_age(self, **kwargs):
+        """
+        obtain the eviction age of each req under specified cache replacement algorithm and cache size
+        :param kwargs:
+        :return: a numpy array, this is a two dimensional array, num_of_bin * num_of_req
+        each row is a list of eviction age corresponding to cache_size = bin_size * row_id,
+        for example, the second row is the eviction age of cache_size = bin_size * 2,
+        the nth element of the row corresponds to the eviction age of nth request,
+        if the nth request is reused before evicted or not evicted (like ending of trace), then the
+        eviction age is -1.
+        """
+
+        sanity_kwargs = {"num_of_threads": kwargs.get("num_of_threads", self.num_of_threads)}
+        cache_size = kwargs.get("cache_size", self.cache_size)
+        bin_size = kwargs.get("bin_size", self.bin_size)
+        cache_params = kwargs.get("cache_params", self.cache_params)
+
+        return c_generalProfiler.get_eviction_age(self.reader.c_reader,
+                                                              self.cache_name,
+                                                              cache_size,
+                                                              bin_size,
+                                                              cache_params=cache_params,
+                                                              **sanity_kwargs)
+
+
     def get_hit_count(self, **kwargs):
         """
         obtain hit count at cache size [0, bin_size, bin_size*2 ...]
@@ -142,12 +167,8 @@ class CGeneralProfiler:
 
         sanity_kwargs = {"num_of_threads": kwargs.get("num_of_threads", self.num_of_threads)}
         cache_size = kwargs.get("cache_size", self.cache_size)
-
-        # this is going to be deprecated
-        if 'begin' in kwargs:
-            sanity_kwargs['begin'] = kwargs['begin']
-        if 'end' in kwargs:
-            sanity_kwargs['end'] = kwargs['end']
+        bin_size = kwargs.get("bin_size", self.bin_size)
+        cache_params = kwargs.get("cache_params", self.cache_params)
 
         if self.block_unit_size != 0:
             print("not supported yet")
@@ -155,8 +176,8 @@ class CGeneralProfiler:
             self.hit_count = c_generalProfiler.get_hit_count(self.reader.c_reader,
                                                               self.cache_name,
                                                               cache_size,
-                                                              self.bin_size,
-                                                              cache_params=self.cache_params,
+                                                              bin_size,
+                                                              cache_params=cache_params,
                                                               **sanity_kwargs)
         return self.hit_count
 
@@ -170,19 +191,14 @@ class CGeneralProfiler:
         sanity_kwargs = {"num_of_threads": kwargs.get("num_of_threads", self.num_of_threads)}
         cache_size = kwargs.get("cache_size", self.cache_size)
         bin_size = kwargs.get("bin_size", self.bin_size)
-
-        # this is going to be deprecated
-        if 'begin' in kwargs:
-            sanity_kwargs['begin'] = kwargs['begin']
-        if 'end' in kwargs:
-            sanity_kwargs['end'] = kwargs['end']
+        cache_params = kwargs.get("cache_params", self.cache_params)
 
         # handles both withsize and no size, but currently only storage system trace are supported with size
         self.hit_ratio = c_generalProfiler.get_hit_ratio(self.reader.c_reader,
                                                           self.cache_name,
                                                           cache_size,
                                                           bin_size,
-                                                          cache_params=self.cache_params,
+                                                          cache_params=cache_params,
                                                           **sanity_kwargs)
         return self.hit_ratio
 

@@ -264,6 +264,8 @@ setup(
 )
 
 
+# CC="ccache gcc" CXX="ccache" python3 setup.py build_ext -i
+
 
 # python3 setup.py sdist upload -r pypitest
 

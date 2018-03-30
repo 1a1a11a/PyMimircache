@@ -153,6 +153,7 @@ class CLRUProfiler:
                 INFO("reuse distance calculated and saved at {}".format(rd_dat_path))
         return self.get_reuse_distance()
 
+
     def get_hit_count(self, **kargs):
         """
         0~size(included) are for counting rd=0~size, size+1 is
