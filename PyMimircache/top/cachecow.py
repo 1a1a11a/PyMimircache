@@ -366,10 +366,11 @@ class Cachecow:
         """
 
         num_of_threads = kwargs.get("num_of_threads", DEF_NUM_THREADS)
+        no_load_rd = kwargs.get("no_load_rd", False)
         assert self.reader is not None, "you haven't opened a trace yet"
 
         if algorithm.lower() == "lru" and not use_general_profiler:
-            profiler = LRUProfiler(self.reader, cache_size, cache_params)
+            profiler = LRUProfiler(self.reader, cache_size, cache_params, no_load_rd=no_load_rd)
         else:
             assert cache_size != -1, "you didn't provide size for cache"
             assert cache_size <= self.num_of_req(), "you cannot specify cache size({}) " \
@@ -660,6 +661,7 @@ class Cachecow:
         hit_ratio_dict = {}
 
         num_of_threads          =       kwargs.get("num_of_threads",        os.cpu_count())
+        no_load_rd              =       kwargs.get("no_load_rd",            False)
         cache_unit_size         =       kwargs.get("cache_unit_size",       0)
         use_general_profiler    =       kwargs.get("use_general_profiler",  False)
         save_gradually          =       kwargs.get("save_gradually",        False)
@@ -673,10 +675,10 @@ class Cachecow:
         LRU_HR = None
 
         if cache_size == -1 and auto_resize:
-            LRU_HR = LRUProfiler(self.reader).plotHRC(auto_resize=True, threshold=threshold, no_save=True)
+            LRU_HR = LRUProfiler(self.reader, no_load_rd=no_load_rd).plotHRC(auto_resize=True, threshold=threshold, no_save=True)
             cache_size = len(LRU_HR)
         else:
-            assert cache_size < self.num_of_req(), "you cannot specify cache size larger than trace length"
+            assert cache_size <= self.num_of_req(), "you cannot specify cache size larger than trace length"
 
         if bin_size == -1:
             bin_size = cache_size // DEF_NUM_BIN_PROF + 1
@@ -710,7 +712,7 @@ class Cachecow:
                 cache_param = None
             profiler = self.profiler(alg, cache_param, cache_size, bin_size=bin_size,
                                      use_general_profiler=use_general_profiler,
-                                     num_of_threads=num_of_threads)
+                                     num_of_threads=num_of_threads, no_load_rd=no_load_rd)
             t1 = time.time()
 
             if alg == "LRU":

@@ -120,7 +120,7 @@ class CGeneralProfiler:
                 self.num_of_lines += 1
                 ofile.write(str(i) + '\n')
                 i = self.reader.read_one_req()
-        self.reader = plainReader('.temp.dat')
+        self.reader = PlainReader('.temp.dat')
 
 
     @classmethod
@@ -135,13 +135,14 @@ class CGeneralProfiler:
     def get_eviction_age(self, **kwargs):
         """
         obtain the eviction age of each req under specified cache replacement algorithm and cache size
-        :param kwargs:
-        :return: a numpy array, this is a two dimensional array, num_of_bin * num_of_req
-        each row is a list of eviction age corresponding to cache_size = bin_size * row_id,
-        for example, the second row is the eviction age of cache_size = bin_size * 2,
+        :param kwargs: Not used
+        :return: a two-dimensional numpy array with shape num_of_bin * num_of_req,
+        each row is an array of eviction age corresponding to cache_size = bin_size * row_id (beginning from 0),
+        for example, the second row is the eviction age of cache_size = bin_size * (2-1),
         the nth element of the row corresponds to the eviction age of nth request,
         if the nth request is reused before evicted or not evicted (like ending of trace), then the
         eviction age is -1.
+        .. NOTE: the first row will have always be array of zero because it corresponds to size zero.
         """
 
         sanity_kwargs = {"num_of_threads": kwargs.get("num_of_threads", self.num_of_threads)}

@@ -269,7 +269,7 @@ def popularity_2d(reader, logX=True, logY=False, cdf=True, plot_type="obj",
     req_freq_dict = reader.get_req_freq_distribution()
     freq_count_dict = defaultdict(int)
     max_freq = -1
-    for _, v in req_freq_dict.items():
+    for v in req_freq_dict.values():
         freq_count_dict[v] += 1
         if v > max_freq:
             max_freq = v
