@@ -1,0 +1,11 @@
+ASig2:
+    1. add decay_coefficient, because 1116AkamaiSigmoidPrediction shows this is crucial
+    2. make x_max no smaller avg rd
+    3. set x_max no more than max_rd
+    4. set x_max no more than cache_size * 2
+    5. check overflow
+    6. fitting_period_init 12, fitting_period 6
+    7. use all the access dist to fit a curve for general prediction, expected_dist_for_obj_should_be_evicted
+    8. don't evict item from ASig unless it is expired
+    9. if x_max > expected_dist, set to expected_dist_for_obj_should_be_evicted[1]
+    10.
