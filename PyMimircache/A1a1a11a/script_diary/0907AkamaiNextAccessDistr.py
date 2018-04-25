@@ -8,12 +8,13 @@ import sys
 import time
 import math
 from collections import defaultdict
+from PyMimircache import *
+
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 
 
-from PyMimircache import *
 from PyMimircache.bin.conf import *
 from PyMimircache.cacheReader.traceStat import TraceStat
 from PyMimircache.utils.timer import MyTimer
@@ -22,15 +23,16 @@ from PyMimircache.utils.timer import MyTimer
 NO_PLOT_WHEN_EXIST = False
 
 
-def plot_rd_distribution(dat, dat_type, top_N=100, cdf=True, plot_type="rd"):
+def plot_rd_distribution(dat, dat_type, top_N=100, cdf=True, plot_type="rd", log_base=-1):
     reader = get_reader(dat, dat_type)
-    folder_name = "0412_{}DistriCDF_{}".format(plot_type, os.path.basename(dat))
+    folder_name = "0412_{}DistriPDF_{}".format(plot_type, os.path.basename(dat))
     if not os.path.exists(folder_name):
         os.makedirs(folder_name)
 
 
     # select top N obj
     top_N_obj_pair = TraceStat(reader, top_N_popular=top_N).get_top_N()
+    # access = defaultdict(list)
     access = {}
     for obj, freq in top_N_obj_pair:
         access[obj] = []
@@ -58,18 +60,23 @@ def plot_rd_distribution(dat, dat_type, top_N=100, cdf=True, plot_type="rd"):
             access[req].append(rd_list[n])
     reader.reset()
 
+    # get lifetime and freq
+    lifetime_dict, freq_dict = plt_lifetime_distribution(dat, dat_type)
+    mean_dist_dict = {}
+    for k in lifetime_dict.keys():
+        mean_dist_dict[k] = lifetime_dict[k] / freq_dict[k]
+
+
     for obj, freq in top_N_obj_pair:
         if len(access[obj]) != freq:
             raise RuntimeError("obj {} number of access is different from freq {} {}".format(obj, len(access[obj]), freq))
         # transform a list of rd into the form of a list of count of rd
-        # max_rd = -1
         max_rd = max(access[obj])
-        # for rd in access[obj]:
-        #     if rd > max_rd:
-        #         max_rd = rd
 
-        # num_bucket = int(math.ceil( math.log(max_rd, 2)) + 2)
-        num_bucket = max_rd + 2
+        if log_base != -1:
+            num_bucket = int(math.ceil( math.log(max_rd, log_base)) + 1)
+        else:
+            num_bucket = max_rd + 2
         l = [0] * num_bucket
 
         for rd in access[obj]:
@@ -78,41 +85,96 @@ def plot_rd_distribution(dat, dat_type, top_N=100, cdf=True, plot_type="rd"):
             # 2: rd 1, 2
             # 3: rd 3, 4, 5, 6
             # 4: rd 7, 8, 9, 10, 11, 12, 13, 14
-            # l[ int(math.ceil(math.log(rd+2, 2))) ] += 1
-            if rd != -1:            # filter out cold miss
-                l[rd] += 1
+            if log_base != -1:
+                if rd != -1:
+                    l[ int(math.ceil(math.log(rd, log_base))) ] += 1
+            else:
+                if rd != -1:            # filter out cold miss
+                    l[rd] += 1
 
         if cdf:
             for i in range(1, len(l)):
                 l[i] = l[i-1] + l[i]
             for i in range(len(l)):
                 l[i] = l[i]/l[-1]
-        # access[obj] = l
 
-        plot([i for i in range(len(l))], l,
-             xlabel="reuse distance" if plot_type=="rd" else plot_type, ylabel="percentage of count (cdf)", logY=False,
-             figname="{}/{}_{}.png".format(folder_name, freq, obj))
+        plot_kwargs = {
+            "xlabel": "reuse distance" if plot_type == "rd" else plot_type,
+            "ylabel": "percentage of count (cdf)",
+            "logY": False,
+            "logX": False,
+            "figname": "{}/{}_{}.png".format(folder_name, freq, obj)
+        }
 
+        if log_base != -1:
+            plot_kwargs["xticks"] = ticker.FuncFormatter(lambda x, _: '{:2.0f}'.format(log_base ** x))
 
-    print("begin plotting")
-    # for obj, freq in top_N_obj_pair:
-    #     rd_count_list = access[obj]
-    #     plot([i for i in range(len(rd_count_list))], rd_count_list,
-    #     # plot([-1, 0] + [2**i-2 for i in range(2, len(rd_count_list))], rd_count_list,
-    #          xlabel="reuse distance", ylabel="count", logY=True,
-    #          figname="{}/{}_{}.png".format(folder_name, freq, obj))
+        plt.axvline(x=int(math.ceil(math.log(mean_dist_dict[obj], log_base))), color="black")
+        plt.text(x=int(math.ceil(math.log(mean_dist_dict[obj], log_base))), y=2, s="lifetime/freq")
+        plot([i for i in range(len(l))], l, **plot_kwargs)
+
 
     print("{} finshed".format(dat))
 
 
+def plt_lifetime_distribution(dat, dat_type, cdf=True):
+    reader = get_reader(dat, dat_type)
+    figname = "lifetimeDistriCDF_{}.png".format(os.path.basename(dat))
+    # if not os.path.exists(folder_name):
+    #     os.makedirs(folder_name)
+
+    first_access_time = {}
+    last_access_time  = {}
+    lifetime_dict = {}
+    max_lifetime = 0
+    access_freq_dict = defaultdict(int)
+    for n, req in enumerate(reader):
+        if req not in first_access_time:
+            first_access_time[req] = n
+        last_access_time[req] = n
+        access_freq_dict[req] += 1
+    reader.reset()
+
+    for obj in first_access_time.keys():
+        lifetime = last_access_time[obj] - first_access_time[obj]
+        lifetime_dict[obj] = lifetime
+        if lifetime > max_lifetime:
+            max_lifetime = lifetime
+
+    lifetime_count_list = [0] * (max_lifetime + 1)
+    for lifetime in lifetime_dict.values():
+        lifetime_count_list[lifetime] += 1
+    print(lifetime_count_list[:120])
+
+    if cdf:
+        for i in range(1, len(lifetime_count_list)):
+            lifetime_count_list[i] = lifetime_count_list[i - 1] + lifetime_count_list[i]
+        print(lifetime_count_list[:120])
+        for i in range(len(lifetime_count_list)):
+            lifetime_count_list[i] = lifetime_count_list[i] / lifetime_count_list[-1]
+    print(lifetime_count_list[:120])
+
+    plot_kwargs = {
+        "xlabel": "lifetime",
+        "ylabel": "percentage of count (cdf)",
+        "logY": False,
+        "logX": True,
+        "figname": figname
+    }
+
+    plot([i for i in range(len(lifetime_count_list))], lifetime_count_list, **plot_kwargs)
+    print("lifetime distribution plotted")
+    return lifetime_dict, access_freq_dict
 
 
-def plot(x, y, xlabel, ylabel, figname, logX=True, logY=False, text=None):
+def plot(x, y, xlabel, ylabel, figname, logX=True, logY=False, text=None, **kwargs):
     # print(x)
     # print(y)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.plot(x, y)
+    if "xticks" in kwargs:
+        plt.gca().xaxis.set_major_formatter(kwargs["xticks"])
     if logX:
         plt.xscale("log")
     if logY:
@@ -170,7 +232,9 @@ if __name__ == "__main__":
     TRACE_DIR, NUM_OF_THREADS = initConf("cphy", "variable")
     # plot_rd_distribution("small", dat_type="vscsi", top_N=8)
     # plot_rd_distribution("w92", dat_type="cphy", top_N=10000)
-    plot_rd_distribution("/home/jason/ALL_DATA/akamai3/layer/1/19.28.122.183.anon.1", dat_type="akamai3", top_N=200000, plot_type="last_access", cdf=False)
+    plot_rd_distribution("/home/jason/ALL_DATA/akamai3/layer/1/19.28.122.183.anon.1", dat_type="akamai3", top_N=20000, plot_type="last_access", cdf=False, log_base=1.08)
+    # lifetime_dict, freq_dict = plt_lifetime_distribution("/home/jason/ALL_DATA/akamai3/layer/1/19.28.122.183.anon.1", dat_type="akamai3")
+
     # plot_rd_distribution("/home/jason/ALL_DATA/akamai3/layer/1/clean0922/oneDayData.sort", dat_type="akamai3", top_N=200000)
     # plot_rd_distribution("/home/jason/ALL_DATA/akamai3/original/19.28.122.183.anon", dat_type="akamai3", top_N=200000, plot_type="last_access")
     # plot_rd_distribution("/home/jason/ALL_DATA/akamai3/layer/1/19.28.122.183.anon.1".format(TRACE_DIR), dat_type="akamai3", top_N=120)
