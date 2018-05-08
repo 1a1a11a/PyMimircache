@@ -19,7 +19,7 @@ def transform_datafile_to_dist_list(dat, dat_type, dist_type="rd"):
     reader = get_reader(dat, dat_type)
     dist = None
     if dist_type == "rd":
-        dist = LRUProfiler(reader).get_reuse_distance()
+        dist = CLRUProfiler(reader).get_reuse_distance()
     d = defaultdict(list)
 
     for n, req in enumerate(reader):

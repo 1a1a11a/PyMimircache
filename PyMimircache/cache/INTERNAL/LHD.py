@@ -30,17 +30,19 @@ from functools import reduce
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 import os
-import matplotlib.pyplot as plt
 from PyMimircache.utils.timer import MyTimer
 from PyMimircache.cache.lru import LRU
-from PyMimircache import CLRUProfiler
 from PyMimircache.profiler.pyGeneralProfiler import PyGeneralProfiler
 
 from PyMimircache.profiler.cGeneralProfiler import CGeneralProfiler
 from PyMimircache.cacheReader.vscsiReader import VscsiReader
 from PyMimircache.cacheReader.binaryReader import BinaryReader
-from PyMimircache import PlainReader
+from PyMimircache.cacheReader.csvReader import CsvReader
+from PyMimircache.cacheReader.plainReader import PlainReader
 
+import matplotlib.pyplot as plt
+
+DEBUG_MODE = False
 
 def argsort(seq):
     return sorted(range(len(seq)), key=seq.__getitem__)
@@ -51,12 +53,13 @@ def argsort_dict(d):
 
 class LHD(Cache):
     class LHDClass:
-        def __init__(self, max_age, name="name", ema_decay=1, dat_name="dat_name", cache_size=-1):
+        def __init__(self, max_age, name="name", ema_decay=1, dat_name="dat_name", cache_size=-1, coarsen_age_shift=0):
             self.name = name
             self.max_age = max_age
             self.ema_decay = ema_decay
             self.dat_name = dat_name
             self.cache_size = cache_size
+            self.coarsen_age_shift = coarsen_age_shift
 
 
             self.total_hit_interval = 0
@@ -82,7 +85,8 @@ class LHD(Cache):
             # self._ewma_evicts = [0] * self.max_age
             #
             # self.hit_density = [0] * self.max_age
-            # self.eva_plot_count = -1
+
+            self.eva_plot_count = 1 if DEBUG_MODE else -1
 
 
         def update(self):
@@ -114,36 +118,60 @@ class LHD(Cache):
             #                                  self.hits_interval[0], self.hits_interval[1],
             #                                  self.evicts_interval[0], self.evicts_interval[1]))
 
-            for i in range(self.max_age+1):
+            for i in range(self.max_age, -1, -1):
                 hits_up_to_now += self.hits_interval[i]
                 evicts_up_to_now += self.evicts_interval[i]
                 unconditioned_events += hits_up_to_now + evicts_up_to_now
-                if unconditioned_events > 1e5:
+                if unconditioned_events > 1e-5:
                     self.hit_density[i] = hits_up_to_now / unconditioned_events
                 else:
                     self.hit_density[i] =  0
-
+                # print("{} hd{} hi{} ei{} hitToNow{} evictToNow{} uncon{}".format(
+                #     i, self.hit_density[i], self.hits_interval[i], self.evicts_interval[i],
+                #     hits_up_to_now, evicts_up_to_now, unconditioned_events))
+            pos = []
+            for i in range(len(self.hits_interval)):
+                if self.hits_interval[i] == 10000:
+                    pos.append(i)
+            self.plot_eva()
             self.reset()
+
 
         def reset(self):
             self.hits_interval = [0] * (self.max_age + 1)
             self.evicts_interval = [0] * (self.max_age + 1)
 
 
-        def plot_eva(self, dat_name, cache_size=None):
+        def plot_eva(self):
             if self.eva_plot_count >= 0:
-                figname = "1127EVA_Value/{}/eva_{}_{}_{}.png".format(dat_name, self.name, cache_size, self.eva_plot_count)
-                if not os.path.exists(os.path.dirname(figname)):
-                    os.makedirs(os.path.dirname(figname))
-
-                # print("plot {}".format(self.eva))
-                plt.plot(self.eva, label="{}_{}_{}".format(self.name, cache_size, self.eva_plot_count))
-                plt.ylabel("EVA")
-                plt.xlabel("Age")
-                plt.savefig(figname)
-                print("eva value plot {} done".format(figname))
-                plt.clf()
                 self.eva_plot_count += 1
+
+                # if self.eva_plot_count % 8 == 0:
+                if True:
+                    figname = "0512LHD_Value/{}/LHD_{}_size{}_plot{}.png".format(
+                        self.dat_name, self.name, self.cache_size, self.eva_plot_count)
+                    if not os.path.exists(os.path.dirname(figname)):
+                        os.makedirs(os.path.dirname(figname))
+
+                    plt.clf()
+                    plt.plot([2**self.coarsen_age_shift*i for i in range(len(self.hits_interval))], self.hits_interval, label="hit")
+                    plt.plot([2**self.coarsen_age_shift*i for i in range(len(self.hits_interval))], self.evicts_interval, label="evict")
+                    plt.ylabel("count")
+                    plt.xlabel("Age")
+                    plt.legend(loc="best")
+                    plt.savefig("0512LHD_Value/{}/hitEvicts_{}_size{}_plot{}.png".format(
+                        self.dat_name, self.name, self.cache_size, self.eva_plot_count))
+                    plt.clf()
+
+                    plt.plot([2**self.coarsen_age_shift*i for i in range(len(self.hits_interval))], self.hit_density,
+                             label="{}_{}_{}".format(self.name, self.cache_size, self.eva_plot_count))
+                    plt.ylabel("LHD")
+                    plt.xlabel("Age")
+                    plt.legend(loc="best")
+                    plt.savefig(figname)
+                    print("LHD value plot {} done".format(figname))
+                    plt.clf()
+
 
     class CacheItem:
         __slots__ = "req_id", "last_access_ts", "last_age", "last_last_age"
@@ -169,7 +197,11 @@ class LHD(Cache):
             self.update_interval = update_interval
 
 
+        self.explore_inverse_prob = kwargs.get("explore_inverse_prob", 32)
+
         self.coarsen_age_shift = coarsen_age_shift
+        self.num_reconfig = 0
+
 
         if kwargs.get("max_coarsen_age", -1) == -1:
             self.max_coarsen_age = self.cache_size
@@ -182,28 +214,30 @@ class LHD(Cache):
             #     self.max_age = int(self.max_coarsen_age * (2 ** self.coarsen_age_shift))
             # else:
             #     raise RuntimeError("can only specify one of the two, max_coarsen_age, max_age")
-
+        self.explore_budget = int(kwargs.get("explore_budget", 0.01) * self.cache_size)
 
         self.enable_stat = enable_stat
         self.dat_name = dat_name
         self.num_overflow = 0
-        self.debugging_mode = True
 
-        print("cache size {}, update interval {}, decay coefficient {}, max_age {}, max_coarsen_age {}, age shift {}".format(
-                    self.cache_size, self.update_interval, self.ema_decay, self.max_coarsen_age * (2 ** self.coarsen_age_shift), self.max_coarsen_age, self.coarsen_age_shift), end="\n")
+
+        print("cache size {}, update interval {}, decay coefficient {}, max_age {}, "
+              "max_coarsen_age {}, age shift {}".format(
+            self.cache_size, self.update_interval, self.ema_decay,
+            self.max_coarsen_age * (2 ** self.coarsen_age_shift), self.max_coarsen_age,
+            self.coarsen_age_shift), end="\n")
 
         self.current_ts = 0
-        self.classes = [self.LHDClass(max_age=self.max_coarsen_age, name=str(i),
-                                      ema_decay=self.ema_decay, dat_name=self.dat_name, cache_size=self.cache_size)
+        self.classes = [self.LHDClass(max_age=self.max_coarsen_age, name="class{}".format(i),
+                                      ema_decay=self.ema_decay, dat_name=self.dat_name,
+                                      cache_size=self.cache_size,
+                                      coarsen_age_shift=self.coarsen_age_shift)
                         for i in range(self.n_classes)]
 
 
         self.cache_items = []
         self.cache_item_index = {}
-
-
-        # self.last_access_ts = {}
-        # self.last_last_age = {}
+        self.class_hits = [0] * self.n_classes
 
 
     def get_cur_age(self, req_id):
@@ -214,6 +248,13 @@ class LHD(Cache):
         """
 
         cache_item = self.cache_items[self.cache_item_index[req_id]]
+        # if req_id in self.cache_item_index:
+        #     cache_item = self.cache_items[self.cache_item_index[req_id]]
+        # elif req_id in self.ghost_cache_items:
+        #     cache_item = self.ghost_cache_items[req_id]
+        # else:
+        #     raise RuntimeError("req not in either cacheDict nor in ghost")
+
         last_access_ts = cache_item.last_access_ts
         cur_age = self.current_ts - last_access_ts
         coarsened_age = int(math.floor(cur_age / (2 ** self.coarsen_age_shift)))
@@ -227,24 +268,61 @@ class LHD(Cache):
 
     def get_class_id(self, req_id):
         cache_item = self.cache_items[self.cache_item_index[req_id]]
-        # last_age = self.get_cur_age(req_id)
+
+
         last_age = cache_item.last_age
         last_last_age = cache_item.last_last_age
-        # print("{} {} {} {}".format(last_age, last_last_age, self.max_coarsen_age, last_age + last_last_age == 0 or self.max_coarsen_age - (last_age + last_last_age) <= 0 ))
-        if last_age + last_last_age == 0 or self.max_coarsen_age - (last_age + last_last_age) <= 0:
-            return self.n_classes - 1
-        else:
-            # print(int(math.floor(math.log(self.max_coarsen_age - (last_age + last_last_age), 2))))
-            return min(self.n_classes-1, int(math.floor(math.log(self.max_coarsen_age - (last_age + last_last_age), 2))))
+        base_age_shift = int(math.ceil(math.log(self.max_coarsen_age, 2))) - self.n_classes
+        # print("base {}, last age {}, {} {}".format(2**base_age_shift, last_age,
+        #                                         math.log( (last_age) / (2 ** base_age_shift), 2),
+        #                                         int(math.log((self.max_coarsen_age - last_age), 2))))
 
+        # if last_age + last_last_age == 0:
+        if last_age == 0:
+            class_id = self.n_classes - 1
+        elif last_age < 2 ** base_age_shift:
+            class_id = 0
+        else:
+            # class_id = max(int(math.log( (last_age + last_last_age) / (2 ** base_age_shift), 2)), self.n_classes - 1)
+            # class_id = min(int(math.log( (self.max_coarsen_age - last_age), 2)), self.n_classes - 1)
+            class_id = min(int(math.log( (last_age) / (2 ** base_age_shift), 2)), self.n_classes - 1)
+        # print("lastAge {}, {}, class id {}".format(last_age, int(math.log( (self.max_coarsen_age - last_age), 2)), class_id))
+
+
+        # last_age = cache_item.last_age
+        # last_last_age = cache_item.last_last_age
+        # if last_age + last_last_age == 0 or self.max_coarsen_age - (last_age + last_last_age) <= 0:
+        #     class_id = self.n_classes - 1
+        # else:
+        #     # return min(self.n_classes-2, int(math.floor(math.log(self.max_coarsen_age - (last_age + last_last_age), 2))))
+        #     class_id = min(self.n_classes-1, int(math.floor(math.log(self.max_coarsen_age - (last_age + last_last_age), 2))))
+
+        self.class_hits[class_id] += 1
+        return class_id
 
     # @jit
     def reconfigure(self):
         for cl in self.classes:
             cl.fit()
+        self.adjust_age_coarsen_shift()
+        self.num_reconfig += 1
 
-        # self.num_overflow = 0
 
+    def adjust_age_coarsen_shift(self):
+        if self.num_overflow > self.cache_size:
+            print("overflow {}, age shift {}".format(self.num_overflow, self.coarsen_age_shift))
+            self.coarsen_age_shift += 1
+            for c in self.classes:
+                c.coarsen_age_shift += 1
+                hits   = [0] * (self.max_coarsen_age + 1)
+                evicts = [0] * (self.max_coarsen_age + 1)
+                for i in range(0, self.max_coarsen_age+1):
+                    hits[i//2] += c.hits_interval[i]
+                    evicts[i//2] += c.evicts_interval[i]
+                c.hits_interval = hits
+                c.evicts_interval = evicts
+
+        self.num_overflow = 0
 
     def has(self, req_id, **kwargs):
         """
@@ -268,6 +346,12 @@ class LHD(Cache):
         cache_item = self.cache_items[self.cache_item_index[req_id]]
 
         cur_age = self.get_cur_age(req_id)
+
+        # if cur_age > 32:
+        #     print("hit on age {}".format(cur_age))
+        #     print(self.cache_item_index.keys())
+
+
         cache_item.last_last_age = cache_item.last_age 
         cache_item.last_age = cur_age
         cache_item.last_access_ts = self.current_ts
@@ -283,8 +367,6 @@ class LHD(Cache):
     def _insert(self, req_id, **kwargs):
         """
         the given element is not in the cache, now insert it into cache
-        ATTENTION: after insert, number of items in age_to_element_list and number of items in access_time_d is different
-        adding to age_to_element_list is updated in update_age
         :param **kwargs:
         :param req_item:
         :return: evicted element or None
@@ -293,13 +375,12 @@ class LHD(Cache):
         cache_item = self.CacheItem()
         cache_item.last_access_ts = self.current_ts
         cache_item.last_age = 0
-        cache_item.last_last_age = 0
+        cache_item.last_last_age = self.max_coarsen_age-1
         cache_item.req_id = req_id
         self.cache_item_index[req_id] = len(self.cache_items)
         self.cache_items.append(cache_item)
 
 
-    # @jit
     def evict(self, **kwargs):
         """
         evict one element from the cache line
@@ -308,32 +389,53 @@ class LHD(Cache):
         """
 
         min_hit_density = sys.maxsize
-        min_hd_ind = -1
+        min_hit_density_ind = -1
+        ca_list = []
 
-        for i in range(min(self.evict_rand_num, len(self.cache_items))):
-            ind = random.randrange(0, len(self.cache_item_index))
-            cache_item = self.cache_items[ind]
-            coarsened_age = self.get_cur_age(cache_item.req_id)
-            class_id = self.get_class_id(cache_item.req_id)
-            if coarsened_age == self.max_coarsen_age - 1:
-                min_hd_ind = ind
-                break
-            else:
-                hd = self.classes[class_id].hit_density[coarsened_age]
-                if hd < min_hit_density:
-                    min_hd_ind = ind
+        if self.num_reconfig == 0:
+            min_hit_density_ind = random.randrange(0, len(self.cache_item_index))
+        else:
+        # if True:
+        #     if self.num_reconfig > 1:
+        #         sys.exit(1)
+            for i in range(min(self.evict_rand_num, len(self.cache_items))):
+            # for i in range(self.evict_rand_num):
+                ind = random.randrange(0, len(self.cache_item_index))
+                cache_item = self.cache_items[ind]
+                coarsened_age = self.get_cur_age(cache_item.req_id)
+                ca_list.append(coarsened_age)
+                class_id = self.get_class_id(cache_item.req_id)
+                if coarsened_age == self.max_coarsen_age - 1:
+                # if False:
+                    min_hit_density_ind = ind
+                    break
+                else:
+                    # if self.num_reconfig != 0:
+                    # if False:
+                    if True:
+                        hd = self.classes[class_id].hit_density[coarsened_age]
+                    else:
+                        # LRU
+                        hd = -coarsened_age
+                    if hd < min_hit_density:
+                        min_hit_density = hd
+                        min_hit_density_ind = ind
 
-        cache_item = self.cache_items[min_hd_ind]
+        cache_item = self.cache_items[min_hit_density_ind]
         coarsened_age = self.get_cur_age(cache_item.req_id)
         class_id = self.get_class_id(cache_item.req_id)
         self.classes[class_id].evicts_interval[coarsened_age] += 1
-        # print("evict age {}".format(coarsened_age * (2**self.coarsen_age_shift)))
+        # if len(ca_list):
+        #     print("evict age {} {}".format(coarsened_age * (2**self.coarsen_age_shift), sorted(ca_list)))
 
-        if min_hd_ind != len(self.cache_items) - 1:
-            self.cache_items[min_hd_ind] = self.cache_items.pop()
-            self.cache_item_index[self.cache_items[min_hd_ind].req_id] = min_hd_ind
+        if min_hit_density_ind != len(self.cache_items) - 1:
+            item_to_move = self.cache_items.pop()
+            self.cache_items[min_hit_density_ind] = item_to_move
+            self.cache_item_index[item_to_move.req_id] = min_hit_density_ind
         else:
             self.cache_items.pop()
+
+        # self.ghost_cache_items[cache_item.req_id] = cache_item
         del self.cache_item_index[cache_item.req_id]
 
 
@@ -361,9 +463,10 @@ class LHD(Cache):
                 self.evict()
 
 
-        if self.current_ts % 200000 == 0:        #     for cl in self.classes:
-                # cl.plot_eva(self.dat_name, cache_size=self.cache_size)
-            print("cache {} overflow {}".format(self.cache_size, self.num_overflow))
+        if self.current_ts % 200000 == 0:
+            # for cl in self.classes:
+            #     cl.plot_eva()
+            print("cache {} {} overflow {} class hits {}".format(self.cache_size, self.current_ts, self.num_overflow, self.class_hits))
 
         return found
 
@@ -398,11 +501,11 @@ def mytest1():
     # if "EVA_test" in reader.file_loc and "node" not in socket.gethostname():
     if "EVA_test" in reader.file_loc:
         if "EVA_test1" in reader.file_loc:
-            CACHE_SIZE = 64
-            # CACHE_SIZE = 1
-            MAX_COARSEN_AGE = 80
-            BIN_SIZE = 1
-            # BIN_SIZE = 64
+            CACHE_SIZE = 160
+            # CACHE_SIZE = 48
+            MAX_COARSEN_AGE = 300
+            BIN_SIZE = 2
+            # BIN_SIZE = 160
         elif "EVA_test2" in reader.file_loc:
             CACHE_SIZE = 8
             MAX_COARSEN_AGE = 40
@@ -421,49 +524,54 @@ def mytest1():
     mt.tick()
 
     p = PyGeneralProfiler(reader, LHD, cache_size=CACHE_SIZE, bin_size=BIN_SIZE, num_of_threads=NUM_OF_THREADS,
-                        cache_params={"update_interval": -1,
-                                      "coarsen_age_shift": 2,
-                                      "n_classes":16,
-                                      # "max_coarsen_age":MAX_COARSEN_AGE,
+                        cache_params={"update_interval": 20000,
+                                      "coarsen_age_shift": 0,
+                                      "n_classes":2,
+                                      # "ema_decay": 0,
+                                      "max_coarsen_age":MAX_COARSEN_AGE,
                                       "dat_name": "smallTest"})
     p.plotHRC(figname=figname, label="LHD")
     mt.tick()
 
 
-def run_data(dat, cache_size, LRU_hr=None, num_of_threads=os.cpu_count()):
+def run_data(dat, cache_size, update_interval, coarsen_age_shift, n_classes, max_coarsen_age, LRU_hr=None, num_of_threads=os.cpu_count()):
     reader = BinaryReader("/home/cloudphysics/traces/{}_vscsi1.vscsitrace".format(dat),
                           init_params={"label":6, "fmt":"<3I2H2Q"})
+    # reader = CsvReader("/home/jason/ALL_DATA/{}.csv".format(dat), init_params={"header": False, "delimiter": ",", "label": 5, "real_time": 1, "size": 6})
+    # reader = CsvReader("/home/jason/temp/dat", init_params={"header": False, "delimiter": ",", "label": 5, "real_time": 1, "size": 6})
 
-    CACHE_SIZE = cache_size
-    NUM_OF_THREADS = num_of_threads
-    BIN_SIZE = CACHE_SIZE // NUM_OF_THREADS + 1
+    bin_size = cache_size // num_of_threads // 4 + 1
     # BIN_SIZE = CACHE_SIZE // 40 + 1
 
-    if os.path.exists("0402LHD/{}/LHD_{}.png".format(dat, dat)):
+    if os.path.exists("0512LHD/{}/LHD_{}.png".format(dat, dat)):
         return
+    else:
+        if not os.path.exists("0512LHD/{}".format(dat)):
+            os.makedirs("0512LHD/{}".format(dat))
 
     mt = MyTimer()
 
     if LRU_hr is None:
-        profiler_LRU = PyGeneralProfiler(reader, LRU, cache_size=CACHE_SIZE, bin_size=BIN_SIZE, num_of_threads=NUM_OF_THREADS)
-        profiler_LRU.plotHRC(figname="0402LHD/{}/LRU_{}.png".format(dat, dat), no_clear=True, no_save=False, label="LRU")
+        profiler_LRU = PyGeneralProfiler(reader, LRU, cache_size=cache_size, bin_size=bin_size, num_of_threads=num_of_threads)
+        profiler_LRU.plotHRC(figname="0512LHD/{}/LRU_{}.png".format(dat, dat), no_clear=True, no_save=False, label="LRU")
     else:
         plt.plot(LRU_hr[0], LRU_hr[1], label="LRU")
         plt.legend(loc="best")
     mt.tick()
 
-    p = PyGeneralProfiler(reader, LHD, cache_size=CACHE_SIZE, bin_size=BIN_SIZE, num_of_threads=NUM_OF_THREADS,
-                        cache_params={"update_interval": -1,
-                                      "coarsen_age_shift": 8,
-                                      "n_classes":16,
-                                      "max_coarsen_age":-1,
+    p = PyGeneralProfiler(reader, LHD, cache_size=cache_size, bin_size=bin_size, num_of_threads=num_of_threads,
+                        cache_params={"update_interval": update_interval,
+                                      "coarsen_age_shift": coarsen_age_shift,
+                                      "n_classes":n_classes,
+                                      "max_coarsen_age":max_coarsen_age,
                                       "dat_name": "{}".format(dat)})
-    p.plotHRC(no_clear=True, figname="0402LHD/{}/LHD_{}.png".
+    p.plotHRC(no_clear=True, figname="0512LHD/{}/LHD_{}.png".
               format(dat, dat), label="LHD")
+    plt.clf()
     mt.tick()
 
 
-def run2(parallel=True):
+def run2(parallel=False):
     CACHE_SIZE = 80000
     BIN_SIZE = CACHE_SIZE//os.cpu_count()+1
     LRU_HR_dict = {}
@@ -478,22 +586,27 @@ def run2(parallel=True):
         LRU_HR_dict[dat] = ([i*BIN_SIZE for i in range(len(hr))], hr)
 
     if not parallel:
-        for ma in [20000, 2000, 200000, 2000000]:
+        for ma in [200000, 2000000]:
             for ui in [2000, 20000, 200000]:
-                for age_scaling in [1, 2, 5, 10, 20, 100, 200]:
+                for coarsen_age_shift in [0, 2, 4, 8]:
                     for dat in ["w92", "w106", "w78"]:
-                        run_data(dat, LRU_HR_dict[dat], CACHE_SIZE,
-                                 update_interval=ui, max_age=ma, age_scaling=age_scaling, num_of_threads=os.cpu_count())
+                        run_data(dat, cache_size=CACHE_SIZE, LRU_hr=LRU_HR_dict[dat],
+                                 update_interval=ui, max_coarsen_age=ma//(2**coarsen_age_shift)+1,
+                                 n_classes=1,
+                                 coarsen_age_shift=coarsen_age_shift, num_of_threads=os.cpu_count())
     else:
         max_workers = 12
+        n_classes = 1
         with ProcessPoolExecutor(max_workers=max_workers) as ppe:
             futures_to_params = {}
-            for ma in [20000, 2000, 200000, 2000000]:
-                for ui in [2000, 20000, 200000]:
-                    for age_scaling in [1, 2, 5, 10, 20, 100, 200]:
-                        for dat in ["w92", "w106", "w78"]:
-                            futures_to_params[ppe.submit(run_data, dat, LRU_HR_dict[dat], CACHE_SIZE,
-                                        ui, ma, age_scaling, os.cpu_count()//max_workers)] = (ma, ui, age_scaling, dat)
+            for max_age in [200000, 2000000]:
+                for n_classes in [1]:
+                    for update_interval in [2000, 20000, 200000]:
+                        for coarsen_age_shift in [0, 2, 4, 8]:
+                            for dat in ["w92", "w106", "w78"]:
+                                futures_to_params[ppe.submit(run_data, dat,
+                                                         CACHE_SIZE, update_interval, coarsen_age_shift, n_classes,
+                                                         max_age//(2**coarsen_age_shift)+1, LRU_HR_dict[dat])] = (max_age, update_interval, coarsen_age_shift, dat)
 
             count = 0
             for i in as_completed(futures_to_params):
@@ -534,12 +647,38 @@ def run_small():
                     reader.reset()
 
 
+def test(dat="w92"):
+    from PyMimircache.profiler.cLRUProfiler import CLRUProfiler
+    reader = BinaryReader("/home/cloudphysics/traces/{}_vscsi1.vscsitrace".format(dat),
+                          init_params={"label":6, "fmt":"<3I2H2Q"})
+    rd = CLRUProfiler(reader).get_reuse_distance()
+    rd_count_list = [0] * (int(math.log(max(rd), 2)+2))
+    for r in rd:
+        if r > 0:
+            rd_count_list[int(math.log(r, 2))] += 1
+    print(rd_count_list[:200])
+    plt.plot([2**(i+1) for i in range(len(rd_count_list))], rd_count_list)
+    plt.savefig("a.png")
+    plt.clf()
+    plt.hist([i for i in rd if i!=-1], log=False)
+    plt.savefig("b.png")
+
 
 if __name__ == "__main__":
 
-    mytest1()
+    # mytest1()
 
-    # run_data("w92", 80000)
+    # test()
+    # run_data("src1_0", cache_size=1600000, update_interval=200000, coarsen_age_shift=3, n_classes=1, max_coarsen_age=2000000)
+    run_data("w92", cache_size=800000, update_interval=200000, coarsen_age_shift=3, n_classes=1, max_coarsen_age=2000000)
+
+    # for i in range(106, 0, -1):
+    #     try:
+    #         run_data("w{}".format(i), cache_size=16000, update_interval=20000, coarsen_age_shift=0, n_classes=1,
+    #                  max_coarsen_age=200000)
+    #     except Exception as e:
+    #         print(e)
+
 
     # run_small()
     # run2()
