@@ -28,6 +28,7 @@ from heapdict import heapdict
 from functools import reduce
 
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from collections import defaultdict
 
 import os
 from PyMimircache.utils.timer import MyTimer
@@ -74,17 +75,6 @@ class LHD(Cache):
 
             self.reset()
 
-            # self.hit_probability   = [0] * self.max_age
-            # self.expected_lifetime = [0] * (self.max_age + 1)
-            # self.events = [0] * (self.max_age + 1)
-
-            # self.hits_interval = [0] * self.max_age
-            # self.evicts_interval = [0] * self.max_age
-
-            # self._ewma_hits = [0] * self.max_age
-            # self._ewma_evicts = [0] * self.max_age
-            #
-            # self.hit_density = [0] * self.max_age
 
             self.eva_plot_count = 1 if DEBUG_MODE else -1
 
@@ -174,7 +164,7 @@ class LHD(Cache):
 
 
     class CacheItem:
-        __slots__ = "req_id", "last_access_ts", "last_age", "last_last_age"
+        __slots__ = "req_id", "last_access_ts", "last_age", "last_last_age", "explorer"
 
 
     def __init__(self, cache_size=1000, n_classes=16,
@@ -205,9 +195,6 @@ class LHD(Cache):
 
         if kwargs.get("max_coarsen_age", -1) == -1:
             self.max_coarsen_age = self.cache_size
-            # else:
-            #     self.max_age = kwargs.get("max_age")
-            #     self.max_coarsen_age = int(math.ceil(self.max_age / (2 ** self.coarsen_age_shift)))
         else:
             self.max_coarsen_age = kwargs.get("max_coarsen_age")
             # if kwargs.get("max_age", -1) == -1:
@@ -215,6 +202,7 @@ class LHD(Cache):
             # else:
             #     raise RuntimeError("can only specify one of the two, max_coarsen_age, max_age")
         self.explore_budget = int(kwargs.get("explore_budget", 0.01) * self.cache_size)
+        random.seed()
 
         self.enable_stat = enable_stat
         self.dat_name = dat_name
@@ -238,7 +226,7 @@ class LHD(Cache):
         self.cache_items = []
         self.cache_item_index = {}
         self.class_hits = [0] * self.n_classes
-
+        self.freq_count = defaultdict(int)
 
     def get_cur_age(self, req_id):
         """
@@ -266,7 +254,7 @@ class LHD(Cache):
             return coarsened_age
 
 
-    def get_class_id(self, req_id):
+    def get_class_id0(self, req_id):
         cache_item = self.cache_items[self.cache_item_index[req_id]]
 
 
@@ -299,6 +287,9 @@ class LHD(Cache):
 
         self.class_hits[class_id] += 1
         return class_id
+
+    def get_class_id(self, req_id):
+        return min(self.freq_count[req_id], self.n_classes-1)
 
     # @jit
     def reconfigure(self):
@@ -344,12 +335,14 @@ class LHD(Cache):
         """
 
         cache_item = self.cache_items[self.cache_item_index[req_id]]
+        if cache_item.explorer:
+            if random.randrange(2) < 1:
+                cache_item.explorer = True
+            else:
+                cache_item.explorer = False
+                self.explore_budget += 1
 
         cur_age = self.get_cur_age(req_id)
-
-        # if cur_age > 32:
-        #     print("hit on age {}".format(cur_age))
-        #     print(self.cache_item_index.keys())
 
 
         cache_item.last_last_age = cache_item.last_age 
@@ -377,6 +370,13 @@ class LHD(Cache):
         cache_item.last_age = 0
         cache_item.last_last_age = self.max_coarsen_age-1
         cache_item.req_id = req_id
+
+        if self.explore_budget >0 and random.randrange(2) < 1:
+            cache_item.explorer = True
+            self.explore_budget -= 1
+        else:
+            cache_item.explorer = False
+
         self.cache_item_index[req_id] = len(self.cache_items)
         self.cache_items.append(cache_item)
 
@@ -395,23 +395,18 @@ class LHD(Cache):
         if self.num_reconfig == 0:
             min_hit_density_ind = random.randrange(0, len(self.cache_item_index))
         else:
-        # if True:
-        #     if self.num_reconfig > 1:
-        #         sys.exit(1)
             for i in range(min(self.evict_rand_num, len(self.cache_items))):
-            # for i in range(self.evict_rand_num):
                 ind = random.randrange(0, len(self.cache_item_index))
                 cache_item = self.cache_items[ind]
                 coarsened_age = self.get_cur_age(cache_item.req_id)
                 ca_list.append(coarsened_age)
                 class_id = self.get_class_id(cache_item.req_id)
+                if cache_item.explorer and coarsened_age < self.max_coarsen_age // 2:
+                    continue
                 if coarsened_age == self.max_coarsen_age - 1:
-                # if False:
                     min_hit_density_ind = ind
                     break
                 else:
-                    # if self.num_reconfig != 0:
-                    # if False:
                     if True:
                         hd = self.classes[class_id].hit_density[coarsened_age]
                     else:
@@ -435,7 +430,8 @@ class LHD(Cache):
         else:
             self.cache_items.pop()
 
-        # self.ghost_cache_items[cache_item.req_id] = cache_item
+        if cache_item.explorer:
+            self.explore_budget += 1
         del self.cache_item_index[cache_item.req_id]
 
 
@@ -468,6 +464,7 @@ class LHD(Cache):
             #     cl.plot_eva()
             print("cache {} {} overflow {} class hits {}".format(self.cache_size, self.current_ts, self.num_overflow, self.class_hits))
 
+        self.freq_count[req_item] += 1
         return found
 
 
@@ -670,7 +667,7 @@ if __name__ == "__main__":
 
     # test()
     # run_data("src1_0", cache_size=1600000, update_interval=200000, coarsen_age_shift=3, n_classes=1, max_coarsen_age=2000000)
-    run_data("w92", cache_size=800000, update_interval=200000, coarsen_age_shift=3, n_classes=1, max_coarsen_age=2000000)
+    run_data("w92", cache_size=800000, update_interval=200000, coarsen_age_shift=3, n_classes=24, max_coarsen_age=200000)
 
     # for i in range(106, 0, -1):
     #     try:
