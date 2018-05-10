@@ -27,21 +27,10 @@ from PyMimircache.utils.linkedList import LinkedList
 from heapdict import heapdict
 from functools import reduce
 
-from concurrent.futures import ProcessPoolExecutor, as_completed
 from collections import defaultdict
 
 import os
-from PyMimircache.utils.timer import MyTimer
-from PyMimircache.cache.lru import LRU
-from PyMimircache.profiler.pyGeneralProfiler import PyGeneralProfiler
 
-from PyMimircache.profiler.cGeneralProfiler import CGeneralProfiler
-from PyMimircache.cacheReader.vscsiReader import VscsiReader
-from PyMimircache.cacheReader.binaryReader import BinaryReader
-from PyMimircache.cacheReader.csvReader import CsvReader
-from PyMimircache.cacheReader.plainReader import PlainReader
-
-import matplotlib.pyplot as plt
 
 DEBUG_MODE = False
 
@@ -459,10 +448,8 @@ class LHD(Cache):
                 self.evict()
 
 
-        if self.current_ts % 200000 == 0:
-            # for cl in self.classes:
-            #     cl.plot_eva()
-            print("cache {} {} overflow {} class hits {}".format(self.cache_size, self.current_ts, self.num_overflow, self.class_hits))
+        # if self.current_ts % 200000 == 0:
+        #     print("cache {} {} overflow {} class hits {}".format(self.cache_size, self.current_ts, self.num_overflow, self.class_hits))
 
         self.freq_count[req_item] += 1
         return found
@@ -662,6 +649,18 @@ def test(dat="w92"):
 
 
 if __name__ == "__main__":
+    from PyMimircache.profiler.pyGeneralProfiler import PyGeneralProfiler
+    from concurrent.futures import ProcessPoolExecutor, as_completed
+    from PyMimircache.utils.timer import MyTimer
+    from PyMimircache.cache.lru import LRU
+
+    from PyMimircache.cacheReader.vscsiReader import VscsiReader
+    from PyMimircache.cacheReader.binaryReader import BinaryReader
+    from PyMimircache.cacheReader.csvReader import CsvReader
+    from PyMimircache.cacheReader.plainReader import PlainReader
+
+    import matplotlib.pyplot as plt
+
 
     # mytest1()
 
