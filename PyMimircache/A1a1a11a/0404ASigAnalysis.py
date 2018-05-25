@@ -6,12 +6,14 @@ from collections import defaultdict
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import pickle
 
 
 from PyMimircache import CsvReader
 from PyMimircache.bin.conf import *
 from PyMimircache.cache.optimal import Optimal
 from PyMimircache.cache.lru import LRU
+from PyMimircache.profiler.utils.dist import get_next_access_dist
 
 
 # def plt_class_percentage(dat=None, class_boundary=(12, 2000), time_interval=20000):
@@ -244,6 +246,71 @@ def plot_eviction_freq(dat="/home/jason/ALL_DATA/akamai3/layer/1/185.232.99.68.a
     plt.savefig("low_mid_{}_{}2.png".format(alg, os.path.basename(reader.file_loc)))
 
 
+def plt_opt_no_reuse(dat="/home/jason/ALL_DATA/akamai3/layer/1/185.232.99.68.anon.1",
+                     sizes=(2000, 8000, 20000, 80000, 200000, 800000, 2000000)):
+    """
+    of all the objs in the opt cache, how many of them will have no reuse
+    :param dat:
+    :param freq:
+    :return:
+    """
+    if os.path.exists("temp.pickle"):
+        with open("temp.pickle", "rb") as ifile:
+            no_reuse_size_list = pickle.load(ifile)
+    else:
+        reader = CsvReader(dat, init_params=AKAMAI_CSV3)
+        # reader = VscsiReader("../data/trace.vscsi")
+        next_access_dist = get_next_access_dist(reader)
+        no_reuse_size_list = []
+        for _ in range(len(sizes)):
+            no_reuse_size_list.append([])
+
+        no_reuse_size = [0] * len(sizes)
+        caches = []
+
+        for i in range(len(sizes)):
+            caches.append(Optimal(cache_size=sizes[i], reader=reader.copy(True)))
+        print(caches)
+
+        for n, req in enumerate(reader):
+            if next_access_dist[n] == -1:
+                for i in range(len(sizes)):
+                    no_reuse_size[i] += 1
+
+            for i in range(len(sizes)):
+                print("{} {} {} {}".format(caches[i].ts, sizes[i], len(caches[i].pq), caches[i].cache_size))
+                if caches[i].has(req, ):
+                    caches[i]._update(req, )
+                else:
+                    caches[i]._insert(req, )
+                    if len(caches[i].pq) > caches[i].cache_size:
+                        caches[i].evict()
+                        if no_reuse_size[i] > 0:
+                            no_reuse_size[i] -= 1
+                caches[i].ts += 1
+                no_reuse_size_list[i].append(no_reuse_size[i])
+
+
+                # current_size[i] += 1
+                # no_reuse_size_list[i].append(no_reuse_size[i])
+                # if current_size[i] > sizes[i]:
+                #     current_size[i] -= 1
+                #     if no_reuse_size[i] > 0:
+                #         no_reuse_size[i] -= 1
+
+        with open('temp.{}.pickle'.format(os.path.basename(dat)), "wb") as ofile:
+            pickle.dump(no_reuse_size_list, ofile)
+
+    for i in range(len(sizes)):
+        # plt.plot([1 if no_reuse_size_list[i][j] else 0 for j in range(len(no_reuse_size_list[i]))], label=str(sizes[i]))
+        # plt.plot(no_reuse_size_list[i], label=str(sizes[i]))
+        # plt.semilogy(no_reuse_size_list[i], label=str(sizes[i]))
+        plt.loglog(no_reuse_size_list[i], label=str(sizes[i]))
+    plt.xlabel("Virtual Time")
+    plt.ylabel("No Reuse Size")
+
+    plt.legend(loc="best")
+    plt.savefig("{}_loglog_no_reuse.png".format(os.path.basename(dat)))
 
 
 
@@ -253,4 +320,6 @@ if __name__ == "__main__":
     # plt_class_percentage2(class_boundary=(12, 2000), time_interval=200000, cache_size=200000)
     # conversion_rate = cal_conversion_rate(dat=None, freq_boundary=12)
     # plot_eviction_freq(alg="Optimal")
-    plot_eviction_freq(alg="LRU")
+    # plot_eviction_freq(alg="LRU")
+    plt_opt_no_reuse()
+    # plt_opt_no_reuse(sizes=[2000, ])

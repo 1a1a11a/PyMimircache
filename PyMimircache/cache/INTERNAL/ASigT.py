@@ -11,9 +11,8 @@ from PyMimircache.A1a1a11a.script_diary.sigmoid import *
 from PyMimircache.A1a1a11a.script_diary.sigmoidUtils import transform_dist_list_to_dist_count
 from collections import OrderedDict
 from heapdict import heapdict
-# from randomdict import RandomDict
 from PyMimircache.utils.randomdict import RandomDict
-from numba import jit, double
+
 
 from PyMimircache.profiler.utils.dist import *
 
@@ -479,7 +478,10 @@ class ASigTest(Cache):
                 dist = self.next_access_time_dict[k]
                 opt_key_scores.append((k, dist))
 
-                if max_dist == 0 or abs(dist / max_dist - 1) < 0.001:
+                if max_dist == 0:
+                    opt_chosen_key_sets.add(k)
+                    max_dist = dist
+                elif abs(dist / max_dist - 1) < 0.0001:
                     opt_chosen_key_sets.add(k)
                 elif dist > max_dist:
                     max_dist = dist

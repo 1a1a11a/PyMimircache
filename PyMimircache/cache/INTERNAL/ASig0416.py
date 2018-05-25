@@ -11,9 +11,7 @@ from PyMimircache.A1a1a11a.script_diary.sigmoid import *
 from PyMimircache.A1a1a11a.script_diary.sigmoidUtils import transform_dist_list_to_dist_count
 from collections import OrderedDict
 from heapdict import heapdict
-# from randomdict import RandomDict
 from PyMimircache.utils.randomdict import RandomDict
-from numba import jit, double
 
 from PyMimircache.profiler.utils.dist import *
 
