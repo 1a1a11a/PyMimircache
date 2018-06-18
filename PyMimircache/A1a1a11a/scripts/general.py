@@ -10,8 +10,8 @@ from functools import partial
 
 ################################## Global variable and initialization ###################################
 
-# TRACE_TYPE = "Akamai3"
-TRACE_TYPE = "cphy"
+TRACE_TYPE = "Akamai4"
+# TRACE_TYPE = "cphy"
 TRACE_FORMAT = "variable"
 # TRACE_TYPE, TRACE_FORMAT = "MSR", "variable"
 
@@ -22,12 +22,12 @@ NUM_OF_THREADS = 48
 ########################################### main functions ##############################################
 
 
-TIME_INTERVAL_r_AKA = 300
+TIME_INTERVAL_r_AKA = 1200
 TIME_INTERVAL_r_CPHY = 100 * 1000000
 TIME_INTERVAL_r_MSR = 3600 * 1000000
 
 GRANULARITY_CPHY = 1 * 1000000
-GRANULARITY_AKA = 2
+GRANULARITY_AKA = 1
 GRANULARITY_MSR =20 * 1000000
 
 CACHE_SIZE = 8000
@@ -61,6 +61,8 @@ def run(dat, fig_folder="fig"):
 
     if 'akamai3' in TRACE_TYPE.lower():
         c.csv(dat, init_params=AKAMAI_CSV3)
+    elif 'akamai4' in TRACE_TYPE.lower():
+        c.csv(dat, init_params=AKAMAI_CSV4)
     elif 'cphy' in TRACE_TYPE.lower():
         c.vscsi(dat)
     elif "msr" in TRACE_TYPE.lower():
@@ -79,25 +81,25 @@ def run(dat, fig_folder="fig"):
 
 
     # trace stat
-    print("trace stat")
     if not os.path.exists("{}/{}.stat".format(fig_folder, dat_ID)):
+        print("trace stat")
         with open("{}/{}.stat".format(fig_folder, dat_ID), "w") as ofile:
             ofile.write(c.stat())
 
     # request rate 2D plot
-    print("req rate plot")
     if not os.path.exists("{}/{}_request_rate_r_{}.png".format(fig_folder, dat_ID, TIME_INTERVAL_r)):
+        print("req rate plot")
         c.twoDPlot("request_rate", time_mode='r', time_interval=TIME_INTERVAL_r,
                    figname="{}/{}_request_rate_r_{}.png".format(fig_folder, dat_ID, TIME_INTERVAL_r))
 
     # mapping plot
-    print("mapping plot")
     if not os.path.exists("{}/{}_mapping_overall.png".format(fig_folder, dat_ID)):
+        print("mapping plot")
         c.twoDPlot("mapping", figname="{}/{}_mapping.png".format(fig_folder, dat_ID))
 
     # cold miss 2D plot
-    print("cold miss plot")
     if not os.path.exists("{}/{}_cold_miss_count_v_{}.png".format(fig_folder, dat_ID, TIME_INTERVAL_v)):
+        print("cold miss plot")
         c.twoDPlot("cold_miss_count", time_mode='v', time_interval=TIME_INTERVAL_v,
           figname="{}/{}_cold_miss_count_v_{}.png".format(fig_folder, dat_ID, TIME_INTERVAL_v))
     if not os.path.exists("{}/{}_cold_miss_count_r_{}.png".format(fig_folder, dat_ID, TIME_INTERVAL_r)):
@@ -112,21 +114,21 @@ def run(dat, fig_folder="fig"):
                    figname="{}/{}_cold_miss_ratio_r_{}.png".format(fig_folder, dat_ID, TIME_INTERVAL_r))
 
     # popularity
-    print("popularity")
     if not os.path.exists("{}/{}_popularity_2d.png".format(fig_folder, dat_ID)):
+        print("popularity")
         c.twoDPlot("popularity", logX=True, logY=True,
                    figname="{}/{}_popularity_2d.png".format(fig_folder, dat_ID))
 
 
     # rd_distribution
-    print("rd_popularity")
     if not os.path.exists("{}/{}_rd_popularity_2d.png".format(fig_folder, dat_ID)):
+        print("rd_popularity")
         c.twoDPlot("rd_popularity", logX=True, logY=False, cdf=True, # granularity=200,
                    figname="{}/{}_rd_popularity_2d.png".format(fig_folder, dat_ID))
 
     # rt_distribution
-    print("rt_popularity")
     if not os.path.exists("{}/{}_rt_popularity_2d.png".format(fig_folder, dat_ID)):
+        print("rt_popularity")
         c.twoDPlot("rt_popularity", logX=True, logY=False, cdf=True, granularity=GRANULARITY,
                    figname="{}/{}_rt_popularity_2d.png".format(fig_folder, dat_ID))
 
@@ -141,16 +143,16 @@ def run(dat, fig_folder="fig"):
 
 
     # rd heatmap
-    print("heatmap plot")
     if not os.path.exists("{}/{}_rd_distribution.png".format(fig_folder, dat_ID)):
+        print("heatmap plot")
         c.heatmap('r', "rd_distribution", time_interval=TIME_INTERVAL_r,
                   figname="{}/{}_rd_distribution.png".format(fig_folder, dat_ID),
                   num_of_threads=NUM_OF_THREADS)
 
 
     # hit rate curve
-    print("hit rate curve")
     if not os.path.exists("{}/{}_HRC_autoSize.png".format(fig_folder, dat_ID)):
+        print("hit rate curve")
         c.plotHRCs(["LRU", "LFUFast", "ARC", "SLRU", "Optimal"],  # , "LRU_2"
                    [None, None, None, {"N":2}, None],
                    cache_size=cache_size, bin_size=cache_size//NUM_OF_THREADS//2+1,
@@ -207,6 +209,13 @@ def run_akamai3_0723():
         if 'anon' in f:
             print(f)
             run("{}/{}".format(trace_dir, f), fig_folder="akamai3_fig")
+
+def run_akamai4_0530():
+    trace_dir = "/home/jason/ALL_DATA/akamai4/"
+    for f in reversed(os.listdir(trace_dir)):
+        if '.' not in f:
+            print(f)
+            run("{}/{}".format(trace_dir, f), fig_folder="akamai4_fig")
 
 
 
@@ -270,4 +279,5 @@ if __name__ == "__main__":
 
     print("using {} threads".format(NUM_OF_THREADS))
     # run_msr()
-    run("../../data/trace.vscsi")
+    run_akamai4_0530()
+    # run("../../data/trace.vscsi")
