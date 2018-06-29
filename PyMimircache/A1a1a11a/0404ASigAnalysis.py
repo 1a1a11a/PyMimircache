@@ -254,8 +254,8 @@ def plt_opt_no_reuse(dat="/home/jason/ALL_DATA/akamai3/layer/1/185.232.99.68.ano
     :param freq:
     :return:
     """
-    if os.path.exists("temp.pickle"):
-        with open("temp.pickle", "rb") as ifile:
+    if os.path.exists('temp2.{}.pickle'.format(os.path.basename(dat))):
+        with open('temp2.{}.pickle'.format(os.path.basename(dat)), "rb") as ifile:
             no_reuse_size_list = pickle.load(ifile)
     else:
         reader = CsvReader(dat, init_params=AKAMAI_CSV3)
@@ -277,8 +277,10 @@ def plt_opt_no_reuse(dat="/home/jason/ALL_DATA/akamai3/layer/1/185.232.99.68.ano
                 for i in range(len(sizes)):
                     no_reuse_size[i] += 1
 
+
             for i in range(len(sizes)):
-                print("{} {} {} {}".format(caches[i].ts, sizes[i], len(caches[i].pq), caches[i].cache_size))
+                no_reuse_size_list[i].append(no_reuse_size[i])
+                # print("{} {} {} {}".format(caches[i].ts, sizes[i], len(caches[i].pq), caches[i].cache_size))
                 if caches[i].has(req, ):
                     caches[i]._update(req, )
                 else:
@@ -288,7 +290,7 @@ def plt_opt_no_reuse(dat="/home/jason/ALL_DATA/akamai3/layer/1/185.232.99.68.ano
                         if no_reuse_size[i] > 0:
                             no_reuse_size[i] -= 1
                 caches[i].ts += 1
-                no_reuse_size_list[i].append(no_reuse_size[i])
+                # no_reuse_size_list[i].append(no_reuse_size[i])
 
 
                 # current_size[i] += 1
@@ -298,7 +300,7 @@ def plt_opt_no_reuse(dat="/home/jason/ALL_DATA/akamai3/layer/1/185.232.99.68.ano
                 #     if no_reuse_size[i] > 0:
                 #         no_reuse_size[i] -= 1
 
-        with open('temp.{}.pickle'.format(os.path.basename(dat)), "wb") as ofile:
+        with open('temp2.{}.pickle'.format(os.path.basename(dat)), "wb") as ofile:
             pickle.dump(no_reuse_size_list, ofile)
 
     for i in range(len(sizes)):

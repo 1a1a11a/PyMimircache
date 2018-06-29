@@ -42,7 +42,7 @@ def plot_miss_freq_distribution_hm(cache_alg="Optimal", vtime_interval=20000, ca
     """
 
     reader = VscsiReader("../../data/trace.vscsi")
-    # reader = CsvReader("/home/jason/ALL_DATA/akamai3/layer/1/185.232.99.68.anon.1", init_params=AKAMAI_CSV3)
+    reader = CsvReader("/home/jason/ALL_DATA/akamai3/layer/1/185.232.99.68.anon.1", init_params=AKAMAI_CSV3)
     p = CGeneralProfiler(reader, cache_size=cache_size, bin_size=cache_size, cache_alg=cache_alg)
     hit_result = p.get_hit_result()
     req_freq = []
@@ -110,8 +110,8 @@ def plot_miss_freq_diff_distr_hm(dat="/home/jason/ALL_DATA/akamai3/layer/1/185.2
     """
 
     # reader = VscsiReader("../../data/trace.vscsi")
-    # reader = CsvReader("/home/jason/ALL_DATA/akamai3/layer/1/185.232.99.68.anon.1", init_params=AKAMAI_CSV3)
-    reader = VscsiReader(dat)
+    reader = CsvReader("/home/jason/ALL_DATA/akamai3/layer/1/185.232.99.68.anon.1", init_params=AKAMAI_CSV3)
+    # reader = VscsiReader(dat)
     dat_name = dat[dat.rfind("/")+1:dat.rfind(".")]
     p1 = CGeneralProfiler(reader, cache_size=cache_size, bin_size=cache_size, cache_alg=cache_alg1)
     p2 = CGeneralProfiler(reader, cache_size=cache_size, bin_size=cache_size, cache_alg=cache_alg2)
@@ -253,9 +253,11 @@ def mytest2():
 
 
 if __name__ == "__main__":
-    # plot_miss_freq_distribution_hm(cache_alg="LRU", vtime_interval=20000, log_base=2)
+    plot_miss_freq_distribution_hm(cache_alg="LRU", vtime_interval=20000, log_base=2)
     # plot_miss_freq_distribution_hm(cache_alg="Optimal")
-    # plot_miss_freq_diff_distr_hm(vtime_interval=20000, log_base=1.6)
+    # plot_miss_freq_diff_distr_hm(vtime_interval=20000, log_base=2)
+
+    sys.exit(1)
 
     # run_cphy_seq(plot_miss_freq_diff_distr_hm)
 
