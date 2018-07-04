@@ -194,33 +194,18 @@ class CLRUProfiler:
 
 
     def get_hit_ratio_shards(self, sample_ratio=0.01, **kwargs):
-        """
-        experimental function
-        :param sample_ratio:
-        :param kwargs:
-        :return:
-        """
-        from PyMimircache.cacheReader.tracePreprocesser import TracePreprocessor
-        kargs = {}
-        if 'cache_size' not in kwargs:
-            kargs['cache_size'] = self.cache_size
-        else:
-            kargs['cache_size'] = kwargs['cache_size']
+        # """
+        # experimental function
+        # :param sample_ratio:
+        # :param kwargs:
+        # :return:
 
-        pp = TracePreprocessor(self.reader)
-        N1, N2, traceName, fmt = pp.prepare_for_shards(sample_ratio=sample_ratio, has_time=False)
-        correction = N2 - N1
-        print("correction: {}".format(correction))
-        # correction = 0
-        tempReader = BinaryReader(traceName, init_params={"label":1, "fmt": fmt})
+        correction = 0
+        kargs = {"cache_size": kwargs.get("cache_size", self.cache_size)}
 
-        if self.block_unit_size != 0:
-            print("not supported yet")
-            return None
-        else:
-            hit_ratio = c_LRUProfiler.get_hit_ratio_seq_shards(tempReader.c_reader, sample_ratio=sample_ratio,
+        hit_ratio = c_LRUProfiler.get_hit_ratio_seq_shards(self.reader.c_reader, sample_ratio=sample_ratio,
                                                        correction=correction, **kargs)
-        return hit_ratio
+        return hit_ratio;
 
 
     def get_reuse_distance(self, **kargs):
@@ -299,34 +284,38 @@ class CLRUProfiler:
             plt.clf()
         return hit_ratio
 
-
-    def plotHRC_with_shards(self, figname="HRC.png", auto_resize=False, threshold=0.98, **kwargs):
+    def plotHRC_shards_all(self, figname="HRC.png", auto_resize=False, threshold=0.98, **kwargs):
         print("not updated yet")
         EXTENTION_LENGTH = 1024
         HRC = self.get_hit_ratio(**kwargs)
-        HRC_shards = self.get_hit_ratio_shards(**kwargs)
         try:
-            stop_point = len(HRC) - 3
-            if self.cache_size == -1 and 'cache_size' not in kwargs and auto_resize:
-                for i in range(len(HRC) - 3, 0, -1):
-                    if HRC[i] <= HRC[-3] * threshold:
-                        stop_point = i
-                        break
-                if stop_point + EXTENTION_LENGTH < len(HRC) - 3:
-                    stop_point += EXTENTION_LENGTH
-                else:
-                    stop_point = len(HRC) - 3
+            import numpy as np
+            for i in np.arange (0.05, 0.7, 0.05):
+                kwargs["sample_ratio"] = i;
+                HRC_shards = self.get_hit_ratio_shards(**kwargs)
+                stop_point = len(HRC) - 3
+                if self.cache_size == -1 and 'cache_size' not in kwargs and auto_resize:
+                    for i in range(len(HRC) - 3, 0, -1):
+                        if HRC[i] <= HRC[-3] * threshold:
+                            stop_point = i
+                            break
+                    if stop_point + EXTENTION_LENGTH < len(HRC) - 3:
+                        stop_point += EXTENTION_LENGTH
+                    else:
+                        stop_point = len(HRC) - 3
 
-            if len(HRC_shards)-3 < stop_point:
-                stop_point = len(HRC_shards) - 3
-            print("{} len {}:{}".format(self.reader.file_loc, len(HRC), len(HRC_shards)))
-            plt.xlim(0, stop_point)
+                if len(HRC_shards)-3 < stop_point:
+                    stop_point = len(HRC_shards) - 3
+                #print("{} len {}:{}".format(self.reader.file_loc, len(HRC), len(HRC_shards)))
+                plt.xlim(0, stop_point)
+                label_shards = "LRU_shards " + str(kwargs["sample_ratio"])
+                plt.plot(HRC_shards[:stop_point], label=label_shards)
+
             plt.plot(HRC[:stop_point], label="LRU")
-            plt.plot(HRC_shards[:stop_point], label="LRU_shards")
             plt.xlabel("cache Size")
             plt.ylabel("Hit Ratio")
-            plt.legend(loc="best")
-            plt.title('Hit Ratio Curve', fontsize=18, color='black')
+            plt.legend(loc='upper right', fontsize=10)
+            plt.title('Hit Ratio Curve', fontsize=16, color='black')
             if not 'no_save' in kwargs or not kwargs['no_save']:
                 plt.savefig(figname, dpi=600)
                 INFO("plot is saved")
@@ -340,3 +329,34 @@ class CLRUProfiler:
             WARNING("the plotting function is not wrong, is this a headless server? \nERROR: {}".format(e))
 
 
+    def plotHRC_with_shards(self, figname="HRC.png", auto_resize=False, threshold=0.98, **kwargs):
+        HRC_shards = self.get_hit_ratio_shards(**kwargs)
+        HRC = self.get_hit_rate(**kwargs)
+
+        num_HRC = len(HRC) - 3
+
+        #gap = int(1/kwargs["sample_ratio"])
+        #processed_HRC = []
+
+        final_HRC = []
+        final_HRC_shards = []
+        final_HRC = HRC[:num_HRC]
+        final_HRC_shards = HRC_shards[:num_HRC]
+
+        error = 0
+        for i in range(len(final_HRC)):
+            error = error + abs(final_HRC[i] - final_HRC_shards[i])
+
+        error = error/len(final_HRC)
+        print("avg error " + str(error))
+
+        plt.xlim(0, len(final_HRC))
+        plt.ylim(0, 1)
+        plt.plot(final_HRC[1:], label="LRU", linestyle='dashed')
+        label_shards = "LRU_shards " + str(kwargs["sample_ratio"])
+        plt.plot(final_HRC_shards, label=label_shards)
+        plt.xlabel("cache Size")
+        plt.ylabel("Hit Ratio")
+        plt.legend(loc="best")
+        plt.title('Hit Ratio Curve ' + 'average error: ' + str(error), fontsize=14, color='black')
+        plt.savefig(figname, dpi=600)

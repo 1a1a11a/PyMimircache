@@ -358,7 +358,7 @@ static PyObject* LRUProfiler_get_hit_rate_seq_shards(PyObject* self,
 
     // create numpy array
     if (cache_size == -1){
-        cache_size = (gint64)(reader->base->total_num / sample_ratio);
+        cache_size = (gint64)(reader->base->total_num);
     }
 
     npy_intp dims[1] = { cache_size+3 };
@@ -513,4 +513,3 @@ PyMODINIT_FUNC PyInit_LRUProfiler(void)
     import_array();
     return PyModule_Create(&LRUProfiler_definition);
 }
-
