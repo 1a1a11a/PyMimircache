@@ -1,6 +1,9 @@
 # coding=utf-8
 
 
+# coding=utf-8
+
+
 import os, sys, time
 from collections import deque, defaultdict, Counter
 import numpy as np
@@ -11,7 +14,6 @@ from sklearn.preprocessing import normalize
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from pprint import pprint
-
 
 USE_ROBUT_SCALER = False
 SCALE_FEATURE = True
@@ -27,27 +29,26 @@ else:
     from sklearn.preprocessing import scale as scale
     from sklearn.preprocessing import StandardScaler as Scaler
 
-
 np.seterr(all="raise")
-
-
 
 if not os.path.exists(OUTPUT_FOLDER):
     os.makedirs(OUTPUT_FOLDER)
 
+
 class BinaryTree:
     __slots__ = ["left", "right", "value", "num_left_children", "num_right_children"]
-    def __init__(self,value):
+
+    def __init__(self, value):
         self.left = None
         self.right = None
         self.value = value
-        self.num_left_children  = 0
+        self.num_left_children = 0
         self.num_right_children = 0
         # self.parent = None
 
     def get_left_child_value(self):
         return self.left.value if self.left else None
-    
+
     def get_right_child_value(self):
         return self.right.value if self.right else None
 
@@ -56,14 +57,14 @@ class BinaryTree:
 
     def set_value(self, value):
         self.value = value
-        
+
     def get_value(self):
         return self.value
 
     def insert(self, value):
         assert value != self.value
         if value > self.value:
-            if self.right is None: 
+            if self.right is None:
                 self.right = BinaryTree(value)
             else:
                 self.right.insert(value)
@@ -127,11 +128,13 @@ class BinaryTree:
             self.get_left_child_value(), self.get_right_child_value()
         )
 
+
 def print_tree(tree):
     if tree is not None:
         print_tree(tree.get_left_child())
         print(tree.get_node_value())
         print_tree(tree.get_right_child())
+
 
 def mytest_bt():
     bt = BinaryTree(80)
@@ -145,7 +148,7 @@ def mytest_bt():
 class FeatureExtractorReq:
     def __init__(self, dat=None, dat_type=None, n_neighbours=20, time_interval=2000, normalization_type="standard",
                  n_past_req_list=(128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536,
-                                      131072, 262144, 524288, 1048576),
+                                  131072, 262144, 524288, 1048576),
                  history_len=20, no_warning=False,
                  **kwargs):
         """
@@ -196,7 +199,6 @@ class FeatureExtractorReq:
         self.rd_list_stat = None
         self.rt_list_stat = None
 
-
         ####### neighbour ########
         self.left_neighbour_freq = None
         self.left_neighbour_rd = None
@@ -209,12 +211,10 @@ class FeatureExtractorReq:
         self.cold_miss_count_list = None
         # self.cold_miss_rate_delta_list = []
 
-
         ######## scaler ########
         self.rd_scaler = None
         self.rt_scaler = None
         self.dist_scaler = None
-
 
     def initialize(self, dat, dat_type):
         self.reader = get_reader(dat, dat_type)
@@ -239,7 +239,6 @@ class FeatureExtractorReq:
             return False
         else:
             return True
-
 
     def extract(self, feature_types=("label", "freq", "left_neighbour_freq",
                                      "access_time", "freq_in_past_n_req",
@@ -276,7 +275,6 @@ class FeatureExtractorReq:
         for t in feature_types + prediction_types:
             assert getattr(self, "get_{}".format(t), None) is not None, "{} is not supported".format(t)
 
-
         # for filtering out cold miss
         self.get_non_cold_miss_ind()
         self.kept_rec_ind = np.copy(self.non_cold_miss_ind)
@@ -302,7 +300,7 @@ class FeatureExtractorReq:
             print("{:<30} {}".format(feature_type, feature.shape), end="\t\t\t\t")
 
             if feature_type not in ["rd_list_stat", "rt_list_stat"]:
-            # if "stat" not in feature_type:
+                # if "stat" not in feature_type:
                 # for these two types, cold miss has already been removed
                 if "left_neighbour" in feature_type:
                     feature = feature[self.kept_rec_ind[self.history_len:]]
@@ -331,7 +329,8 @@ class FeatureExtractorReq:
                     X_names.extend(["{}_{}".format(base, t) for t in ["mean", "median", "max", "variance"]])
                 elif feature_type in ["left_neighbour_stat"]:
                     # cold_miss, mean, median, std, freq_mean, freq_median, freq_std
-                    X_names.extend(["left_neighbour_{}".format(t) for t in ["cold_miss", "rd_mean", "rd_median", "rd_variance",]])
+                    X_names.extend(
+                        ["left_neighbour_{}".format(t) for t in ["cold_miss", "rd_mean", "rd_median", "rd_variance", ]])
 
             elif feature_type in ["rd", "rt", "dist", ]:
                 # TODO: need to carefully examine how to scale
@@ -360,7 +359,7 @@ class FeatureExtractorReq:
             elif feature_type in ["left_neighbour_rd", "left_neighbour_rt", ]:
                 assert getattr(self, "{}_scaler".format(feature_type.split("_")[-1])) is not None, \
                     "please extract {} before {}".format(feature_type.split("_")[-1], feature_type)
-                X_names.extend(["{}_{}".format(feature_type, i+1) for i in range(self.history_len)])
+                X_names.extend(["{}_{}".format(feature_type, i + 1) for i in range(self.history_len)])
                 if SCALE_FEATURE:
                     scaler = getattr(self, "{}_scaler".format(feature_type.split("_")[-1]))
                     feature = FeatureExtractorReq.myscale(feature, scaler)
@@ -392,7 +391,6 @@ class FeatureExtractorReq:
 
             print("{:.2f} s".format(time.time() - t_start))
 
-
         print("x.shape={}, y.shape={}".format(X.shape, Y.shape))
         # print(X)
         # print(Y)
@@ -404,10 +402,8 @@ class FeatureExtractorReq:
         #                                                  np.nanmax(Y, axis=0), np.nanmin(Y, axis=0),
         #                                                  ))
 
-
         np.savetxt(self.output_file_X_nocold, X, header=",".join(X_names), fmt="%s", delimiter=",")
         np.savetxt(self.output_file_Y_nocold, Y, header=",".join(Y_names), fmt="%s", delimiter=",")
-
 
         # find cols that do not have nan
         non_nan_col = np.logical_not(np.any(np.isnan(X), axis=0))
@@ -423,18 +419,16 @@ class FeatureExtractorReq:
 
         return X, Y
 
-
     ################################ Utils ##################################
     @staticmethod
     def normalize(l, normalization_type="standard"):
         array = np.array(l)
         if normalization_type == "standard":
-            return (array - np.mean(array))/np.std(array)
+            return (array - np.mean(array)) / np.std(array)
         elif normalization_type == "feature":
-            return (array - np.min(array))/(np.max(array) - np.min(array))
+            return (array - np.min(array)) / (np.max(array) - np.min(array))
         else:
             raise RuntimeError(normalization_type + "not supported")
-
 
     ################################ Utils ###############################
     @staticmethod
@@ -468,7 +462,7 @@ class FeatureExtractorReq:
 
         :return: a list of tuple (min, hour, day)
         """
-        
+
         if self.access_time:
             return self.access_time
 
@@ -482,14 +476,13 @@ class FeatureExtractorReq:
             # transfrom in day in the week, hour in the day, min in the hour (shift from trace start)
             t_min = t % 60
             t_hour = t // 60 % 24
-            t_day = t // 60 //24 % 7
+            t_day = t // 60 // 24 % 7
             access_time.append((t_min, t_hour, t_day))
             record = self.reader.read_time_req()  # t: (time, request)
 
         self.access_time = np.array(access_time, dtype=np.float)
         self.reader.reset()
         return self.access_time
-
 
     ############################ Require O(M) (num of obj) space to obtain in running cache ##########################
     def get_non_cold_miss_ind(self):
@@ -505,7 +498,6 @@ class FeatureExtractorReq:
         self.non_cold_miss_ind = np.logical_not(np.array(cold_miss_ind, dtype=np.bool))
         self.reader.reset()
         return self.non_cold_miss_ind
-
 
     def get_no_future_reuse(self):
         if self.no_future_reuse_ind:
@@ -523,8 +515,6 @@ class FeatureExtractorReq:
         self.no_future_reuse_ind = np.array(no_future_reuse_ind, dtype=np.bool)[np.newaxis].T
         self.reader.reset()
         return self.no_future_reuse_ind
-
-
 
     ######################## distance related #####################
     def get_frd(self):
@@ -553,7 +543,7 @@ class FeatureExtractorReq:
             return self.last_access_dist
 
         last_access_vtime = {}
-        last_access_dist  = []
+        last_access_dist = []
         for ts, req in enumerate(self.reader):
             if req in last_access_vtime:
                 last_access_dist.append(ts - last_access_vtime[req])
@@ -586,13 +576,12 @@ class FeatureExtractorReq:
         self.reader.reset()
         return self.next_access_dist
 
-
     def get_hit_in_past_n_req(self):
         """
-        for each of self.n_past_req_list, check whether current obj was accessed in the past n req 
+        for each of self.n_past_req_list, check whether current obj was accessed in the past n req
         :return: [[], [], []... []]         len(reader) sublists * len(self.n_past_req_list)
-        """ 
-        
+        """
+
         hit_in_past_n_req = []
 
         dist_all = self.get_dist()
@@ -607,7 +596,6 @@ class FeatureExtractorReq:
 
         self.reader.reset()
         return np.array(hit_in_past_n_req, dtype=np.bool)
-
 
     def get_freq_in_past_n_req(self):
         """
@@ -633,7 +621,6 @@ class FeatureExtractorReq:
 
         self.reader.reset()
         return np.array(freq_in_past_n_req, dtype=np.float32)
-
 
     def get_freq_in_past_n_req_old(self):
         """
@@ -664,7 +651,7 @@ class FeatureExtractorReq:
         :return:
         """
         if self.future_reuse_time:
-           return self.future_reuse_time
+            return self.future_reuse_time
 
         record = self.reader.read_time_req()  # t: (time, request)
         # WARNING: this can use huge amount of RAM
@@ -702,15 +689,13 @@ class FeatureExtractorReq:
         reuse_time = []
         while record:
             ts, req = record
-            reuse_time.append(ts - last_access_time.get(req, ts+1))  # current time - last time seen it
+            reuse_time.append(ts - last_access_time.get(req, ts + 1))  # current time - last time seen it
             last_access_time[req] = ts
             record = self.reader.read_time_req()
 
         self.reuse_time = np.array(reuse_time, dtype=np.float32)[np.newaxis].T
         self.reader.reset()
         return self.reuse_time
-
-
 
     ############################ Other ############################
     def get_freq(self):
@@ -755,7 +740,6 @@ class FeatureExtractorReq:
         opt_rank = []
         cache_list_begin = 0
 
-
         for ts, next_ts in enumerate(next_access_ts):
             if cache_list_begin < len(cache_list) and cache_list[cache_list_begin] < ts:
                 cache_list_begin += 1
@@ -789,8 +773,6 @@ class FeatureExtractorReq:
         self.opt_rank = np.array(opt_rank, dtype=np.int64)[np.newaxis].T
         return self.opt_rank
 
-
-
     ################## These require a larger footprint O(N) to track (num of req) ####################
     ############################ History of Obj ############################
     def get_rd_list(self):
@@ -819,7 +801,7 @@ class FeatureExtractorReq:
             rd_list_per_ts.append(tuple(rd_list_dict[req]))
 
         self.rd_list_per_ts = np.array(rd_list_per_ts, dtype=np.float)
-        self.rd_list_per_ts[self.rd_list_per_ts==-1] = np.nan
+        self.rd_list_per_ts[self.rd_list_per_ts == -1] = np.nan
 
         self.reader.reset()
         return self.rd_list_per_ts
@@ -887,7 +869,6 @@ class FeatureExtractorReq:
 
         return self.rt_list_stat
 
-
     ########################## statistics about neighbours #######################
     def get_left_neighbour_freq(self):
         """
@@ -905,11 +886,10 @@ class FeatureExtractorReq:
                 pass
                 # neighbour_freq_list.append(None)
             else:
-                neighbour_freq_list.append(tuple(freq_list[i-self.n_neighbours:i]))
+                neighbour_freq_list.append(tuple(freq_list[i - self.n_neighbours:i]))
 
         self.left_neighbour_freq = np.array(neighbour_freq_list, dtype=np.float)[:, :, 0]
         return self.left_neighbour_freq
-
 
     def get_left_neighbour_rd(self):
         if self.left_neighbour_rd is not None:
@@ -946,7 +926,6 @@ class FeatureExtractorReq:
 
         return self.left_neighbour_rt
 
-
     def get_left_neighbour_stat(self):
         """
         number of cold miss, rd_mean (except cold miss), rd_median (except cold miss), rd_var (except cold_miss), freq_mean, freq_var
@@ -956,7 +935,7 @@ class FeatureExtractorReq:
 
         # both neighbour_freq_list and neighbour_rd_list have already been truncated by history_len elements
         # neighbour_freq_list = self.get_left_neighbour_freq()
-        neighbour_rd_list   = self.get_left_neighbour_rd()
+        neighbour_rd_list = self.get_left_neighbour_rd()
 
         # assert len(neighbour_freq_list) == len(neighbour_rd_list)
 
@@ -966,14 +945,13 @@ class FeatureExtractorReq:
         neighbour_rd_list_copy[all_cold_miss, :] = 0
 
         left_neighbour_stat = np.column_stack((cold_miss,
-                                              np.nanmean(neighbour_rd_list_copy, axis=1),
-                                              np.nanmedian(neighbour_rd_list_copy, axis=1),
-                                              np.nanstd(neighbour_rd_list_copy, axis=1),
-                                              # np.mean(neighbour_freq_list, axis=1),
-                                              # np.median(neighbour_freq_list, axis=1),
-                                              # np.std(neighbour_freq_list, axis=1),
-                                                ))
-
+                                               np.nanmean(neighbour_rd_list_copy, axis=1),
+                                               np.nanmedian(neighbour_rd_list_copy, axis=1),
+                                               np.nanstd(neighbour_rd_list_copy, axis=1),
+                                               # np.mean(neighbour_freq_list, axis=1),
+                                               # np.median(neighbour_freq_list, axis=1),
+                                               # np.std(neighbour_freq_list, axis=1),
+                                               ))
 
         # left_neighbour_stat = []
         #
@@ -1001,7 +979,6 @@ class FeatureExtractorReq:
 
         return left_neighbour_stat
 
-
     ########################## statistics about stream #######################
     def get_request_rate(self):
         """
@@ -1013,7 +990,7 @@ class FeatureExtractorReq:
         request_rate_list = []
 
         # for obj before time_intervals, it does not have this stat
-        for _ in range(self.time_interval-1):
+        for _ in range(self.time_interval - 1):
             record = self.reader.read_time_req()
             record_deq.append(record)
             request_rate_list.append(None)
@@ -1028,14 +1005,13 @@ class FeatureExtractorReq:
         self.reader.reset()
         return self.request_rate_list
 
-
     def get_cold_miss_count(self):
         cold_miss_count_list = []
 
         dist_all = self.get_dist()
         dist_deq = deque()
         cold_miss_count = 0
-        for i in range(self.time_interval-1):
+        for i in range(self.time_interval - 1):
             if dist_all[i] == -1:
                 cold_miss_count += 1
             dist_deq.append(dist_all[i])
@@ -1052,6 +1028,7 @@ class FeatureExtractorReq:
 
         return np.array(cold_miss_count_list, dtype=np.float32)[np.newaxis].T
 
+
 def helper(dat, dat_type, **kwargs):
     FeatureExtractorReq(dat=dat, dat_type=dat_type, **kwargs).extract(**kwargs)
 
@@ -1059,7 +1036,6 @@ def helper(dat, dat_type, **kwargs):
 def run_cphy_parallel(max_workers=os.cpu_count()):
     from PyMimircache.utils.jobRunning import run_parallel
     from concurrent.futures import ProcessPoolExecutor, as_completed
-
 
     futures_dict = {}
     results_dict = {}
@@ -1087,12 +1063,12 @@ def run_akamai():
             if 'sample' in f or 'pickle' in f or "True" in f or '.' not in f or '.sh' in f:
                 continue
             print("begin {}/{}".format(INPUT_FOLDER, f))
-            futures_dict[ppe.submit(helper, dat="{}/{}".format(INPUT_FOLDER, f), dat_type="akamai3", no_warning=True)] = f
+            futures_dict[
+                ppe.submit(helper, dat="{}/{}".format(INPUT_FOLDER, f), dat_type="akamai3", no_warning=True)] = f
         for futures in as_completed(futures_dict):
             n_finished += 1
             results_dict[futures_dict[futures]] = futures.result()
             print("{} done {} finished {} left".format(futures_dict[futures], n_finished, len(futures_dict)))
-
 
     # FeatureExtractor(dat="/scratch/jason/akamai3/layer/1/185.232.99.68.anon.1", dat_type="akamai3").extract()
 
@@ -1110,10 +1086,9 @@ if __name__ == "__main__":
     # run_cphy_parallel(max_workers=1)
     sys.exit(1)
 
-
     pr = cProfile.Profile()
     pr.enable()
-    FeatureExtractor().extract(dat="w106", dat_type="cphy", feature_types=("rd", "rt"), prediction_types=("opt_rank", ))
+    FeatureExtractor().extract(dat="w106", dat_type="cphy", feature_types=("rd", "rt"), prediction_types=("opt_rank",))
     s = io.StringIO()
     sortby = 'cumulative'
     ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
@@ -1129,15 +1104,13 @@ if __name__ == "__main__":
     # run_akamai()
     # run_cphy_parallel(max_workers=4)
 
-
-
-        # feature_types=("rd", "rt", "rd_list", "rt_list",
-        #
-        #                "left_neighbour_rd", "left_neighbour_rt",
-        #
-        #                "rd_list_stat", "rt_list_stat", "left_neighbour_stat",
-        #
-        #                ),
-        # prediction_types=("opt_rank", "frd", "frt", "fdist", "no_future_reuse"))
+    # feature_types=("rd", "rt", "rd_list", "rt_list",
+    #
+    #                "left_neighbour_rd", "left_neighbour_rt",
+    #
+    #                "rd_list_stat", "rt_list_stat", "left_neighbour_stat",
+    #
+    #                ),
+    # prediction_types=("opt_rank", "frd", "frt", "fdist", "no_future_reuse"))
 
     # FeatureExtractor("w92", "cphy").extract()

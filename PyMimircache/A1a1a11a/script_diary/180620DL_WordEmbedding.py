@@ -27,7 +27,7 @@ from keras.preprocessing import sequence
 
 from tqdm import tqdm
 sys.path.append(os.path.normpath(os.path.dirname(__file__) + "/../"))
-from PyMimircache.A1a1a11a.myUtils.DLUtils import get_txt_trace, read_data, gen_data, gen_data_rand
+from PyMimircache.A1a1a11a.myUtils.DLUtils import get_txt_trace, read_data, gen_data_binary, gen_data_rand_binary
 
 
 def build_dataset(words, n_words):

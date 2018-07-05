@@ -4,122 +4,54 @@
 
 """
 
-import os, sys, time
+import os, sys, time, json
 from collections import deque, defaultdict, Counter
 import numpy as np
 from PyMimircache.bin.conf import *
-from PyMimircache.profiler.cLRUProfiler import CLRUProfiler
-import bisect
-from sklearn.preprocessing import normalize
-from sklearn.preprocessing import PolynomialFeatures
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from pprint import pprint
 
 import tensorflow as tf
-
-from keras.preprocessing.text import Tokenizer
-from keras.preprocessing.text import one_hot
-from keras.preprocessing.sequence import pad_sequences
+import keras
+import keras.backend as K
 from keras.models import Sequential
-from keras.layers import Dense, Activation
+from keras.layers import Dense, Activation, Dropout
 from keras.layers import Flatten, Input
 from keras.models import Model
 from keras.models import load_model
+from keras.callbacks import EarlyStopping
+from keras.utils.np_utils import to_categorical
 
 from tqdm import tqdm
+import itertools, functools
 
 
 sys.path.append(os.path.normpath(os.path.dirname(__file__) + "/../"))
-from PyMimircache.A1a1a11a.myUtils.DLUtils import get_txt_trace, read_data, gen_data, gen_data_rand
+from PyMimircache.A1a1a11a.myUtils.DLUtils import get_txt_trace, read_data, split_data, gen_data_binary, gen_data_rand_binary
 
 
 np.seterr(all="raise")
 
 
-def NN_compare(dat, batch_size=1024 * 8, feature_type="noColdMiss.noNan", y_type="frd", hidden_layer_size=(32,), **kwargs):
+def NN_compare_keras(dat, batch_size=1024 * 8, feature_type="noColdMiss.noNan", y_type="frd", hidden_layer_size=(128, 32, ), n_epoch=32,
+                     diff_thresh=200, steps_per_epoch=8000, **kwargs):
 
-    X_train, Y_train, X_valid, Y_valid, X_test, Y_test = read_data(dat, feature_type, y_type)
-    n_features = X_train.shape[1] * 2
+    X_train_raw, Y_train_raw, X_valid_raw, Y_valid_raw, X_test_raw, Y_test_raw = split_data(*read_data(dat, feature_type, y_type))
+    n_features = X_train_raw.shape[1] * 2
+    n_train = X_train_raw.shape[0]
 
-    dataset = tf.data.Dataset().batch(batch_size).from_generator(gen_data_rand,
-                                                        output_types=(tf.float32, tf.float32),
-                                                        output_shapes=(tf.TensorShape([None, 2])))
-
-    value = dataset.make_initializable_iterator().get_next()
-
-    with tf.Session() as sess:
-        for i in range(20):
-            print(sess.run(value))
-
-    tf_x = tf.placeholder(tf.float32, shape=[None, n_features])
-    tf_y = tf.placeholder(tf.float32, shape=[None, 1])
-
-    tf_weight1 = tf.Variable(tf.random_normal([n_features, hidden_layer_size[0]]))
-    tf_bias1 = tf.Variable(tf.random_normal([hidden_layer_size[0]]))
-    tf_h1 = tf.nn.relu(tf.matmul(tf_x, tf_weight1) + tf_bias1)
-
-    tf_weight2 = tf.Variable(tf.random_normal([hidden_layer_size[0], 1]))
-    tf_bias2 = tf.Variable(tf.random_normal([1]))
-    tf_h2 = tf.matmul(tf_h1, tf_weight2) + tf_bias2
-
-    # tf_y_pred = tf.sigmoid(tf_h2)
-    # cross_entropy = tf.reduce_mean(
-    #         tf_y * - tf.log(tf_y_pred) + (1 - tf_y) * -tf.log(1 - tf_y_pred)
-    #     )
-
-    tf_y_pred = tf_h2
-    cross_entropy = tf.reduce_mean(
-        tf.nn.sigmoid_cross_entropy_with_logits(labels=tf_y, logits=tf_y_pred))
-
-    # train_step = tf.train.GradientDescentOptimizer(1).minimize(cross_entropy)
-    train_step = tf.train.AdamOptimizer(1).minimize(cross_entropy)
-
-
-    data_gen = gen_data_rand(X_train, Y_train, batch_size)
-
-    # return rand1
-
-    with tf.Session() as sess:
-
-        sess.run(tf.global_variables_initializer())
-
-        total_loss = 0
-        total_accu = 0
-        for i in range(200000):
-            # gen batch
-            # rand1 = np.random.randint(0, X_train.shape[0], size=(batch_size, ))
-            # rand2 = np.random.randint(0, X_train.shape[0], size=(batch_size, ))
-            # batch_x1 = X_train[rand1, :]
-            # batch_x2 = X_train[rand2, :]
-            # batch_y = (Y_train[rand1] > Y_train[rand2]).astype(np.float32)
-            batch_x, batch_y = next(data_gen)
-            loss, _ = sess.run([cross_entropy, train_step], feed_dict={tf_x: batch_x, tf_y: batch_y})
-            total_loss += loss
-
-            if i % 200 == 0:
-                # batch_x, batch_y = next(data_gen)
-                # tf_accu = tf.metrics.accuracy(tf_y, tf_y_pred)
-
-                print("{}".format(total_loss / 200))
-                total_loss, total_accu = 0, 0
-
-
-
-def NN_compare_keras(dat, batch_size=1024 * 8, feature_type="noColdMiss.noNan", y_type="frd", hidden_layer_size=(32, ), n_epoch=32, **kwargs):
-
-    X_train, Y_train, X_valid, Y_valid, X_test, Y_test = read_data(dat, feature_type, y_type)
-    n_features = X_train.shape[1] * 2
-    n_train = X_train.shape[0]
-
-    model_name = "keras_ignore200_noConcatenate_{}.h5".format(dat)
+    model_name = "keras_ignore{}_dropout_{}.h5".format(diff_thresh, dat)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=2)
 
     if os.path.exists(model_name):
         model = load_model(model_name)
         print("model {} loaded".format(model_name))
     else:
         model = Sequential()
-        for i in range(len(hidden_layer_size)):
-            model.add(Dense(hidden_layer_size[i], input_dim=n_features, kernel_initializer='normal', activation="relu"))
+        model.add(Dense(hidden_layer_size[0], input_dim=n_features, kernel_initializer='normal', activation="relu"))
+        for i in range(1, len(hidden_layer_size)):
+            model.add(Dropout(0.2))
+            model.add(Dense(hidden_layer_size[i], kernel_initializer='normal', activation=keras.activations.relu))
+        model.add(Dropout(0.2))
         model.add(Dense(1, kernel_initializer='normal', activation="sigmoid"))
         model.compile(optimizer='adam',
                       loss='binary_crossentropy',
@@ -127,31 +59,167 @@ def NN_compare_keras(dat, batch_size=1024 * 8, feature_type="noColdMiss.noNan", 
 
     print(model.summary())
 
-    for i in range(n_epoch):
-        model.fit_generator(gen_data_rand(X_train, Y_train, batch_size),
-                            steps_per_epoch=n_train**2//batch_size,
-                            # steps_per_epoch=20000,
-                            epochs=1)
-                            # validation_data=gen_data(X_valid, Y_valid, batch_size), validation_steps=X_valid.shape[0]**2//batch_size)
-        model.save(model_name)
+    history = model.fit_generator(gen_data_rand_binary(X_train_raw, Y_train_raw, batch_size, diff_thresh=diff_thresh),
+                                    # steps_per_epoch=n_train**2//batch_size,
+                                    steps_per_epoch=steps_per_epoch, epochs=n_epoch,
+                                    validation_data=gen_data_rand_binary(X_valid_raw, Y_valid_raw, batch_size, diff_thresh=diff_thresh),
+                                  validation_steps=80,
+                                  callbacks=[early_stopping],
+                                  )
+    # valid_accu = model.evaluate_generator(gen_data_rand_binary(X_valid_raw, Y_valid_raw, batch_size), steps=20, max_queue_size=10)
+    # print("{} {}".format(model.metrics_names, valid_accu))
 
-    x = model.evaluate_generator(gen_data_rand(X_valid, Y_valid, batch_size), steps=X_valid.shape[0]**2//batch_size)
-    print(x)
+    # model.save(model_name)
 
-    predictions = model.predict_generator(gen_data(X_test, Y_test, batch_size), steps=X_test.shape[0]**2//batch_size)
-
-
-def simple_NN(dat_name, feature_type="noColdMiss.noNan"):
-    X = np.loadtxt("{}.X.{}".format(dat_name, feature_type))
-    Y = np.loadtxt("{}.Y.noColdMiss".format(dat_name))
+    # X_test, Y_test = next(gen_data_rand_binary(X_test_raw, Y_test_raw, 16, diff_thresh=diff_thresh))
+    # predictions = model.predict(X_test)
+    # print(np.hstack((Y_test, predictions)))
+    return history
 
 
+
+def NN_multiclass(dat, batch_size=-1, feature_type="noColdMiss.noNan", y_type="frd", hidden_layer_size=(128, 32, ), n_epoch=32,
+                     diff_thresh=1000, **kwargs):
+
+    X_raw, Y_raw = read_data(dat, feature_type, y_type)
+    Y_raw = Y_raw - diff_thresh
+    Y_raw[Y_raw <= 0] = 1
+    Y_raw = to_categorical(np.log10(Y_raw).astype(np.int))
+    X_train, Y_train, X_valid, Y_valid, X_test, Y_test = split_data(X_raw, Y_raw)
+
+    n_features = X_train.shape[1]
+    n_class = Y_train.shape[1]
+    print("shape {} {} {} {} {} {}".format(X_train.shape, Y_train.shape, X_valid.shape, Y_valid.shape, X_test.shape, Y_test.shape))
+
+
+    model_name = "keras_multiclass_ignore{}_{}.h5".format(diff_thresh, dat)
+
+    def my_accu(y_true, y_pred):
+        return 1 - 0.5 * K.cast(K.abs(K.argmax(y_true) - K.argmax(y_pred)), K.floatx())
+
+
+    if os.path.exists(model_name):
+        model = load_model(model_name)
+        print("model {} loaded".format(model_name))
+    else:
+        model = Sequential()
+        model.add(Dense(hidden_layer_size[0], input_dim=n_features, kernel_initializer='normal', activation="relu"))
+        for i in range(1, len(hidden_layer_size)):
+            model.add(Dropout(0.2))
+            model.add(Dense(hidden_layer_size[i], kernel_initializer='normal', activation="relu"))
+        model.add(Dropout(0.2))
+        model.add(Dense(n_class, kernel_initializer='normal', activation="softmax"))
+        model.compile(optimizer='adam',
+                      loss='categorical_crossentropy',
+                      metrics=[keras.metrics.categorical_accuracy, my_accu],
+                      # metrics=['accuracy', my_accu]
+                      )
+
+    print(model.summary())
+
+    if batch_size == -1:
+        batch_size = X_train.shape[0]
+
+    history = model.fit(X_train, Y_train, batch_size, epochs=n_epoch, validation_data=(X_valid, Y_valid))
+    # model.save(model_name)
+
+    # predictions = model.predict(X_test)
+    # print(np.hstack((Y_test, predictions)))
+    return history
+
+
+def NN_regression(dat, batch_size=-1, feature_type="noColdMiss.noNan", y_type="frd", hidden_layer_size=(128, 32, ), n_epoch=32,
+                     diff_thresh=200, steps_per_epoch=8000, **kwargs):
+
+    X_train_raw, Y_train_raw, X_valid_raw, Y_valid_raw, X_test_raw, Y_test_raw = read_data(dat, feature_type, y_type)
+    n_features = X_train_raw.shape[1]
+    n_train = X_train_raw.shape[0]
+    n_valid = X_valid_raw.shape[0]
+    if batch_size == -1:
+        batch_size = X_train_raw.shape[0]
+
+    model_name = "keras_regression_ignore{}_{}.h5".format(diff_thresh, dat)
+
+    if os.path.exists(model_name):
+        model = load_model(model_name)
+        print("model {} loaded".format(model_name))
+    else:
+        model = Sequential()
+        model.add(Dense(hidden_layer_size[0], input_dim=n_features, kernel_initializer='normal', activation="relu"))
+        for i in range(1, len(hidden_layer_size)):
+            model.add(Dense(hidden_layer_size[i], kernel_initializer='normal', activation="relu"))
+        model.add(Dense(1, kernel_initializer='normal'))
+        model.compile(optimizer='adam',
+                      loss='mean_squared_error',
+                      # loss='mean_absolute_percentage_error',
+                      # metrics=['accuracy']
+                      )
+
+    print(model.summary())
+
+    X_train = X_train_raw
+    Y_train = np.array(Y_train_raw) - diff_thresh
+    Y_train[Y_train <= 0] = 1
+    Y_train = np.log10(Y_train)
+
+    X_valid = X_valid_raw
+    Y_valid = np.array(Y_valid_raw) - diff_thresh
+    Y_valid[Y_valid <= 0] = 1
+    Y_valid = np.log10(Y_valid)
+
+    rnd = np.random.randint(0, X_test_raw.shape[0], size=16)
+    X_test = X_test_raw[rnd, :]
+    Y_test = np.array(Y_test_raw[rnd]) - diff_thresh
+    Y_test[Y_test <= 0] = 1
+    Y_test = np.log10(Y_test)
+
+    history = model.fit(X_train, Y_train, batch_size,
+                                  epochs=n_epoch,
+                                  validation_data=(X_valid, Y_valid),
+                                  )
+
+    model.save(model_name)
+
+    predictions = model.predict(X_test)
+    print(np.hstack((Y_test, predictions)))
+    return history
+
+
+def mjolnir_run():
+    result = {}
+    if os.path.exists("simpleNNwithDropout.result"):
+        with open("simpleNNwithDropout.result", "r") as ifile:
+            result = json.load(ifile)
+
+    for i in range(106, 1, -1):
+        if "w{}".format(i) in result:
+            print("w{} ignore".format(i))
+            continue
+
+        history = NN_compare_keras("w" + str(i), n_epoch=32)
+        result["w" + str(i)] = history.history
+        with open("simpleNNwithDropout.result", "w") as ofile:
+            json.dump(result, ofile)
+        print("w{} done".format(i))
+
+def mjolnir_result():
+    from pprint import pprint
+    with open("simpleNN.result", "r") as ifile:
+        result = json.load(ifile)
+    for dat, r in sorted(result.items()):
+        print("{}: {:.2f}, {:.2f}".format(dat, r["acc"][-1], r["val_acc"][-1]))
+    # pprint(result)
 
 if __name__ == "__main__":
-    # simple_NN("small")
-    # myt()
-    # myt2("w60")
-    # NN_compare("small")
-    NN_compare_keras("small")
-    # test2()
-    # test()
+    # mjolnir_run()
+    # mjolnir_result()
+
+    with tf.device("/gpu:1"):
+        # NN_regression("small", n_epoch=32)
+        NN_multiclass("small")
+        # NN_multiclass("w106")
+        # NN_multiclass("w92")
+        # NN_compare_keras("small", n_epoch=32)
+        # NN_compare_keras("w92", n_epoch=1)
+    # NN_compare_keras("w41")
+    # NN_compare_keras()
