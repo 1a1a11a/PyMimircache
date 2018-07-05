@@ -16,7 +16,7 @@ from PyMimircache.utils.randomdict import RandomDict
 
 from PyMimircache.profiler.utils.dist import *
 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 
 import random
@@ -25,7 +25,7 @@ from pprint import pprint
 import numpy as np
 np.seterr(all='warn')
 import warnings
-warnings.filterwarnings('error')
+# warnings.filterwarnings('error')
 
 CHANGE_CDF2 = False
 USE_LOG = False
@@ -107,6 +107,19 @@ class ASig0508(Cache):
         self.fit_interval = kwargs.get("fit_interval", self.freq_boundary[0] * 2)
 
 
+        random.seed(20)
+        self.fixed_numerator = kwargs.get("fixed_numerator", -1)
+        self.options = kwargs.get("options", [])
+        if kwargs.get("use_fifo", False):
+            self.options.append("fifo")
+        if kwargs.get("mimic_arctan", False):
+            self.options.append("mimic_arctan")
+        if kwargs.get("mimic_arctan3", False):
+            self.options.append("mimic_arctan3")
+        # self.use_fifo = kwargs.get("use_fifo", False)
+        # self.mimic_arctan = kwargs.get("mimic_arctan", False)
+        # self.mimic_arctan3 = kwargs.get("mimic_arctan3", False)
+
 
         self.next_access_time = kwargs.get("next_access_time", [])
         self.next_access_time_dict = {}
@@ -124,13 +137,17 @@ class ASig0508(Cache):
         self.temp_list = []
         self.temp_set = set()
 
-        self.output_log = open("ASig0508", "w")
+        self.output_log = open("ASig0508_{}_{}".format(self.sigmoid_func_low, self.sigmoid_func_mid), "w")
         self.hit_miss_cnt = [0, 0]
 
-        print("cache size {}, effective size {} fitInterval {}, freqBoundary {}, minTrackTs {}, maxTrackTs {}, "
-              "metaSpaceLimit {}, avgObjSize {}, func {} {}, nSamples {}, prob {} use_log {}".format(
+        s = "cache size {}, effective size {} fitInterval {}, freqBoundary {}, minTrackTs {}, maxTrackTs {}, " \
+            "metaSpaceLimit {}, avgObjSize {}, func {} {}, nSamples {}, prob {} use_log {}, fixed_numerator {}, options {}\n".format(
             self.cache_size, self.effective_size, self.fit_interval, self.freq_boundary, self.min_track_ts, self.max_track_ts,
-        self.meta_space_limit_percentage, self.avg_obj_size, self.sigmoid_func_low, self.sigmoid_func_mid , self.n_rnd_evict_samples, self.lifetime_prob, self.use_log))
+            self.meta_space_limit_percentage, self.avg_obj_size, self.sigmoid_func_low, self.sigmoid_func_mid , self.n_rnd_evict_samples,
+            self.lifetime_prob, self.use_log, self.fixed_numerator, self.options
+        )
+        print(s)
+        self.output_log.write(s)
 
 
     def __len__(self):
@@ -163,15 +180,14 @@ class ASig0508(Cache):
             xdata = [self.log_base ** (i + self.ts_log_start + pos) for i in range(len(dist_cnt_list) - pos)]
             # xdata = [self.log_base ** i for i in range(len(dist_count_list))]
         try:
-        # if 1:
             popt, sigmoid_func = sigmoid_fit(xdata, dist_cnt_list[pos:], sig_func_name)
-            if sig_func_name == "tanh":
-                if popt[1] < 0:
-                    return None
-            elif sig_func_name == "tanh2":
-                if popt[0] < 0:
-                    print("fitting using {}".format(dist_cnt_list))
-                    return None
+            # if sig_func_name == "tanh":
+            #     if popt[1] < 0:
+            #         return None
+            # elif sig_func_name == "tanh2":
+            #     if popt[0] < 0:
+            #         print("fitting using {}".format(dist_cnt_list))
+            #         return None
             return popt, sigmoid_func
         except Exception as e:
             print("ts {} {} func {} failed to fit {} {}".format(self.ts, e, sig_func_name, dist_cnt_list, xdata))
@@ -289,27 +305,45 @@ class ASig0508(Cache):
         if req_id in self.sigmoid_params:
             popt, func = self.sigmoid_params[req_id]
         else:
-            if "lowFreq{}".format(self.freq_count[req_id]) not in self.sigmoid_params:
-                print("{} low freq {} cannot find".format(req_id, self.freq_count[req_id]))
-                popt, func = self.sigmoid_params["lowFreq{}".format(self.freq_boundary[0])]
+
+            if "fifo" in self.options:
+                if cur_age > self.cache_size:
+                    return -(sys.maxsize//2)
+                else:
+                    return sys.maxsize
+
             else:
-                popt, func = self.sigmoid_params["lowFreq{}".format(self.freq_count[req_id])]
+                if "lowFreq{}".format(self.freq_count[req_id]) not in self.sigmoid_params:
+                    print("{} low freq {} cannot find".format(req_id, self.freq_count[req_id]))
+                    popt, func = self.sigmoid_params["lowFreq{}".format(self.freq_boundary[0])]
+                else:
+                    popt, func = self.sigmoid_params["lowFreq{}".format(self.freq_count[req_id])]
 
 
         if func.__name__ == "arctan":
             b, c = popt
             if self.use_log:
-                if cur_age == 0:
-                    cur_age_log = 0
-                else:
+                cur_age_log = 0
+                if cur_age != 0:
                     cur_age_log = max(int(math.log(cur_age, self.log_base)) - self.ts_log_start, 0)
-                P_hit = 1 - (1 / (math.pi / 2) * math.atan(b * (cur_age_log + c)))
+
+                if self.fixed_numerator == -1:
+                    P_hit = 1 - (1 / (math.pi / 2) * math.atan(b * (cur_age_log + c)))
+                else:             # NEW
+                    P_hit = self.fixed_numerator
                 E_lt = self.log_base ** arctan_inv(self.lifetime_prob, *popt) - cur_age
-                # E_lt = arctan_inv(self.lifetime_prob, *popt) - cur_age
+                # E_lt = arctan_inv(self.lifetime_prob, *popt) - cur_age_log
                 ret_val = P_hit / E_lt
             else:
-                P_hit = 1 - (1 / (math.pi / 2) * math.atan(b * (cur_age + c)))
-                E_lt = arctan_inv(self.lifetime_prob, *popt) - cur_age
+                if self.fixed_numerator == -1:
+                    P_hit = 1 - (1 / (math.pi / 2) * math.atan(b * (cur_age + c)))
+                else:             # NEW
+                    P_hit = self.fixed_numerator
+
+                if "mimic_arctan3" in self.options:
+                    E_lt = arctan_inv3(self.lifetime_prob, *popt) - cur_age
+                else:
+                    E_lt = arctan_inv(self.lifetime_prob, *popt) - cur_age
                 ret_val = P_hit / E_lt
             return ret_val
         elif func.__name__ == "arctan2":
@@ -347,13 +381,22 @@ class ASig0508(Cache):
                 cur_age_log = max(int(math.log(cur_age, self.log_base)) - self.ts_log_start, 0)
 
             if self.use_log:
-                P_hit = 1 - (1/(math.pi) * (math.atan(b * (cur_age_log + c)))+ 0.5)
+                if self.fixed_numerator == -1:
+                    P_hit = 1 - (1 / (math.pi) * (math.atan(b * (cur_age_log + c))) + 0.5)
+                else:             # NEW
+                    P_hit = self.fixed_numerator
                 E_lt = (arctan_inv3(self.lifetime_prob, *popt)) - cur_age_log
                 # E_lt = self.log_base ** E_lt
             else:
-                P_hit = 1 - (1/(math.pi) * (math.atan(b * (cur_age + c)))+ 0.5)
+                if self.fixed_numerator == -1:
+                    P_hit = 1 - (1 / (math.pi) * (math.atan(b * (cur_age + c))) + 0.5)
+                else:             # NEW
+                    P_hit = self.fixed_numerator
                 try:
-                    E_lt = arctan_inv3(self.lifetime_prob, *popt) - cur_age
+                    if "mimic_arctan" in self.options:
+                        E_lt = arctan_inv(self.lifetime_prob, *popt) - cur_age
+                    else:
+                        E_lt = arctan_inv3(self.lifetime_prob, *popt) - cur_age
                 except RuntimeWarning as w:
                     print("catch {}, popt {}, curage {}, E {}".format(w, popt, cur_age, 0))
                     E_lt = np.inf
@@ -365,22 +408,26 @@ class ASig0508(Cache):
             return ret_val
         elif func.__name__ == "tanh":
             a, b, c = popt
-            # if (a, b, c) not in self.temp_set:
-            #     print("{:.4g}, {:.4g}, {:.4g}".format(a, b, c))
-            #     self.temp_set.add((a, b, c))
-
             if self.use_log:
                 if cur_age == 0:
                     cur_age_log = 0
                 else:
                     cur_age_log = max(int(math.log(cur_age, self.log_base)) - self.ts_log_start, 0)
 
-                P_hit = 1 - a * math.tanh( b * (cur_age_log + c))
+                if self.fixed_numerator == -1:
+                    P_hit = 1 - a * math.tanh(b * (cur_age_log + c))
+                else:             # NEW
+                    P_hit = self.fixed_numerator
+
                 E_lt = math.atanh(self.lifetime_prob / a) / b - c - cur_age_log
                 # ret_val = P_hit / E_lt
                 ret_val = P_hit / (self.log_base ** E_lt)
             else:
-                P_hit = 1 - a * math.tanh( b * (cur_age + c))
+                if self.fixed_numerator == -1:
+                    P_hit = 1 - a * math.tanh(b * (cur_age + c))
+                else:             # NEW
+                    P_hit = self.fixed_numerator
+
                 E_lt = math.atanh(self.lifetime_prob / a) / b - c - cur_age
                 ret_val = P_hit / E_lt
             return ret_val
@@ -467,6 +514,7 @@ class ASig0508(Cache):
 
                 if max_dist == 0:
                     opt_chosen_key_sets.add(k)
+                    opt_chosen_key_sets_one = k
                     max_dist = dist
                 elif abs(dist / max_dist - 1) < 0.0001:
                     opt_chosen_key_sets.add(k)
@@ -474,10 +522,12 @@ class ASig0508(Cache):
                     max_dist = dist
                     opt_chosen_key_sets.clear()
                     opt_chosen_key_sets.add(k)
+                    opt_chosen_key_sets_one = k
 
 
         if len(self.next_access_time):
             opt_key_scores.sort(reverse=True, key=lambda x:x[1])
+            chosen_key_scores.sort(reverse=True, key=lambda x:x[1])
             pos = -1
 
             grouped_opt_key_scores = []
@@ -488,29 +538,38 @@ class ASig0508(Cache):
                     last_score = score
                 else:
                     grouped_opt_key_scores[-1].append(key)
+
                 if chosen_key == key:
-                    pos = len(grouped_opt_key_scores)
+                    pos = len(grouped_opt_key_scores)-1
                     self.opt_cmp_pos.append(pos)
                     if max_dist != sys.maxsize:
                         self.opt_cmp_pos_no_non_reuse.append(pos)
                     break
-            s = ""
-            if chosen_key in opt_chosen_key_sets:
-                s += "YES "
-                if max_dist == sys.maxsize:
-                    s += "Max   "
-                else:
-                    self.hit_cnt[0] += 1
-                    s += "evict freq {} should {}".format(self.freq_count[chosen_key], set([self.freq_count[i] for i in opt_chosen_key_sets]))
-            else:
-                s += "NO  "
-                if max_dist == sys.maxsize:
-                    s += "Max "
-                else:
-                    self.hit_cnt[1] += 1
-                    s += "evict freq {} should {}".format(self.freq_count[chosen_key], set([self.freq_count[i] for i in opt_chosen_key_sets]))
-            if "Max" not in s:
-                self.output_log.write("ts {} {}\n".format(self.ts, s))
+                # NEW 0530
+                # for n, (key2, score2) in (chosen_key_scores):
+                #     if key2 == key:
+
+
+
+            # self.output_log.write("ts {} opt {}\nts {} {}\n".format(self.ts, grouped_opt_key_scores, self.ts, chosen_key_scores))
+
+            # s = ""
+            # if chosen_key in opt_chosen_key_sets:
+            #     s += "YES "
+            #     if max_dist == sys.maxsize:
+            #         s += "Max   "
+            #     else:
+            #         self.hit_cnt[0] += 1
+            #         s += "evict freq {} should {}".format(self.freq_count[chosen_key], set([self.freq_count[i] for i in opt_chosen_key_sets]))
+            # else:
+            #     s += "NO  "
+            #     if max_dist == sys.maxsize:
+            #         s += "Max "
+            #     else:
+            #         self.hit_cnt[1] += 1
+            #         s += "evict freq {} should {}".format(self.freq_count[chosen_key], set([self.freq_count[i] for i in opt_chosen_key_sets]))
+            # if "Max" not in s:
+            #     self.output_log.write("ts {} {}\n".format(self.ts, s))
 
 
             # self.output_log.write("ASig0508 ts {} evict {} freq {} pos {}/{}\n".format(
@@ -530,6 +589,7 @@ class ASig0508(Cache):
         else:
             self.evict_reasons["lowFreq"] += 1
         del self.cache_dict[chosen_key]
+        # del self.cache_dict[opt_chosen_key_sets_one]
 
 
     def access(self, req_item, **kwargs):
@@ -583,9 +643,10 @@ class ASig0508(Cache):
 
 
         if self.ts and self.ts % (self.cache_size * 8) == 0:
-            print("ASig0508 ts {} func {} {}, prob {:.4f}, hit ratio {:.2f}, used size {} hf_dict {}, sigmoid {}, opt_pos {:.2f} ({:.2f}, {:.2f}, {:.2f}, {:.2f}) {:.2f}, failed count {}, {}".format(
+            print("ASig0508 ts {} func {:8} {:8}, {}, prob {:.4f}, hit ratio {:.2f}, used size {} hf_dict {}, sigmoid {}, opt_pos {:.2f} ({:.2f}, {:.2f}, {:.2f}, {:.2f}) {:.2f}, failed count {}, {}".format(
                 self.ts,
                 self.sigmoid_func_low, self.sigmoid_func_mid,
+                "log" if self.use_log else "no_log",
                 self.lifetime_prob,
                 self.hit_miss_cnt[0] / sum(self.hit_miss_cnt),
                 self.get_size(), len(self.hf_dict),
