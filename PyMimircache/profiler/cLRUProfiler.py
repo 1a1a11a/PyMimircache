@@ -333,6 +333,7 @@ class CLRUProfiler:
         HRC_shards = self.get_hit_ratio_shards(**kwargs)
         HRC = self.get_hit_rate(**kwargs)
 
+        assert len(HRC_shards) == len(HRC)
         num_HRC = len(HRC) - 3
 
         #gap = int(1/kwargs["sample_ratio"])
@@ -347,8 +348,8 @@ class CLRUProfiler:
         for i in range(len(final_HRC)):
             error = error + abs(final_HRC[i] - final_HRC_shards[i])
 
-        error = error/len(final_HRC)
-        print("avg error " + str(error))
+        error = error/float(len(final_HRC))
+        print("avg error %2.5f" % error)
 
         plt.xlim(0, len(final_HRC))
         plt.ylim(0, 1)

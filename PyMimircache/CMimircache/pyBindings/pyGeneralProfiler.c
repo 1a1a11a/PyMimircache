@@ -429,4 +429,3 @@ PyMODINIT_FUNC PyInit_GeneralProfiler(void)
     import_array();
     return PyModule_Create(&GeneralProfiler_definition);
 }
-
