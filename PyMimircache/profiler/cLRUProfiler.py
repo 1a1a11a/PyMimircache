@@ -203,8 +203,7 @@ class CLRUProfiler:
         correction = 0
         kargs = {"cache_size": kwargs.get("cache_size", self.cache_size)}
 
-        hit_ratio = c_LRUProfiler.get_hit_ratio_seq_shards(self.reader.c_reader, sample_ratio=sample_ratio,
-                                                       correction=correction, **kargs)
+        hit_ratio = c_LRUProfiler.get_hit_ratio_seq_shards(self.reader.c_reader, sample_ratio=sample_ratio, **kargs)
         return hit_ratio;
 
 
@@ -329,7 +328,7 @@ class CLRUProfiler:
             WARNING("the plotting function is not wrong, is this a headless server? \nERROR: {}".format(e))
 
 
-    def plotHRC_with_shards(self, figname="HRC.png", auto_resize=False, threshold=0.98, **kwargs):
+    def plotHRC_with_shards(self, figname="HRC.png", auto_resize=False, **kwargs):
         HRC_shards = self.get_hit_ratio_shards(**kwargs)
         HRC = self.get_hit_rate(**kwargs)
 
