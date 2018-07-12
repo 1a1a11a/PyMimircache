@@ -354,7 +354,7 @@ static PyObject* LRUProfiler_get_hit_rate_seq_shards(PyObject* self,
 
     // get hit rate
     double* hit_rate = get_hit_rate_seq_shards(reader, cache_size,
-                                               sample_ratio, correction);
+                                               sample_ratio);
 
     // create numpy array
     if (cache_size == -1){
