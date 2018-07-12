@@ -192,6 +192,18 @@ class CLRUProfiler:
             hit_ratio = c_LRUProfiler.get_hit_ratio_seq(self.reader.c_reader, **kargs)
         return hit_ratio
 
+    def get_hit_count_shards(self, sample_ratio=0.01, **kwargs):
+        # """
+        # experimental function
+        # :param sample_ratio:
+        # :param kwargs:
+        # :return:
+
+        correction = 0
+        kargs = {"cache_size": kwargs.get("cache_size", self.cache_size)}
+
+        hit_count = c_LRUProfiler.get_hit_count_seq_shards(self.reader.c_reader, sample_ratio=sample_ratio, **kargs)
+        return hit_count;
 
     def get_hit_ratio_shards(self, sample_ratio=0.01, **kwargs):
         # """
@@ -328,21 +340,25 @@ class CLRUProfiler:
             WARNING("the plotting function is not wrong, is this a headless server? \nERROR: {}".format(e))
 
 
-    def plotHRC_with_shards(self, figname="HRC.png", auto_resize=False, **kwargs):
+    def plotHRC_with_shards(self, figname="HRC.png", **kwargs):
+        """
+        plotHRC_with_shards
+        :param figname: the name of the figure
+        :param kwargs: cache_unit_size (in Byte)
+        :return: the average error
+        """
+
+        # getting the original HRC and SHARDS HRC
         HRC_shards = self.get_hit_ratio_shards(**kwargs)
         HRC = self.get_hit_rate(**kwargs)
-
         assert len(HRC_shards) == len(HRC)
+
+        # excluding the last three elements in the array which are not hit counts
         num_HRC = len(HRC) - 3
-
-        #gap = int(1/kwargs["sample_ratio"])
-        #processed_HRC = []
-
-        final_HRC = []
-        final_HRC_shards = []
         final_HRC = HRC[:num_HRC]
         final_HRC_shards = HRC_shards[:num_HRC]
 
+        # calculating the error by getting the different between each point
         error = 0
         for i in range(len(final_HRC)):
             error = error + abs(final_HRC[i] - final_HRC_shards[i])
@@ -351,6 +367,7 @@ class CLRUProfiler:
         print("avg error %2.5f" % error)
 
         plt.xlim(0, len(final_HRC))
+        plt.xticks(rotation=90)
         plt.ylim(0, 1)
         plt.plot(final_HRC[1:], label="LRU", linestyle='dashed')
         label_shards = "LRU_shards " + str(kwargs["sample_ratio"])
@@ -359,4 +376,7 @@ class CLRUProfiler:
         plt.ylabel("Hit Ratio")
         plt.legend(loc="best")
         plt.title('Hit Ratio Curve ' + 'average error: ' + str(error), fontsize=14, color='black')
+        plt.tight_layout()
         plt.savefig(figname, dpi=600)
+
+        return error
