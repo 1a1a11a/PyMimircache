@@ -352,13 +352,15 @@ static PyObject* LRUProfiler_get_hit_rate_seq_shards(PyObject* self,
     if (reader->base->total_num == -1)
         get_num_of_req(reader);
 
+    printf("\n the cache size is %d \n", cache_size);
+
     // get hit rate
     double* hit_rate = get_hit_rate_seq_shards(reader, cache_size,
                                                sample_ratio);
 
     // create numpy array
     if (cache_size == -1){
-        cache_size = (gint64)(reader->base->total_num / sample_ratio);
+        cache_size = (gint64)(reader->base->total_num);
     }
 
     npy_intp dims[1] = { cache_size+3 };
