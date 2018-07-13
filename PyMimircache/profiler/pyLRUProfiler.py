@@ -321,5 +321,3 @@ class PyLRUProfiler:
         except Exception as e:
             plt.savefig(figname)
             WARNING("the plotting function is not wrong, is this a headless server? \nERROR: {}".format(e))
-
-

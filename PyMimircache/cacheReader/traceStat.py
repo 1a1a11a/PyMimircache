@@ -87,8 +87,6 @@ class TraceStat:
     def get_access_freq_list(self):
         return self.access_freq_list
 
-
-
     def get_stat(self, return_format="str"):
         """
         return stat in the format of string or tuple
@@ -135,5 +133,3 @@ class TraceStat:
 
     def __str__(self):
         return self.get_stat()
-
-

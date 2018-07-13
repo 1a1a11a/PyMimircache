@@ -249,6 +249,9 @@ class Cachecow:
         assert self.reader, "you haven't provided a data file"
         return TraceStat(self.reader).get_stat()
 
+    def get_access_freq_list(self):
+        assert self.reader, "you haven't provided a data file"
+        return TraceStat(self.reader, keep_access_freq_list=True).get_access_freq_list()
 
     def num_of_req(self):
         """
@@ -267,6 +270,7 @@ class Cachecow:
         if self.n_uniq_req == -1:
             self.n_uniq_req = self.reader.get_num_of_uniq_req()
         return self.n_uniq_req
+
 
     def get_reuse_distance(self):
         """
