@@ -14,7 +14,7 @@ class TraceStat:
     """
     this class provides stat calculation for a given trace
     """
-    def __init__(self, reader, top_N_popular=8, keep_access_freq_list=False):
+    def __init__(self, reader, top_N_popular=8, keep_access_freq_list=False, time_period=[-1, 0]):
         self.reader = reader
         self.top_N_popular = top_N_popular
         self.keep_access_freq_list = keep_access_freq_list
@@ -31,6 +31,7 @@ class TraceStat:
         self.num_of_obj_with_freq_1 = 0
         self.freq_mean = 0
         self.time_span = 0
+        self.time_period = time_period
 
         # self.freq_median = 0
         # self.freq_mode = 0
@@ -44,16 +45,28 @@ class TraceStat:
         :return:
         """
         d = defaultdict(int)
+        request_count = 0
 
         if self.reader.support_real_time:
             r = self.reader.read_time_req()
             assert r is not None, "failed to read time and request from reader"
             first_time_stamp = r[0]
             current_time_stamp = -1
+            time_period = self.time_period
+            assert time_period[1] > time_period[0], "end time cannot be smaller or equal to start time"
+
             while r:
-                d[r[1]] += 1
+                if time_period[1]:
+                    if (request_count >= time_period[0] and request_count < time_period[1]):
+                        d[r[1]] += 1
+                    elif (request_count >= time_period[1]):
+                        break
+                else:
+                    d[r[1]] += 1
                 current_time_stamp = r[0]
                 r = self.reader.read_time_req()
+                request_count += 1
+
             last_time_stamp = current_time_stamp
 
             self.time_span = last_time_stamp - first_time_stamp
@@ -82,12 +95,12 @@ class TraceStat:
             else:
                 break
         self.freq_mean = self.num_of_requests / (float) (self.num_of_uniq_obj)
+        print("we are instead trace stat")
+        print("the request coount is {}".format(request_count))
 
 
     def get_access_freq_list(self):
         return self.access_freq_list
-
-
 
     def get_stat(self, return_format="str"):
         """
@@ -135,5 +148,3 @@ class TraceStat:
 
     def __str__(self):
         return self.get_stat()
-
-

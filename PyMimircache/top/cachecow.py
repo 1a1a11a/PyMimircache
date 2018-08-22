@@ -73,6 +73,8 @@ class Cachecow:
         self.n_req = -1
         self.n_uniq_req = -1
         self.cacheclass_mapping = {}
+        #self.start_time = -1 if not "start_time" in kwargs else kwargs["start_time"]
+        #self.end_time = 0 if not "end_time" in kwargs else kwargs["end_time"]
 
     def open(self, file_path, trace_type="p", data_type="c", **kwargs):
         """
@@ -232,7 +234,7 @@ class Cachecow:
             self.reader = None
 
 
-    def stat(self):
+    def stat(self, time_period=[-1, 0]):
         """
         obtain the statistical information about the trace, including
 
@@ -247,7 +249,24 @@ class Cachecow:
         :return: a string of the information above
         """
         assert self.reader, "you haven't provided a data file"
-        return TraceStat(self.reader).get_stat()
+        return TraceStat(self.reader, time_period=time_period).get_stat()
+
+    def get_frequency_access_list(self, time_period=[-1, 0]):
+        """
+        obtain the statistical information about the trace, including
+
+            * number of requests
+            * number of uniq items
+            * cold miss ratio
+            * a list of top 10 popular in form of (obj, num of requests):
+            * number of obj/block accessed only once
+            * frequency mean
+            * time span
+
+        :return: a string of the information above
+        """
+        assert self.reader, "you haven't provided a data file"
+        return TraceStat(self.reader, keep_access_freq_list=True, time_period=time_period).get_access_freq_list()
 
 
     def num_of_req(self):
