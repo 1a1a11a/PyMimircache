@@ -417,6 +417,62 @@ static PyObject* LRUProfiler_get_hit_rate_withsize_seq(PyObject* self,
     return ret_array;
 }
 
+static PyObject* LRUProfiler_get_hit_rate_phase(PyObject* self,
+                                                     PyObject* args,
+                                                     PyObject* keywds)
+{
+    PyObject* po;
+    reader_t* reader;
+    int current_phase=0;
+    int num_phases=0;
+    static char *kwlist[] = {"reader", "current_phase", "num_phases", NULL};
+
+    // parse arguments
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O|li", kwlist,
+                                     &po, &current_phase, &num_phases)) {
+        return NULL;
+    }
+
+    if (current_phase >= num_phases || num_phases <= 1){
+        ERROR("phase data incorrect\n");
+        exit(1);
+    }
+
+    if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
+        return NULL;
+    }
+
+    if (reader->base->total_num == -1)
+        reader->base->total_num = get_num_of_req(reader);
+
+    printf("Inside the wrapper %d of %d\n", current_phase, num_phases);
+
+    double* hit_rate = get_hit_rate_phase(reader, current_phase, num_phases);
+
+    // // get hit rate
+    // double* hit_rate = get_hitrate_withsize_seq(reader, cache_size, block_size);
+
+
+    // // create numpy array
+    // if (cache_size == -1){
+    //     cache_size = (gint64)(reader->base->total_num);
+    // }
+
+    gint64 request_per_phase = (gint64) floor(reader->base->total_num/num_phases);
+    gint64 cache_size = request_per_phase;
+    npy_intp dims[1] = { cache_size+3 };
+    PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    memcpy(PyArray_DATA((PyArrayObject*)ret_array), hit_rate, sizeof(double)*(cache_size+3));
+
+    int i;
+    for(i=0; i<request_per_phase; i++) {
+        printf("%f,", hit_rate[i]);
+    }
+
+    return ret_array;
+}
+
+
 
 static PyObject* LRUProfiler_get_hit_count_withsize_seq(PyObject* self, PyObject* args, PyObject* keywds)
 {
@@ -490,6 +546,8 @@ static PyMethodDef LRUProfiler_funcs[] = {
 
     {"get_hit_ratio_seq_shards", (PyCFunction)LRUProfiler_get_hit_rate_seq_shards,
         METH_VARARGS | METH_KEYWORDS, "shards version"},
+    {"get_hit_ratio_phase", (PyCFunction)LRUProfiler_get_hit_rate_phase,
+        METH_VARARGS | METH_KEYWORDS, "for a given phase version"},
     {"get_hit_ratio_with_size", (PyCFunction)LRUProfiler_get_hit_rate_withsize_seq,
         METH_VARARGS | METH_KEYWORDS, "LRU profiler consider request size"},
     {"get_hit_count_with_size", (PyCFunction)LRUProfiler_get_hit_count_withsize_seq,
