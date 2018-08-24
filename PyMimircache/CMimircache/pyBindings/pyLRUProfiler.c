@@ -445,29 +445,13 @@ static PyObject* LRUProfiler_get_hit_rate_phase(PyObject* self,
     if (reader->base->total_num == -1)
         reader->base->total_num = get_num_of_req(reader);
 
-    printf("Inside the wrapper %d of %d\n", current_phase, num_phases);
-
     double* hit_rate = get_hit_rate_phase(reader, current_phase, num_phases);
-
-    // // get hit rate
-    // double* hit_rate = get_hitrate_withsize_seq(reader, cache_size, block_size);
-
-
-    // // create numpy array
-    // if (cache_size == -1){
-    //     cache_size = (gint64)(reader->base->total_num);
-    // }
 
     gint64 request_per_phase = (gint64) floor(reader->base->total_num/num_phases);
     gint64 cache_size = request_per_phase;
     npy_intp dims[1] = { cache_size+3 };
     PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
     memcpy(PyArray_DATA((PyArrayObject*)ret_array), hit_rate, sizeof(double)*(cache_size+3));
-
-    int i;
-    for(i=0; i<request_per_phase; i++) {
-        printf("%f,", hit_rate[i]);
-    }
 
     return ret_array;
 }
