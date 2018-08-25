@@ -39,33 +39,53 @@ class TraceStat:
         self._calculate()
 
 
-    def _calculate(self):
+    def _calculate(self, time_period=[-1, 0]):
         """
         calculate all the stat using the reader
         :return:
         """
+
         d = defaultdict(int)
+
+        # request count counts the number of requests read which is needed to track when the request 
+        # to be counted. 
+        # sucessful_count counts the number of request counted towards the statistics
+
         request_count = 0
+        sucessful_count = 0 
 
         if self.reader.support_real_time:
             r = self.reader.read_time_req()
             assert r is not None, "failed to read time and request from reader"
-            first_time_stamp = r[0]
+
+            # if time period ends is zero that means there is no time period
+            # else it means we don't know when to get the first time stamp so set to zero
+            if not (time_period[1]):
+                first_time_stamp = r[0]
+            else:
+                first_time_stamp = 0
+
             current_time_stamp = -1
             time_period = self.time_period
-            assert time_period[1] > time_period[0], "end time cannot be smaller or equal to start time"
+            assert time_period[1] >= time_period[0], "end time cannot be smaller or equal to start time"
 
             while r:
                 if time_period[1]:
-                    if (request_count >= time_period[0] and request_count < time_period[1]):
+                    if (request_count >= time_period[0] and request_count <= time_period[1]):
                         d[r[1]] += 1
+                        sucessful_count += 1
                     elif (request_count >= time_period[1]):
+                        current_time_stamp = r[0]
                         break
                 else:
                     d[r[1]] += 1
-                current_time_stamp = r[0]
-                r = self.reader.read_time_req()
+
                 request_count += 1
+
+                if not (time_period[1]): 
+                    current_time_stamp = r[0]
+
+                r = self.reader.read_time_req()
 
             last_time_stamp = current_time_stamp
 
@@ -81,7 +101,7 @@ class TraceStat:
         for _, v in d.items():
             self.num_of_requests += v
 
-        self.cold_miss_ratio = self.num_of_uniq_obj/ (float) (self.num_of_requests)
+        self.cold_miss_ratio = self.num_of_uniq_obj/self.num_of_requests
 
         # l is a list of (obj, freq) in descending order
         l = sorted(d.items(), key=lambda x: x[1], reverse=True)
@@ -94,9 +114,8 @@ class TraceStat:
                 self.num_of_obj_with_freq_1 += 1
             else:
                 break
+
         self.freq_mean = self.num_of_requests / (float) (self.num_of_uniq_obj)
-        print("we are instead trace stat")
-        print("the request coount is {}".format(request_count))
 
 
     def get_access_freq_list(self):
