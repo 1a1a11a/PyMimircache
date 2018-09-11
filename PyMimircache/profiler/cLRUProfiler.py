@@ -242,6 +242,23 @@ class CLRUProfiler:
         hit_ratio = c_LRUProfiler.get_hit_ratio_phase(self.reader.c_reader, **kargs)
         return hit_ratio
 
+    def get_hit_ratio_phases_cont(self, **kwargs):
+        """
+
+        :param kwargs:
+        :return: a numpy array of CACHE_SIZE+3, 0~CACHE_SIZE corresponds to hit rate of size 0~CACHE_SIZE,
+         size 0 should always be 0, CACHE_SIZE+1 is out of range, CACHE_SIZE+2 is cold miss,
+         so total is CACHE_SIZE+3 buckets for the given phase 
+        """
+
+        kargs = { 
+            "current_phase": kwargs.get("current_phase"), 
+            "num_phases": kwargs.get("num_phases") 
+        }
+
+        hit_ratio = c_LRUProfiler.get_hit_ratio_phase_cont(self.reader.c_reader, **kargs)
+        return hit_ratio
+
 
     def get_reuse_distance(self, **kargs):
         """
