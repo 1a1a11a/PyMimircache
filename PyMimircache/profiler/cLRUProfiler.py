@@ -225,7 +225,7 @@ class CLRUProfiler:
                                                        **kargs)
         return hit_ratio
 
-    def get_hit_ratio_phases(self, **kwargs):
+    def get_hit_ratio_phase(self, **kwargs):
         """
 
         :param kwargs:
@@ -242,7 +242,7 @@ class CLRUProfiler:
         hit_ratio = c_LRUProfiler.get_hit_ratio_phase(self.reader.c_reader, **kargs)
         return hit_ratio
 
-    def get_hit_ratio_phases_cont(self, **kwargs):
+    def get_hit_ratio_phase_cont(self, **kwargs):
         """
 
         :param kwargs:
