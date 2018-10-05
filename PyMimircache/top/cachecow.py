@@ -73,6 +73,8 @@ class Cachecow:
         self.n_req = -1
         self.n_uniq_req = -1
         self.cacheclass_mapping = {}
+        #self.start_time = -1 if not "start_time" in kwargs else kwargs["start_time"]
+        #self.end_time = 0 if not "end_time" in kwargs else kwargs["end_time"]
 
     def open(self, file_path, trace_type="p", data_type="c", **kwargs):
         """
@@ -232,7 +234,7 @@ class Cachecow:
             self.reader = None
 
 
-    def stat(self):
+    def stat(self, time_period=[-1, 0]):
         """
         obtain the statistical information about the trace, including
 
@@ -247,7 +249,24 @@ class Cachecow:
         :return: a string of the information above
         """
         assert self.reader, "you haven't provided a data file"
-        return TraceStat(self.reader).get_stat()
+        return TraceStat(self.reader, time_period=time_period).get_stat()
+
+    def get_frequency_access_list(self, time_period=[-1, 0]):
+        """
+        obtain the statistical information about the trace, including
+
+            * number of requests
+            * number of uniq items
+            * cold miss ratio
+            * a list of top 10 popular in form of (obj, num of requests):
+            * number of obj/block accessed only once
+            * frequency mean
+            * time span
+
+        :return: a string of the information above
+        """
+        assert self.reader, "you haven't provided a data file"
+        return TraceStat(self.reader, keep_access_freq_list=True, time_period=time_period).get_access_freq_list()
 
 
     def num_of_req(self):
@@ -305,7 +324,7 @@ class Cachecow:
         if isinstance(p, LRUProfiler):
             for i in range(len(hc)-2):
                 hit_count_dict[i] = hc[i]
-        elif isinstance(p, GeneralProfiler):
+        elif isinstance(p, CGeneralProfiler) or isinstance(p, PyGeneralProfiler):
             for i in range(len(hc)):
                 hit_count_dict[i * p.bin_size] = hc[i]
         return hit_count_dict
@@ -339,7 +358,7 @@ class Cachecow:
         if isinstance(p, LRUProfiler):
             for i in range(len(hr)-2):
                 hit_ratio_dict[i] = hr[i]
-        elif isinstance(p, GeneralProfiler):
+        elif isinstance(p, CGeneralProfiler) or isinstance(p, PyGeneralProfiler):
             for i in range(len(hr)):
                 hit_ratio_dict[i * p.bin_size] = hr[i]
         return hit_ratio_dict
@@ -366,10 +385,11 @@ class Cachecow:
         """
 
         num_of_threads = kwargs.get("num_of_threads", DEF_NUM_THREADS)
+        no_load_rd = kwargs.get("no_load_rd", False)
         assert self.reader is not None, "you haven't opened a trace yet"
 
         if algorithm.lower() == "lru" and not use_general_profiler:
-            profiler = LRUProfiler(self.reader, cache_size, cache_params)
+            profiler = LRUProfiler(self.reader, cache_size, cache_params, no_load_rd=no_load_rd)
         else:
             assert cache_size != -1, "you didn't provide size for cache"
             assert cache_size <= self.num_of_req(), "you cannot specify cache size({}) " \
@@ -530,7 +550,7 @@ class Cachecow:
             plot_data = (xydict2 - xydict1) / xydict1
             plot_data = np.ma.array(plot_data, mask=np.tri(len(plot_data), k=-1, dtype=int).T)
 
-            plot_kwargs = {}
+            plot_kwargs = {"figname": figname}
             plot_kwargs["xlabel"]  = plot_kwargs.get("xlabel", 'Start Time ({})'.format(time_mode))
             plot_kwargs["xticks"]  = plot_kwargs.get("xticks", ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (plot_data.shape[1]-1))))
             plot_kwargs["ylabel"]  = plot_kwargs.get("ylabel", "End Time ({})".format(time_mode))
@@ -660,12 +680,13 @@ class Cachecow:
         hit_ratio_dict = {}
 
         num_of_threads          =       kwargs.get("num_of_threads",        os.cpu_count())
+        no_load_rd              =       kwargs.get("no_load_rd",            False)
         cache_unit_size         =       kwargs.get("cache_unit_size",       0)
         use_general_profiler    =       kwargs.get("use_general_profiler",  False)
         save_gradually          =       kwargs.get("save_gradually",        False)
         threshold               =       kwargs.get('auto_resize_threshold', 0.98)
         label                   =       kwargs.get("label",                 algorithm_list)
-        xlabel                  =       kwargs.get("xlable",                "Cache Size (Items)")
+        xlabel                  =       kwargs.get("xlabel",                "Cache Size (Items)")
         ylabel                  =       kwargs.get("ylabel",                "Hit Ratio")
         title                   =       kwargs.get("title",                 "Hit Ratio Curve")
 
@@ -673,10 +694,10 @@ class Cachecow:
         LRU_HR = None
 
         if cache_size == -1 and auto_resize:
-            LRU_HR = LRUProfiler(self.reader).plotHRC(auto_resize=True, threshold=threshold, no_save=True)
+            LRU_HR = LRUProfiler(self.reader, no_load_rd=no_load_rd).plotHRC(auto_resize=True, threshold=threshold, no_save=True)
             cache_size = len(LRU_HR)
         else:
-            assert cache_size < self.num_of_req(), "you cannot specify cache size larger than trace length"
+            assert cache_size <= self.num_of_req(), "you cannot specify cache size larger than trace length"
 
         if bin_size == -1:
             bin_size = cache_size // DEF_NUM_BIN_PROF + 1
@@ -710,7 +731,7 @@ class Cachecow:
                 cache_param = None
             profiler = self.profiler(alg, cache_param, cache_size, bin_size=bin_size,
                                      use_general_profiler=use_general_profiler,
-                                     num_of_threads=num_of_threads)
+                                     num_of_threads=num_of_threads, no_load_rd=no_load_rd)
             t1 = time.time()
 
             if alg == "LRU":

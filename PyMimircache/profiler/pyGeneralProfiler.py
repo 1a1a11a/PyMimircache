@@ -134,6 +134,7 @@ class PyGeneralProfiler:
                                              self.reader.__class__, reader_params,
                                              self.cache_params): ind \
                                 for ind in range(self.num_of_bins, 0, -1)}
+            last_print_ts = time.time()
             for future in as_completed(future_to_size_ind):
                 result = future.result()
                 ind = future_to_size_ind[future]
@@ -142,7 +143,9 @@ class PyGeneralProfiler:
                         "hit/miss {}/{}, trace length {}".format(result[0], result[1], self.num_of_trace_elements)
                     self.hit_count[ind] = result[0]
                     count += 1
-                    INFO("{}/{}".format(count, self.num_of_bins), end="\r")
+                    if time.time() - last_print_ts > 20:
+                        print("{}/{}".format(count, self.num_of_bins), end="\r")
+                        last_print_ts = time.time()
                 else:
                     raise RuntimeError("failed to fetch results from cache of size {}".format(
                         self.bin_size * ind

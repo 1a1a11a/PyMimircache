@@ -133,7 +133,7 @@ def WARNING(s, end="\n"):
         printing_lock.acquire()
         previous_frame = inspect.currentframe().f_back
         (filename, line_number, function_name, lines, index) = inspect.getframeinfo(previous_frame)
-        print('[WARNING]: {}: {}{}:{} {}{}'.format(time.strftime("%m-%d-%Y %H:%M:%S", time.localtime(time.time())),
+        print('[WARNING]: {}: {}{}:{} {}{}'.format(time.strftime("%H:%M:%S", time.localtime(time.time())),
                                              COLOR_PURPLE, filename.split("/")[-1], line_number, s, COLOR_END),
               file=sys.stderr, end=end)
         printing_lock.release()
