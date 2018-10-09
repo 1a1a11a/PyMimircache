@@ -3,7 +3,7 @@
 import unittest
 import os
 import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(os.path.join(os.getcwd(), ".."))
 from PyMimircache import Cachecow
 
 DAT_FOLDER = "../data/"

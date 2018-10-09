@@ -28,7 +28,6 @@ static PyObject* LRUProfiler_get_reuse_dist_seq(PyObject* self,
 {
     PyObject* po;
     reader_t* reader;
-    gint64 begin=-1, end=-1;
     static char *kwlist[] = {"reader", NULL};
 
     // parse arguments
@@ -40,24 +39,17 @@ static PyObject* LRUProfiler_get_reuse_dist_seq(PyObject* self,
         return NULL;
     }
 
-    if (begin==-1)
-        begin = 0;
-
     // get reuse dist
-    gint64* reuse_dist = get_reuse_dist_seq(reader, begin, end);
+    gint64* reuse_dist = get_reuse_dist_seq(reader);
 
     // create numpy array
-    if (begin < 0)
-        begin = 0;
     if (reader->base->total_num == -1)
         get_num_of_req(reader);
-    if (end < 0)
-        end = reader->base->total_num;
 
-    npy_intp dims[1] = { end-begin };
+    npy_intp dims[1] = { reader->base->total_num };
     PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_LONGLONG);
     guint64 i;
-    for (i=0; i<(guint64)(end-begin); i++)
+    for (i=0; i<(guint64)(reader->base->total_num); i++)
         *((long long*)PyArray_GETPTR1((PyArrayObject*)ret_array, i)) = (long long)reuse_dist[i];
 
 
@@ -71,7 +63,6 @@ static PyObject* LRUProfiler_get_future_reuse_dist(PyObject* self,
 {
     PyObject* po;
     reader_t* reader;
-    gint64 begin=-1, end=-1;
     static char *kwlist[] = {"reader", NULL};
 
     // parse arguments
@@ -84,21 +75,17 @@ static PyObject* LRUProfiler_get_future_reuse_dist(PyObject* self,
     }
 
     // get reuse dist
-    gint64* reuse_dist = get_future_reuse_dist(reader, begin, end);
+    gint64* reuse_dist = get_future_reuse_dist(reader);
 
     // create numpy array
-    if (begin < 0)
-        begin = 0;
     if (reader->base->total_num == -1)
         get_num_of_req(reader);
-    if (end < 0)
-        end = reader->base->total_num;
 
-    npy_intp dims[1] = { end-begin };
+    npy_intp dims[1] = {reader->base->total_num};
     PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_LONGLONG);
     //    memcpy(PyArray_DATA((PyArrayObject*)ret_array), reuse_dist, sizeof(long long)*(end-begin));
     guint64 i;
-    for (i=0; i<(guint64)(end-begin); i++)
+    for (i=0; i<(guint64)(reader->base->total_num); i++)
         *((long long*)PyArray_GETPTR1((PyArrayObject*)ret_array, i)) = (long long)reuse_dist[i];
 
     return ret_array;
@@ -191,33 +178,26 @@ static PyObject* LRUProfiler_get_hit_count_seq(PyObject* self, PyObject* args, P
     PyObject* po;
     reader_t* reader;
     gint64 cache_size = -1;
-    gint64 begin=-1, end=-1;
-    static char *kwlist[] = {"reader", "cache_size", "begin", "end", NULL};
+    static char *kwlist[] = {"reader", "cache_size", NULL};
 
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O|lll", kwlist,
-                                &po, &cache_size, &begin, &end)) {
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O|l", kwlist,
+                                &po, &cache_size)) {
         return NULL;
     }
     if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
         return NULL;
     }
-    if (begin == -1)
-        begin = 0;
     if (reader->base->total_num == -1)
         get_num_of_req(reader);
-    if (end == -1)
-        end = reader->base->total_num;
 
     // get hit count
-    guint64* hit_count = get_hit_count_seq(reader, cache_size, begin, end);
+    guint64* hit_count = get_hit_count_seq(reader, cache_size);
 
     // create numpy array
     if (cache_size == -1){
         cache_size = reader->base->total_num;
     }
-    if (end-begin < cache_size)
-        cache_size = end - begin;
 
     npy_intp dims[1] = { cache_size+3 };
     PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_LONGLONG);
@@ -234,17 +214,16 @@ static PyObject* LRUProfiler_get_hit_count_seq(PyObject* self, PyObject* args, P
 
 
 
-static PyObject* LRUProfiler_get_hit_rate_seq(PyObject* self, PyObject* args, PyObject* keywds)
+static PyObject* LRUProfiler_get_hit_ratio_seq(PyObject* self, PyObject* args, PyObject* keywds)
 {
     PyObject* po;
     reader_t* reader;
     gint64 cache_size=-1;
-    gint64 begin=-1, end=-1;
-    static char *kwlist[] = {"reader", "cache_size", "begin", "end", NULL};
+    static char *kwlist[] = {"reader", "cache_size", NULL};
 
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O|lll", kwlist,
-                                &po, &cache_size, &begin, &end)) {
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O|l", kwlist,
+                                &po, &cache_size)) {
         return NULL;
     }
 
@@ -252,96 +231,42 @@ static PyObject* LRUProfiler_get_hit_rate_seq(PyObject* self, PyObject* args, Py
         return NULL;
     }
 
-    if (begin == -1)
-        begin = 0;
     if (reader->base->total_num == -1)
         get_num_of_req(reader);
-    if (end == -1)
-        end = reader->base->total_num;
 
     // get hit rate
-    double* hit_rate = get_hit_rate_seq(reader, cache_size, begin, end);
+    double* hit_ratio = get_hit_ratio_seq(reader, cache_size);
 
     // create numpy array
     if (cache_size == -1)
         cache_size = reader->base->total_num;
-    if (end-begin < cache_size)
-        cache_size = end - begin;
 
 
     npy_intp dims[1] = { cache_size+3 };
     PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
-    memcpy(PyArray_DATA((PyArrayObject*)ret_array), hit_rate, sizeof(double)*(cache_size+3));
+    memcpy(PyArray_DATA((PyArrayObject*)ret_array), hit_ratio, sizeof(double)*(cache_size+3));
 
-    if (!(begin==0 && (end==-1 || end==reader->base->total_num))){
-        g_free(hit_rate);
-    }
-
-    return ret_array;
-}
-
-static PyObject* LRUProfiler_get_miss_rate_seq(PyObject* self,
-                                               PyObject* args,
-                                               PyObject* keywds)
-{
-    PyObject* po;
-    reader_t* reader;
-    gint64 cache_size=-1;
-    gint64 begin=-1, end=-1;
-    static char *kwlist[] = {"reader", "cache_size", "begin", "end", NULL};
-
-    // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O|lll", kwlist,
-                                &po, &cache_size, &begin, &end)) {
-        return NULL;
-    }
-
-    if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
-        return NULL;
-    }
-
-    if (begin == -1)
-        begin = 0;
-    if (reader->base->total_num == -1)
-        get_num_of_req(reader);
-    if (end == -1)
-        end = reader->base->total_num;
-
-
-    // get miss rate
-    double* miss_rate = get_miss_rate_seq(reader, cache_size, begin, end);
-
-    // create numpy array
-    if (cache_size == -1)
-        cache_size = reader->base->total_num;
-    if (end-begin < cache_size)
-        cache_size = end - begin;
-
-
-    npy_intp dims[1] = { cache_size+3 };
-    PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
-    memcpy(PyArray_DATA((PyArrayObject*)ret_array), miss_rate, sizeof(double)*(cache_size+3));
-    g_free(miss_rate);
+    // if (!(begin==0 && (end==-1 || end==reader->base->total_num))){
+    //     g_free(hit_ratio);
+    // }
 
     return ret_array;
 }
 
 
-
-
-static PyObject* LRUProfiler_get_hit_rate_seq_shards(PyObject* self,
+static PyObject* LRUProfiler_get_hit_ratio_seq_shards(PyObject* self,
                                                      PyObject* args,
                                                      PyObject* keywds)
 {
     PyObject* po;
     reader_t* reader;
-    gint64 cache_size=-1, correction=0;
+    gint64 cache_size=-1;
     double sample_ratio;
-    static char *kwlist[] = {"reader", "sample_ratio", "cache_size", "correction", NULL};
+    static char *kwlist[] = {"reader", "sample_ratio", "cache_size", NULL};
 
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Od|ll", kwlist,
-                                     &po, &sample_ratio, &cache_size, &correction)) {
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Od|l", kwlist,
+                                     &po, &sample_ratio, &cache_size)) {
         return NULL;
     }
 
@@ -352,10 +277,9 @@ static PyObject* LRUProfiler_get_hit_rate_seq_shards(PyObject* self,
     if (reader->base->total_num == -1)
         get_num_of_req(reader);
 
-    printf("\n the cache size is %d \n", cache_size);
 
     // get hit rate
-    double* hit_rate = get_hit_rate_seq_shards(reader, cache_size,
+    double* hit_ratio = get_hit_ratio_seq_shards(reader, cache_size,
                                                sample_ratio);
 
     // create numpy array
@@ -365,14 +289,14 @@ static PyObject* LRUProfiler_get_hit_rate_seq_shards(PyObject* self,
 
     npy_intp dims[1] = { cache_size+3 };
     PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
-    memcpy(PyArray_DATA((PyArrayObject*)ret_array), hit_rate, sizeof(double)*(cache_size+3));
+    memcpy(PyArray_DATA((PyArrayObject*)ret_array), hit_ratio, sizeof(double)*(cache_size+3));
 
 
     return ret_array;
 }
 
 
-static PyObject* LRUProfiler_get_hit_rate_withsize_seq(PyObject* self,
+static PyObject* LRUProfiler_get_hit_ratio_withsize_seq(PyObject* self,
                                                      PyObject* args,
                                                      PyObject* keywds)
 {
@@ -401,7 +325,7 @@ static PyObject* LRUProfiler_get_hit_rate_withsize_seq(PyObject* self,
         get_num_of_req(reader);
 
     // get hit rate
-    double* hit_rate = get_hitrate_withsize_seq(reader, cache_size, block_size);
+    double* hit_ratio = get_hitrate_withsize_seq(reader, cache_size, block_size);
 
 
     // create numpy array
@@ -411,13 +335,13 @@ static PyObject* LRUProfiler_get_hit_rate_withsize_seq(PyObject* self,
 
     npy_intp dims[1] = { cache_size+3 };
     PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
-    memcpy(PyArray_DATA((PyArrayObject*)ret_array), hit_rate, sizeof(double)*(cache_size+3));
+    memcpy(PyArray_DATA((PyArrayObject*)ret_array), hit_ratio, sizeof(double)*(cache_size+3));
 
 
     return ret_array;
 }
 
-static PyObject* LRUProfiler_get_hit_rate_phase(PyObject* self,
+static PyObject* LRUProfiler_get_hit_ratio_phase(PyObject* self,
                                                      PyObject* args,
                                                      PyObject* keywds)
 {
@@ -445,18 +369,18 @@ static PyObject* LRUProfiler_get_hit_rate_phase(PyObject* self,
     if (reader->base->total_num == -1)
         reader->base->total_num = get_num_of_req(reader);
 
-    double* hit_rate = get_hit_rate_phase(reader, current_phase, num_phases);
+    double* hit_ratio = get_hit_ratio_phase(reader, current_phase, num_phases);
 
     gint64 request_per_phase = (gint64) floor(reader->base->total_num/num_phases);
     gint64 cache_size = request_per_phase;
     npy_intp dims[1] = { cache_size+3 };
     PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
-    memcpy(PyArray_DATA((PyArrayObject*)ret_array), hit_rate, sizeof(double)*(cache_size+3));
+    memcpy(PyArray_DATA((PyArrayObject*)ret_array), hit_ratio, sizeof(double)*(cache_size+3));
 
     return ret_array;
 }
 
-static PyObject* LRUProfiler_get_hit_rate_phase_cont(PyObject* self,
+static PyObject* LRUProfiler_get_hit_ratio_phase_cont(PyObject* self,
                                                      PyObject* args,
                                                      PyObject* keywds)
 {
@@ -484,13 +408,13 @@ static PyObject* LRUProfiler_get_hit_rate_phase_cont(PyObject* self,
     if (reader->base->total_num == -1)
         reader->base->total_num = get_num_of_req(reader);
 
-    double* hit_rate = get_hit_rate_phase_cont(reader, current_phase, num_phases);
+    double* hit_ratio = get_hit_ratio_phase(reader, current_phase, num_phases);
 
     gint64 request_per_phase = (gint64) floor(reader->base->total_num/num_phases);
     gint64 cache_size = request_per_phase;
     npy_intp dims[1] = { cache_size+3 };
     PyObject* ret_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
-    memcpy(PyArray_DATA((PyArrayObject*)ret_array), hit_rate, sizeof(double)*(cache_size+3));
+    memcpy(PyArray_DATA((PyArrayObject*)ret_array), hit_ratio, sizeof(double)*(cache_size+3));
 
     return ret_array;
 }
@@ -549,11 +473,8 @@ static PyMethodDef LRUProfiler_funcs[] = {
     {"get_hit_count_seq", (PyCFunction)LRUProfiler_get_hit_count_seq,
         METH_VARARGS | METH_KEYWORDS, "get hit count array in the form of numpy array, \
         the last one is cold miss, the second to last is out of cache_size"},
-    {"get_hit_ratio_seq", (PyCFunction)LRUProfiler_get_hit_rate_seq,
+    {"get_hit_ratio_seq", (PyCFunction)LRUProfiler_get_hit_ratio_seq,
         METH_VARARGS | METH_KEYWORDS, "get hit rate array in the form of numpy array, \
-        the last one is cold miss, the second to last is out of cache_size"},
-    {"get_miss_ratio_seq", (PyCFunction)LRUProfiler_get_miss_rate_seq,
-        METH_VARARGS | METH_KEYWORDS, "get miss rate array in the form of numpy array, \
         the last one is cold miss, the second to last is out of cache_size"},
     {"get_future_reuse_dist", (PyCFunction)LRUProfiler_get_future_reuse_dist,
         METH_VARARGS | METH_KEYWORDS, "get reuse distance array of the reversed trace file in the form of numpy array"},
@@ -567,13 +488,13 @@ static PyMethodDef LRUProfiler_funcs[] = {
 
 
 
-    {"get_hit_ratio_seq_shards", (PyCFunction)LRUProfiler_get_hit_rate_seq_shards,
+    {"get_hit_ratio_seq_shards", (PyCFunction)LRUProfiler_get_hit_ratio_seq_shards,
         METH_VARARGS | METH_KEYWORDS, "shards version"},
-    {"get_hit_ratio_phase", (PyCFunction)LRUProfiler_get_hit_rate_phase,
+    {"get_hit_ratio_phase", (PyCFunction)LRUProfiler_get_hit_ratio_phase,
         METH_VARARGS | METH_KEYWORDS, "for a given phase version"},
-    {"get_hit_ratio_phase_cont", (PyCFunction)LRUProfiler_get_hit_rate_phase_cont,
+    {"get_hit_ratio_phase_cont", (PyCFunction)LRUProfiler_get_hit_ratio_phase_cont,
         METH_VARARGS | METH_KEYWORDS, "for a given phase version"},
-    {"get_hit_ratio_with_size", (PyCFunction)LRUProfiler_get_hit_rate_withsize_seq,
+    {"get_hit_ratio_with_size", (PyCFunction)LRUProfiler_get_hit_ratio_withsize_seq,
         METH_VARARGS | METH_KEYWORDS, "LRU profiler consider request size"},
     {"get_hit_count_with_size", (PyCFunction)LRUProfiler_get_hit_count_withsize_seq,
         METH_VARARGS | METH_KEYWORDS, "LRU profiler consider request size"},

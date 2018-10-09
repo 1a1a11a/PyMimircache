@@ -2,6 +2,8 @@
 
 
 import os
+import sys
+sys.path.append(os.path.join(os.getcwd(), "../"))
 import unittest
 from PyMimircache.cacheReader.csvReader import CsvReader
 from PyMimircache.cacheReader.plainReader import PlainReader
@@ -9,7 +11,6 @@ from PyMimircache.cacheReader.vscsiReader import VscsiReader
 from PyMimircache.cacheReader.binaryReader import BinaryReader
 from PyMimircache.profiler.profilerUtils import *
 from PyMimircache.profiler.utils.dist import *
-import PyMimircache.CMimircache.Heatmap as c_heatmap
 
 DAT_FOLDER = "../data/"
 if not os.path.exists(DAT_FOLDER):
