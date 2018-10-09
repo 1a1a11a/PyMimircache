@@ -6,7 +6,7 @@
 
 """
 
-import abc
+from abc import ABC, abstractmethod
 import os
 from collections import defaultdict
 from PyMimircache.const import ALLOW_C_MIMIRCACHE, INSTALL_PHASE
@@ -16,12 +16,11 @@ if ALLOW_C_MIMIRCACHE and not INSTALL_PHASE:
     import PyMimircache.CMimircache.CacheReader as c_cacheReader
 
 
-class AbstractReader(metaclass=abc.ABCMeta):
+class AbstractReader(ABC):
     """
     reader interface
 
     """
-    __metaclass__ = abc.ABCMeta
 
     def __init__(self, file_loc, data_type='c', block_unit_size=0,
                  disk_sector_size=0, open_c_reader=False, lock=None):
@@ -173,7 +172,7 @@ class AbstractReader(metaclass=abc.ABCMeta):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    @abc.abstractclassmethod
+    @abstractmethod
     def read_one_req(self):
         """
         read one request, only return the label of the request
@@ -182,7 +181,7 @@ class AbstractReader(metaclass=abc.ABCMeta):
         pass
 
 
-    @abc.abstractclassmethod
+    @abstractmethod
     def read_complete_req(self):
         """
         read one request with full information
@@ -190,7 +189,7 @@ class AbstractReader(metaclass=abc.ABCMeta):
         """
         pass
 
-    @abc.abstractclassmethod
+    @abstractmethod
     def copy(self, open_c_reader=False):
         """
         reader a deep copy of current reader with everything reset to initial state,
@@ -201,7 +200,7 @@ class AbstractReader(metaclass=abc.ABCMeta):
         """
         pass
 
-    @abc.abstractclassmethod
+    @abstractmethod
     def get_params(self):
         """
         return all the parameters for this reader instance in a dictionary
@@ -225,7 +224,7 @@ class AbstractReader(metaclass=abc.ABCMeta):
         except Exception as e:
             print("Exception during close reader: {}, ccacheReader={}".format(e, c_cacheReader))
 
-    @abc.abstractmethod
+    @abstractmethod
     def __next__(self):  # Python 3
         self.counter += 1
 

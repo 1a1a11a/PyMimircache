@@ -8,7 +8,7 @@ the test of other algorithms are excluded and should be under cache folder
 
 import os
 import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(os.path.join(os.getcwd(), "../"))
 import unittest
 
 from PyMimircache.cacheReader.csvReader import CsvReader

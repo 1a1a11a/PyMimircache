@@ -38,6 +38,7 @@ from PyMimircache.profiler.profilerUtils import get_breakpoints, draw_heatmap
 from PyMimircache.profiler.pyHeatmapAux import *
 from PyMimircache.profiler.utils.dist import get_last_access_dist
 from PyMimircache.utils.printing import *
+from PyMimircache.const import cache_name_to_class
 # from PyMimircache.const import *
 
 import matplotlib.ticker as ticker
@@ -343,7 +344,7 @@ class PyHeatmap:
 
         elif plot_type == "rd_distribution":
             xydict, log_base = c_heatmap.\
-                hm_rd_distribution(reader.cReader, time_mode,
+                hm_rd_distribution(reader.c_reader, time_mode,
                                    time_interval=time_interval,
                                    num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
                                    num_of_threads=num_of_threads)
@@ -360,7 +361,7 @@ class PyHeatmap:
 
         elif plot_type == "rd_distribution_CDF":
             xydict, log_base = c_heatmap.\
-                hm_rd_distribution(reader.cReader, time_mode,
+                hm_rd_distribution(reader.c_reader, time_mode,
                                    time_interval=time_interval,
                                    num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
                                    num_of_threads=num_of_threads, CDF=1)
@@ -378,7 +379,7 @@ class PyHeatmap:
 
         elif plot_type == "future_rd_distribution":
             xydict, log_base = c_heatmap.\
-                hm_future_rd_distribution(reader.cReader, time_mode,
+                hm_future_rd_distribution(reader.c_reader, time_mode,
                                           time_interval=time_interval,
                                           num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
                                           num_of_threads=num_of_threads)
@@ -397,7 +398,7 @@ class PyHeatmap:
 
         elif plot_type == "dist_distribution":
             xydict, log_base = c_heatmap.\
-                hm_dist_distribution(reader.cReader, time_mode,
+                hm_dist_distribution(reader.c_reader, time_mode,
                                      time_interval=time_interval,
                                      num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
                                      num_of_threads=num_of_threads)
@@ -415,7 +416,7 @@ class PyHeatmap:
 
         elif plot_type == "rt_distribution":
             xydict, log_base = c_heatmap.\
-                hm_reuse_time_distribution(reader.cReader, time_mode,
+                hm_reuse_time_distribution(reader.c_reader, time_mode,
                                            time_interval=time_interval,
                                            num_of_pixel_of_time_dim=num_of_pixel_of_time_dim,
                                            num_of_threads=num_of_threads)
@@ -437,7 +438,7 @@ class PyHeatmap:
 
 
         else:
-            raise RuntimeError("PyHeatmap does not support {}"
+            raise RuntimeError("PyHeatmap does not support {} "
                 "please check documentation".format(plot_type))
 
 

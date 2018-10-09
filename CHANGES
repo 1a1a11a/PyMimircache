@@ -6,3 +6,10 @@ Separation of PyMimircache and CMimircache, now CMimircache is an independent mo
 1. allows people who only want C/C++ mimircache module to use CMimircache. 
 2. the debug of CMimircache becomes easier. 
 3. simplifies the dependency on CMimircache from other components. 
+
+Oct. 08, 2018 
+1. merge Pranav Pull. 
+2. update hit_rate to hit_ratio. 
+3. update master and develop branch. 
+4. update pip. 
+5. fix clock in Python. 

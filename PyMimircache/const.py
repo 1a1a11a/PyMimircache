@@ -62,22 +62,6 @@ from PyMimircache.cache.random import Random
 from PyMimircache.cache.s4lru import S4LRU
 from PyMimircache.cache.slru import SLRU
 from PyMimircache.cache.clock import Clock
-
-try:
-    from PyMimircache.cache.INTERNAL.ASig import ASig
-    from PyMimircache.cache.INTERNAL.ASig2 import ASig2
-    from PyMimircache.cache.INTERNAL.ASig3 import ASig3
-    from PyMimircache.cache.INTERNAL.ASig4 import ASig4
-    from PyMimircache.cache.INTERNAL.ASig5 import ASig5
-    from PyMimircache.cache.INTERNAL.ASigOPT import ASigOPT
-except:
-    ASig = None
-    ASig2 = None
-    ASig3 = None
-    ASig4 = None
-    ASig5 = None
-    ASigOPT = None
-
 from PyMimircache.cacheReader.csvReader import CsvReader
 from PyMimircache.cacheReader.plainReader import PlainReader
 from PyMimircache.cacheReader.vscsiReader import VscsiReader
@@ -115,9 +99,6 @@ CACHE_NAME_TO_CLASS_DICT = {"LRU":LRU, "MRU":MRU, "ARC":ARC, "Optimal":Optimal,
                             "FIFO":FIFO, "Clock":Clock, "Random":Random,
 
                             "SLRU":SLRU, "S4LRU":S4LRU,
-
-                            "ASig":ASig, "ASig2":ASig2, "ASig3":ASig3, "ASig4":ASig4,
-                            "ASig5":ASig5, "ASigOPT":ASigOPT
                             }
 
 

@@ -9,6 +9,7 @@ The PyMimircache project benefits from the efforts of a number of people:
     design and implementation.
   * Reza Kirami (Emory University) helped with code review of PyMimircache.
   * Derek Donken (Emory University) helped with documentation.
+  * Pranav (Emory University) finished Shards implementation.
 
 
 The VSCSI format and reader is due to Irfan Ahmad et al. at CloudPhysics.

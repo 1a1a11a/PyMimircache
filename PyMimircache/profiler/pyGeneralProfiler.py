@@ -183,7 +183,6 @@ class PyGeneralProfiler:
         :return: a numpy array, with hit ratio corresponding to size [0, bin_size, bin_size*2 ...]
         """
 
-        print("run pyProfiler")
         if not self.has_ran:
             self._run()
         return self.hit_ratio

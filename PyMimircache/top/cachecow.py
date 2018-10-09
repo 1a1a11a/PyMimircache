@@ -576,7 +576,7 @@ class Cachecow:
             popularity              NA                           Percentage of obj VS frequency
             rd_popularity           NA                           Num of req VS reuse distance
             rt_popularity           NA                           Num of req VS reuse time
-            mapping                 NA                           mapping from original objID to sequential number
+            scan_vis_2d             NA                           mapping from original objID to sequential number
           interval_hit_ratio        cache_size                   hit ratio of interval VS time
         ========================  ============================  =================================================
 
@@ -838,8 +838,8 @@ class Cachecow:
             INFO("now begin to plot popularity curve")
             self.twoDPlot("popularity")
 
-            INFO("now begin to plot mapping plot")
-            self.twoDPlot("mapping")
+            INFO("now begin to plot scan_vis_2d plot")
+            self.twoDPlot("scan_vis_2d")
 
             INFO("now begin to plot hit ratio curves")
             self.plotHRCs(["LRU", "Optimal", "LFU"], cache_size=cache_size,
@@ -862,8 +862,8 @@ class Cachecow:
             INFO("now begin to plot rd distribution popularity")
             self.twoDPlot("rd_distribution")
 
-            INFO("now begin to plot mapping plot")
-            self.twoDPlot("mapping")
+            INFO("now begin to plot scan_vis_2d plot")
+            self.twoDPlot("scan_vis_2d")
 
             INFO("now begin to plot rd distribution heatmap")
             self.heatmap("v", "rd_distribution", time_interval=trace_stat.num_of_requests//100)
@@ -895,8 +895,8 @@ class Cachecow:
             INFO("now begin to plot rd distribution popularity")
             self.twoDPlot("rd_distribution")
 
-            INFO("now begin to plot mapping plot")
-            self.twoDPlot("mapping")
+            INFO("now begin to plot scan_vis_2d plot")
+            self.twoDPlot("scan_vis_2d")
 
             INFO("now begin to plot rd distribution heatmap")
             self.heatmap("v", "rd_distribution", time_interval=trace_stat.num_of_requests//200)

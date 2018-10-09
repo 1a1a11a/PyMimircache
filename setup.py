@@ -164,7 +164,8 @@ extensions.append(Extension(
 
 extensions.append(Extension(
     "PyMimircache.CMimircache.LRUProfiler",
-    [BASE_PATH + "/profiler/LRUProfiler.c", BASE_PATH + "/dataStructure/splay.c"] +
+    [BASE_PATH + "/profiler/LRUProfiler.c", BASE_PATH + "/dataStructure/splay.c",
+    BASE_PATH + "/dataStructure/murmur3.c"] +
     glob(BASE_PATH + "/cacheReader/*.c") + glob(BASE_PATH + "/utils/*.c") +
     ["PyMimircache/CMimircache/pyBindings/pyLRUProfiler.c"],
     include_dirs=[BASE_PATH + "/cacheReader/include",

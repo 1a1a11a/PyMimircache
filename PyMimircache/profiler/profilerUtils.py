@@ -115,7 +115,6 @@ def draw2d(*args, **kwargs):
     if "plot_type" in kwargs:
         if kwargs['plot_type'] == "scatter":
             l = args[0]
-            # plt.scatter([i+1 for i in range(len(l))], l)
             plt.scatter([i+1 for i in range(len(l))], l, label=kwargs.get("label", None))
     else:
         if 'logX' in kwargs and kwargs["logX"]:

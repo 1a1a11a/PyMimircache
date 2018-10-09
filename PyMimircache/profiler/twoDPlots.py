@@ -106,6 +106,7 @@ def cold_miss_count_2d(reader, time_mode, time_interval,
     kwargs_plot["title"] = kwargs_plot.get("title", 'Cold Miss Count 2D plot')
     kwargs_plot["xticks"] = kwargs_plot.get("xticks",
                         ticker.FuncFormatter(lambda x, pos: '{:2.0f}%'.format(x * 100 / len(break_points))))
+    kwargs_plot["label"] = kwargs_plot.get("label", "Cold Miss Count")
 
     assert time_mode == 'r' or time_mode == 'v', "currently only support time_mode r and v, what time_mode are you using?"
     break_points = Heatmap.get_breakpoints(reader, time_mode, time_interval)

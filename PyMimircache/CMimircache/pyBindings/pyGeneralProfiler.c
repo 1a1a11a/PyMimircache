@@ -60,7 +60,7 @@ static PyObject* generalProfiler_get_hit_ratio(PyObject* self,
         ERROR("reader pointer error");
         return NULL;
     }
-    
+
     // build cache
     cache = build_cache(reader, cache_size, algorithm, cache_params, 0);
 
@@ -74,7 +74,7 @@ static PyObject* generalProfiler_get_hit_ratio(PyObject* self,
     guint i;
     *(double*)PyArray_GETPTR1((PyArrayObject*)ret_array, 0) = 0;
     for(i=0; i<num_of_bins; i++){
-        *(double*)PyArray_GETPTR1((PyArrayObject*)ret_array, i) = results[i]->hit_rate;
+        *(double*)PyArray_GETPTR1((PyArrayObject*)ret_array, i) = results[i]->hit_ratio;
         g_free(results[i]);
     }
 
@@ -245,7 +245,7 @@ static PyObject* generalProfiler_get_partition(PyObject* self,
 
 
 
-static PyObject* generalProfiler_get_partition_hit_rate(PyObject* self,
+static PyObject* generalProfiler_get_partition_hit_ratio(PyObject* self,
                                                         PyObject* args,
                                                         PyObject* keywds)
 {
@@ -265,7 +265,7 @@ static PyObject* generalProfiler_get_partition_hit_rate(PyObject* self,
     if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osli|Oi", kwlist, &po,
                                      &algorithm, &cache_size, &bin_size,
                                      &cache_params, &num_of_threads)) {
-        fprintf(stderr, "parsing argument failed in generalProfiler_get_partition_hit_rate\n");
+        fprintf(stderr, "parsing argument failed in generalProfiler_get_partition_hit_ratio\n");
         return NULL;
     }
 
@@ -287,7 +287,7 @@ static PyObject* generalProfiler_get_partition_hit_rate(PyObject* self,
     guint i;
     *(double*)PyArray_GETPTR1((PyArrayObject*)ret_array, 0) = 0;
     for(i=0; i<num_of_bins; i++){
-        *(double*)PyArray_GETPTR1((PyArrayObject*)ret_array, i) = results[i]->hit_rate;
+        *(double*)PyArray_GETPTR1((PyArrayObject*)ret_array, i) = results[i]->hit_ratio;
         g_free(results[i]);
     }
 
@@ -311,10 +311,10 @@ static PyObject* generalProfiler_get_eviction_age(PyObject* self,
     profiler_type_e prof_type = e_eviction_age;
     PyObject* cache_params;
     gint64 i, j;
-    
+
     static char *kwlist[] = {"reader", "algorithm", "cache_size", "bin_size",
         "cache_params", "num_of_threads", NULL};
-    
+
     // parse arguments
     if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osli|Oi", kwlist, &po,
                                      &algorithm, &cache_size, &bin_size,
@@ -322,24 +322,24 @@ static PyObject* generalProfiler_get_eviction_age(PyObject* self,
         ERROR("parsing argument failed");
         return NULL;
     }
-    
-    
+
+
     if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
         ERROR("reader pointer error");
         return NULL;
     }
-    
+
     // build cache
     cache = build_cache(reader, cache_size, algorithm, cache_params, 0);
-    
+
     // get hit rate
     return_res_t** results = profiler(reader, cache, num_of_threads, bin_size, prof_type);
-    
+
     // create numpy array
     guint num_of_bins = ceil((double) cache_size/bin_size)+1;
     npy_intp dims[2] = { num_of_bins, reader->base->total_num };
     PyObject* ret_array = PyArray_SimpleNew(2, dims, NPY_LONG);
-    
+
     long* one_dim_array;
     for(i=0; i<num_of_bins; i++){
         one_dim_array = PyArray_GETPTR1((PyArrayObject*)ret_array, i);
@@ -348,15 +348,15 @@ static PyObject* generalProfiler_get_eviction_age(PyObject* self,
         else{
             for (j=0; j<reader->base->total_num; j++){
                 one_dim_array[j] = ((gint64*) results[i]->other_data)[j];
-//                printf("set %ld %ld %ld\n", i, j, ((gint64*) results[i]->other_data)[j]); 
+//                printf("set %ld %ld %ld\n", i, j, ((gint64*) results[i]->other_data)[j]);
             }
         }
-        
-        
+
+
         g_free(results[i]->other_data);
         g_free(results[i]);
     }
-    
+
     g_free(results);
     cache->core->destroy(cache);
     return ret_array;
@@ -377,7 +377,7 @@ static PyMethodDef GeneralProfiler_funcs[] = {
         METH_VARARGS | METH_KEYWORDS, "get hit count numpy array"},
     {"get_partition", (PyCFunction)generalProfiler_get_partition,
         METH_VARARGS | METH_KEYWORDS, "get partition results with given alg"},
-    {"get_partition_hit_ratio", (PyCFunction)generalProfiler_get_partition_hit_rate,
+    {"get_partition_hit_ratio", (PyCFunction)generalProfiler_get_partition_hit_ratio,
         METH_VARARGS | METH_KEYWORDS, "get partition hit rate numpy array"},
     {"get_eviction_age", (PyCFunction)generalProfiler_get_eviction_age,
         METH_VARARGS | METH_KEYWORDS, "get eviction numpy array"},

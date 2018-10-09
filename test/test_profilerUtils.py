@@ -2,6 +2,8 @@
 
 
 import os
+import sys
+sys.path.append(os.path.join(os.getcwd(), "../"))
 import unittest
 from PyMimircache.cacheReader.csvReader import CsvReader
 from PyMimircache.cacheReader.plainReader import PlainReader

@@ -3,7 +3,7 @@
 import unittest
 import os
 import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(os.path.join(os.getcwd(), ".."))
 from PyMimircache import Cachecow
 
 DAT_FOLDER = "../data/"
@@ -94,7 +94,7 @@ class cachecowTest(unittest.TestCase):
         self.assertAlmostEqual(hr[0], 0.0)
         self.assertAlmostEqual(hr[100], 0.16544891893863678)
 
-        c.twoDPlot("mapping")
+        c.twoDPlot("scan_vis")
         c.twoDPlot("popularity")
         c.twoDPlot("rd_popularity")
         c.twoDPlot("interval_hit_ratio", cache_size=cache_size)
