@@ -1,7 +1,4 @@
-# 1a1a11a
-*A1a1a11a*
-*external*
-*bin*
+# Jason
 *TODO*
 *old*
 *Old*
@@ -12,9 +9,6 @@
 *.DS_Store*
 *.bak
 *.nogit*
-*credentials*
-
-
 
 
 # Byte-compiled / optimized / DLL files
@@ -81,10 +75,6 @@ target/
 
 #Ipython Notebook
 .ipynb_checkpoints
-
-
-# old
-oldModule/
 
 # pycharm
 .idea/

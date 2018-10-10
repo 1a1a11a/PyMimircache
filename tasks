@@ -1,0 +1,13 @@
+1. Review, refactor and documenting existing Python cache replacement algorithm (Priority: 3, Difficulty: 2)
+2. Add new cache replacement algorithm in Python, including GDFS, MQ, clockPro, LIRS (Priority 1, Difficulty: 4).
+2-2. Add new cache replacement algorithm in C, including GDFS, MQ, clockPro, LIRS (Priority 1, Difficulty: 5).
+3. Add test cases for existing Python and C cache replacement algorithm (Priority: 4, Difficulty: 2)
+4. Re-write Python Heatmap (Priority: 3, Difficulty: 4)
+5. Add obj size support (Priority: 4, Difficulty: 5)
+6. Code Review for cache, cacheReader, profiler, and Cachecow on formating, naming, etc. (Priority: 4, difficulty: 1)
+7. Add real time profiling to memcached or redis (Priority: 2, Difficulty: 5) 
+8. add a new data to test, which provides easy debugging and helps with understanding behavior of cache replacement algorithms
+
+
+https://github.com/jstol/counterstacks
+
