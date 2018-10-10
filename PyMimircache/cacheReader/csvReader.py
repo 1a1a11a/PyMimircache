@@ -83,7 +83,7 @@ class CsvReader(AbstractReader):
         """
         super().read_one_req()
 
-        line = self.trace_file.readline().decode()
+        line = self.trace_file.readline().decode('utf-8', 'ignore')
         while line and len(line.strip()) == 0:
             line = self.trace_file.readline().decode()
         if line:
@@ -99,7 +99,7 @@ class CsvReader(AbstractReader):
     def read_complete_req(self):
         """
         read the complete line, including request and its all related info
-        :return: a list of all info in the request
+        :return: a list of all info of the request
         """
 
         super().read_one_req()

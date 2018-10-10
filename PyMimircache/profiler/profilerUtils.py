@@ -14,13 +14,9 @@ import math
 import time
 import pickle
 import numpy as np
-try:
-    # pypy3 fails on this
-    import matplotlib.pyplot
-except:
-    import matplotlib
-    matplotlib.use("Agg")
-
+import matplotlib
+# matplotlib.use("Agg")
+# pypy3 fails on this
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker

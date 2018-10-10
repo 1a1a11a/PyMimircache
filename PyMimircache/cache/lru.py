@@ -19,7 +19,6 @@ class LRU(Cache):
     """
 
     def __init__(self, cache_size, **kwargs):
-
         super().__init__(cache_size, **kwargs)
         self.cacheline_dict = OrderedDict()
 
@@ -72,7 +71,7 @@ class LRU(Cache):
         """
 
         req_id = self.cacheline_dict.popitem(last=False)
-        return req_id
+        return req_id[0]
 
     def access(self, req_item, **kwargs):
         """
@@ -94,8 +93,13 @@ class LRU(Cache):
         else:
             self._insert(req_item)
             if len(self.cacheline_dict) > self.cache_size:
-                self.evict()
+                evict_item = self.evict()
+                if "evict_item_list" in kwargs:
+                    kwargs["evict_item_list"].append(evict_item)
             return False
+
+    def __contains__(self, req_item):
+        return req_item in self.cacheline_dict
 
     def __len__(self):
         return len(self.cacheline_dict)

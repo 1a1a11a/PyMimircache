@@ -18,9 +18,7 @@ if ALLOW_C_MIMIRCACHE and not INSTALL_PHASE:
 
 from PyMimircache.cacheReader.binaryReader import BinaryReader
 from PyMimircache.cacheReader.abstractReader import AbstractReader
-import matplotlib.pyplot as plt
 from PyMimircache.utils.printing import *
-from matplotlib.ticker import FuncFormatter
 
 class CLRUProfiler:
     """
@@ -142,6 +140,8 @@ class CLRUProfiler:
                                                        "/research/jason/preComputedData/RD/")
             rd_dat_path = rd_dat_path.replace("/home/cloudphysics/traces/",
                                               "/research/jason/preComputedData/RD/cphyVscsi")
+            if rd_dat_path == self.reader.file_loc:
+                rd_dat_path += ".rd"
 
             if has_rd and os.path.exists(rd_dat_path):
                 DEBUG("loading reuse distance from {}".format(rd_dat_path))
@@ -231,12 +231,12 @@ class CLRUProfiler:
         :param kwargs:
         :return: a numpy array of CACHE_SIZE+3, 0~CACHE_SIZE corresponds to hit rate of size 0~CACHE_SIZE,
          size 0 should always be 0, CACHE_SIZE+1 is out of range, CACHE_SIZE+2 is cold miss,
-         so total is CACHE_SIZE+3 buckets for the given phase 
+         so total is CACHE_SIZE+3 buckets for the given phase
         """
 
-        kargs = { 
-            "current_phase": kwargs.get("current_phase"), 
-            "num_phases": kwargs.get("num_phases") 
+        kargs = {
+            "current_phase": kwargs.get("current_phase"),
+            "num_phases": kwargs.get("num_phases")
         }
 
         hit_ratio = c_LRUProfiler.get_hit_ratio_phase(self.reader.c_reader, **kargs)
@@ -248,12 +248,12 @@ class CLRUProfiler:
         :param kwargs:
         :return: a numpy array of CACHE_SIZE+3, 0~CACHE_SIZE corresponds to hit rate of size 0~CACHE_SIZE,
          size 0 should always be 0, CACHE_SIZE+1 is out of range, CACHE_SIZE+2 is cold miss,
-         so total is CACHE_SIZE+3 buckets for the given phase 
+         so total is CACHE_SIZE+3 buckets for the given phase
         """
 
-        kargs = { 
-            "current_phase": kwargs.get("current_phase"), 
-            "num_phases": kwargs.get("num_phases") 
+        kargs = {
+            "current_phase": kwargs.get("current_phase"),
+            "num_phases": kwargs.get("num_phases")
         }
 
         hit_ratio = c_LRUProfiler.get_hit_ratio_phase_cont(self.reader.c_reader, **kargs)
@@ -294,6 +294,9 @@ class CLRUProfiler:
         :param kwargs: cache_unit_size (in Byte)
         :return:
         """
+        import matplotlib.pyplot as plt
+        from matplotlib.ticker import FuncFormatter
+
         # EXTENTION_LENGTH is used only when auto_resize is enabled,
         # to extend the cache size from stop point for EXTENTION_LENGTH items
         # this is used to make the curve have some part of plateau

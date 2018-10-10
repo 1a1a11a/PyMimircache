@@ -348,7 +348,6 @@ static PyObject* generalProfiler_get_eviction_age(PyObject* self,
         else{
             for (j=0; j<reader->base->total_num; j++){
                 one_dim_array[j] = ((gint64*) results[i]->other_data)[j];
-//                printf("set %ld %ld %ld\n", i, j, ((gint64*) results[i]->other_data)[j]);
             }
         }
 
@@ -362,9 +361,159 @@ static PyObject* generalProfiler_get_eviction_age(PyObject* self,
     return ret_array;
 }
 
+/** return a two-dim array, num_of_bins * num_of_req, each line represents
+ *  whether it is a hit or miss for the req
+ **/
+static PyObject* generalProfiler_get_hit_result(PyObject* self,
+                                               PyObject* args,
+                                               PyObject* keywds)
+{
+    PyObject* po;
+    reader_t* reader;
+    int num_of_threads = 4;
+    long cache_size;
+    int bin_size = -1;
+    char* algorithm;
+    struct_cache* cache;
+    profiler_type_e prof_type = e_hit_result;
+    PyObject* cache_params;
+
+    static char *kwlist[] = {"reader", "algorithm", "cache_size", "bin_size",
+        "cache_params", "num_of_threads", NULL};
+
+    // parse arguments
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osli|Oi", kwlist, &po,
+                                     &algorithm, &cache_size, &bin_size,
+                                     &cache_params, &num_of_threads)) {
+        ERROR("parsing argument failed");
+        return NULL;
+    }
 
 
+    if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
+        ERROR("reader pointer error");
+        return NULL;
+    }
 
+    // build cache
+    cache = build_cache(reader, cache_size, algorithm, cache_params, 0);
+
+    // get hit rate
+    return_res_t** results = profiler(reader, cache, num_of_threads, bin_size, prof_type);
+
+    // create numpy array
+    guint i, j;
+    guint num_of_bins = ceil((double) cache_size/bin_size)+1;
+    npy_intp dims[2] = { num_of_bins, reader->base->total_num };
+    PyObject* ret_array = PyArray_SimpleNew(2, dims, NPY_BOOL);
+
+    npy_bool* one_dim_array;
+    for(i=0; i<num_of_bins; i++){
+        one_dim_array = PyArray_GETPTR1((PyArrayObject*)ret_array, i);
+        if (i == 0)
+            memset(one_dim_array, 0, sizeof(npy_bool) * reader->base->total_num * 2);
+        else{
+            for (j=0; j<reader->base->total_num; j++){
+                if (((gboolean*) results[i]->other_data)[j])
+                    one_dim_array[j] = NPY_TRUE;
+                else
+                    one_dim_array[j] = NPY_FALSE;
+            }
+        }
+        g_free(results[i]->other_data);
+        g_free(results[i]);
+    }
+
+    cache->core->destroy(cache);
+    return ret_array;
+}
+
+
+/** return a two-dim array, num_of_bins * num_of_req, each line represents
+ *  whether it is a hit or miss for the req
+ **/
+static PyObject* generalProfiler_get_evictions(PyObject* self,
+                                                PyObject* args,
+                                                PyObject* keywds)
+{
+    PyObject* po;
+    reader_t* reader;
+    int num_of_threads = 4;
+    long cache_size;
+    int bin_size = -1;
+    char* algorithm;
+    struct_cache* cache;
+    profiler_type_e prof_type = e_evictions;
+    PyObject* cache_params;
+
+    static char *kwlist[] = {"reader", "algorithm", "cache_size", "bin_size",
+        "cache_params", "num_of_threads", NULL};
+
+    // parse arguments
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Osli|Oi", kwlist, &po,
+                                     &algorithm, &cache_size, &bin_size,
+                                     &cache_params, &num_of_threads)) {
+        ERROR("parsing argument failed");
+        return NULL;
+    }
+
+
+    if (!(reader = (reader_t*) PyCapsule_GetPointer(po, NULL))) {
+        ERROR("reader pointer error");
+        return NULL;
+    }
+
+    // build cache
+    cache = build_cache(reader, cache_size, algorithm, cache_params, 0);
+
+    // get eviction results
+    return_res_t** results = profiler(reader, cache, num_of_threads, bin_size, prof_type);
+
+    // create twp-dim array
+    guint i, j;
+    guint num_of_bins = ceil((double) cache_size/bin_size)+1;
+
+
+    PyObject* py_obj;
+    PyListObject* list = (PyListObject*) PyList_New(reader->base->total_num);
+
+    for(i=0; i<num_of_bins; i++){
+
+        for (j=0; j<reader->base->total_num; j++){
+            if (reader->base->data_type == 'c'){
+                py_obj = PyUnicode_FromString( (const char*) ( (gpointer*) results[i]->other_data)[j] );
+            }
+            else {
+                py_obj = PyLong_FromLong(( (guint64*) results[i]->other_data)[j] );
+
+            }
+            PyList_Append(list, py_obj);
+        }
+    }
+
+
+    npy_intp dims[2] = { num_of_bins, reader->base->total_num };
+    PyObject* ret_array = PyArray_SimpleNew(2, dims, NPY_BOOL);
+
+    // npy_bool* one_dim_array;
+    //     one_dim_array = PyArray_GETPTR1((PyArrayObject*)ret_array, i);
+    //     if (i == 0)
+    //         memset(one_dim_array, 0, sizeof(npy_bool) * reader->base->total_num * 2);
+    //     else{
+    //         for (j=0; j<reader->base->total_num; j++){
+    //             if (((gboolean*) results[i]->other_data)[j])
+    //                 one_dim_array[j] = NPY_TRUE;
+    //             else
+    //                 one_dim_array[j] = NPY_FALSE;
+    //         }
+    //     }
+    //     g_free(results[i]->other_data);
+    //     g_free(results[i]);
+    // }
+
+    cache->core->destroy(cache);
+    return ret_array;
+}
 
 
 
@@ -381,6 +530,8 @@ static PyMethodDef GeneralProfiler_funcs[] = {
         METH_VARARGS | METH_KEYWORDS, "get partition hit rate numpy array"},
     {"get_eviction_age", (PyCFunction)generalProfiler_get_eviction_age,
         METH_VARARGS | METH_KEYWORDS, "get eviction numpy array"},
+    {"get_hit_result", (PyCFunction)generalProfiler_get_hit_result,
+        METH_VARARGS | METH_KEYWORDS, "get hit result two dimensional array"},
 
     {NULL, NULL, 0, NULL}
 };

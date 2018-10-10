@@ -8,11 +8,12 @@
 
 
 from PyMimircache.const import DEF_EMA_HISTORY_WEIGHT
-
+from PyMimircache.profiler.utils.KL import transform_rd_list_to_rd_cnt, cal_KL_from_rd_cnt_cdf
 
 def cal_hr_LRU(rd, last_access_dist, cache_size, start=0, end=-1, **kwargs):
     """
     calculate the hit ratio of a given range of reuse distance
+
     :param rd: reuse distance list
     :param last_access_dist: how far in the past is last request, absolute distance
     :param cache_size: size of cache
@@ -86,7 +87,7 @@ def cal_hr_list_LRU(rd, last_access_dist, cache_size, bp, bp_start_pos, **kwargs
 
 def cal_hr_list_general(reader_class, reader_params, cache_class, cache_size, bp, bp_start_pos, **kwargs):
     """
-    the computation function for heatmap hr_st_et of LRU,
+    the computation function for heatmap hr_st_et of a general algorithm,
     it calculates a vertical line of hit ratio
 
     :param reader_class: the __class__ attribute of reader, this will be used to create local reader instance
@@ -137,3 +138,27 @@ def cal_hr_list_general(reader_class, reader_params, cache_class, cache_size, bp
 
     process_reader.close()
     return hr_list
+
+
+def cal_KL(rd_list, bp, start, epsilon=0.01):
+    """
+    given two list of reuse distance list, calculate KL
+    rd_list1 should be the True value
+
+
+    :param rd_list1:
+    :param rd_list2:
+    :param epsilon: smoothing
+    :return:
+    """
+
+    KL_list = []
+    rd_list1 = rd_list[bp[start] : bp[start+1]]
+    rd_cnt1 = transform_rd_list_to_rd_cnt(rd_list1, percentage=True, normalize=False, cdf=True)
+
+    for i in range(start, len(bp)-1):
+        rd_list2 = rd_list[bp[i]:bp[i+1]]
+        rd_cnt2 = transform_rd_list_to_rd_cnt(rd_list2, percentage=True, normalize=False, cdf=True)
+        KL_list.append(cal_KL_from_rd_cnt_cdf(rd_cnt1, rd_cnt2, epsilon))
+
+    return KL_list

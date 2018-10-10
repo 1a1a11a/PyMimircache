@@ -18,8 +18,9 @@ import numpy as np
 
 from concurrent.futures import as_completed, ProcessPoolExecutor
 
-from PyMimircache.cacheReader.abstractReader import AbstractReader
 from PyMimircache.const import *
+from PyMimircache.const import cache_name_to_class
+from PyMimircache.cacheReader.abstractReader import AbstractReader
 from PyMimircache.utils.printing import *
 from PyMimircache.profiler.profilerUtils import util_plotHRC
 

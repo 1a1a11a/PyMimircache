@@ -62,6 +62,8 @@ from PyMimircache.cache.random import Random
 from PyMimircache.cache.s4lru import S4LRU
 from PyMimircache.cache.slru import SLRU
 from PyMimircache.cache.clock import Clock
+
+
 from PyMimircache.cacheReader.csvReader import CsvReader
 from PyMimircache.cacheReader.plainReader import PlainReader
 from PyMimircache.cacheReader.vscsiReader import VscsiReader
@@ -79,27 +81,21 @@ C_AVAIL_CACHE = ["lru", "fifo", "optimal", "arc", "random",
 
 C_AVAIL_CACHEREADER = [PlainReader, VscsiReader, CsvReader, BinaryReader]
 
-CACHE_NAME_CONVRETER = {"optimal": "Optimal", "opt": "Optimal",
-                        "rr": "Random", "random": "Random",
-                        "lru": "LRU", "mru": "MRU", "fifo": "FIFO", "clock": "Clock", "arc": "ARC",
-                        "lfu": "LFU", "lfu_fast": "LFUFast", "lfufast": "LFUFast",
-
-                        "lru_k": "LRU_K", "lru_2": "LRU_2",
-                        "slru": "SLRU", "s4lru": "S4LRU",
-                        "mimir": "mimir", "mithril": "Mithril", "amp": "AMP", "pg": "PG",
-
-                        "lrfu": "LRFU", "slruml": "SLRUML", "scoreml": "ScoreML",
-
-                        "akamai": "akamai", "new1": "new1", "new2": "new2",
-                        "asig": "ASig", "asig2": "ASig2", "asig3": "ASig3",
-                        "asig4": "ASig4", "asig5": "ASig5", "asigopt": "ASigOPT"
-                        }
 
 CACHE_NAME_TO_CLASS_DICT = {"LRU":LRU, "MRU":MRU, "ARC":ARC, "Optimal":Optimal,
                             "FIFO":FIFO, "Clock":Clock, "Random":Random,
-
                             "SLRU":SLRU, "S4LRU":S4LRU,
                             }
+
+CACHE_NAME_CONVRETER = {}
+for alg_name in CACHE_NAME_TO_CLASS_DICT.keys():
+    CACHE_NAME_CONVRETER[alg_name.lower()] = alg_name
+
+CACHE_NAME_CONVRETER.update( {"opt": "Optimal",
+                        "rr": "Random",
+                        "lfu": "LFUFast", "lfu_fast": "LFUFast", "lfufast": "LFUFast",
+                        } )
+
 
 
 def cache_name_to_class(cache_name):

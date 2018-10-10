@@ -27,17 +27,14 @@ class Optimal(Cache):
         self.pq = heapdict()
         self.ts = 0
 
-
     def has(self, req_id, **kwargs):
         """
         :param **kwargs:
         :param req_id:
         :return: whether the given element is in the cache
         """
-        if req_id in self.pq:
-            return True
-        else:
-            return False
+        return req_id in self.pq
+
 
     def set_init_ts(self, ts):
         """ this is used for synchronizing ts in profiler if the
@@ -63,6 +60,7 @@ class Optimal(Cache):
         :param req_item:
         :return: True on success, False on failure
         """
+
         if self.next_access[self.ts] == -1:
             pass
         else:
@@ -99,10 +97,20 @@ class Optimal(Cache):
         else:
             self._insert(req_item, )
             if len(self.pq) > self.cache_size:
-                self.evict()
+                evict_item = self.evict()
+                if "evict_item_list" in kwargs:
+                    kwargs["evict_item_list"].append(evict_item)
             self.ts += 1
             return False
 
+    def __contains__(self, req_item):
+        return req_item in self.pq
+
+    def __len__(self):
+        return len(self.pq)
+
+    def get_size(self, **kwargs):
+        return len(self.pq)
+
     def __repr__(self):
-        return "Optimal Cache, current size: {}".\
-            format(self.cache_size, super().__repr__())
+        return "Optimal Cache of size {}, current size: {}, {}".format(self.cache_size, self.get_size(), super().__repr__())

@@ -20,6 +20,7 @@ if ALLOW_C_MIMIRCACHE and not INSTALL_PHASE:
     from PyMimircache.profiler.cLRUProfiler import CLRUProfiler as LRUProfiler
     from PyMimircache.profiler.cGeneralProfiler import CGeneralProfiler as CGeneralProfiler
     from PyMimircache.profiler.cHeatmap import CHeatmap as CHeatmap
+    from PyMimircache.profiler.pyGeneralProfiler import PyGeneralProfiler as PyGeneralProfiler
 else:
     from PyMimircache.profiler.pyGeneralProfiler import PyGeneralProfiler as PyGeneralProfiler
     from PyMimircache.profiler.pyHeatmap import PyHeatmap as PyHeatmap
@@ -402,11 +403,11 @@ class Cachecow:
                                                 cache_size, bin_size,
                                                 cache_params=cache_params, num_of_threads=num_of_threads)
                     else:
-                        profiler = PyGeneralProfiler(self.reader, self.cacheclass_mapping[algorithm.lower()],
+                        profiler = PyGeneralProfiler(self.reader, CACHE_NAME_CONVRETER[algorithm.lower()],
                                                    cache_size, bin_size,
                                                    cache_params=cache_params, num_of_threads=num_of_threads)
                 else:
-                    profiler = PyGeneralProfiler(self.reader, self.cacheclass_mapping[algorithm.lower()],
+                    profiler = PyGeneralProfiler(self.reader, CACHE_NAME_CONVRETER[algorithm.lower()],
                                                  cache_size, bin_size,
                                                  cache_params=cache_params, num_of_threads=num_of_threads)
             else:
@@ -619,7 +620,7 @@ class Cachecow:
         elif plot_type == "rt_popularity":
             return rt_popularity_2d(self.reader, **kwargs)
 
-        elif plot_type == 'scan_vis':
+        elif plot_type == 'scan_vis' or plot_type == "mapping":
             scan_vis_2d(self.reader, **kwargs)
 
         elif plot_type == "interval_hit_ratio" or plot_type == "IHRC":

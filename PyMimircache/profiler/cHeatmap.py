@@ -87,7 +87,7 @@ class CHeatmap:
         :param time_interval: the time interval of each pixel
         :param num_of_pixel_of_time_dim: if don't want to specify time_interval, you can also specify how many pixels you want
         :param cache_params: params used in cache
-        :param kwargs: include num_of_threads, figname, enable_ihr, ema_coef(default: 0.8)
+        :param kwargs: include num_of_threads, figname, enable_ihr, ema_coef(default: 0.8), info_on_fig
         :return:
 
 
@@ -160,7 +160,8 @@ class CHeatmap:
             yticks = ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (xydict.shape[1]-1)))
             # yticks = ticker.FuncFormatter(lambda x, _: int(x*bin_size))
             ax = plt.gca()
-            ax.text(x1, y1, text)  # , fontsize=20)  , color='blue')
+            if kwargs.get("info_on_fig", True):
+                ax.text(x1, y1, text)  # , fontsize=20)  , color='blue')
 
             plot_data = np.ma.array(xydict, mask=np.tri(len(xydict), dtype=int).T)
             self.draw_heatmap(plot_data, figname=figname, fixed_range=(0, 1),

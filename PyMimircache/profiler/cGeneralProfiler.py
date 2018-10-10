@@ -24,6 +24,7 @@ from PyMimircache.const import ALLOW_C_MIMIRCACHE, INSTALL_PHASE
 if ALLOW_C_MIMIRCACHE and not INSTALL_PHASE:
     import PyMimircache.CMimircache.GeneralProfiler as c_generalProfiler
 from PyMimircache.const import *
+# from PyMimircache.const import CACHE_NAME_CONVRETER, INSTALL_PHASE, ALLOW_C_MIMIRCACHE, DEF_NUM_BIN_PROF, DEF_NUM_THREADS, DEF_EMA_HISTORY_WEIGHT
 from PyMimircache.profiler.profilerUtils import util_plotHRC
 
 
@@ -35,13 +36,13 @@ class CGeneralProfiler:
            "get_hit_ratio",
            "plotHRC"]
 
-    def __init__(self, reader, cache_name, cache_size,
+    def __init__(self, reader, cache_alg, cache_size,
                  bin_size=-1, num_of_bins=-1, cache_params=None, **kwargs):
 
         """
         initialization of a cGeneralProfiler
         :param reader:
-        :param cache_name:
+        :param cache_alg:
         :param cache_size:
         :param bin_size: the sample granularity, the smaller the better, but also much longer run time
         :param cache_params: parameters about the given cache replacement algorithm
@@ -51,7 +52,7 @@ class CGeneralProfiler:
         # make sure reader is valid
         self.reader = reader
         self.cache_size = cache_size
-        self.cache_name = CACHE_NAME_CONVRETER[cache_name.lower()]
+        self.cache_name = CACHE_NAME_CONVRETER[cache_alg.lower()]
         self.bin_size = bin_size
         self.num_of_bins = num_of_bins
         self.hit_count = None
@@ -60,9 +61,9 @@ class CGeneralProfiler:
         assert isinstance(reader, AbstractReader), \
             "you provided an invalid cacheReader: {}".format(reader)
 
-        assert cache_name.lower() in CACHE_NAME_CONVRETER, \
-            "please check your cache replacement algorithm: " + cache_name
-        assert cache_name.lower() in C_AVAIL_CACHE, \
+        assert cache_alg.lower() in CACHE_NAME_CONVRETER, \
+            "please check your cache replacement algorithm: " + cache_alg
+        assert cache_alg.lower() in C_AVAIL_CACHE, \
             "cGeneralProfiler currently only available on the following caches: {}\n, " \
             "please use generalProfiler".format(pformat(C_AVAIL_CACHE))
 
@@ -142,7 +143,7 @@ class CGeneralProfiler:
         the nth element of the row corresponds to the eviction age of nth request,
         if the nth request is reused before evicted or not evicted (like ending of trace), then the
         eviction age is -1.
-        .. NOTE: the first row will have always be array of zero because it corresponds to size zero.
+        .. NOTE: the first row will always be an array of zero because it corresponds to size zero.
         """
 
         sanity_kwargs = {"num_of_threads": kwargs.get("num_of_threads", self.num_of_threads)}
@@ -156,6 +157,31 @@ class CGeneralProfiler:
                                                               bin_size,
                                                               cache_params=cache_params,
                                                               **sanity_kwargs)
+
+
+    def get_hit_result(self, **kwargs):
+        """
+        obtain the hit result (whether it is a hit or miss) under specified cache replacement algorithm and cache size
+        :param kwargs: Not used
+        :return: a two-dimensional numpy array with shape num_of_bin * num_of_req,
+        each row is an array of True/False (hit_result) corresponding to cache_size = bin_size * row_id (beginning from 0),
+        for example, the second row is hit result of cache_size = bin_size * (2-1),
+        the nth element of the row corresponds to the whether it is hit or miss of nth request,
+        if the nth request is a hit, then it is True, otherwise False.
+        .. NOTE: the first row will always be an array of False because it corresponds to size zero.
+        """
+
+        sanity_kwargs = {"num_of_threads": kwargs.get("num_of_threads", self.num_of_threads)}
+        cache_size = kwargs.get("cache_size", self.cache_size)
+        bin_size = kwargs.get("bin_size", self.bin_size)
+        cache_params = kwargs.get("cache_params", self.cache_params)
+
+        return c_generalProfiler.get_hit_result(self.reader.c_reader,
+                                                  self.cache_name,
+                                                  cache_size,
+                                                  bin_size,
+                                                  cache_params=cache_params,
+                                                  **sanity_kwargs)
 
 
     def get_hit_count(self, **kwargs):
