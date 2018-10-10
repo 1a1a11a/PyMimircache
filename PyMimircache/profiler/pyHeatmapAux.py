@@ -6,9 +6,9 @@
     Author: Juncheng Yang <peter.waynechina@gmail.com> 02/2018
 """
 
-
+from PyMimircache.utils.printing import *
 from PyMimircache.const import DEF_EMA_HISTORY_WEIGHT
-from PyMimircache.profiler.utils.KL import transform_rd_list_to_rd_cnt, cal_KL_from_rd_cnt_cdf
+
 
 def cal_hr_LRU(rd, last_access_dist, cache_size, start=0, end=-1, **kwargs):
     """
@@ -151,14 +151,19 @@ def cal_KL(rd_list, bp, start, epsilon=0.01):
     :param epsilon: smoothing
     :return:
     """
+    try:
+        from PyMimircache.profiler.utils.KL import transform_rd_list_to_rd_cnt, cal_KL_from_rd_cnt_cdf
 
-    KL_list = []
-    rd_list1 = rd_list[bp[start] : bp[start+1]]
-    rd_cnt1 = transform_rd_list_to_rd_cnt(rd_list1, percentage=True, normalize=False, cdf=True)
+        KL_list = []
+        rd_list1 = rd_list[bp[start] : bp[start+1]]
+        rd_cnt1 = transform_rd_list_to_rd_cnt(rd_list1, percentage=True, normalize=False, cdf=True)
 
-    for i in range(start, len(bp)-1):
-        rd_list2 = rd_list[bp[i]:bp[i+1]]
-        rd_cnt2 = transform_rd_list_to_rd_cnt(rd_list2, percentage=True, normalize=False, cdf=True)
-        KL_list.append(cal_KL_from_rd_cnt_cdf(rd_cnt1, rd_cnt2, epsilon))
+        for i in range(start, len(bp)-1):
+            rd_list2 = rd_list[bp[i]:bp[i+1]]
+            rd_cnt2 = transform_rd_list_to_rd_cnt(rd_list2, percentage=True, normalize=False, cdf=True)
+            KL_list.append(cal_KL_from_rd_cnt_cdf(rd_cnt1, rd_cnt2, epsilon))
 
-    return KL_list
+        return KL_list
+    except:
+        ERROR("cannot find KL module")
+        return
