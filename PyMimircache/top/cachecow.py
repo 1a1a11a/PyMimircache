@@ -694,6 +694,7 @@ class Cachecow:
         profiling_with_size = False
         LRU_HR = None
 
+        assert self.reader is not None, "you must open trace before profiling"
         if cache_size == -1 and auto_resize:
             LRU_HR = LRUProfiler(self.reader, no_load_rd=no_load_rd).plotHRC(auto_resize=True, threshold=threshold, no_save=True)
             cache_size = len(LRU_HR)
@@ -735,7 +736,7 @@ class Cachecow:
                                      num_of_threads=num_of_threads, no_load_rd=no_load_rd)
             t1 = time.time()
 
-            if alg == "LRU":
+            if alg.lower() == "lru":
                 if LRU_HR is None:  # no auto_resize
                     hr = profiler.get_hit_ratio()
                     if use_general_profiler:
