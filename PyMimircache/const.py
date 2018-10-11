@@ -69,14 +69,11 @@ from PyMimircache.cacheReader.plainReader import PlainReader
 from PyMimircache.cacheReader.vscsiReader import VscsiReader
 from PyMimircache.cacheReader.binaryReader import BinaryReader
 
-# global C_AVAIL_CACHE
+# global C_AVAIL_CACHE (lower case)
 C_AVAIL_CACHE = ["lru", "fifo", "optimal", "arc", "random",
                      "lfufast", "lfu", "mru",
                      "slru", "lru_k", "lru_2",
                      "mimir", "mithril", "amp", "pg ",
-
-                     "lrfu", "slruml", "scoreml",
-                     "akamai"
                  ]
 
 C_AVAIL_CACHEREADER = [PlainReader, VscsiReader, CsvReader, BinaryReader]
@@ -87,15 +84,21 @@ CACHE_NAME_TO_CLASS_DICT = {"LRU":LRU, "MRU":MRU, "ARC":ARC, "Optimal":Optimal,
                             "SLRU":SLRU, "S4LRU":S4LRU,
                             }
 
+# used to mapping user provided cache name to a unified cache replacement alg name (Appearntly this is not a good idea)
 CACHE_NAME_CONVRETER = {}
 for alg_name in CACHE_NAME_TO_CLASS_DICT.keys():
     CACHE_NAME_CONVRETER[alg_name.lower()] = alg_name
+
+CACHE_NAME_CONVRETER.update({
+    "lru": "LRU", "fifo": "FIFO", "optimal": "Optimal",
+    "arc": "ARC", "random": "Random", "mru": "MRU", "slru": "SLRU",
+    "lru_k": "LRU_K", "lru_2": "LRU_2", "mimir": "mimir", "mithril": "Mithril", "amp": "AMP", "pg": "PG",
+})
 
 CACHE_NAME_CONVRETER.update( {"opt": "Optimal",
                         "rr": "Random",
                         "lfu": "LFUFast", "lfu_fast": "LFUFast", "lfufast": "LFUFast",
                         } )
-
 
 
 def cache_name_to_class(cache_name):
