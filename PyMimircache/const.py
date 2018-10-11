@@ -62,6 +62,7 @@ from PyMimircache.cache.random import Random
 from PyMimircache.cache.s4lru import S4LRU
 from PyMimircache.cache.slru import SLRU
 from PyMimircache.cache.clock import Clock
+from PyMimircache.cache.secondChance import SecondChance
 
 
 from PyMimircache.cacheReader.csvReader import CsvReader
@@ -80,7 +81,7 @@ C_AVAIL_CACHEREADER = [PlainReader, VscsiReader, CsvReader, BinaryReader]
 
 
 CACHE_NAME_TO_CLASS_DICT = {"LRU":LRU, "MRU":MRU, "ARC":ARC, "Optimal":Optimal,
-                            "FIFO":FIFO, "Clock":Clock, "Random":Random,
+                            "FIFO":FIFO, "Clock":Clock, "Random":Random, "SecondChance": SecondChance,
                             "SLRU":SLRU, "S4LRU":S4LRU,
                             }
 

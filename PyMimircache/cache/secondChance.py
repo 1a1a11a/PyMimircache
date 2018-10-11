@@ -1,26 +1,26 @@
 # coding=utf-8
 
 """
-    This is the new implementation of LRU using OrderedDict, and it is
-    slightly faster than original implementation using home-made LinkedList
+    This is the implementation of second change cache replacement algorithm
 
 
 """
 
-from collections import OrderedDict
+from collections import OrderedDict, deque
 from PyMimircache.cache.abstractCache import Cache
 from PyMimircache.cacheReader.requestItem import Req
 
 
-class LRU(Cache):
+class SecondChance(Cache):
     """
     LRU class for simulating a LRU cache
 
     """
 
     def __init__(self, cache_size, **kwargs):
-        super().__init__(cache_size, **kwargs)
-        self.cacheline_dict = OrderedDict()
+        super(SecondChance, self).__init__(cache_size, **kwargs)
+        self.cacheline_list = deque()
+        self.cacheline_dict = {}
 
     def has(self, req_id, **kwargs):
         """
@@ -45,8 +45,8 @@ class LRU(Cache):
         req_id = req_item
         if isinstance(req_item, Req):
             req_id = req_item.item_id
+        self.cacheline_dict[req_id] = 1
 
-        self.cacheline_dict.move_to_end(req_id)
 
     def _insert(self, req_item, **kwargs):
         """
@@ -59,8 +59,9 @@ class LRU(Cache):
         req_id = req_item
         if isinstance(req_item, Req):
             req_id = req_item.item_id
+        self.cacheline_list.append(req_id)
+        self.cacheline_dict[req_id] = 1
 
-        self.cacheline_dict[req_id] = True
 
     def evict(self, **kwargs):
         """
@@ -70,8 +71,14 @@ class LRU(Cache):
         :return: id of evicted cacheline
         """
 
-        req_id = self.cacheline_dict.popitem(last=False)
-        return req_id[0]
+        req_id = self.cacheline_list.popleft()
+        while self.cacheline_dict[req_id] == 1:
+            self.cacheline_dict[req_id] = 0
+            self.cacheline_list.append(req_id)
+            req_id = self.cacheline_list.popleft()
+
+        del self.cacheline_dict[req_id]
+        return req_id
 
     def access(self, req_item, **kwargs):
         """
@@ -83,19 +90,17 @@ class LRU(Cache):
         :return: None
         """
 
+        assert len(self.cacheline_list) == len(self.cacheline_dict)
         req_id = req_item
         if isinstance(req_item, Req):
             req_id = req_item.item_id
 
         if self.has(req_id):
-            self._update(req_item)
             return True
         else:
             self._insert(req_item)
-            if len(self.cacheline_dict) > self.cache_size:
+            if len(self.cacheline_list) > self.cache_size:
                 evict_item = self.evict()
-                if "evict_item_list" in kwargs:
-                    kwargs["evict_item_list"].append(evict_item)
             return False
 
     def __contains__(self, req_item):
@@ -105,5 +110,5 @@ class LRU(Cache):
         return len(self.cacheline_dict)
 
     def __repr__(self):
-        return "LRU cache of size: {}, current size: {}".\
+        return "SecondChance cache of size: {}, current size: {}".\
             format(self.cache_size, len(self.cacheline_dict))

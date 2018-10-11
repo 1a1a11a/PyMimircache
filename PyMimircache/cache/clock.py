@@ -1,110 +1,117 @@
 # coding=utf-8
-from PyMimircache.cache.lru import LRU
+
+"""
+    This is the implementation of clock replacement algorithm
 
 
-class Clock(LRU):
+    author: Jason <peter.waynechina@gmail.com>
+    2018/10/10
+
+"""
+
+from PyMimircache.cache.abstractCache import Cache
+from PyMimircache.cacheReader.requestItem import Req
+
+
+class Clock(Cache):
     """
-    second chance page replacement algorithm
+    Clock class for simulating a Clock cache
+
     """
 
-    def __init__(self, cache_size=1000, **kwargs):
-        # use node id to represent the reference bit
+    def __init__(self, cache_size, **kwargs):
         super(Clock, self).__init__(cache_size, **kwargs)
-        self.hand = None  # points to the node for examination/eviction
+        self.cacheline_list = [(None, 0)] * self.cache_size
+        self.cacheline_dict = {}
+        self.hand = 0       # always keep the hand at the pos where new request can be inserted
+
+    def has(self, req_id, **kwargs):
+        """
+        check whether the given id in the cache or not
+
+        :return: whether the given element is in the cache
+        """
+        if req_id in self.cacheline_dict:
+            return True
+        else:
+            return False
 
     def _update(self, req_item, **kwargs):
-        """ the given element is in the cache, now update it
+        """ the given element is in the cache,
+        now update cache metadata and its content
+
         :param **kwargs:
         :param req_item:
         :return: None
         """
-        node = self.cache_dict[req_item]
-        node.id = 1
+        pass
+
 
     def _insert(self, req_item, **kwargs):
         """
         the given element is not in the cache, now insert it into cache
         :param **kwargs:
         :param req_item:
-        :return: True on success, False on failure
+        :return: evicted element or None
         """
-        if self.cache_linked_list.size >= self.cache_size:
-            self.evict()
 
-        node = self.cache_linked_list.insert_at_tail(req_item, id=1)
-        self.cache_dict[req_item] = node
-        if not self.hand:
-            # this is the first req_item
-            assert self.cache_linked_list.size == 1, "insert req_item error"
-            self.hand = node
+        req_id = req_item
+        if isinstance(req_item, Req):
+            req_id = req_item.item_id
+        assert self.cacheline_list[self.hand][0] is None or self.cacheline_list[self.hand][1] == -1, \
+            "current pos {}, hand {}".format(self.cacheline_list[self.hand], self.hand)
+        self.cacheline_list[self.hand] = (req_id, 1)
+        self.cacheline_dict[req_id] = self.hand
+        self.hand = (self.hand + 1) % self.cache_size
 
-    def _print_cache_line(self):
-        for i in self.cache_linked_list:
-            try:
-                print("{}({})".format(i.content, i.id), end='\t')
-            except:
-                print("{}({})".format(i.content, i.id))
-
-        print(' ')
-
-    def _find_evict_node(self):
-        node = self.hand
-        if node.id == 0:
-            self.hand = node.next
-            if not self.hand:
-                # tail
-                self.hand = self.cache_linked_list.next
-            return node
-        else:
-            # set reference bit to 0
-            while node.id == 1:
-                node.set_id(0)
-                node = node.next
-                if not node:
-                    # tail
-                    node = self.cache_linked_list.head.next
-            self.hand = node.next
-            return node
 
     def evict(self, **kwargs):
         """
-        evict one element from the cache line
-        :param **kwargs:
-        :return: True on success, False on failure
-        """
-        node = self._find_evict_node()
-        self.cache_linked_list.remove_node(node)
-        del self.cache_dict[node.content]
+        evict one cacheline from the cache
 
-        return True
+        :param **kwargs:
+        :return: id of evicted cacheline
+        """
+
+        while self.cacheline_list[self.hand][1] == 1:
+            self.cacheline_list[self.hand] = (self.cacheline_list[self.hand][0], 0)
+            self.hand = (self.hand + 1) % self.cache_size
+
+        req_id = self.cacheline_list[self.hand][0]
+        del self.cacheline_dict[req_id]
+        self.cacheline_list[self.hand] = (self.cacheline_list[self.hand][0], -1)
+        # self.hand = (self.hand + 1) % self.cache_size
+        return req_id
+
 
     def access(self, req_item, **kwargs):
         """
-        :param **kwargs: 
-        :param req_item: the element in the reference, it can be in the cache, or not
+        request access cache, it updates cache metadata,
+        it is the underlying method for both get and put
+
+        :param **kwargs:
+        :param req_item: the request from the trace, it can be in the cache, or not
         :return: None
         """
-        if self.has(req_item, ):
-            self._update(req_item, )
-            if len(self.cache_dict) != self.cache_linked_list.size:
-                print(
-                    "1*********########### ERROR detected in LRU size #############***********")
-                print("{}: {}".format(
-                    self.cache_linked_list.size, len(self.cache_dict)))
-                import sys
-                sys.exit(-1)
+
+        req_id = req_item
+        if isinstance(req_item, Req):
+            req_id = req_item.item_id
+
+        if self.has(req_id):
             return True
         else:
-            self._insert(req_item, )
-            if len(self.cache_dict) != self.cache_linked_list.size:
-                print(
-                    "2*********########### ERROR detected in LRU size #############***********")
-                print("{}: {}".format(
-                    self.cache_linked_list.size, len(self.cache_dict)))
-                import sys
-                sys.exit(-1)
+            if len(self.cacheline_dict) >= self.cache_size:
+                evict_item = self.evict()
+            self._insert(req_item)
             return False
 
+    def __contains__(self, req_item):
+        return req_item in self.cacheline_dict
+
+    def __len__(self):
+        return len(self.cacheline_dict)
+
     def __repr__(self):
-        return "second chance cache, given size: {}, current size: {}, {}".format(
-            self.cache_size, self.cache_linked_list.size, super().__repr__())
+        return "Clock cache of size: {}, current size: {}".\
+            format(self.cache_size, len(self.cacheline_dict))
