@@ -82,7 +82,7 @@ C_AVAIL_CACHEREADER = [PlainReader, VscsiReader, CsvReader, BinaryReader]
 
 
 CACHE_NAME_TO_CLASS_DICT = {"LRU":LRU, "MRU":MRU, "ARC":ARC, "Optimal":Optimal,
-                            "FIFO":FIFO, "Clock":Clock, "LinuxClock":LinuxClock, Random":Random, "SecondChance": SecondChance,
+                            "FIFO":FIFO, "Clock":Clock, "LinuxClock":LinuxClock, "Random":Random, "SecondChance": SecondChance,
                             "SLRU":SLRU, "S4LRU":S4LRU,
                             }
 
