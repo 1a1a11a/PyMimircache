@@ -58,7 +58,7 @@ Supported Features
 ------------------
 * Cache replacement algorithms simulation.
 * trace visualization.
-* A variety of cache replacement algorithms, including LRU, LFU, MRU, FIFO, Clock, Random, ARC, SLRU, Optimal and etc.
+* A variety of cache replacement algorithms, including LRU, LFU, MRU, FIFO, Clock, LinuxClock, Random, ARC, SLRU, Optimal and etc.
 * Hit/miss ratio curve (HRC/MRC) plotting.
 * Efficient reuse distance calculation for LRU.
 * Heatmap plotting for visualizing cache dynamics.
