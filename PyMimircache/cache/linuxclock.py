@@ -15,7 +15,7 @@ from PyMimircache.cacheReader.requestItem import Req
 
 HI_WATERMARK = 4.0
 LOW_WATERMARK = 2.0
-
+BALANCE_TRIG = 0.9
 
 class LinuxClock(Cache):
     """
@@ -35,7 +35,7 @@ class LinuxClock(Cache):
 
     def _balance_lists(self, **kwargs):
 
-        if len(self.cacheline_inactive_dict) != 0 and (len(self.cacheline_active_dict)  / len(self.cacheline_inactive_dict)) > HI_WATERMARK : 
+        if len(self.cacheline_inactive_dict) != 0 and ( (len(self.cacheline_active_dict)  / len(self.cacheline_inactive_dict)) > BALANCE_TRIG) and (len(self.cacheline_active_dict)  / len(self.cacheline_inactive_dict)) > HI_WATERMARK : 
             while (len(self.cacheline_active_dict)  / len(self.cacheline_inactive_dict) > LOW_WATERMARK) :
                 tmp = self.cacheline_active_list.pop() # take one item off active's tail
                 self.cacheline_active_dict.pop(tmp)
