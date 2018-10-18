@@ -71,7 +71,6 @@ class LinuxClock(Cache):
         if req_id in self.cacheline_active_dict : # page is already active
             # self.cacheline_active_list.remove(req_id)
             # self.cacheline_active_list.insert(0, req_id)
-
             pass # do nothing
 
         else: # page is inactive, move it to the active list 
