@@ -34,6 +34,7 @@ class Tear(Cache):
         super(Tear, self).__init__(cache_size, **kwargs)
         
         self.cacheline_dict = {}
+        self.cacheline_list = []
     
         self.sampled_accesses = 0
         
@@ -56,8 +57,12 @@ class Tear(Cache):
         :param req_item:
         :return: None
         """
-        
-        pass
+        req_id = req_item
+        if isinstance(req_item, Req):
+            req_id = req_item.item_id
+        self.cacheline_list.remove(req_id)
+        self.cacheline_list.insert(0,req_id)
+        #pass
 
 
     def _insert(self, req_item, **kwargs):
@@ -73,6 +78,7 @@ class Tear(Cache):
             req_id = req_item.item_id
 
         self.cacheline_dict[req_id] = [COLD, False]
+        self.cacheline_list.insert(0,req_id)
         
 
     def evict(self, **kwargs):
@@ -86,26 +92,29 @@ class Tear(Cache):
         tmp_cold = None
         tmp_warm = None
         tmp_hot = None
-        
-        for key in self.cacheline_dict.keys():
+
+        for key in self.cacheline_list[::-1]:
             value = self.cacheline_dict[key][0]
             if (value == COLD or value == COLD_TEST): 
                 tmp_cold = key
                 self.cacheline_dict.pop(tmp_cold)
+                self.cacheline_list.remove(tmp_cold)
                 return tmp_cold
 
-        for key in self.cacheline_dict.keys():
+        for key in self.cacheline_list[::-1]:
             value = self.cacheline_dict[key][0]
             if (value == WARM or value == COOL_TEST or WARM_TEST):
                 tmp_warm = key
                 self.cacheline_dict.pop(tmp_warm)
+                self.cacheline_list.remove(tmp_warm)
                 return tmp_cold
 
-        for key in self.cacheline_dict.keys():
+        for key in self.cacheline_list[::-1]:
             value = self.cacheline_dict[key][0]
             if (value == HOT or value == HOT_TEST):
                 tmp_hot = key
                 self.cacheline_dict.pop(tmp_hot)
+                self.cacheline_list.remove(tmp_hot)
                 return tmp_cold
     
 
@@ -115,34 +124,35 @@ class Tear(Cache):
             accessed = self.cacheline_dict[key][1]
             if (accessed):
                 if (value == COLD):
-                    self.cacheline_dict[key] = COLD_TEST
+                    self.cacheline_dict[key][0] = COLD_TEST
                 elif (value == COLD_TEST):
-                    self.cacheline_dict[key] = WARM
+                    self.cacheline_dict[key][0] = WARM
                 elif (value == COOL_TEST):
-                    self.cacheline_dict[key] = WARM
+                    self.cacheline_dict[key][0] = WARM
                 elif (value == WARM):
-                    self.cacheline_dict[key] = HOT_TEST
+                    self.cacheline_dict[key][0] = HOT_TEST
                 elif (value == WARM_TEST):
-                    self.cacheline_dict[key] = HOT
+                    self.cacheline_dict[key][0] = HOT
                 elif (value == HOT_TEST):
-                    self.cacheline_dict[key] = HOT
+                    self.cacheline_dict[key][0] = HOT
                 
                 
             else: 
                 if (value == HOT):
-                    self.cacheline_dict[key] = WARM_TEST
+                    self.cacheline_dict[key][0] = WARM_TEST
                 elif (value == WARM_TEST):
-                    self.cacheline_dict[key] = WARM
+                    self.cacheline_dict[key][0] = WARM
                 elif (value == HOT_TEST):
-                    self.cacheline_dict[key] = WARM
+                    self.cacheline_dict[key][0] = WARM
                 elif (value == COLD_TEST):
-                    self.cacheline_dict[key] = COLD
+                    self.cacheline_dict[key][0] = COLD
                 elif (value == COOL_TEST):
-                    self.cacheline_dict[key] = COLD
+                    self.cacheline_dict[key][0] = COLD
                 elif (value == WARM):
-                    self.cacheline_dict[key] = COOL_TEST
+                    self.cacheline_dict[key][0] = COOL_TEST
                 
             self.cacheline_dict[key][1] = False # unset access bit
+        self.sampled_accesses = 0
 
     def access(self, req_item, **kwargs):
         """
@@ -180,5 +190,5 @@ class Tear(Cache):
         return len(self.cacheline_dict)
 
     def __repr__(self):
-        return "Tear cache of size: {}, current size: {}".\
+        return "TEAR cache of size: {}, current size: {}".\
             format(self.cache_size, len(self.cacheline_dict))
