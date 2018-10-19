@@ -63,7 +63,7 @@ from PyMimircache.cache.s4lru import S4LRU
 from PyMimircache.cache.slru import SLRU
 from PyMimircache.cache.clock import Clock
 from PyMimircache.cache.linuxclock import LinuxClock
-from PyMimircache.cache.lightLRU import LightLRU
+from PyMimircache.cache.lightlru import LightLRU
 from PyMimircache.cache.tear import Tear
 from PyMimircache.cache.secondChance import SecondChance
 
