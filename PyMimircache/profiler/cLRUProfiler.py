@@ -68,12 +68,6 @@ class CLRUProfiler:
 
         # INTERNAL USE to cache intermediate reuse distance
         self.already_load_rd = False
-        if INTERNAL_USE and not kwargs.get("no_load_rd", False) and \
-                socket.gethostname().lower() in ["master", "node2", "node3"] and \
-                ".." not in reader.file_loc and os.path.dirname(reader.file_loc):
-            if not reader.already_load_rd:
-                self.use_precomputedRD()
-                self.already_load_rd = True
 
 
     def save_reuse_dist(self, file_loc, rd_type):
@@ -121,37 +115,6 @@ class CLRUProfiler:
             WARNING("pre-computed reuse distance file does not exist")
         else:
             os.remove(rd_dat_path)
-
-
-    def use_precomputedRD(self):
-        """
-        this is an internal used function, it tries to load precomputed reuse distance to avoid the expensive
-        O(NlogN) reuse distance computation, if the data does not exists, then compute it and save it
-        :return:
-        """
-
-        has_rd = True
-        if not self.already_load_rd and not self.reader.already_load_rd:
-            if "/home/cloudphysics/traces/" not in self.reader.file_loc and \
-                    "/home/jason/ALL_DATA" not in self.reader.file_loc:
-                has_rd = False
-
-            rd_dat_path = self.reader.file_loc.replace("/home/jason/ALL_DATA/",
-                                                       "/research/jason/preComputedData/RD/")
-            rd_dat_path = rd_dat_path.replace("/home/cloudphysics/traces/",
-                                              "/research/jason/preComputedData/RD/cphyVscsi")
-            if rd_dat_path == self.reader.file_loc:
-                rd_dat_path += ".rd"
-
-            if has_rd and os.path.exists(rd_dat_path):
-                DEBUG("loading reuse distance from {}".format(rd_dat_path))
-                self.load_reuse_dist(rd_dat_path, "rd")
-            else:
-                if not os.path.exists(os.path.dirname(rd_dat_path)):
-                    os.makedirs(os.path.dirname(rd_dat_path))
-                self.save_reuse_dist(rd_dat_path, "rd")
-                INFO("reuse distance calculated and saved at {}".format(rd_dat_path))
-        return self.get_reuse_distance()
 
 
     def get_hit_count(self, **kargs):
