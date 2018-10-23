@@ -17,6 +17,8 @@ HI_WATERMARK = 4.0
 LOW_WATERMARK = 2.0
 BALANCE_TRIG = 0.9
 
+SHADOW_SIZE = 2000
+
 class LinuxClock(Cache):
     """
     LinuxClock class to approximate linux page cache eviction algorithm
@@ -28,9 +30,11 @@ class LinuxClock(Cache):
         
         self.cacheline_active_dict = {}
         self.cacheline_inactive_dict = {}
+        self.cacheline_shadow_dict = {}
         
         self.cacheline_active_list = []
         self.cacheline_inactive_list = []
+        self.cacheline_shadow_list = []
 
 
     def _balance_lists(self, **kwargs):
@@ -95,8 +99,15 @@ class LinuxClock(Cache):
         if isinstance(req_item, Req):
             req_id = req_item.item_id
 
-        self.cacheline_inactive_dict[req_id] = True # insert to inactive
-        self.cacheline_inactive_list.insert(0, req_id)
+        if (req_id in self.cacheline_shadow_dict): # if it was present in shadow list, add it to active directly
+            self.cacheline_shadow_dict.pop(req_id)
+            self.cacheline_shadow_list.remove(req_id)
+
+            self.cacheline_active_dict[req_id] = True # insert to inactive
+            self.cacheline_active_list.insert(0, req_id)
+        else:  # otherwise add it to inactive list
+            self.cacheline_inactive_dict[req_id] = True # insert to inactive
+            self.cacheline_inactive_list.insert(0, req_id)
 
     def evict(self, **kwargs):
         """
@@ -115,6 +126,14 @@ class LinuxClock(Cache):
         else: 
             tmp = self.cacheline_inactive_list.pop() # take one item off inactive's tail
             self.cacheline_inactive_dict.pop(tmp)
+
+        # -- handling shadows
+        if (len(self.cacheline_shadow_list) >= SHADOW_SIZE):
+            tmp_shadow = self.cacheline_shadow_list.pop()
+            self.cacheline_shadow_dict.pop(tmp_shadow)
+        
+        self.cacheline_shadow_dict[tmp] = True
+        self.cacheline_shadow_list.insert(0, tmp)
             
         return tmp
 
