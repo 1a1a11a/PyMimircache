@@ -7,7 +7,7 @@ The PyMimircache project benefits from the efforts of a number of people:
     replacement policies, 
   * Shureed Kabir and Arnold Yichu Lin (Emory University) contributed to the
     design and implementation.
-  * Reza Kirami (Emory University) helped with code review of PyMimircache.
+  * Reza Karimi (Emory University) helped with code review of PyMimircache.
   * Derek Donken (Emory University) helped with documentation.
   * Pranav (Emory University) finished Shards implementation.
 
