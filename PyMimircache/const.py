@@ -62,6 +62,9 @@ from PyMimircache.cache.random import Random
 from PyMimircache.cache.s4lru import S4LRU
 from PyMimircache.cache.slru import SLRU
 from PyMimircache.cache.clock import Clock
+from PyMimircache.cache.linuxclock import LinuxClock
+from PyMimircache.cache.lightlru import LightLRU
+from PyMimircache.cache.tear import Tear
 from PyMimircache.cache.secondChance import SecondChance
 
 
@@ -81,8 +84,8 @@ C_AVAIL_CACHEREADER = [PlainReader, VscsiReader, CsvReader, BinaryReader]
 
 
 CACHE_NAME_TO_CLASS_DICT = {"LRU":LRU, "MRU":MRU, "ARC":ARC, "Optimal":Optimal,
-                            "FIFO":FIFO, "Clock":Clock, "Random":Random, "SecondChance": SecondChance,
-                            "SLRU":SLRU, "S4LRU":S4LRU,
+                            "FIFO":FIFO, "Clock":Clock, "LinuxClock":LinuxClock,  "TEAR":Tear, "Random":Random, "SecondChance": SecondChance,
+                            "SLRU":SLRU, "S4LRU":S4LRU, "LightLRU" : LightLRU
                             }
 
 # used to mapping user provided cache name to a unified cache replacement alg name (Appearntly this is not a good idea)

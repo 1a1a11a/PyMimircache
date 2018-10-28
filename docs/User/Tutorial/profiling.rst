@@ -83,7 +83,7 @@ Profiling with non-LRU
 ^^^^^^^^^^^^^^^^^^^^^^
 
 Apart from LRU, we have also provided a variety of other cache replacement algorithms for you to play with,
-including Optimal, FIFO, LRU-2, LRU-K, MRU, LFU, LFU_Fast, Random, SLRU, S4LRU, clock, adaptive SLRU.
+including Optimal, FIFO, LRU-2, LRU-K, MRU, LFU, LFU_Fast, Random, SLRU, S4LRU, clock, LinuxClock, TEAR, LightLRU adaptive SLRU.
 
 .. note::
     Check :ref:`here <algorithms>` for detailed information about each cache replacement algorithms.
