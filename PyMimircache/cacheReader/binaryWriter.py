@@ -1,4 +1,5 @@
 # coding=utf-8
+from __future__ import unicode_literals
 
 """
     this module provides a binary writer, which can be used for generating binary traces
@@ -51,7 +52,8 @@ class TraceBinaryWriter:
         close writer
 
         """
-        self.ofile.close()
+        if getattr(self, "ofile", None):
+            self.ofile.close()
 
     def __del__(self):
         self.close()
