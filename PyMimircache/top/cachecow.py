@@ -1,4 +1,5 @@
 # coding=utf-8
+from __future__ import unicode_literals
 
 """
 this module offers the upper level API to user, it currently supports four types of operations,
@@ -11,9 +12,13 @@ this module offers the upper level API to user, it currently supports four types
 Author: Jason Yang <peter.waynechina@gmail.com> 2017/08
 
 """
-from matplotlib.ticker import FuncFormatter
+import os
+from multiprocessing import cpu_count
 import numpy as np
+import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+from matplotlib.ticker import FuncFormatter
+
 from PyMimircache.const import ALLOW_C_MIMIRCACHE, INSTALL_PHASE
 if ALLOW_C_MIMIRCACHE and not INSTALL_PHASE:
     import PyMimircache.CMimircache.Heatmap as c_heatmap
@@ -30,8 +35,8 @@ try:
     from PyMimircache.profiler.twoDPlots import *
 except: pass
 
-import os
-import matplotlib.pyplot as plt
+from PyMimircache.profiler.twoDPlots import *
+
 
 from PyMimircache.const import *
 from PyMimircache.utils.printing import *
@@ -39,9 +44,7 @@ from PyMimircache.cacheReader.binaryReader import BinaryReader
 from PyMimircache.cacheReader.csvReader import CsvReader
 from PyMimircache.cacheReader.plainReader import PlainReader
 from PyMimircache.cacheReader.vscsiReader import VscsiReader
-
 from PyMimircache.cacheReader.traceStat import TraceStat
-from multiprocessing import cpu_count
 from PyMimircache.profiler.profilerUtils import set_fig
 
 
@@ -74,6 +77,7 @@ class Cachecow:
         self.n_req = -1
         self.n_uniq_req = -1
         self.cacheclass_mapping = {}
+        self.size_col = -1
         #self.start_time = -1 if not "start_time" in kwargs else kwargs["start_time"]
         #self.end_time = 0 if not "end_time" in kwargs else kwargs["end_time"]
 
@@ -170,6 +174,8 @@ class Cachecow:
 
         if self.reader:
             self.reader.close()
+        if "size" in init_params:
+            self.size_col = init_params.get("size", -1)
         self.reader = CsvReader(file_path, data_type=data_type,
                                 block_unit_size=block_unit_size,
                                 disk_sector_size=disk_sector_size,
@@ -192,6 +198,8 @@ class Cachecow:
 
         if self.reader:
             self.reader.close()
+        if "size" in init_params:
+            self.size_col = init_params.get("size", -1)
         self.reader = BinaryReader(file_path, data_type=data_type,
                                    block_unit_size=block_unit_size,
                                    disk_sector_size=disk_sector_size,
@@ -209,6 +217,17 @@ class Cachecow:
 
         if self.reader:
             self.reader.close()
+        vscsi_type = kwargs.get("vscsi_type", 0)
+        if vscsi_type == 0:
+            if "vscsi1" in file_path:
+                vscsi_type = 1
+            elif "vscsi1" in file_path:
+                vscsi_type = 2
+        if vscsi_type == 1:
+            self.size_col = 2
+        elif vscsi_type == 2:
+            self.size_col = 4
+
         if "data_type" in kwargs:
             del kwargs["data_type"]
         self.reader = VscsiReader(file_path, block_unit_size=block_unit_size, **kwargs)
@@ -575,10 +594,12 @@ class Cachecow:
             cold_miss_ratio         time_mode, time_interval     cold miss ratio VS time
             request_rate            time_mode, time_interval     num of requests VS time
             popularity              NA                           Percentage of obj VS frequency
-            rd_popularity           NA                           Num of req VS reuse distance
-            rt_popularity           NA                           Num of req VS reuse time
+            rd_distribution         NA                           Num of req VS reuse distance
+            rt_distribution         NA                           Num of req VS reuse time
             scan_vis_2d             NA                           mapping from original objID to sequential number
           interval_hit_ratio        cache_size                   hit ratio of interval VS time
+          request_traffic_vol
+          obj_size_distribution
         ========================  ============================  =================================================
 
 
@@ -595,6 +616,8 @@ class Cachecow:
                 "you need to provide time_mode (r/v) for plotting cold_miss2d"
             assert "time_interval" in kwargs, \
                 "you need to provide time_interval for plotting cold_miss2d"
+            if "time_mode" not in kwargs:
+                kwargs["time_mode"] = kwargs["mode"]
             return cold_miss_count_2d(self.reader, **kwargs)
 
         elif plot_type == 'cold_miss_ratio':
@@ -602,26 +625,37 @@ class Cachecow:
                 "you need to provide time_mode (r/v) for plotting cold_miss2d"
             assert "time_interval" in kwargs, \
                 "you need to provide time_interval for plotting cold_miss2d"
+            if "time_mode" not in kwargs:
+                kwargs["time_mode"] = kwargs["mode"]
             return cold_miss_ratio_2d(self.reader, **kwargs)
 
         elif plot_type == "request_rate":
-            assert "mode" in kwargs or "time_mode" in kwargs, \
-                "you need to provide time_mode (r/v) for plotting request_rate2d"
             assert "time_interval" in kwargs, \
-                "you need to provide time_interval for plotting request_num2d"
+                "you need to provide time_interval for plotting request_rate2d"
+            kwargs["time_mode"] = kwargs.get("time_mode", "r")
             return request_rate_2d(self.reader, **kwargs)
+
+        elif plot_type == "request_traffic_vol":
+            assert "time_interval" in kwargs, \
+                "you need to provide time_interval for plotting request_rate2d"
+            kwargs["time_mode"] = kwargs.get("time_mode", "r")
+            return request_traffic_vol_2d(self.reader, size_col=self.size_col, **kwargs)
 
         elif plot_type == "popularity":
             return popularity_2d(self.reader, **kwargs)
 
-        elif plot_type == "rd_popularity":
-            return rd_popularity_2d(self.reader, **kwargs)
+        elif plot_type == "rd_distribution":
+            return rd_distribution_2d(self.reader, **kwargs)
 
-        elif plot_type == "rt_popularity":
-            return rt_popularity_2d(self.reader, **kwargs)
+        elif plot_type == "rt_distrbution":
+            return rt_distribution_2d(self.reader, **kwargs)
 
         elif plot_type == 'scan_vis' or plot_type == "mapping":
             scan_vis_2d(self.reader, **kwargs)
+
+        elif plot_type == "obj_size_distribution":
+            return obj_size_distribution_2d(self.reader, size_col=self.size_col, **kwargs)
+
 
         elif plot_type == "interval_hit_ratio" or plot_type == "IHRC":
             assert "cache_size" in kwargs, "please provide cache size for interval hit ratio curve plotting"
@@ -816,32 +850,38 @@ class Cachecow:
         if cache_size == -1:
             cache_size = trace_stat.num_of_uniq_obj//100
 
+        if self.size_col != -1:
+            INFO("now begin to plot obj_size_distribution")
+            self.twoDPlot("obj_size_distribution")
+
+            INFO("now begin to plot request_traffic_vol")
+            self.twoDPlot("request_traffic_vol", time_mode="r", time_interval=int(trace_stat.time_span//100))
+
+
+        # plots for all short/medium/long/full characterization
+        if trace_stat.time_span != 0:
+            if trace_stat.time_span != int(trace_stat.time_span):
+                ERROR("only integer time span is supported")
+            INFO("now begin to plot request rate curve")
+            self.twoDPlot("request_rate", time_mode="r", time_interval=trace_stat.time_span//100)
+
+        INFO("now begin to plot cold miss ratio curve")
+        self.twoDPlot("cold_miss_ratio", time_mode="v", time_interval=trace_stat.num_of_requests//100)
+
+        INFO("now begin to plot popularity curve")
+        self.twoDPlot("popularity")
+
+
         if characterize_type == "short":
             # short should support [basic stat, HRC of LRU, OPT, cold miss ratio, popularity]
-            INFO("now begin to plot cold miss ratio curve")
-            self.twoDPlot("cold_miss_ratio", time_mode="v", time_interval=trace_stat.num_of_requests//100)
-
-            INFO("now begin to plot popularity curve")
-            self.twoDPlot("popularity")
-
             INFO("now begin to plot hit ratio curves")
             self.plotHRCs(["LRU", "Optimal"], cache_size=cache_size, bin_size=cache_size//cpu_count()+1,
                           num_of_threads=cpu_count(),
                           use_general_profiler=True, save_gradually=True)
 
         elif characterize_type == "medium":
-            if trace_stat.time_span != 0:
-                INFO("now begin to plot request rate curve")
-                self.twoDPlot("request_rate", time_mode="r", time_interval=trace_stat.time_span//100)
-
-            INFO("now begin to plot cold miss ratio curve")
-            self.twoDPlot("cold_miss_ratio", time_mode="v", time_interval=trace_stat.num_of_requests//100)
-
-            INFO("now begin to plot popularity curve")
-            self.twoDPlot("popularity")
-
             INFO("now begin to plot scan_vis_2d plot")
-            self.twoDPlot("scan_vis_2d")
+            self.twoDPlot("scan_vis")
 
             INFO("now begin to plot hit ratio curves")
             self.plotHRCs(["LRU", "Optimal", "LFU"], cache_size=cache_size,
@@ -851,21 +891,11 @@ class Cachecow:
 
 
         elif characterize_type == "long":
-            if trace_stat.time_span != 0:
-                INFO("now begin to plot request rate curve")
-                self.twoDPlot("request_rate", mode="r", time_interval=trace_stat.time_span//100)
-
-            INFO("now begin to plot cold miss ratio curve")
-            self.twoDPlot("cold_miss_ratio", mode="v", time_interval=trace_stat.num_of_requests//100)
-
-            INFO("now begin to plot popularity curve")
-            self.twoDPlot("popularity")
-
             INFO("now begin to plot rd distribution popularity")
             self.twoDPlot("rd_distribution")
 
             INFO("now begin to plot scan_vis_2d plot")
-            self.twoDPlot("scan_vis_2d")
+            self.twoDPlot("scan_vis")
 
             INFO("now begin to plot rd distribution heatmap")
             self.heatmap("v", "rd_distribution", time_interval=trace_stat.num_of_requests//100)
@@ -876,29 +906,18 @@ class Cachecow:
                           num_of_threads=cpu_count(),
                           save_gradually=True)
 
-            if kwargs.get("print_stat", True):
-                INFO("now begin to plot hit_ratio_start_time_end_time heatmap")
+            INFO("now begin to plot hit_ratio_start_time_end_time heatmap")
             self.heatmap("v", "hit_ratio_start_time_end_time",
                          time_interval=trace_stat.num_of_requests//100,
                          cache_size=cache_size)
 
 
         elif characterize_type == "all":
-            if trace_stat.time_span != 0:
-                INFO("now begin to plot request rate curve")
-                self.twoDPlot("request_rate", mode="r", time_interval=trace_stat.time_span//200)
-
-            INFO("now begin to plot cold miss ratio curve")
-            self.twoDPlot("cold_miss_ratio", mode="v", time_interval=trace_stat.num_of_requests//200)
-
-            INFO("now begin to plot popularity curve")
-            self.twoDPlot("popularity")
-
-            INFO("now begin to plot rd distribution popularity")
+            INFO("now begin to plot rd distribution")
             self.twoDPlot("rd_distribution")
 
             INFO("now begin to plot scan_vis_2d plot")
-            self.twoDPlot("scan_vis_2d")
+            self.twoDPlot("scan_vis")
 
             INFO("now begin to plot rd distribution heatmap")
             self.heatmap("v", "rd_distribution", time_interval=trace_stat.num_of_requests//200)
@@ -914,6 +933,7 @@ class Cachecow:
             self.heatmap("v", "hit_ratio_start_time_end_time",
                          time_interval=trace_stat.num_of_requests//200,
                          cache_size=cache_size)
+
 
         return str(trace_stat)
 

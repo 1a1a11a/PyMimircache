@@ -1,4 +1,5 @@
 # coding=utf-8
+from __future__ import unicode_literals
 """
     This module provides some common utils shared by profilers
 
@@ -210,6 +211,10 @@ def set_fig(**kwargs):
             plt.gca().xaxis.set_major_formatter(xticks)
         else:
             WARNING("unknown xticks {}".format(xticks))
+
+    if kwargs.get("xtick_rotation", None):
+        plt.xticks(rotation=kwargs.get("xtick_rotation"))
+
 
     if kwargs.get('yticks', None):
         yticks = kwargs['yticks']
