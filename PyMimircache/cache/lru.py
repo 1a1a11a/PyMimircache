@@ -22,45 +22,34 @@ class LRU(Cache):
         super().__init__(cache_size, **kwargs)
         self.cacheline_dict = OrderedDict()
 
-    def has(self, req_id, **kwargs):
+    def has(self, obj_id, **kwargs):
         """
         check whether the given id in the cache or not
 
         :return: whether the given element is in the cache
         """
-        if req_id in self.cacheline_dict:
-            return True
-        else:
-            return False
+        return obj_id in self.cacheline_dict
 
-    def _update(self, req_item, **kwargs):
+    def _update(self, obj_id, **kwargs):
         """ the given element is in the cache,
         now update cache metadata and its content
 
         :param **kwargs:
-        :param req_item:
+        :param obj_id:
         :return: None
         """
 
-        req_id = req_item
-        if isinstance(req_item, Req):
-            req_id = req_item.item_id
+        self.cacheline_dict.move_to_end(obj_id)
 
-        self.cacheline_dict.move_to_end(req_id)
-
-    def _insert(self, req_item, **kwargs):
+    def _insert(self, obj_id, **kwargs):
         """
         the given element is not in the cache, now insert it into cache
         :param **kwargs:
-        :param req_item:
+        :param obj_id:
         :return: evicted element or None
         """
 
-        req_id = req_item
-        if isinstance(req_item, Req):
-            req_id = req_item.item_id
-
-        self.cacheline_dict[req_id] = True
+        self.cacheline_dict[obj_id] = True
 
     def evict(self, **kwargs):
         """
@@ -70,8 +59,8 @@ class LRU(Cache):
         :return: id of evicted cacheline
         """
 
-        req_id = self.cacheline_dict.popitem(last=False)
-        return req_id[0]
+        evict_obj_id = self.cacheline_dict.popitem(last=False)[0]
+        return evict_obj_id
 
     def access(self, req_item, **kwargs):
         """
@@ -83,23 +72,23 @@ class LRU(Cache):
         :return: None
         """
 
-        req_id = req_item
+        obj_id = req_item
         if isinstance(req_item, Req):
-            req_id = req_item.item_id
+            obj_id = req_item.obj_id
 
-        if self.has(req_id):
+        if self.has(obj_id):
             self._update(req_item)
             return True
         else:
-            self._insert(req_item)
+            self._insert(obj_id)
             if len(self.cacheline_dict) > self.cache_size:
                 evict_item = self.evict()
                 if "evict_item_list" in kwargs:
                     kwargs["evict_item_list"].append(evict_item)
             return False
 
-    def __contains__(self, req_item):
-        return req_item in self.cacheline_dict
+    def __contains__(self, obj_id):
+        return obj_id in self.cacheline_dict
 
     def __len__(self):
         return len(self.cacheline_dict)

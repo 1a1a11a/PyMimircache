@@ -59,7 +59,7 @@ class Tear(Cache):
         """
         req_id = req_item
         if isinstance(req_item, Req):
-            req_id = req_item.item_id
+            req_id = req_item.obj_id
         self.cacheline_list.remove(req_id)
         self.cacheline_list.insert(0,req_id)
         #pass
@@ -75,7 +75,7 @@ class Tear(Cache):
 
         req_id = req_item
         if isinstance(req_item, Req):
-            req_id = req_item.item_id
+            req_id = req_item.obj_id
 
         self.cacheline_dict[req_id] = [COLD, False]
         self.cacheline_list.insert(0,req_id)
@@ -167,7 +167,7 @@ class Tear(Cache):
 
         req_id = req_item
         if isinstance(req_item, Req):
-            req_id = req_item.item_id
+            req_id = req_item.obj_id
 
         self.sampled_accesses += 1
 

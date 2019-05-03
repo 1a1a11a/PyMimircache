@@ -63,7 +63,6 @@ from PyMimircache.cache.s4lru import S4LRU
 from PyMimircache.cache.slru import SLRU
 from PyMimircache.cache.clock import Clock
 from PyMimircache.cache.linuxclock import LinuxClock
-from PyMimircache.cache.lightlru import LightLRU
 from PyMimircache.cache.tear import Tear
 from PyMimircache.cache.secondChance import SecondChance
 
@@ -85,13 +84,11 @@ C_AVAIL_CACHEREADER = [PlainReader, VscsiReader, CsvReader, BinaryReader]
 
 CACHE_NAME_TO_CLASS_DICT = {"LRU":LRU, "MRU":MRU, "ARC":ARC, "Optimal":Optimal,
                             "FIFO":FIFO, "Clock":Clock, "LinuxClock":LinuxClock,  "TEAR":Tear, "Random":Random, "SecondChance": SecondChance,
-                            "SLRU":SLRU, "S4LRU":S4LRU, "LightLRU" : LightLRU
+                            "SLRU":SLRU, "S4LRU":S4LRU
                             }
 
 # used to mapping user provided cache name to a unified cache replacement alg name (Appearntly this is not a good idea)
-CACHE_NAME_CONVRETER = {}
-for alg_name in CACHE_NAME_TO_CLASS_DICT.keys():
-    CACHE_NAME_CONVRETER[alg_name.lower()] = alg_name
+CACHE_NAME_CONVRETER = {alg_name.lower(): alg_name for alg_name in CACHE_NAME_TO_CLASS_DICT.keys()}
 
 CACHE_NAME_CONVRETER.update({
     "lru": "LRU", "fifo": "FIFO", "optimal": "Optimal",
@@ -102,7 +99,7 @@ CACHE_NAME_CONVRETER.update({
 CACHE_NAME_CONVRETER.update( {"opt": "Optimal",
                         "rr": "Random",
                         "lfu": "LFUFast", "lfu_fast": "LFUFast", "lfufast": "LFUFast",
-                        } )
+                        })
 
 
 def cache_name_to_class(cache_name):
@@ -113,16 +110,20 @@ def cache_name_to_class(cache_name):
     :param cache_name: name of cache
     :return: the class of given cache replacement algorithm
     """
-    cache_class = None
-    if cache_name.lower() in CACHE_NAME_CONVRETER:
-        cache_standard_name = CACHE_NAME_CONVRETER[cache_name.lower()]
-        cache_class = CACHE_NAME_TO_CLASS_DICT[cache_standard_name]
+
+    cache_standard_name = CACHE_NAME_CONVRETER.get(cache_name.lower(), cache_name)
+    cache_class = CACHE_NAME_TO_CLASS_DICT.get(cache_standard_name, None)
 
     if cache_class:
         return cache_class
     else:
         raise RuntimeError("cannot recognize given cache replacement algorithm {}, "
                            "supported algorithms {}".format(cache_name, CACHE_NAME_CONVRETER.values()))
+
+
+def add_new_cache_alg(name, cls):
+    CACHE_NAME_TO_CLASS_DICT[name] = cls
+    # print("add new cache replacement algorithm {}".format(name))
 
 
 __all__ = ["ALLOW_C_MIMIRCACHE", "INTERNAL_USE", "DEF_NUM_BIN_PROF", "DEF_NUM_THREADS", "DEF_EMA_HISTORY_WEIGHT",

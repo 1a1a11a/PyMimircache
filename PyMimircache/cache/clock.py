@@ -36,28 +36,28 @@ class Clock(Cache):
         else:
             return False
 
-    def _update(self, req_item, **kwargs):
+    def _update(self, obj_id, **kwargs):
         """ the given element is in the cache,
         now update cache metadata and its content
 
         :param **kwargs:
-        :param req_item:
+        :param obj_id:
         :return: None
         """
         pass
 
 
-    def _insert(self, req_item, **kwargs):
+    def _insert(self, obj_id, **kwargs):
         """
         the given element is not in the cache, now insert it into cache
         :param **kwargs:
-        :param req_item:
+        :param obj_id:
         :return: evicted element or None
         """
 
-        req_id = req_item
-        if isinstance(req_item, Req):
-            req_id = req_item.item_id
+        req_id = obj_id
+        if isinstance(obj_id, Req):
+            req_id = obj_id.obj_id
         assert self.cacheline_list[self.hand][0] is None or self.cacheline_list[self.hand][1] == -1, \
             "current pos {}, hand {}".format(self.cacheline_list[self.hand], self.hand)
         self.cacheline_list[self.hand] = (req_id, 1)
@@ -90,24 +90,24 @@ class Clock(Cache):
         it is the underlying method for both get and put
 
         :param **kwargs:
-        :param req_item: the request from the trace, it can be in the cache, or not
+        :param obj_id: the request from the trace, it can be in the cache, or not
         :return: None
         """
 
-        req_id = req_item
+        obj_id = req_item
         if isinstance(req_item, Req):
-            req_id = req_item.item_id
+            obj_id = req_item.obj_id
 
-        if self.has(req_id):
+        if self.has(obj_id):
             return True
         else:
             if len(self.cacheline_dict) >= self.cache_size:
                 evict_item = self.evict()
-            self._insert(req_item)
+            self._insert(obj_id)
             return False
 
-    def __contains__(self, req_item):
-        return req_item in self.cacheline_dict
+    def __contains__(self, obj_id):
+        return obj_id in self.cacheline_dict
 
     def __len__(self):
         return len(self.cacheline_dict)

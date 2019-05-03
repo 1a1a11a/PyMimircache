@@ -9,6 +9,7 @@
 
 from PyMimircache.cache.abstractCache import Cache
 from PyMimircache.profiler.utils.dist import get_next_access_dist
+from PyMimircache.cacheReader.requestItem import Req
 from PyMimircache.const import INSTALL_PHASE
 if not INSTALL_PHASE:
     try:
@@ -41,30 +42,30 @@ class Optimal(Cache):
         trace is not ran from the beginning of the reader"""
         self.ts = ts
 
-    def _update(self, req_item, **kwargs):
+    def _update(self, obj_id, **kwargs):
         """ the given element is in the cache, now update it to new location
         :param **kwargs:
-        :param req_item:
+        :param obj_id:
         :return: None
         """
 
         if self.next_access[self.ts] != -1:
-            self.pq[req_item] = -(self.ts + self.next_access[self.ts])
+            self.pq[obj_id] = -(self.ts + self.next_access[self.ts])
         else:
-            del self.pq[req_item]
+            del self.pq[obj_id]
 
-    def _insert(self, req_item, **kwargs):
+    def _insert(self, obj_id, **kwargs):
         """
         the given element is not in the cache, now insert it into cache
         :param **kwargs:
-        :param req_item:
+        :param obj_id:
         :return: True on success, False on failure
         """
 
         if self.next_access[self.ts] == -1:
             pass
         else:
-            self.pq[req_item] = -self.next_access[self.ts] - self.ts
+            self.pq[obj_id] = -self.next_access[self.ts] - self.ts
 
     def _print_cache_line(self):
         print("size %d" % len(self.pq))
@@ -90,12 +91,17 @@ class Optimal(Cache):
                         (timestamp, real_request)
         :return: True if element in the cache
         """
-        if self.has(req_item, ):
-            self._update(req_item, )
+
+        obj_id = req_item
+        if isinstance(req_item, Req):
+            obj_id = req_item.obj_id
+
+        if self.has(obj_id, ):
+            self._update(obj_id, )
             self.ts += 1
             return True
         else:
-            self._insert(req_item, )
+            self._insert(obj_id, )
             if len(self.pq) > self.cache_size:
                 evict_item = self.evict()
                 if "evict_item_list" in kwargs:
@@ -103,8 +109,11 @@ class Optimal(Cache):
             self.ts += 1
             return False
 
-    def __contains__(self, req_item):
-        return req_item in self.pq
+
+
+
+    def __contains__(self, obj_id):
+        return obj_id in self.pq
 
     def __len__(self):
         return len(self.pq)

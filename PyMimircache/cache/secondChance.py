@@ -22,43 +22,40 @@ class SecondChance(Cache):
         self.cacheline_list = deque()
         self.cacheline_dict = {}
 
-    def has(self, req_id, **kwargs):
+    def has(self, obj_id, **kwargs):
         """
         check whether the given id in the cache or not
 
         :return: whether the given element is in the cache
         """
-        if req_id in self.cacheline_dict:
-            return True
-        else:
-            return False
+        return obj_id in self.cacheline_dict
 
-    def _update(self, req_item, **kwargs):
+    def _update(self, obj_id, **kwargs):
         """ the given element is in the cache,
         now update cache metadata and its content
 
         :param **kwargs:
-        :param req_item:
+        :param obj_id:
         :return: None
         """
 
-        req_id = req_item
-        if isinstance(req_item, Req):
-            req_id = req_item.item_id
+        req_id = obj_id
+        if isinstance(obj_id, Req):
+            req_id = obj_id.obj_id
         self.cacheline_dict[req_id] = 1
 
 
-    def _insert(self, req_item, **kwargs):
+    def _insert(self, obj_id, **kwargs):
         """
         the given element is not in the cache, now insert it into cache
         :param **kwargs:
-        :param req_item:
+        :param obj_id:
         :return: evicted element or None
         """
 
-        req_id = req_item
-        if isinstance(req_item, Req):
-            req_id = req_item.item_id
+        req_id = obj_id
+        if isinstance(obj_id, Req):
+            req_id = obj_id.obj_id
         self.cacheline_list.append(req_id)
         self.cacheline_dict[req_id] = 1
 
@@ -86,25 +83,29 @@ class SecondChance(Cache):
         it is the underlying method for both get and put
 
         :param **kwargs:
-        :param req_item: the request from the trace, it can be in the cache, or not
+        :param obj_id: the request from the trace, it can be in the cache, or not
         :return: None
         """
 
-        assert len(self.cacheline_list) == len(self.cacheline_dict)
-        req_id = req_item
+        obj_id = req_item
         if isinstance(req_item, Req):
-            req_id = req_item.item_id
+            obj_id = req_item.obj_id
+
+        assert len(self.cacheline_list) == len(self.cacheline_dict)
+        req_id = obj_id
+        if isinstance(obj_id, Req):
+            req_id = obj_id.obj_id
 
         if self.has(req_id):
             return True
         else:
-            self._insert(req_item)
+            self._insert(obj_id)
             if len(self.cacheline_list) > self.cache_size:
                 evict_item = self.evict()
             return False
 
-    def __contains__(self, req_item):
-        return req_item in self.cacheline_dict
+    def __contains__(self, obj_id):
+        return obj_id in self.cacheline_dict
 
     def __len__(self):
         return len(self.cacheline_dict)

@@ -15,6 +15,8 @@ from multiprocessing import Manager, Lock
 if ALLOW_C_MIMIRCACHE and not INSTALL_PHASE:
     import PyMimircache.CMimircache.CacheReader as c_cacheReader
 
+from PyMimircache.cacheReader.requestItem import Req
+
 
 class AbstractReader(ABC):
     """
@@ -57,6 +59,13 @@ class AbstractReader(ABC):
         self.counter = 0
         self.num_of_req = -1
         self.num_of_uniq_req = -1
+
+        # used for CsvReader and BinaryReader
+        self.label_column = -1
+        self.size_column = -1
+        self.time_column = -1
+        self.op_column = -1
+
 
     def reset(self):
         """
@@ -146,6 +155,26 @@ class AbstractReader(ABC):
         self.reset()
         return last
 
+    def read_as_req_item(self):
+        """
+        read one request from the trace and return as a Req object instead of an int or string
+        :return:
+        """
+
+        r = self.read_complete_req()
+        if not r:
+            return None
+        obj_id = r[self.label_column-1]
+
+        t, sz = -1, -1
+        if self.size_column != -1:
+            sz = r[self.size_column -1]
+        if self.time_column != -1:
+            t = r[self.time_column - 1]
+
+        req = Req(obj_id, size=sz, ts=t)
+        return req
+
     def skip_n_req(self, n):
         """
         an efficient way to skip N requests from current position
@@ -171,6 +200,8 @@ class AbstractReader(ABC):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
+
+
 
     @abstractmethod
     def read_one_req(self):

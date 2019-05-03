@@ -33,6 +33,7 @@ if not INSTALL_PHASE:
     from PyMimircache.profiler.cHeatmap import CHeatmap
     from PyMimircache.profiler.pyHeatmap import PyHeatmap
     from PyMimircache.top.cachecow import Cachecow
+    from PyMimircache.const import add_new_cache_alg
 
 from PyMimircache.version import __version__
 

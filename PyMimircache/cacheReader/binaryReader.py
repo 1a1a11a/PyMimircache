@@ -16,6 +16,7 @@ from PyMimircache.const import ALLOW_C_MIMIRCACHE, INSTALL_PHASE
 if ALLOW_C_MIMIRCACHE and not INSTALL_PHASE:
     import PyMimircache.CMimircache.CacheReader as c_cacheReader
 from PyMimircache.cacheReader.abstractReader import AbstractReader
+from PyMimircache.cacheReader.requestItem import Req
 
 
 class BinaryReader(AbstractReader):
@@ -67,8 +68,8 @@ class BinaryReader(AbstractReader):
         self.fmt = init_params['fmt']
         # this number begins from 1, so need to reduce by one before use
         self.label_column = init_params['label']
-        self.time_column = init_params.get("real_time", )
-        self.size_column = init_params.get("size", )
+        self.time_column = init_params.get("real_time", -1)
+        self.size_column = init_params.get("size", -1)
 
         self.trace_file = open(file_loc, 'rb')
         self.struct_instance = struct.Struct(self.fmt)

@@ -47,8 +47,8 @@ class CsvReader(AbstractReader):
         # self.trace_file = open(file_loc, 'r', encoding='utf-8', errors='ignore')
         self.init_params = init_params
         self.label_column = init_params['label']
-        self.time_column = init_params.get("real_time", )
-        self.size_column = init_params.get("size", )
+        self.time_column = init_params.get("real_time", -1)
+        self.size_column = init_params.get("size", -1)
 
         if self.time_column != -1:
             self.support_real_time = True

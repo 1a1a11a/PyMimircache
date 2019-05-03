@@ -6,10 +6,10 @@ class FIFO(LRU):
     def __init__(self, cache_size=1000, **kwargs):
         super().__init__(cache_size, **kwargs)
 
-    def _update(self, req_item, **kwargs):
+    def _update(self, obj_id, **kwargs):
         """ the given element is in the cache, now update it to new location
         :param **kwargs:
-        :param req_item:
+        :param obj_id:
         :return: None
         """
         pass

@@ -1,6 +1,7 @@
 # coding=utf-8
 from PyMimircache.cache.lru import LRU
 from PyMimircache.cache.abstractCache import Cache
+from PyMimircache.cacheReader.requestItem import Req
 
 
 class S4LRU(Cache):
@@ -12,6 +13,7 @@ class S4LRU(Cache):
         :return:
         """
         super(S4LRU, self).__init__(cache_size, **kwargs)
+        raise RuntimeError("S4LRU needs re-implementation")
 
         # Maybe use four linkedlist and a dict will be more efficient?
         self.first_lru = LRU(self.cache_size // 4)
@@ -19,37 +21,34 @@ class S4LRU(Cache):
         self.third_lru = LRU(self.cache_size // 4)
         self.fourth_lru = LRU(self.cache_size // 4)
 
-    def has(self, req_id, **kwargs):
+    def has(self, obj_id, **kwargs):
         """
         :param **kwargs:
         :param req_id:
         :return: whether the given element is in the cache
         """
-        if req_id in self.first_lru or req_id in self.second_lru or \
-                req_id in self.third_lru or req_id in self.fourth_lru:
-            return True
-        else:
-            return False
+        return obj_id in self.first_lru or obj_id in self.second_lru or \
+                obj_id in self.third_lru or obj_id in self.fourth_lru
 
-    def _update(self, req_item, **kwargs):
+    def _update(self, obj_id, **kwargs):
         """ the given element is in the cache, now update it to new location
         :param **kwargs:
-        :param req_item:
+        :param obj_id:
         :return: None
         """
-        if req_item in self.first_lru:
-            self.first_lru._update(req_item, )
-        elif req_item in self.second_lru:
-            # req_item is in second, remove from second, insert to end of first,
+        if obj_id in self.first_lru:
+            self.first_lru._update(obj_id, )
+        elif obj_id in self.second_lru:
+            # obj_id is in second, remove from second, insert to end of first,
             # evict from first to second if needed
             self._move_to_upper_level(
-                req_item, self.second_lru, self.first_lru)
-        elif req_item in self.third_lru:
+                obj_id, self.second_lru, self.first_lru)
+        elif obj_id in self.third_lru:
             self._move_to_upper_level(
-                req_item, self.third_lru, self.second_lru)
-        elif req_item in self.fourth_lru:
+                obj_id, self.third_lru, self.second_lru)
+        elif obj_id in self.fourth_lru:
             self._move_to_upper_level(
-                req_item, self.fourth_lru, self.third_lru)
+                obj_id, self.fourth_lru, self.third_lru)
 
     def _move_to_upper_level(self, element, lowerLRU, upperLRU):
         """
@@ -73,14 +72,14 @@ class S4LRU(Cache):
         if evicted_key:
             lowerLRU._insert(evicted_key, )
 
-    def _insert(self, req_item, **kwargs):
+    def _insert(self, obj_id, **kwargs):
         """
         the given element is not in the cache, now insert it into cache
         :param **kwargs:
-        :param req_item:
+        :param obj_id:
         :return: evicted element
         """
-        return self.fourth_lru._insert(req_item, )
+        return self.fourth_lru._insert(obj_id, )
 
     def _print_cache_line(self):
         print("first: ")
@@ -103,14 +102,19 @@ class S4LRU(Cache):
     def access(self, req_item, **kwargs):
         """
         :param **kwargs: 
-        :param req_item: a cache request, it can be in the cache, or not
+        :param obj_id: a cache request, it can be in the cache, or not
         :return: None
         """
-        if self.has(req_item, ):
-            self._update(req_item, )
+
+        obj_id = req_item
+        if isinstance(req_item, Req):
+            obj_id = req_item.obj_id
+
+        if self.has(obj_id, ):
+            self._update(obj_id, )
             return True
         else:
-            self._insert(req_item, )
+            self._insert(obj_id, )
             return False
 
     def __repr__(self):

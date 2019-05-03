@@ -12,6 +12,8 @@ class SLRU(Cache):
         :return:
         """
         super().__init__(cache_size, **kwargs)
+        raise RuntimeError("Need re-implementation")
+
         self.ratio = ratio
         # Maybe use two linkedlist and a dict will be more efficient?
         self.protected = LRU(

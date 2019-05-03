@@ -69,7 +69,7 @@ class LinuxClock(Cache):
         
         req_id = req_item
         if isinstance(req_item, Req):
-            req_id = req_item.item_id
+            req_id = req_item.obj_id
         
 
         if req_id in self.cacheline_active_dict : # page is already active
@@ -97,7 +97,7 @@ class LinuxClock(Cache):
 
         req_id = req_item
         if isinstance(req_item, Req):
-            req_id = req_item.item_id
+            req_id = req_item.obj_id
 
         if (req_id in self.cacheline_shadow_dict): # if it was present in shadow list, add it to active directly
             self.cacheline_shadow_dict.pop(req_id)
@@ -152,7 +152,7 @@ class LinuxClock(Cache):
 
         req_id = req_item
         if isinstance(req_item, Req):
-            req_id = req_item.item_id
+            req_id = req_item.obj_id
 
         if self.has(req_id):
             self._update(req_id)
