@@ -168,9 +168,9 @@ class AbstractReader(ABC):
 
         t, sz = -1, -1
         if self.size_column != -1:
-            sz = r[self.size_column -1]
+            sz = float(r[self.size_column -1])
         if self.time_column != -1:
-            t = r[self.time_column - 1]
+            t = float(r[self.time_column - 1])
 
         req = Req(obj_id, size=sz, ts=t)
         return req
