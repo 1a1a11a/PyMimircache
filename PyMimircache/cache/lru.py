@@ -77,7 +77,7 @@ class LRU(Cache):
             obj_id = req_item.obj_id
 
         if self.has(obj_id):
-            self._update(req_item)
+            self._update(obj_id)
             return True
         else:
             self._insert(obj_id)
