@@ -53,8 +53,8 @@ class GeneralProfilerTest(unittest.TestCase):
         self.assertEqual(hc[0], 0)
         self.assertEqual(hc[8], 187)
 
-        p1.plotHRC(figname="test_v_c.png", cache_unit_size=32*1024)
-        p2.plotHRC(figname="test_v_py.png", cache_unit_size=32*1024)
+        p1.plotMRC(figname="test_v_c.png", cache_unit_size=32*1024)
+        p2.plotMRC(figname="test_v_py.png", cache_unit_size=32*1024)
         reader.close()
 
 
@@ -81,8 +81,8 @@ class GeneralProfilerTest(unittest.TestCase):
         self.assertEqual(hc[0], 0)
         self.assertEqual(hc[8], 187)
 
-        p1.plotHRC(figname="test_p_c.png", cache_unit_size=32*1024)
-        p2.plotHRC(figname="test_p_py.png", cache_unit_size=32*1024)
+        p1.plotMRC(figname="test_p_c.png", cache_unit_size=32*1024)
+        p2.plotMRC(figname="test_p_py.png", cache_unit_size=32*1024)
         reader.close()
 
 
@@ -110,8 +110,8 @@ class GeneralProfilerTest(unittest.TestCase):
         self.assertEqual(hc[0], 0)
         self.assertEqual(hc[8], 187)
 
-        p1.plotHRC(figname="test_c_c.png", cache_unit_size=32*1024)
-        p2.plotHRC(figname="test_c_py.png", cache_unit_size=32*1024)
+        p1.plotMRC(figname="test_c_c.png", cache_unit_size=32*1024)
+        p2.plotMRC(figname="test_c_py.png", cache_unit_size=32*1024)
         reader.close()
 
 
@@ -141,8 +141,8 @@ class GeneralProfilerTest(unittest.TestCase):
         self.assertEqual(hc[0], 0)
         self.assertEqual(hc[8], 187)
 
-        p1.plotHRC(figname="test_b_c.png", cache_unit_size=32*1024)
-        p2.plotHRC(figname="test_b_py.png", cache_unit_size=32*1024)
+        p1.plotMRC(figname="test_b_c.png", cache_unit_size=32*1024)
+        p2.plotMRC(figname="test_b_py.png", cache_unit_size=32*1024)
         reader.close()
 
     def test_cGeneralProfiler(self):

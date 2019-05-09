@@ -107,7 +107,7 @@ class CLRUProfilerTest(unittest.TestCase):
         hr = p.get_hit_ratio(cache_size=20)
         self.assertAlmostEqual(hr[1], 0.02357911)
 
-        p.plotHRC("test.png", cache_unit_size=32*1024)
+        p.plotMRC("test.png", cache_unit_size=32*1024)
 
         reader.close()
 

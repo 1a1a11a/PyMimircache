@@ -99,11 +99,11 @@ class cachecowTest(unittest.TestCase):
         c.twoDPlot("rd_popularity")
         c.twoDPlot("interval_hit_ratio", cache_size=cache_size)
 
-        c.plotHRCs(["LRU", "Optimal", "LFU", "LRU_K", "SLRU", "ARC"],
+        c.plotMRCs(["LRU", "Optimal", "LFU", "LRU_K", "SLRU", "ARC"],
                    [None, None, None, {"K":2}, None, None],
                    cache_size=cache_size, bin_size=cache_size//4+1)
 
-        c.plotHRCs(["LRU", "LFUFast"], cache_unit_size=32*1024, figname="HRC_withSize.png")
+        c.plotMRCs(["LRU", "LFUFast"], cache_unit_size=32*1024, figname="HRC_withSize.png")
 
 
     def _coretest_time(self, c, cache_size, time_mode, time_interval):
