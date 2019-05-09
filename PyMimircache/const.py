@@ -56,6 +56,8 @@ if not INSTALL_PHASE and ALLOW_C_MIMIRCACHE:
 from PyMimircache.cache.arc import ARC
 from PyMimircache.cache.fifo import FIFO
 from PyMimircache.cache.lru import LRU
+from PyMimircache.cache.lfu import LFU
+from PyMimircache.cache.lfu2 import LFU
 from PyMimircache.cache.mru import MRU
 from PyMimircache.cache.optimal import Optimal
 from PyMimircache.cache.random import Random
@@ -82,7 +84,7 @@ C_AVAIL_CACHE = ["lru", "fifo", "optimal", "arc", "random",
 C_AVAIL_CACHEREADER = [PlainReader, VscsiReader, CsvReader, BinaryReader]
 
 
-CACHE_NAME_TO_CLASS_DICT = {"LRU":LRU, "MRU":MRU, "ARC":ARC, "Optimal":Optimal,
+CACHE_NAME_TO_CLASS_DICT = {"LRU":LRU, "LFU": LFU, "MRU":MRU, "ARC":ARC, "Optimal":Optimal,
                             "FIFO":FIFO, "Clock":Clock, "LinuxClock":LinuxClock,  "TEAR":Tear, "Random":Random, "SecondChance": SecondChance,
                             "SLRU":SLRU, "S4LRU":S4LRU
                             }
@@ -91,14 +93,11 @@ CACHE_NAME_TO_CLASS_DICT = {"LRU":LRU, "MRU":MRU, "ARC":ARC, "Optimal":Optimal,
 CACHE_NAME_CONVRETER = {alg_name.lower(): alg_name for alg_name in CACHE_NAME_TO_CLASS_DICT.keys()}
 
 CACHE_NAME_CONVRETER.update({
-    "lru": "LRU", "fifo": "FIFO", "optimal": "Optimal",
-    "arc": "ARC", "random": "Random", "mru": "MRU", "slru": "SLRU",
-    "lru_k": "LRU_K", "lru_2": "LRU_2", "mimir": "mimir", "mithril": "Mithril", "amp": "AMP", "pg": "PG",
+    "mithril": "Mithril", "amp": "AMP", "pg": "PG",
 })
 
 CACHE_NAME_CONVRETER.update( {"opt": "Optimal",
                         "rr": "Random",
-                        "lfu": "LFUFast", "lfu_fast": "LFUFast", "lfufast": "LFUFast",
                         })
 
 
@@ -122,6 +121,7 @@ def cache_name_to_class(cache_name):
 
 
 def add_new_cache_alg(name, cls):
+    CACHE_NAME_CONVRETER[name.lower()] = name
     CACHE_NAME_TO_CLASS_DICT[name] = cls
     # print("add new cache replacement algorithm {}".format(name))
 
