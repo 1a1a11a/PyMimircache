@@ -81,6 +81,28 @@ def get_breakpoints(reader, time_mode, time_interval=-1, num_of_pixel_of_time_di
     return bp
 
 
+def util_plotHRC(x_list, hit_ratio, **kwargs):
+    """
+    plot hit ratio curve of the given trace under given algorithm
+    :param kwargs: figname, cache_unit_size (unit: Byte), no_clear, no_save
+    :return:
+    """
+
+    kwargs["figname"] = kwargs.get("figname", "HRC.png")
+    kwargs["xlabel"] = kwargs.get("xlabel", "Cache Size (Items)")
+    kwargs["ylabel"] = kwargs.get("ylabel", "Hit Ratio")
+    kwargs["title"]  = kwargs.get("title", "Hit Ratio Curve")
+
+    cache_unit_size = kwargs.get("cache_unit_size", 0)
+    if cache_unit_size != 0:
+        kwargs["xlabel"] = "Cache Size (MB)"
+        ffm = ticker.FuncFormatter(lambda x, p: int(x * cache_unit_size // 1024 // 1024))
+        plt.gca().xaxis.set_major_formatter(ffm)
+
+    draw2d(x_list, hit_ratio, **kwargs)
+    return
+
+
 def util_plotMRC(x_list, hit_ratio, **kwargs):
     """
     plot hit ratio curve of the given trace under given algorithm

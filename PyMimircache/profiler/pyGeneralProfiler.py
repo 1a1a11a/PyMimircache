@@ -22,7 +22,7 @@ from PyMimircache.const import *
 from PyMimircache.const import cache_name_to_class
 from PyMimircache.cacheReader.abstractReader import AbstractReader
 from PyMimircache.utils.printing import *
-from PyMimircache.profiler.profilerUtils import util_plotMRC
+from PyMimircache.profiler.profilerUtils import util_plotHRC, util_plotMRC
 
 
 __all__ = ["PyGeneralProfiler"]
@@ -79,7 +79,7 @@ class PyGeneralProfiler:
     Python version of generalProfiler
     """
 
-    all = ["get_hit_count", "get_hit_ratio", "plotHRC"]
+    all = ["get_hit_count", "get_hit_ratio", "plotMRC"]
 
     def __init__(self, reader, cache_class, cache_size,
                  bin_size=-1, num_of_bins=-1, cache_params=None, **kwargs):
@@ -250,9 +250,8 @@ class PyGeneralProfiler:
         kwargs["figname"] = kwargs.get("figname", "MRC_{}.png".format(dat_name))
         kwargs["label"] = kwargs.get("label", self.cache_class.__name__)
 
-
         miss_ratio_size_list = [self.bin_size * i for i in range(self.num_of_bins + 1)]
-        util_plotHRC(miss_ratio_size_list, self. miss_ratio, **kwargs)
+        util_plotMRC(miss_ratio_size_list, self. miss_ratio, **kwargs)
 
         return self.miss_ratio
 
