@@ -7,7 +7,9 @@
 """
 
 from PyMimircache.cacheReader.abstractReader import AbstractReader
+from PyMimircache.cacheReader.requestItem import Req
 from PyMimircache.const import ALLOW_C_MIMIRCACHE, INSTALL_PHASE
+
 
 if ALLOW_C_MIMIRCACHE and not INSTALL_PHASE:
     import PyMimircache.CMimircache.CacheReader as c_cacheReader
@@ -56,6 +58,20 @@ class PlainReader(AbstractReader):
 
         return self.read_one_req()
 
+
+    def read_as_req_item(self):
+        """
+        read one request from the trace and return as a Req object instead of an int or string
+        :return:
+        """
+
+        r = self.read_one_req()
+        if not r:
+            return None
+        req = Req(r)
+        return req
+
+
     def skip_n_req(self, n):
         """
         skip N requests from current position
@@ -65,7 +81,6 @@ class PlainReader(AbstractReader):
 
         for i in range(n):
             self.read_one_req()
-
 
     def copy(self, open_c_reader=False):
         """

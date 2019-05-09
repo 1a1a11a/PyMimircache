@@ -229,7 +229,6 @@ class PyGeneralProfiler:
         kwargs["figname"] = kwargs.get("figname", "HRC_{}.png".format(dat_name))
         kwargs["label"] = kwargs.get("label", self.cache_class.__name__)
 
-
         hit_ratio_size_list = [self.bin_size * i for i in range(self.num_of_bins + 1)]
         util_plotHRC(hit_ratio_size_list, self.hit_ratio, **kwargs)
 

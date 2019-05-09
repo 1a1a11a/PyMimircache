@@ -93,6 +93,7 @@ CACHE_NAME_TO_CLASS_DICT = {"LRU":LRU, "LFU": LFU, "MRU":MRU, "ARC":ARC, "Optima
 CACHE_NAME_CONVRETER = {alg_name.lower(): alg_name for alg_name in CACHE_NAME_TO_CLASS_DICT.keys()}
 
 CACHE_NAME_CONVRETER.update({
+    "lru_k": "lru_k", "lru_2": "lru_2",
     "mithril": "Mithril", "amp": "AMP", "pg": "PG",
 })
 
