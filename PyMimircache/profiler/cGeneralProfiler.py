@@ -66,7 +66,8 @@ class CGeneralProfiler:
 
         assert cache_alg.lower() in CACHE_NAME_CONVRETER, \
             "please check your cache replacement algorithm: " + cache_alg
-        assert cache_alg.lower() in C_AVAIL_CACHE, \
+
+        assert CACHE_NAME_CONVRETER[cache_alg] in C_AVAIL_CACHE, \
             "cGeneralProfiler currently only available on the following caches: {}\n, " \
             "please use generalProfiler".format(pformat(C_AVAIL_CACHE))
 

@@ -345,7 +345,6 @@ class CLRUProfiler:
 
         return error
 
-
     def plotMRC(self, figname="MRC.png", **kwargs):
         """
         plot miss ratio curve

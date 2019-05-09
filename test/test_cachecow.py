@@ -96,14 +96,15 @@ class cachecowTest(unittest.TestCase):
 
         c.twoDPlot("scan_vis")
         c.twoDPlot("popularity")
-        c.twoDPlot("rd_popularity")
+        c.twoDPlot("rd_distribution")
         c.twoDPlot("interval_hit_ratio", cache_size=cache_size)
 
         c.plotMRCs(["LRU", "Optimal", "LFU", "LRU_K", "SLRU", "ARC"],
                    [None, None, None, {"K":2}, None, None],
                    cache_size=cache_size, bin_size=cache_size//4+1)
 
-        c.plotMRCs(["LRU", "LFUFast"], cache_unit_size=32*1024, figname="HRC_withSize.png")
+        c.plotMRCs(["LRU", "LFUFast"], cache_size=cache_size, bin_size=cache_size//4+1,
+                   cache_unit_size=32*1024, figname="HRC_withSize.png")
 
 
     def _coretest_time(self, c, cache_size, time_mode, time_interval):
@@ -130,7 +131,7 @@ class cachecowTest(unittest.TestCase):
 
     def _coretest_realtime(self, c, cache_size, time_interval):
         c.twoDPlot("request_rate", time_mode='r', time_interval=time_interval)
-        c.twoDPlot("rt_popularity", granularity=10 * 1000000)
+        c.twoDPlot("rt_distrbution", granularity=10 * 1000000)
         # c.evictionPlot('r', time_interval, "accumulative_freq", "Optimal", cache_size)
         # c.evictionPlot('r', time_interval, "reuse_dist", "Optimal", cache_size)
 

@@ -119,7 +119,7 @@ class CHeatmap:
         assert time_mode in ["r", "v"], "Cannot recognize this time_mode, "\
                                         "it can only be either real time(r) or virtual time(v), " \
                                         "but you give {}".format(time_mode)
-        assert algorithm.lower() in const.C_AVAIL_CACHE, \
+        assert algorithm in const.C_AVAIL_CACHE, \
             "No support for given algorithm in CMimircache, please try PyHeatmap" + str(algorithm)
 
 

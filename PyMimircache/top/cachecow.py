@@ -413,7 +413,7 @@ class Cachecow:
                                                                                           self.num_of_req())
             if isinstance(algorithm, str):
                 if ALLOW_C_MIMIRCACHE:
-                    if algorithm.lower() in C_AVAIL_CACHE:
+                    if algorithm in C_AVAIL_CACHE:
                         profiler = CGeneralProfiler(self.reader, CACHE_NAME_CONVRETER[algorithm.lower()],
                                                     cache_size, bin_size,
                                                     cache_params=cache_params, num_of_threads=num_of_threads)
@@ -467,7 +467,7 @@ class Cachecow:
             "you cannot specify cache size({}) larger than " \
             "trace length({})".format(cache_size, self.num_of_req())
 
-        if algorithm.lower() in C_AVAIL_CACHE:
+        if algorithm  in C_AVAIL_CACHE:
             hm = CHeatmap()
 
         else:
@@ -506,7 +506,7 @@ class Cachecow:
             "you cannot specify cache size({}) larger than " \
             "trace length({})".format(cache_size, self.num_of_req())
 
-        if algorithm1.lower() in C_AVAIL_CACHE and algorithm2.lower() in C_AVAIL_CACHE:
+        if algorithm1 in C_AVAIL_CACHE and algorithm2 in C_AVAIL_CACHE:
             hm = CHeatmap()
             hm.diff_heatmap(self.reader, time_mode, plot_type,
                             cache_size=cache_size,
@@ -520,7 +520,7 @@ class Cachecow:
 
         else:
             hm = PyHeatmap()
-            if algorithm1.lower() not in C_AVAIL_CACHE:
+            if algorithm1 not in C_AVAIL_CACHE:
                 xydict1 = hm.compute_heatmap(self.reader, time_mode, plot_type,
                                              time_interval=time_interval,
                                              cache_size=cache_size,
@@ -535,7 +535,7 @@ class Cachecow:
                                             cache_params=cache_params1,
                                             num_of_threads=num_of_threads)
 
-            if algorithm2.lower() not in C_AVAIL_CACHE:
+            if algorithm2 not in C_AVAIL_CACHE:
                 xydict2 = hm.compute_heatmap(self.reader, time_mode, plot_type,
                                              time_interval=time_interval,
                                              cache_size=cache_size,
