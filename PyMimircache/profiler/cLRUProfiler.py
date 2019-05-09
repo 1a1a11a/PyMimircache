@@ -143,12 +143,6 @@ class CLRUProfiler:
         """
         kargs = {"cache_size": kwargs.get("cache_size", self.cache_size)}
 
-        # deprecated
-        if 'begin' in kwargs:
-            kargs['begin'] = kwargs['begin']
-        if 'end' in kwargs:
-            kargs['end'] = kwargs['end']
-
         if self.block_unit_size != 0 :
             hit_ratio = c_LRUProfiler.get_hit_ratio_with_size(self.reader.c_reader,
                                                             block_unit_size=self.block_unit_size, **kargs)
@@ -156,6 +150,10 @@ class CLRUProfiler:
             hit_ratio = c_LRUProfiler.get_hit_ratio_seq(self.reader.c_reader, **kargs)
         return hit_ratio
 
+    def get_miss_ratio(self):
+        hit_ratio = self.get_hit_ratio()
+        miss_ratio = 1 - hit_ratio[:-2]
+        return miss_ratio
 
     def get_hit_ratio_shards(self, sample_ratio=0.01, **kwargs):
         """
@@ -311,6 +309,9 @@ class CLRUProfiler:
         :return: the average error
         """
 
+        import matplotlib.pyplot as plt
+        from matplotlib.ticker import FuncFormatter
+
         # getting the original HRC and SHARDS HRC
         HRC_shards = self.get_hit_ratio_shards(**kwargs)
         HRC = self.get_hit_rate(**kwargs)
@@ -344,3 +345,39 @@ class CLRUProfiler:
 
         return error
 
+
+    def plotMRC(self, figname="MRC.png", **kwargs):
+        """
+        plot miss ratio curve
+        :param figname:
+        :param auto_resize:
+        :param threshold:
+        :param kwargs: cache_unit_size (in Byte)
+        :return:
+        """
+        import matplotlib.pyplot as plt
+        from matplotlib.ticker import FuncFormatter
+
+        miss_ratio = self.get_miss_ratio()
+
+        plt.xlim(0, len(miss_ratio))
+        plt.plot(miss_ratio)
+        xlabel = "Cache Size (Items)"
+
+        cache_unit_size = kwargs.get("cache_unit_size", self.block_unit_size)
+        if cache_unit_size != 0:
+            plt.gca().xaxis.set_major_formatter(FuncFormatter(
+                    lambda x, p: int(x * cache_unit_size//1024//1024)))
+            xlabel = "Cache Size (MB)"
+
+        plt.xlabel(xlabel)
+        plt.ylabel("Miss Ratio")
+        plt.title('Miss Ratio Curve', fontsize=18, color='black')
+        if not 'no_save' in kwargs or not kwargs['no_save']:
+            plt.savefig(figname, dpi=600)
+            INFO("plot is saved")
+        try: plt.show()
+        except: pass
+        if not kwargs.get("no_clear", False):
+            plt.clf()
+        return miss_ratio

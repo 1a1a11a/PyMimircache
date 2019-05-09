@@ -18,14 +18,16 @@
 
 import os
 import math
+import numpy as np
 from PyMimircache.cacheReader.abstractReader import AbstractReader
 from PyMimircache.utils.printing import *
 from PyMimircache.const import ALLOW_C_MIMIRCACHE, INSTALL_PHASE
 if ALLOW_C_MIMIRCACHE and not INSTALL_PHASE:
     import PyMimircache.CMimircache.GeneralProfiler as c_generalProfiler
 from PyMimircache.const import *
+from PyMimircache.cacheReader.plainReader import PlainReader
 # from PyMimircache.const import CACHE_NAME_CONVRETER, INSTALL_PHASE, ALLOW_C_MIMIRCACHE, DEF_NUM_BIN_PROF, DEF_NUM_THREADS, DEF_EMA_HISTORY_WEIGHT
-from PyMimircache.profiler.profilerUtils import util_plotHRC
+from PyMimircache.profiler.profilerUtils import util_plotMRC
 
 
 class CGeneralProfiler:
@@ -57,6 +59,7 @@ class CGeneralProfiler:
         self.num_of_bins = num_of_bins
         self.hit_count = None
         self.hit_ratio = None
+        self.miss_ratio = None
 
         assert isinstance(reader, AbstractReader), \
             "you provided an invalid cacheReader: {}".format(reader)
@@ -229,8 +232,13 @@ class CGeneralProfiler:
                                                           **sanity_kwargs)
         return self.hit_ratio
 
+    def get_miss_ratio(self, **kwargs):
+        hit_ratio = self.get_hit_ratio()
+        self.miss_ratio = 1 - hit_ratio
+        return self.miss_ratio
 
-    def plotHRC(self, **kwargs):
+
+    def plotMRC(self, **kwargs):
         """
         plot hit ratio curve of the given trace under given algorithm
         :param kwargs: figname, cache_unit_size (unit: Byte), no_clear, no_save
@@ -242,8 +250,8 @@ class CGeneralProfiler:
         kwargs["label"] = kwargs.get("label", self.cache_name)
 
         self.get_hit_ratio(**kwargs)
+        self.miss_ratio = 1 - self.hit_ratio
         hit_ratio_size_list = [self.bin_size * i for i in range(self.num_of_bins + 1)]
-        util_plotHRC(hit_ratio_size_list, self.hit_ratio, **kwargs)
+        util_plotMRC(hit_ratio_size_list, self.miss_ratio, **kwargs)
 
-
-        return self.hit_ratio
+        return self.miss_ratio

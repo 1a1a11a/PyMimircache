@@ -23,6 +23,7 @@ import matplotlib.pyplot as plt
 from PyMimircache.profiler.profilerUtils import get_breakpoints
 from PyMimircache.profiler.profilerUtils import draw2d
 from PyMimircache.const import cache_name_to_class
+from PyMimircache.utils.printing import *
 from copy import copy
 
 
@@ -52,16 +53,18 @@ def _cal_interval_hit_count_subprocess(
     process_reader = reader_class(**reader_params)
     cache_params["cache_size"] = cache_params.get("cache_size", cache_size)
     cache = cache_class(**cache_params)
-    n_hits = 0
-    n_misses = 0
+    n_hits, n_misses = 0, 0
+    n_hits_accu, n_misses_accu = 0, 0
 
     if time_mode == "v":
         for n, req in enumerate(process_reader):
             hit = cache.access(req, )
             if hit:
                 n_hits += 1
+                n_hits_accu += 1
             else:
                 n_misses += 1
+                n_misses_accu += 1
             if n != 0 and n % time_interval == 0:
                 ihc_queue.put((n_hits, n_misses))
                 n_hits = 0
@@ -75,8 +78,10 @@ def _cal_interval_hit_count_subprocess(
             hit = cache.access(req, )
             if hit:
                 n_hits += 1
+                n_hits_accu += 1
             else:
                 n_misses += 1
+                n_misses_accu += 1
             while t - last_ts > time_interval:
                 ihc_queue.put((n_hits, n_misses))
                 n_hits = 0
@@ -91,8 +96,10 @@ def _cal_interval_hit_count_subprocess(
             hit = cache.access(req, )
             if hit:
                 n_hits += 1
+                n_hits_accu += 1
             else:
                 n_misses += 1
+                n_misses_accu += 1
             if n != 0 and n % time_interval == 0:
                 ihc_queue.put((n_hits, n_misses))
                 n_hits = 0
@@ -108,8 +115,10 @@ def _cal_interval_hit_count_subprocess(
             hit = cache.access(req, )
             if hit:
                 n_hits += 1
+                n_hits_accu += 1
             else:
                 n_misses += 1
+                n_misses_accu += 1
             while t - last_ts > time_interval:
                 ihc_queue.put((n_hits, n_misses))
                 n_hits = 0
@@ -122,24 +131,30 @@ def _cal_interval_hit_count_subprocess(
         raise RuntimeError("unknown time_mode {}".format(time_mode))
 
     process_reader.close()
+    ihc_queue.put(1-n_hits_accu/(n_hits_accu+n_misses_accu))
     ihc_queue.close()
-    return True
+    # print(n_hits_accu/(n_hits_accu+n_misses_accu))
+    return
 
 
 def convert_to_name(cache_class, param=None, **kwargs):
     name = str(cache_class)
     name = name[name.rfind(".") + 1: name.rfind("'")]
     if param:
-        name += ", "
+        # name += ", "
+        # name += " "
         if isinstance(param, dict):
-            name += "_".join(
-                ["{}".format(v) for k, v in param.items() if (isinstance(v, list) and len(v) < 8) or len(str(v)) < 16])
+            if 'name' in param:
+                name = name + "-" + param['name']
+            else:
+                name += "_".join(
+                    ["{}".format(v) for k, v in param.items() if (isinstance(v, list) and len(v) < 8) or len(str(v)) < 16])
         elif isinstance(param, str):
             name += param
     return name
 
 
-def _plot_ihrc(cache_classes, param_list, hr_dict, time_mode, figname, last_one=False):
+def _plot_imrc(cache_classes, param_list, hr_dict, time_mode, figname, last_one=False):
     """
         This function does the plotting after computation,
 
@@ -162,30 +177,30 @@ def _plot_ihrc(cache_classes, param_list, hr_dict, time_mode, figname, last_one=
         for i in range(len(param_list) - 1):
             param = convert_to_name(cache_classes[i], param_list[i])
             draw2d(hr_dict[param], label=param, xlabel="{} Time".format("Real" if time_mode == "r" else "Virtual"),
-                   ylabel="Hit Ratio", xticks=tick, no_clear=True, no_save=True)
+                   ylabel="Miss Ratio", xticks=tick, no_clear=True, no_save=True)
         param = convert_to_name(cache_classes[-1], param_list[-1])
         draw2d(hr_dict[param], label=param, xlabel="{} Time".format("Real" if time_mode == "r" else "Virtual"),
-               ylabel="Hit Ratio", xticks=tick, figname=figname)
+               ylabel="Miss Ratio", xticks=tick, figname=figname)
 
     else:
         for i in range(len(param_list) - 1):
             param = convert_to_name(cache_classes[i], param_list[i])
             draw2d(hr_dict[param], label=param, xlabel="{} Time".format("Real" if time_mode == "r" else "Virtual"),
-                   ylabel="Hit Ratio", no_clear=True, no_save=True)
+                   ylabel="Miss Ratio", no_clear=True, no_save=True)
         param = convert_to_name(cache_classes[-1], param_list[-1])
         draw2d(hr_dict[param], label=param, xlabel="{} Time".format("Real" if time_mode == "r" else "Virtual"),
-               ylabel="Hit Ratio", figname=figname, no_print_info=False)
+               ylabel="Miss Ratio", figname=figname, no_print_info=False)
 
 
-def plot_IHR(reader,
+def plot_IMR(reader,
              time_mode,
              time_interval,
              compare_cache_sizes=(),
              compare_algs=(),
              compare_cache_params=(),
-             cache_size=-1, alg=None, cache_param=None, figname="IHRC.png", **kwargs):
+             cache_size=-1, alg=None, cache_param=None, figname="IMRC.png", **kwargs):
     """
-    This is the function that does the plotting, it plots interval hit ratio curve of
+    This is the function that does the plotting, it plots interval miss ratio curve of
     different parameters of the same trace on the same plot, and it plots every five seconds
 
     currrent supported comparisons: cache size, different algorithms, different cache params
@@ -258,9 +273,10 @@ def plot_IHR(reader,
         raise RuntimeError("unknown compare items")
 
     queue_dict = {convert_to_name(cache_classes[i], param_list[i]): Queue() for i in range(len(cache_classes))}
-    hr_dict = {convert_to_name(cache_classes[i], param_list[i]): [] for i in range(len(cache_classes))}
+    mr_dict = {convert_to_name(cache_classes[i], param_list[i]): [] for i in range(len(cache_classes))}
     processes = {}
     finished = 0
+    final_mr_dict = {}
 
     for i in range(len(cache_classes)):
         cache_class = cache_classes[i]
@@ -276,21 +292,28 @@ def plot_IHR(reader,
 
     while finished < len(cache_classes):
         plot_now = False
+        finished_inc = 0
         for name, q in queue_dict.items():
             while True:
                 try:
                     hc_mc = queue_dict[name].get_nowait()
-                    if sum(hc_mc) == 0:
-                        hr_dict[name].append(hr_dict[name][-1])
-                    else:
-                        hr_dict[name].append(hc_mc[0] / sum(hc_mc))
                     plot_now = True
+                    if isinstance(hc_mc, float):
+                        final_mr_dict[name] = hc_mc
+                        INFO("{}/{} {} finished, accumulate miss ratio {:.4f}".format(
+                            finished+finished_inc, len(cache_classes), name, hc_mc))
+                        finished_inc += 1
+                        break
+                    if sum(hc_mc) == 0:
+                        mr_dict[name].append(mr_dict[name][-1])
+                    else:
+                        mr_dict[name].append(1 - hc_mc[0] / sum(hc_mc))
                 except Empty:
                     time.sleep(5)
                     break
 
         if plot_now:
-            _plot_ihrc(cache_classes, param_list, hr_dict, time_mode, figname)
+            _plot_imrc(cache_classes, param_list, mr_dict, time_mode, figname)
             time.sleep(5)
 
         # check whether there are finished computations
@@ -303,22 +326,28 @@ def plot_IHR(reader,
                 while True:
                     try:
                         hc_mc = queue_dict[name].get_nowait()
+                        if isinstance(hc_mc, float):
+                            final_mr_dict[name] = hc_mc
+                            INFO("{}/{} {} finished, accumulate miss ratio {:.4f}".format(
+                                finished, len(cache_classes), name, hc_mc))
+                            break
                         if sum(hc_mc) == 0:
-                            hr_dict[name].append(hr_dict[name][-1])
+                            mr_dict[name].append(mr_dict[name][-1])
                         else:
-                            hr_dict[name].append(hc_mc[0] / sum(hc_mc))
+                            mr_dict[name].append(1 - hc_mc[0] / sum(hc_mc))
                     except Empty:
                         break
                 queue_dict[name].close()
                 del queue_dict[name]
                 process_to_remove.append(p)
-                print("{}/{} {} finished".format(finished, len(cache_classes), name))
-                # print(", ".join(["{:.2f}".format(i) for i in hr_dict[name]]))
 
         for p in process_to_remove:
+            p.join()
             del processes[p]
         process_to_remove.clear()
 
-    _plot_ihrc(cache_classes, param_list, hr_dict, time_mode, figname, last_one=True)
-    return hr_dict
+    _plot_imrc(cache_classes, param_list, mr_dict, time_mode, figname, last_one=True)
+
+    print(["{}: {:8.4f}".format(i[0], i[1]) for i in final_mr_dict.items()])
+    return mr_dict
 

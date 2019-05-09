@@ -20,6 +20,7 @@ import matplotlib.ticker as ticker
 from matplotlib.ticker import FuncFormatter
 
 from PyMimircache.const import ALLOW_C_MIMIRCACHE, INSTALL_PHASE
+
 if ALLOW_C_MIMIRCACHE and not INSTALL_PHASE:
     import PyMimircache.CMimircache.Heatmap as c_heatmap
     from PyMimircache.profiler.cLRUProfiler import CLRUProfiler as LRUProfiler
@@ -31,12 +32,13 @@ else:
     from PyMimircache.profiler.pyHeatmap import PyHeatmap as PyHeatmap
 
 from PyMimircache.profiler.profilerUtils import draw_heatmap
+
 try:
     from PyMimircache.profiler.twoDPlots import *
-except: pass
+except:
+    pass
 
 from PyMimircache.profiler.twoDPlots import *
-
 
 from PyMimircache.const import *
 from PyMimircache.utils.printing import *
@@ -78,8 +80,8 @@ class Cachecow:
         self.n_uniq_req = -1
         self.cacheclass_mapping = {}
         self.size_col = -1
-        #self.start_time = -1 if not "start_time" in kwargs else kwargs["start_time"]
-        #self.end_time = 0 if not "end_time" in kwargs else kwargs["end_time"]
+        # self.start_time = -1 if not "start_time" in kwargs else kwargs["start_time"]
+        # self.end_time = 0 if not "end_time" in kwargs else kwargs["end_time"]
 
     def open(self, file_path, trace_type="p", data_type="c", **kwargs):
         """
@@ -233,7 +235,6 @@ class Cachecow:
         self.reader = VscsiReader(file_path, block_unit_size=block_unit_size, **kwargs)
         return self.reader
 
-
     def reset(self):
         """
         reset cachecow to initial state, including
@@ -243,7 +244,6 @@ class Cachecow:
         assert self.reader is not None, "reader is None, cannot reset"
         self.reader.reset()
 
-
     def close(self):
         """
         close the reader opened in cachecow, and clean up in the future
@@ -252,7 +252,6 @@ class Cachecow:
         if self.reader is not None:
             self.reader.close()
             self.reader = None
-
 
     def stat(self, time_period=[-1, 0]):
         """
@@ -288,7 +287,6 @@ class Cachecow:
         assert self.reader, "you haven't provided a data file"
         return TraceStat(self.reader, keep_access_freq_list=True, time_period=time_period).get_access_freq_list()
 
-
     def num_of_req(self):
         """
 
@@ -315,7 +313,7 @@ class Cachecow:
         return LRUProfiler(self.reader).get_reuse_distance()
 
     def get_hit_count_dict(self, algorithm, cache_size=-1, cache_params=None, bin_size=-1,
-                      use_general_profiler=False, **kwargs):
+                           use_general_profiler=False, **kwargs):
         """
         get hit count of the given algorithm and return a dict of mapping from cache size -> hit count
         notice that hit count array is not CDF, meaning hit count of size 2 does not include hit count of size 1,
@@ -342,16 +340,15 @@ class Cachecow:
                           use_general_profiler=use_general_profiler, **kwargs)
         hc = p.get_hit_count(cache_size=cache_size)
         if isinstance(p, LRUProfiler):
-            for i in range(len(hc)-2):
+            for i in range(len(hc) - 2):
                 hit_count_dict[i] = hc[i]
         elif isinstance(p, CGeneralProfiler) or isinstance(p, PyGeneralProfiler):
             for i in range(len(hc)):
                 hit_count_dict[i * p.bin_size] = hc[i]
         return hit_count_dict
 
-
     def get_hit_ratio_dict(self, algorithm, cache_size=-1, cache_params=None, bin_size=-1,
-                      use_general_profiler=False, **kwargs):
+                           use_general_profiler=False, **kwargs):
         """
         get hit ratio of the given algorithm and return a dict of mapping from cache size -> hit ratio
 
@@ -376,13 +373,12 @@ class Cachecow:
                           use_general_profiler=use_general_profiler, **kwargs)
         hr = p.get_hit_ratio(cache_size=cache_size)
         if isinstance(p, LRUProfiler):
-            for i in range(len(hr)-2):
+            for i in range(len(hr) - 2):
                 hit_ratio_dict[i] = hr[i]
         elif isinstance(p, CGeneralProfiler) or isinstance(p, PyGeneralProfiler):
             for i in range(len(hr)):
                 hit_ratio_dict[i * p.bin_size] = hr[i]
         return hit_ratio_dict
-
 
     def profiler(self, algorithm, cache_params=None, cache_size=-1, bin_size=-1,
                  use_general_profiler=False, **kwargs):
@@ -413,18 +409,18 @@ class Cachecow:
         else:
             assert cache_size != -1, "you didn't provide size for cache"
             assert cache_size <= self.num_of_req(), "you cannot specify cache size({}) " \
-                                                        "larger than trace length({})".format(cache_size,
-                                                                                              self.num_of_req())
+                                                    "larger than trace length({})".format(cache_size,
+                                                                                          self.num_of_req())
             if isinstance(algorithm, str):
                 if ALLOW_C_MIMIRCACHE:
                     if algorithm.lower() in C_AVAIL_CACHE:
                         profiler = CGeneralProfiler(self.reader, CACHE_NAME_CONVRETER[algorithm.lower()],
-                                                cache_size, bin_size,
-                                                cache_params=cache_params, num_of_threads=num_of_threads)
+                                                    cache_size, bin_size,
+                                                    cache_params=cache_params, num_of_threads=num_of_threads)
                     else:
                         profiler = PyGeneralProfiler(self.reader, CACHE_NAME_CONVRETER[algorithm.lower()],
-                                                   cache_size, bin_size,
-                                                   cache_params=cache_params, num_of_threads=num_of_threads)
+                                                     cache_size, bin_size,
+                                                     cache_params=cache_params, num_of_threads=num_of_threads)
                 else:
                     profiler = PyGeneralProfiler(self.reader, CACHE_NAME_CONVRETER[algorithm.lower()],
                                                  cache_size, bin_size,
@@ -434,7 +430,6 @@ class Cachecow:
                                              cache_params=cache_params, num_of_threads=num_of_threads)
 
         return profiler
-
 
     def heatmap(self, time_mode, plot_type, time_interval=-1, num_of_pixels=-1,
                 algorithm="LRU", cache_params=None, cache_size=-1, **kwargs):
@@ -469,8 +464,8 @@ class Cachecow:
 
         assert self.reader is not None, "you haven't opened a trace yet"
         assert cache_size <= self.num_of_req(), \
-                    "you cannot specify cache size({}) larger than " \
-                    "trace length({})".format(cache_size, self.num_of_req())
+            "you cannot specify cache size({}) larger than " \
+            "trace length({})".format(cache_size, self.num_of_req())
 
         if algorithm.lower() in C_AVAIL_CACHE:
             hm = CHeatmap()
@@ -485,7 +480,6 @@ class Cachecow:
                    algorithm=CACHE_NAME_CONVRETER[algorithm.lower()],
                    cache_params=cache_params,
                    **kwargs)
-
 
     def diff_heatmap(self, time_mode, plot_type, algorithm1="LRU", time_interval=-1, num_of_pixels=-1,
                      algorithm2="Optimal", cache_params1=None, cache_params2=None, cache_size=-1, **kwargs):
@@ -509,9 +503,8 @@ class Cachecow:
         assert self.reader is not None, "you haven't opened a trace yet"
         assert cache_size != -1, "you didn't provide size for cache"
         assert cache_size <= self.num_of_req(), \
-                    "you cannot specify cache size({}) larger than " \
-                    "trace length({})".format(cache_size, self.num_of_req())
-
+            "you cannot specify cache size({}) larger than " \
+            "trace length({})".format(cache_size, self.num_of_req())
 
         if algorithm1.lower() in C_AVAIL_CACHE and algorithm2.lower() in C_AVAIL_CACHE:
             hm = CHeatmap()
@@ -529,40 +522,40 @@ class Cachecow:
             hm = PyHeatmap()
             if algorithm1.lower() not in C_AVAIL_CACHE:
                 xydict1 = hm.compute_heatmap(self.reader, time_mode, plot_type,
-                                                   time_interval=time_interval,
-                                                   cache_size=cache_size,
-                                                   algorithm=algorithm1,
-                                                   cache_params=cache_params1,
-                                                   **kwargs)[0]
+                                             time_interval=time_interval,
+                                             cache_size=cache_size,
+                                             algorithm=algorithm1,
+                                             cache_params=cache_params1,
+                                             **kwargs)[0]
             else:
                 xydict1 = c_heatmap.heatmap(self.reader.c_reader, time_mode, plot_type,
-                                                       cache_size=cache_size,
-                                                       time_interval=time_interval,
-                                                       algorithm=algorithm1,
-                                                       cache_params=cache_params1,
-                                                       num_of_threads=num_of_threads)
+                                            cache_size=cache_size,
+                                            time_interval=time_interval,
+                                            algorithm=algorithm1,
+                                            cache_params=cache_params1,
+                                            num_of_threads=num_of_threads)
 
             if algorithm2.lower() not in C_AVAIL_CACHE:
                 xydict2 = hm.compute_heatmap(self.reader, time_mode, plot_type,
-                                                   time_interval=time_interval,
-                                                   cache_size=cache_size,
-                                                   algorithm=algorithm2,
-                                                   cache_params=cache_params2,
-                                                   **kwargs)[0]
+                                             time_interval=time_interval,
+                                             cache_size=cache_size,
+                                             algorithm=algorithm2,
+                                             cache_params=cache_params2,
+                                             **kwargs)[0]
             else:
                 xydict2 = c_heatmap.heatmap(self.reader.c_reader, time_mode, plot_type,
-                                                       time_interval=time_interval,
-                                                       cache_size=cache_size,
-                                                       algorithm=algorithm2,
-                                                       cache_params=cache_params2,
-                                                       num_of_threads=num_of_threads)
+                                            time_interval=time_interval,
+                                            cache_size=cache_size,
+                                            algorithm=algorithm2,
+                                            cache_params=cache_params2,
+                                            num_of_threads=num_of_threads)
 
             text = "differential heatmap\ncache size: {},\ncache type: ({}-{})/{},\n" \
                    "time type: {},\ntime interval: {},\nplot type: \n{}".format(
                 cache_size, algorithm2, algorithm1, algorithm1, time_mode, time_interval, plot_type)
 
             x1, y1 = xydict1.shape
-            x1, y1 = int(x1 / 2.8), y1/8
+            x1, y1 = int(x1 / 2.8), y1 / 8
             ax = plt.gca()
             ax.text(x1, y1, text)
 
@@ -571,16 +564,15 @@ class Cachecow:
             plot_data = np.ma.array(plot_data, mask=np.tri(len(plot_data), k=-1, dtype=int).T)
 
             plot_kwargs = {"figname": figname}
-            plot_kwargs["xlabel"]  = plot_kwargs.get("xlabel", 'Start Time ({})'.format(time_mode))
-            plot_kwargs["xticks"]  = plot_kwargs.get("xticks", ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (plot_data.shape[1]-1))))
-            plot_kwargs["ylabel"]  = plot_kwargs.get("ylabel", "End Time ({})".format(time_mode))
-            plot_kwargs["yticks"]  = plot_kwargs.get("yticks", ticker.FuncFormatter(lambda x, _: '{:.0%}'.format(x / (plot_data.shape[0]-1))))
+            plot_kwargs["xlabel"] = plot_kwargs.get("xlabel", 'Start Time ({})'.format(time_mode))
+            plot_kwargs["xticks"] = plot_kwargs.get("xticks", ticker.FuncFormatter(
+                lambda x, _: '{:.0%}'.format(x / (plot_data.shape[1] - 1))))
+            plot_kwargs["ylabel"] = plot_kwargs.get("ylabel", "End Time ({})".format(time_mode))
+            plot_kwargs["yticks"] = plot_kwargs.get("yticks", ticker.FuncFormatter(
+                lambda x, _: '{:.0%}'.format(x / (plot_data.shape[0] - 1))))
             plot_kwargs["imshow_kwargs"] = {"vmin": -1, "vmax": 1}
 
-
             draw_heatmap(plot_data, **plot_kwargs)
-
-
 
     def twoDPlot(self, plot_type, **kwargs):
         """
@@ -664,7 +656,6 @@ class Cachecow:
         else:
             WARNING("currently don't support your specified plot_type: " + str(plot_type))
 
-
     # def evictionPlot(self, mode, time_interval, plot_type, algorithm, cache_size, cache_params=None, **kwargs):
     #     """
     #     plot eviction stat vs time, currently support reuse_dist, freq, accumulative_freq
@@ -686,7 +677,6 @@ class Cachecow:
     #         print("the plot type you specified is not supported: {}, currently only support: {}".format(
     #             plot_type, "reuse_dist, freq, accumulative_freq"
     #         ))
-
 
     def plotHRCs(self, algorithm_list, cache_params=(),
                  cache_size=-1, bin_size=-1,
@@ -714,23 +704,24 @@ class Cachecow:
 
         hit_ratio_dict = {}
 
-        num_of_threads          =       kwargs.get("num_of_threads",        os.cpu_count())
-        no_load_rd              =       kwargs.get("no_load_rd",            False)
-        cache_unit_size         =       kwargs.get("cache_unit_size",       0)
-        use_general_profiler    =       kwargs.get("use_general_profiler",  False)
-        save_gradually          =       kwargs.get("save_gradually",        False)
-        threshold               =       kwargs.get('auto_resize_threshold', 0.98)
-        label                   =       kwargs.get("label",                 algorithm_list)
-        xlabel                  =       kwargs.get("xlabel",                "Cache Size (Items)")
-        ylabel                  =       kwargs.get("ylabel",                "Hit Ratio")
-        title                   =       kwargs.get("title",                 "Hit Ratio Curve")
+        num_of_threads = kwargs.get("num_of_threads", os.cpu_count())
+        no_load_rd = kwargs.get("no_load_rd", False)
+        cache_unit_size = kwargs.get("cache_unit_size", 0)
+        use_general_profiler = kwargs.get("use_general_profiler", False)
+        save_gradually = kwargs.get("save_gradually", False)
+        threshold = kwargs.get('auto_resize_threshold', 0.98)
+        label = kwargs.get("label", algorithm_list)
+        xlabel = kwargs.get("xlabel", "Cache Size (Items)")
+        ylabel = kwargs.get("ylabel", "Hit Ratio")
+        title = kwargs.get("title", "Hit Ratio Curve")
 
         profiling_with_size = False
         LRU_HR = None
 
         assert self.reader is not None, "you must open trace before profiling"
         if cache_size == -1 and auto_resize:
-            LRU_HR = LRUProfiler(self.reader, no_load_rd=no_load_rd).plotHRC(auto_resize=True, threshold=threshold, no_save=True)
+            LRU_HR = LRUProfiler(self.reader, no_load_rd=no_load_rd).plotHRC(auto_resize=True, threshold=threshold,
+                                                                             no_save=True)
             cache_size = len(LRU_HR)
         else:
             assert cache_size <= self.num_of_req(), "you cannot specify cache size larger than trace length"
@@ -747,9 +738,8 @@ class Cachecow:
                     profiling_with_size = True
                     break
         if profiling_with_size and cache_unit_size != 0 and block_unit_size != cache_unit_size:
-            raise RuntimeError("cache_unit_size and block_unit_size is not equal {} {}".\
-                                format(cache_unit_size, block_unit_size))
-
+            raise RuntimeError("cache_unit_size and block_unit_size is not equal {} {}". \
+                               format(cache_unit_size, block_unit_size))
 
         for i in range(len(algorithm_list)):
             alg = algorithm_list[i]
@@ -782,7 +772,7 @@ class Cachecow:
                     else:
                         # save the computed hit ratio
                         hit_ratio_dict["LRU"] = {}
-                        for j in range(len(hr)-2):
+                        for j in range(len(hr) - 2):
                             hit_ratio_dict["LRU"][j] = hr[j]
                         plt.plot(hr[:-2], label=label[i])
                 else:
@@ -813,11 +803,136 @@ class Cachecow:
         if not 'no_save' in kwargs or not kwargs['no_save']:
             plt.savefig(figname, dpi=600)
             INFO("HRC plot is saved as {}".format(figname))
-        try: plt.show()
-        except: pass
+        try:
+            plt.show()
+        except:
+            pass
         plt.clf()
         return hit_ratio_dict
 
+    def plotMRCs(self, algorithm_list, cache_params=(),
+                 cache_size=-1, bin_size=-1,
+                 figname="MRC.png", **kwargs):
+        """
+        this function provides miss ratio curve plotting
+
+        :param algorithm_list: a list of algorithm(s)
+        :param cache_params: the corresponding cache params for the algorithms,
+                                use None for algorithms that don't require cache params,
+                                if none of the alg requires cache params, you don't need to set this
+        :param cache_size:  maximal size of cache, use -1 for max possible size
+        :param bin_size:    bin size for non-LRU profiling
+        :param auto_resize:   when using max possible size or specified cache size too large,
+                                you will get a huge plateau at the end of hit ratio curve,
+                                set auto_resize to True to cutoff most of the big plateau
+        :param figname: name of figure
+        :param kwargs: options: block_unit_size, num_of_threads,
+                        auto_resize_threshold, xlimit, ylimit, cache_unit_size
+
+                        save_gradually - save a figure everytime computation for one algorithm finishes,
+
+                        label - instead of using algorithm list as label, specify user-defined label
+        """
+
+        miss_ratio_dict = {}
+
+        num_of_threads = kwargs.get("num_of_threads", os.cpu_count())
+        no_load_rd = kwargs.get("no_load_rd", False)
+        cache_unit_size = kwargs.get("cache_unit_size", 0)
+        use_general_profiler = kwargs.get("use_general_profiler", False)
+        save_gradually = kwargs.get("save_gradually", False)
+        label = kwargs.get("label", algorithm_list)
+        xlabel = kwargs.get("xlabel", "Cache Size (Items)")
+        ylabel = kwargs.get("ylabel", "Miss Ratio")
+        title = kwargs.get("title", "Miss Ratio Curve")
+        start_size = kwargs.get("start_size", 0)
+
+        profiling_with_size = False
+
+        assert self.reader is not None, "you must open trace before profiling"
+        assert cache_size != -1
+        assert cache_size <= self.num_of_req(), "you cannot specify cache size larger than trace length"
+
+        if bin_size == -1:
+            bin_size = cache_size // DEF_NUM_BIN_PROF + 1
+
+        # check whether profiling with size
+        block_unit_size = 0
+        for i in range(len(algorithm_list)):
+            if i < len(cache_params) and cache_params[i]:
+                block_unit_size = cache_params[i].get("block_unit_size", 0)
+                if block_unit_size != 0:
+                    profiling_with_size = True
+                    break
+        if profiling_with_size and cache_unit_size != 0 and block_unit_size != cache_unit_size:
+            raise RuntimeError("cache_unit_size and block_unit_size is not equal {} {}". \
+                               format(cache_unit_size, block_unit_size))
+
+        for i in range(len(algorithm_list)):
+            alg = algorithm_list[i]
+            if cache_params and i < len(cache_params):
+                cache_param = cache_params[i]
+                if profiling_with_size:
+                    if cache_param is None or 'block_unit_size' not in cache_param:
+                        ERROR("it seems you want to profiling with size, "
+                              "but you didn't provide block_unit_size in "
+                              "cache params {}".format(cache_param))
+                    elif cache_param["block_unit_size"] != block_unit_size:
+                        ERROR("only same block unit size for single plot is allowed")
+
+            else:
+                cache_param = None
+            profiler = self.profiler(alg, cache_param, cache_size, bin_size=bin_size,
+                                     use_general_profiler=use_general_profiler,
+                                     num_of_threads=num_of_threads, no_load_rd=no_load_rd)
+            t1 = time.time()
+
+            if alg.lower() == "lru":
+                mr = profiler.get_miss_ratio()
+                if use_general_profiler:
+                    # save the computed hit ratio
+                    miss_ratio_dict["LRU"] = {}
+                    for j in range(len(mr)):
+                        miss_ratio_dict["LRU"][j * bin_size] = mr[j]
+                    plt.plot([j * bin_size for j in range(len(mr))], mr, label=label[i])
+                else:
+                    # save the computed hit ratio
+                    miss_ratio_dict["LRU"] = {}
+                    for j in range(len(mr)):
+                        miss_ratio_dict["LRU"][j] = mr[j]
+                    plt.plot(mr, label=label[i])
+            else:
+                mr = profiler.get_miss_ratio()
+                # save the computed hit ratio
+                miss_ratio_dict[alg] = {}
+                for j in range(len(mr)):
+                    miss_ratio_dict[alg][j * bin_size] = mr[j]
+                plt.plot([j * bin_size for j in range(len(mr))], mr, label=label[i])
+            self.reader.reset()
+            INFO("MRC plotting {} computation finished using time {} s".format(alg, time.time() - t1))
+            if save_gradually:
+                plt.savefig(figname, dpi=600)
+
+        set_fig(xlabel=xlabel, ylabel=ylabel, title=title, **kwargs)
+
+        if cache_unit_size != 0:
+            plt.xlabel("Cache Size (MB)")
+            plt.gca().xaxis.set_major_formatter(
+                FuncFormatter(lambda x, p: int(x * cache_unit_size // 1024 // 1024)))
+
+        if not 'no_save' in kwargs or not kwargs['no_save']:
+            plt.savefig(figname, dpi=600)
+            plt.yscale("log")
+            plt.tight_layout()
+            plt.savefig(figname.replace(".png", ".log.png").replace(".pdf", ".log.pdf"), dpi=600)
+
+            INFO("MRC plot is saved as {}".format(figname))
+        try:
+            plt.show()
+        except:
+            pass
+        plt.clf()
+        return miss_ratio_dict
 
     def characterize(self, characterize_type, cache_size=-1, **kwargs):
         """
@@ -848,34 +963,32 @@ class Cachecow:
             print(trace_stat)
 
         if cache_size == -1:
-            cache_size = trace_stat.num_of_uniq_obj//100
+            cache_size = trace_stat.num_of_uniq_obj // 100
 
         if self.size_col != -1:
             INFO("now begin to plot obj_size_distribution")
             self.twoDPlot("obj_size_distribution")
 
             INFO("now begin to plot request_traffic_vol")
-            self.twoDPlot("request_traffic_vol", time_mode="r", time_interval=int(trace_stat.time_span//100))
-
+            self.twoDPlot("request_traffic_vol", time_mode="r", time_interval=int(trace_stat.time_span // 100))
 
         # plots for all short/medium/long/full characterization
         if trace_stat.time_span != 0:
             if trace_stat.time_span != int(trace_stat.time_span):
                 ERROR("only integer time span is supported")
             INFO("now begin to plot request rate curve")
-            self.twoDPlot("request_rate", time_mode="r", time_interval=trace_stat.time_span//100)
+            self.twoDPlot("request_rate", time_mode="r", time_interval=trace_stat.time_span // 100)
 
         INFO("now begin to plot cold miss ratio curve")
-        self.twoDPlot("cold_miss_ratio", time_mode="v", time_interval=trace_stat.num_of_requests//100)
+        self.twoDPlot("cold_miss_ratio", time_mode="v", time_interval=trace_stat.num_of_requests // 100)
 
         INFO("now begin to plot popularity curve")
         self.twoDPlot("popularity")
 
-
         if characterize_type == "short":
             # short should support [basic stat, HRC of LRU, OPT, cold miss ratio, popularity]
             INFO("now begin to plot hit ratio curves")
-            self.plotHRCs(["LRU", "Optimal"], cache_size=cache_size, bin_size=cache_size//cpu_count()+1,
+            self.plotHRCs(["LRU", "Optimal"], cache_size=cache_size, bin_size=cache_size // cpu_count() + 1,
                           num_of_threads=cpu_count(),
                           use_general_profiler=True, save_gradually=True)
 
@@ -885,7 +998,7 @@ class Cachecow:
 
             INFO("now begin to plot hit ratio curves")
             self.plotHRCs(["LRU", "Optimal", "LFU"], cache_size=cache_size,
-                          bin_size=cache_size//cpu_count()//4+1,
+                          bin_size=cache_size // cpu_count() // 4 + 1,
                           num_of_threads=cpu_count(),
                           use_general_profiler=True, save_gradually=True)
 
@@ -898,17 +1011,17 @@ class Cachecow:
             self.twoDPlot("scan_vis")
 
             INFO("now begin to plot rd distribution heatmap")
-            self.heatmap("v", "rd_distribution", time_interval=trace_stat.num_of_requests//100)
+            self.heatmap("v", "rd_distribution", time_interval=trace_stat.num_of_requests // 100)
 
             INFO("now begin to plot hit ratio curves")
             self.plotHRCs(["LRU", "Optimal", "LFU", "ARC"], cache_size=cache_size,
-                          bin_size=cache_size//cpu_count()//16+1,
+                          bin_size=cache_size // cpu_count() // 16 + 1,
                           num_of_threads=cpu_count(),
                           save_gradually=True)
 
             INFO("now begin to plot hit_ratio_start_time_end_time heatmap")
             self.heatmap("v", "hit_ratio_start_time_end_time",
-                         time_interval=trace_stat.num_of_requests//100,
+                         time_interval=trace_stat.num_of_requests // 100,
                          cache_size=cache_size)
 
 
@@ -920,23 +1033,20 @@ class Cachecow:
             self.twoDPlot("scan_vis")
 
             INFO("now begin to plot rd distribution heatmap")
-            self.heatmap("v", "rd_distribution", time_interval=trace_stat.num_of_requests//200)
-
+            self.heatmap("v", "rd_distribution", time_interval=trace_stat.num_of_requests // 200)
 
             INFO("now begin to plot hit ratio curves")
             self.plotHRCs(["LRU", "Optimal", "LFU", "ARC"], cache_size=cache_size,
-                          bin_size=cache_size//cpu_count()//60+1,
+                          bin_size=cache_size // cpu_count() // 60 + 1,
                           num_of_threads=cpu_count(),
                           save_gradually=True)
 
             INFO("now begin to plot hit_ratio_start_time_end_time heatmap")
             self.heatmap("v", "hit_ratio_start_time_end_time",
-                         time_interval=trace_stat.num_of_requests//200,
+                         time_interval=trace_stat.num_of_requests // 200,
                          cache_size=cache_size)
 
-
         return str(trace_stat)
-
 
     def __len__(self):
         assert self.reader, "you haven't provided a data file"

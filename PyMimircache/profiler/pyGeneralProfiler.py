@@ -22,7 +22,7 @@ from PyMimircache.const import *
 from PyMimircache.const import cache_name_to_class
 from PyMimircache.cacheReader.abstractReader import AbstractReader
 from PyMimircache.utils.printing import *
-from PyMimircache.profiler.profilerUtils import util_plotHRC
+from PyMimircache.profiler.profilerUtils import util_plotMRC
 
 
 __all__ = ["PyGeneralProfiler"]
@@ -55,12 +55,21 @@ def _cal_hit_count_subprocess(cache_class,
     n_hits = 0
     n_misses = 0
 
-    for req in process_reader:
+    req = process_reader.read_as_req_item()
+    while req:
         hit = process_cache.access(req, )
         if hit:
             n_hits += 1
         else:
             n_misses += 1
+        req = process_reader.read_as_req_item()
+
+    # for req in process_reader:
+    #     hit = process_cache.access(req, )
+    #     if hit:
+    #         n_hits += 1
+    #     else:
+    #         n_misses += 1
     process_reader.close()
     return n_hits, n_misses
 
@@ -105,6 +114,7 @@ class PyGeneralProfiler:
 
         self.hit_count = np.zeros((self.num_of_bins + 1,), dtype=np.longlong)
         self.hit_ratio = np.zeros((self.num_of_bins + 1,), dtype=np.double)
+        self.miss_ratio = np.zeros((self.num_of_bins + 1,), dtype=np.double)
 
         self.has_ran = False
 
@@ -153,10 +163,12 @@ class PyGeneralProfiler:
                     ))
         for i in range(len(self.hit_count)):
             self.hit_ratio[i] = self.hit_count[i] / self.num_of_trace_elements
+            self.miss_ratio[i] = 1 -self.hit_ratio[i]
 
         # right now self.hit_count is a CDF array like hit_ratio, now we transform it into non-CDF
         for i in range(self.num_of_bins, 0, -1):
             self.hit_count[i] = self.hit_count[i] - self.hit_count[i-1]
+
         self.has_ran = True
         return True
 
@@ -189,6 +201,19 @@ class PyGeneralProfiler:
         return self.hit_ratio
 
 
+    def get_miss_ratio(self, **kwargs):
+        """
+        obtain hit ratio at cache size [0, bin_size, bin_size*2 ...]
+
+        :param kwargs: not used now
+        :return: a numpy array, with hit ratio corresponding to size [0, bin_size, bin_size*2 ...]
+        """
+
+        if not self.has_ran:
+            self._run()
+        return self.miss_ratio
+
+
     def plotHRC(self, **kwargs):
         """
         plot hit ratio curve of the given trace under given algorithm
@@ -209,4 +234,25 @@ class PyGeneralProfiler:
         util_plotHRC(hit_ratio_size_list, self.hit_ratio, **kwargs)
 
         return self.hit_ratio
+
+    def plotMRC(self, **kwargs):
+        """
+        plot miss ratio curve of the given trace under given algorithm
+
+        :param kwargs: figname, cache_unit_size (unit: Byte), no_clear, no_save
+        :return:
+        """
+
+        if not self.has_ran:
+            self._run()
+
+        dat_name = os.path.basename(self.reader.file_loc)
+        kwargs["figname"] = kwargs.get("figname", "MRC_{}.png".format(dat_name))
+        kwargs["label"] = kwargs.get("label", self.cache_class.__name__)
+
+
+        miss_ratio_size_list = [self.bin_size * i for i in range(self.num_of_bins + 1)]
+        util_plotHRC(miss_ratio_size_list, self. miss_ratio, **kwargs)
+
+        return self.miss_ratio
 
