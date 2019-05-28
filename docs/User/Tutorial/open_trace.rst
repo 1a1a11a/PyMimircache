@@ -15,7 +15,7 @@ How to Open a Trace File
 ------------------------
 Now let's open a trace file. You have three choices for opening different types of trace files. Choose the one that suits your needs.
 
->>> import mimircache as m
+>>> import PyMimircache as m
 >>> c = m.cachecow()
 >>> c.open("path/to/trace")
 >>> c.csv("path/to/trace", init_params={'label':x})  # specify which column contains the request key(label)
