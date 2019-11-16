@@ -24,8 +24,8 @@ from PyMimircache.cacheReader.abstractReader import AbstractReader
 from PyMimircache.utils.printing import *
 from PyMimircache.profiler.profilerUtils import util_plotHRC, util_plotMRC
 
-
 __all__ = ["PyGeneralProfiler"]
+
 
 def _cal_hit_count_subprocess(cache_class,
                               cache_size,
@@ -47,6 +47,9 @@ def _cal_hit_count_subprocess(cache_class,
     # local reader and cache
     process_reader = reader_class(**reader_params)
 
+    if cache_size == 0:
+        return 0, process_reader.get_num_of_req()
+
     if cache_params is None:
         cache_params = {}
     if cache_class.__name__ == "Optimal":
@@ -64,12 +67,6 @@ def _cal_hit_count_subprocess(cache_class,
             n_misses += 1
         req = process_reader.read_as_req_item()
 
-    # for req in process_reader:
-    #     hit = process_cache.access(req, )
-    #     if hit:
-    #         n_hits += 1
-    #     else:
-    #         n_misses += 1
     process_reader.close()
     return n_hits, n_misses
 
@@ -81,43 +78,39 @@ class PyGeneralProfiler:
 
     all = ["get_hit_count", "get_hit_ratio", "plotMRC"]
 
-    def __init__(self, reader, cache_class, cache_size,
-                 bin_size=-1, num_of_bins=-1, cache_params=None, **kwargs):
+    def __init__(self, reader, cache_class, cache_size=-1,
+                 bin_size=-1, cache_params=None, **kwargs):
 
         self.cache_class = cache_class
         if isinstance(self.cache_class, str):
             self.cache_class = cache_name_to_class(self.cache_class)
 
         self.cache_params = cache_params
-        self.cache_size = cache_size
         self.reader = reader
-        self.bin_size = bin_size
-        self.num_of_bins = num_of_bins
+        self.cache_size, self.bin_size = cache_size, bin_size
+        self.cache_size_list = kwargs.get("cache_size_list", [])
         self.num_of_threads = kwargs.get("num_of_threads", DEF_NUM_THREADS)
-        self.num_of_trace_elements = 0
+        self.num_of_req = 0
 
         assert isinstance(reader, AbstractReader), \
             "you provided an invalid cacheReader: {}".format(reader)
-        assert self.bin_size == -1 or self.num_of_bins == -1, \
-            "please don't specify bin_size and num_of_bins at the same time"
-        assert isinstance(self.cache_size, int) and self.cache_size > 0, \
-            "cache size {} is not valid for {}".format(cache_size, self.get_classname())
 
         self.get_hit_rate = self.get_hit_ratio
 
-        if self.bin_size == -1:
-            if self.num_of_bins == -1:
-                self.num_of_bins = DEF_NUM_BIN_PROF
-            self.bin_size = int(math.ceil(self.cache_size / self.num_of_bins)) # this guarantees bin_size >= 1
-        else:
-            self.num_of_bins = int(math.ceil(self.cache_size / self.bin_size))
+        if len(self.cache_size_list) == 0:
+            if self.bin_size == -1:
+                assert self.cache_size != -1
+                self.bin_size = self.cache_size
+                self.cache_size_list.append(self.cache_size)
+            else:
+                for i in range(self.cache_size // self.bin_size + 1):
+                    self.cache_size_list.append(i * self.bin_size)
 
-        self.hit_count = np.zeros((self.num_of_bins + 1,), dtype=np.longlong)
-        self.hit_ratio = np.zeros((self.num_of_bins + 1,), dtype=np.double)
-        self.miss_ratio = np.zeros((self.num_of_bins + 1,), dtype=np.double)
+        self.hit_count = np.zeros((len(self.cache_size_list),), dtype=np.longlong)
+        self.hit_ratio = np.zeros((len(self.cache_size_list),), dtype=np.double)
+        self.miss_ratio = np.zeros((len(self.cache_size_list),), dtype=np.double)
 
         self.has_ran = False
-
 
     @classmethod
     def get_classname(cls):
@@ -126,7 +119,6 @@ class PyGeneralProfiler:
         :return:
         """
         return cls.__name__
-
 
     def _run(self):
         """
@@ -137,42 +129,40 @@ class PyGeneralProfiler:
         reader_params = self.reader.get_params()
         reader_params["open_c_reader"] = False
 
-        self.num_of_trace_elements = self.reader.get_num_of_req()
+        self.num_of_req = self.reader.get_num_of_req()
         count = 0
         with ProcessPoolExecutor(max_workers=self.num_of_threads) as ppe:
             future_to_size_ind = {ppe.submit(_cal_hit_count_subprocess,
-                                             self.cache_class, self.bin_size * ind,
+                                             self.cache_class, self.cache_size_list[idx],
                                              self.reader.__class__, reader_params,
-                                             self.cache_params): ind \
-                                for ind in range(self.num_of_bins, 0, -1)}
+                                             self.cache_params): idx \
+                                  for idx in range(len(self.cache_size_list)-1, -1, -1)}
             last_print_ts = time.time()
             for future in as_completed(future_to_size_ind):
                 result = future.result()
-                ind = future_to_size_ind[future]
+                idx = future_to_size_ind[future]
                 if result:
-                    assert sum(result) == self.num_of_trace_elements, \
-                        "hit/miss {}/{}, trace length {}".format(result[0], result[1], self.num_of_trace_elements)
-                    self.hit_count[ind] = result[0]
+                    assert sum(result) == self.num_of_req, \
+                        "hit/miss {}/{}, trace length {}".format(result[0], result[1], self.num_of_req)
+                    self.hit_count[idx] = result[0]
                     count += 1
                     if time.time() - last_print_ts > 20:
-                        print("{}/{}".format(count, self.num_of_bins), end="\r")
+                        print("{}/{}".format(count, len(self.cache_size_list)), end="\r")
                         last_print_ts = time.time()
                 else:
                     raise RuntimeError("failed to fetch results from cache of size {}".format(
-                        self.bin_size * ind
+                        self.cache_size_list[idx]
                     ))
         for i in range(len(self.hit_count)):
-            self.hit_ratio[i] = self.hit_count[i] / self.num_of_trace_elements
-            self.miss_ratio[i] = 1 -self.hit_ratio[i]
+            self.hit_ratio[i] = self.hit_count[i] / self.num_of_req
+            self.miss_ratio[i] = 1 - self.hit_ratio[i]
 
         # right now self.hit_count is a CDF array like hit_ratio, now we transform it into non-CDF
-        for i in range(self.num_of_bins, 0, -1):
-            self.hit_count[i] = self.hit_count[i] - self.hit_count[i-1]
+        for i in range(len(self.cache_size_list)-1, 0, -1):
+            self.hit_count[i] = self.hit_count[i] - self.hit_count[i - 1]
 
         self.has_ran = True
         return True
-
-
 
     def get_hit_count(self, **kwargs):
         """
@@ -187,7 +177,6 @@ class PyGeneralProfiler:
             self._run()
         return self.hit_count
 
-
     def get_hit_ratio(self, **kwargs):
         """
         obtain hit ratio at cache size [0, bin_size, bin_size*2 ...]
@@ -200,7 +189,6 @@ class PyGeneralProfiler:
             self._run()
         return self.hit_ratio
 
-
     def get_miss_ratio(self, **kwargs):
         """
         obtain hit ratio at cache size [0, bin_size, bin_size*2 ...]
@@ -212,7 +200,6 @@ class PyGeneralProfiler:
         if not self.has_ran:
             self._run()
         return self.miss_ratio
-
 
     def plotHRC(self, **kwargs):
         """
@@ -229,8 +216,7 @@ class PyGeneralProfiler:
         kwargs["figname"] = kwargs.get("figname", "HRC_{}.png".format(dat_name))
         kwargs["label"] = kwargs.get("label", self.cache_class.__name__)
 
-        hit_ratio_size_list = [self.bin_size * i for i in range(self.num_of_bins + 1)]
-        util_plotHRC(hit_ratio_size_list, self.hit_ratio, **kwargs)
+        util_plotHRC(self.cache_size_list, self.hit_ratio, **kwargs)
 
         return self.hit_ratio
 
@@ -248,9 +234,6 @@ class PyGeneralProfiler:
         dat_name = os.path.basename(self.reader.file_loc)
         kwargs["figname"] = kwargs.get("figname", "MRC_{}.png".format(dat_name))
         kwargs["label"] = kwargs.get("label", self.cache_class.__name__)
-
-        miss_ratio_size_list = [self.bin_size * i for i in range(self.num_of_bins + 1)]
-        util_plotMRC(miss_ratio_size_list, self. miss_ratio, **kwargs)
+        util_plotMRC(self.cache_size_list, self.miss_ratio, **kwargs)
 
         return self.miss_ratio
-

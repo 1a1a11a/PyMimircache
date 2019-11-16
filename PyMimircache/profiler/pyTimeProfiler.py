@@ -35,7 +35,7 @@ def _cal_interval_hit_count_subprocess(
         cache_size,
         reader_class,
         reader_params,
-        cache_params=None):
+        cache_params=None): 
     """
     subprocess for simulating a cache, this will be used as init func for simulating a cache,
     it reads data from reader and calculates the number of hits and misses
@@ -299,10 +299,11 @@ def plot_IMR(reader,
                     hc_mc = queue_dict[name].get_nowait()
                     plot_now = True
                     if isinstance(hc_mc, float):
+                        # finished_inc += 1
+                        finished += 1
                         final_mr_dict[name] = hc_mc
                         INFO("{}/{} {} finished, accumulate miss ratio {:.4f}".format(
-                            finished+finished_inc, len(cache_classes), name, hc_mc))
-                        finished_inc += 1
+                            finished, len(cache_classes), name, hc_mc))
                         break
                     if sum(hc_mc) == 0:
                         mr_dict[name].append(mr_dict[name][-1])
@@ -322,11 +323,11 @@ def plot_IMR(reader,
         process_to_remove = []
         for p, name in processes.items():
             if not p.is_alive():
-                finished += 1
                 while True:
                     try:
                         hc_mc = queue_dict[name].get_nowait()
                         if isinstance(hc_mc, float):
+                            finished += 1
                             final_mr_dict[name] = hc_mc
                             INFO("{}/{} {} finished, accumulate miss ratio {:.4f}".format(
                                 finished, len(cache_classes), name, hc_mc))

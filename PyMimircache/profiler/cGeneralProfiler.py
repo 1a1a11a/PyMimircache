@@ -38,8 +38,8 @@ class CGeneralProfiler:
            "get_hit_ratio",
            "plotHRC"]
 
-    def __init__(self, reader, cache_alg, cache_size,
-                 bin_size=-1, num_of_bins=-1, cache_params=None, **kwargs):
+    def __init__(self, reader, cache_alg, cache_size=-1,
+                 bin_size=-1, cache_params=None, **kwargs):
 
         """
         initialization of a cGeneralProfiler
@@ -53,10 +53,13 @@ class CGeneralProfiler:
 
         # make sure reader is valid
         self.reader = reader
-        self.cache_size = cache_size
+        self.cache_size, self.bin_size = cache_size, bin_size
         self.cache_name = CACHE_NAME_CONVRETER[cache_alg.lower()]
-        self.bin_size = bin_size
-        self.num_of_bins = num_of_bins
+        self.cache_size_list = kwargs.get("cache_size_list", [])
+
+        self.cache_params = cache_params if cache_params is not None else {}
+        self.num_of_threads = kwargs.get("num_of_threads", DEF_NUM_THREADS)
+
         self.hit_count = None
         self.hit_ratio = None
         self.miss_ratio = None
@@ -67,27 +70,19 @@ class CGeneralProfiler:
         assert cache_alg.lower() in CACHE_NAME_CONVRETER, \
             "please check your cache replacement algorithm: " + cache_alg
 
-        assert CACHE_NAME_CONVRETER[cache_alg] in C_AVAIL_CACHE, \
+        assert CACHE_NAME_CONVRETER[cache_alg.lower()] in C_AVAIL_CACHE, \
             "cGeneralProfiler currently only available on the following caches: {}\n, " \
             "please use generalProfiler".format(pformat(C_AVAIL_CACHE))
 
-        assert self.bin_size == -1 or self.num_of_bins == -1, \
-            "please don't specify bin_size ({}) and num_of_bins ({}) at the same time".format(self.bin_size, self.num_of_bins)
-        assert isinstance(self.cache_size, int) and self.cache_size > 0, \
-            "cache size {} is not valid for {}".format(cache_size, self.get_classname())
+        if len(self.cache_size_list) == 0:
+            if self.bin_size == -1:
+                assert self.cache_size != -1
+                self.bin_size = self.cache_size
+                self.cache_size_list.append(self.cache_size)
+            else:
+                for i in range(self.cache_size // self.bin_size + 1):
+                    self.cache_size_list.append(i * self.bin_size)
 
-
-        if self.bin_size == -1:
-            if self.num_of_bins == -1:
-                self.num_of_bins = DEF_NUM_BIN_PROF
-            self.bin_size = int(math.ceil(self.cache_size / self.num_of_bins)) # this guarantees bin_size >= 1
-        else:
-            self.num_of_bins = int(math.ceil(self.cache_size / self.bin_size))
-
-        self.cache_params = cache_params
-        if self.cache_params is None:
-            self.cache_params = {}
-        self.num_of_threads = kwargs.get("num_of_threads", DEF_NUM_THREADS)
 
         # check whether user want to profling with size
         self.block_unit_size = self.cache_params.get("block_unit_size", 0)
@@ -97,7 +92,7 @@ class CGeneralProfiler:
                 self.block_unit_size = cache_params[name]
                 break
 
-        # if the given file is not embedded reader, needs conversion for C backend
+        # if the given reader is not a supported reader, we need to convert to supported trace type for C backend
         need_convert = True
         for instance in C_AVAIL_CACHEREADER:
             if isinstance(reader, instance):
@@ -252,7 +247,6 @@ class CGeneralProfiler:
 
         self.get_hit_ratio(**kwargs)
         self.miss_ratio = 1 - self.hit_ratio
-        hit_ratio_size_list = [self.bin_size * i for i in range(self.num_of_bins + 1)]
-        util_plotMRC(hit_ratio_size_list, self.miss_ratio, **kwargs)
+        util_plotMRC(self.cache_size_list, self.miss_ratio, **kwargs)
 
         return self.miss_ratio

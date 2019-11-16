@@ -967,7 +967,8 @@ class Cachecow:
 
         if self.size_col != -1:
             INFO("now begin to plot obj_size_distribution")
-            self.twoDPlot("obj_size_distribution")
+            WARNING("obj_size_distribution plot skipped due to legacy code")
+            # self.twoDPlot("obj_size_distribution")
 
             INFO("now begin to plot request_traffic_vol")
             self.twoDPlot("request_traffic_vol", time_mode="r", time_interval=int(trace_stat.time_span // 100))

@@ -29,6 +29,7 @@ In time related plots, the x-axis should be real or virtual time.
 import os
 import sys
 import math
+import string
 import numpy as np
 from collections import defaultdict
 import matplotlib.ticker as ticker
@@ -125,6 +126,8 @@ def request_traffic_vol_2d(reader, time_mode, time_interval, size_col, figname="
         vol = 0
         for i in range(n_req):
             line = reader.read_complete_req()
+            if len(line[size_col-1].strip()) == 0: 
+                continue
             vol += int(line[size_col-1])
         l.append(vol/1024/1024/1024)
 
@@ -674,8 +677,9 @@ def obj_size_distribution_2d(reader, logX=True, logY=False, cdf=True, plot_type=
         line = reader.read_complete_req()
         # if int(line[size_col-1]) <= 0:
         #     WARNING("size error for {}".format(line))
-        if int(line[size_col-1]) > max_size:
-            max_size = int(line[size_col-1])
+        req_size = int(line[size_col-1])
+        if req_size > max_size:
+            max_size = req_size
 
         assert int(line[1]) == int(req)
         # obj
