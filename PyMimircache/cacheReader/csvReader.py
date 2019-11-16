@@ -84,10 +84,10 @@ class CsvReader(AbstractReader):
         super().read_one_req()
 
         line = self.trace_file.readline().decode('utf-8', 'ignore')
-        while line and len(line.strip()) == 0:
+        while line and len(line.strip(string.punctuation+string.whitespace)) == 0:
             line = self.trace_file.readline().decode()
         if line:
-            ret = line.split(self.delimiter)[self.label_column - 1].strip()
+            ret = line.split(self.delimiter)[self.label_column - 1].strip(string.punctuation+string.whitespace)
             if self.data_type == 'l':
                 ret = int(ret)
                 if self.block_unit_size != 0 and self.disk_sector_size != 0:
@@ -105,10 +105,10 @@ class CsvReader(AbstractReader):
         super().read_one_req()
 
         line = self.trace_file.readline().decode()
-        while line and len(line.strip()) == 0:
+        while line and len(line.strip(string.punctuation+string.whitespace)) == 0:
             line = self.trace_file.readline().decode()
         if line:
-            line_split = line.strip().split(self.delimiter)
+            line_split = [s.strip(string.punctuation+string.whitespace) for s in line.split(self.delimiter)]
             if self.block_unit_size != 0 and self.disk_sector_size != 0:
                 line_split[self.label_column - 1] = line_split[self.label_column - 1] * \
                                                     self.disk_sector_size // self.block_unit_size
@@ -123,7 +123,7 @@ class CsvReader(AbstractReader):
         :return: 
         """
         line = self.trace_file.readline().decode()
-        while line and len(line.strip()) == 0:
+        while line and len(line.strip(string.punctuation+string.whitespace)) == 0:
             line = self.trace_file.readline().decode()
 
         while line:
@@ -145,7 +145,7 @@ class CsvReader(AbstractReader):
         :return: a tuple of current request
         """
         line = self.trace_file.readline().decode()
-        while line and len(line.strip()) == 0:
+        while line and len(line.strip(string.punctuation+string.whitespace)) == 0:
             line = self.trace_file.readline().decode()
 
         while line:
@@ -161,14 +161,14 @@ class CsvReader(AbstractReader):
         """
         super().read_one_req()
         line = self.trace_file.readline().strip().decode()
-        while line and len(line.strip()) == 0:
+        while line and len(line.strip(string.punctuation+string.whitespace)) == 0:
             line = self.trace_file.readline().decode()
 
         if line:
             line = line.split(self.delimiter)
             try:
-                time = float(line[self.time_column - 1].strip())
-                lbn = line[self.label_column - 1].strip()
+                time = float(line[self.time_column - 1].strip(string.punctuation+string.whitespace))
+                lbn = line[self.label_column - 1].strip(string.punctuation+string.whitespace)
                 if self.data_type == 'l':
                     lbn = int(lbn)
                     if self.block_unit_size != 0 and self.disk_sector_size != 0:
