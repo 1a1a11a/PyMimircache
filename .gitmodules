@@ -1,0 +1,3 @@
+[submodule "libMimircache/libMimircache"]
+	path = libMimircache/libMimircache
+	url = git@github.com:1a1a11a/libMimircache.git
