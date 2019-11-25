@@ -6,18 +6,18 @@
 //  Copyright © 2016 Juncheng. All rights reserved.
 //
 
-#include <Python.h>
-#include "eviction_stat.h"
-#include "cache.h"
-#include "FIFO.h" 
-#include "Optimal.h"
-#include "const.h"
+//#include <Python.h>
+//#include "../libMimircache/libMimircache/profiler/dep/eviction_stat.h"
+//#include "../libMimircache/libMimircache/include/mimircache/cache.h"
+//#include "FIFO.h"
+//#include "Optimal.h"
+//#include "../libMimircache/libMimircache/include/mimircache/const.h"
 #include "python_wrapper.h"
 
 
-#define NPY_NO_DEPRECATED_API 11
-#include <numpy/arrayobject.h>
-#include <numpy/npy_math.h>
+//#define NPY_NO_DEPRECATED_API 11
+//#include <numpy/arrayobject.h>
+//#include <numpy/npy_math.h>
 
 
 
