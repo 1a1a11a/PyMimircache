@@ -1,6 +1,6 @@
 //
 //  pyReader.c
-//  pyMimircache
+//  PyMimircache
 //
 //  Created by Juncheng on 5/26/16.
 //  Refactored by Juncheng on 11/26/19.

@@ -1,13 +1,13 @@
 //
 //  pyHeatmap.c
-//  pyMimircache
+//  PyMimircache
 //
 //  Created by Juncheng on 5/26/16.
 //  Refactored by Juncheng on 5/26/16.
 //  Copyright © 2016-2019 Juncheng. All rights reserved.
 //
 
-#include "python_wrapper.h"
+#include "pyHeaders.h"
 
 
 static PyObject* differential_heatmap_py(PyObject* self, PyObject* args, PyObject* keywds);
@@ -17,10 +17,7 @@ static PyObject* differential_heatmap_py(PyObject* self, PyObject* args, PyObjec
 
 
 
-static PyObject* heatmap_computation(PyObject* self,
-                                     PyObject* args,
-                                     PyObject* keywds)
-{
+static PyObject* heatmap_computation(PyObject* self, PyObject* args, PyObject* keywds){
     PyObject* po;
     PyObject* cache_params=NULL;
     reader_t* reader;
@@ -53,7 +50,7 @@ static PyObject* heatmap_computation(PyObject* self,
         return NULL;
     }
 
-    VERBOSE("%s: "
+    INFO("%s: "
          "cache size: %ld, bin_size: %ld, "
          "time_mode: %s, interval: %ld, n_pixel: %ld, "
          "ihr: %d, ema_coef: %.2lf, use_percent: %d "
@@ -70,14 +67,14 @@ static PyObject* heatmap_computation(PyObject* self,
     }
 
     // build cache
-    cache = build_cache(reader, cache_size, algorithm, cache_params, 0);
+    cache = py_create_cache(algorithm, cache_size, reader->base->obj_id_type, cache_params, 0);
 
 //    if (strcmp(algorithm, "LRU") == 0){
 //        cache = cache_init(cache_size, reader->base->type, 0);
 //        cache->core->type = e_LRU;
 //    }
 //    else
-//        cache = build_cache(reader, cache_size, algorithm, cache_params, 0);
+//      cache = py_create_cache(algorithm, cache_size, reader->base->obj_id_type, cache_params, 0);
 
     // prepare heatmap computing params
     hm_comp_params_t hm_comp_params;
@@ -266,7 +263,7 @@ static PyObject* differential_heatmap_py(PyObject* self,
     hm_comp_params.ewma_coefficient_lf = ewma_coefficient;
     hm_comp_params.interval_hit_ratio_b = interval_hit_ratio;
 
-    VERBOSE("plot type: %s, interval hit ratio_bool: %d, ewma_coefficient: %.2lf, "
+  INFO("plot type: %s, interval hit ratio_bool: %d, ewma_coefficient: %.2lf, "
          "cache size: %ld, time_mode: %s, num_of_pixel_of_time_dim: %ld, "
          "time_interval: %ld, "
          "bin_size: %ld, num_of_threads: %d\n", plot_type_s,
@@ -279,11 +276,10 @@ static PyObject* differential_heatmap_py(PyObject* self,
     // just need to pass size and data_type)
     guint64 i, j;
     for (i=0; i<2; i++){
-        if (strcmp(algorithm[i], "LRU") == 0){
+        if (strcmp(algorithm[i], "LRU") == 0)
             cache[i] = cache_init(algorithm[i], cache_size, reader->base->obj_id_type);
-        }
         else
-            cache[i] = build_cache(reader, cache_size, algorithm[i], cache_params[i], 0);
+            cache[i] = py_create_cache(algorithm[i], cache_size, reader->base->obj_id_type, cache_params[i], 0);
     }
 
     // verify plot type and check parameters

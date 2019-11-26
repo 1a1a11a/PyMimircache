@@ -148,14 +148,19 @@ if _DEBUG:
     print("{}".format(extensions))
 
 
-BASE_PATH = "PyMimircache/libMimircache/libMimircache/libMimircache/"
-PyBinding_PATH = "PyMimircache/libMimircache/pyBindings/"
+BASE_PATH = "libMimircache/libMimircache/libMimircache/"
+PyBinding_PATH = "libMimircache/pyBindings/"
 ALL_HEADERS = [BASE_PATH + "/include", BASE_PATH + "/include/mimircache", BASE_PATH + "/cache/include", BASE_PATH +
                "/cacheReader/include", BASE_PATH + "/utils/include", BASE_PATH + "/dataStructure/include", PyBinding_PATH]
+ALL_SOURCES = glob(BASE_PATH + "/cache/*.c") + glob(BASE_PATH + "/cacheReader/*.c") + \
+                glob(BASE_PATH + "/utils/*.c") + glob(BASE_PATH + "/dataStructure/*.c") + \
+                glob(BASE_PATH + "/profiler/*.c") 
 
+print("ALL HEADERS {}".format(ALL_HEADERS))
+print("ALL SOURCES {}".format(ALL_SOURCES))
 
 ext_kwargs = {
-    "sources": glob(BASE_PATH + "/*/*.c") + glob(PyBinding_PATH+"*.c"),
+    "sources": ALL_SOURCES + glob(PyBinding_PATH+"/*.c"),
     "include_dirs": ALL_HEADERS + numpy_headers,
     "extra_compile_args": extra_compile_args, 
     "extra_link_args": extra_link_args,
@@ -165,10 +170,11 @@ ext_kwargs = {
 }
 
 
-extensions.append(Extension("PyMimircache.libMimircache.DistUtils", **ext_kwargs))
-extensions.append(Extension("PyMimircache.libMimircache.ProfilerLRU", **ext_kwargs))
-extensions.append(Extension("PyMimircache.libMimircache.Profiler", **ext_kwargs))
-extensions.append(Extension("PyMimircache.libMimircache.Heatmap", **ext_kwargs))
+extensions.append(Extension("libMimircache.PyUtils", **ext_kwargs))
+extensions.append(Extension("libMimircache.DistUtils", **ext_kwargs))
+extensions.append(Extension("libMimircache.ProfilerLRU", **ext_kwargs))
+extensions.append(Extension("libMimircache.Profiler", **ext_kwargs))
+extensions.append(Extension("libMimircache.Heatmap", **ext_kwargs))
 
 # extensions.append(Extension(
 #     "PyMimircache.libMimircache.DistUtils",

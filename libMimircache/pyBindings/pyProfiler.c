@@ -1,6 +1,6 @@
 //
 //  pyProfiler.c
-//  pyMimircache
+//  PyMimircache
 //
 //  Created by Juncheng on 15/26/16.
 //  Refactored by Juncheng on 11/26/19.
@@ -8,7 +8,7 @@
 //
 
 
-#include "python_wrapper.h"
+#include "pyHeaders.h"
 
 
 static PyObject *Profiler_run_trace(PyObject *self,
@@ -44,7 +44,7 @@ static PyObject *Profiler_run_trace(PyObject *self,
   }
 
   // build cache
-  cache = build_cache(reader, cache_size, algorithm, cache_params, 0);
+  cache = py_create_cache(algorithm, cache_size, reader->base->obj_id_type, cache_params, 0);
 
   // run the trace
   profiler_res_t **results = run_trace(reader, cache, num_of_threads, bin_size);
@@ -108,7 +108,7 @@ static PyObject *Profiler_get_eviction_age(PyObject *self,
   }
 
   // build cache
-  cache = build_cache(reader, cache_size, algorithm, cache_params, 0);
+  cache = py_create_cache(algorithm, cache_size, reader->base->obj_id_type, cache_params, 0);
 
   profiler_res_t **results = run_trace(reader, cache, num_of_threads, bin_size);
 

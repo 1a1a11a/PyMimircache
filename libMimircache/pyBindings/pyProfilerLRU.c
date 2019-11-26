@@ -1,6 +1,6 @@
 //
 //  pyProfilerLRU.c
-//  pyMimircache
+//  PyMimircache
 //
 //  Created by Juncheng on 5/26/16.
 //  Refactored by Juncheng on 11/26/19.
@@ -8,7 +8,7 @@
 //
 
 
-#include "python_wrapper.h"
+#include "pyHeaders.h"
 
 
 static PyObject *ProfilerLRU_get_reuse_dist(PyObject *self, PyObject *args, PyObject *keywds) {

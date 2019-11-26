@@ -19,34 +19,39 @@ DEF_NUM_BIN_PROF = 100
 DEF_NUM_THREADS = os.cpu_count()
 DEF_EMA_HISTORY_WEIGHT = 0.80
 
-# try to import cMimircache
+# try to import libMimircache
 if not INSTALL_PHASE and ALLOW_C_MIMIRCACHE:
     failed_components = []
     failed_reason = set()
     try:
-        import PyMimircache.CMimircache.CacheReader
+        import libMimircache.PyUtils
     except Exception as e:
         failed_reason.add(e)
-        failed_components.append("CMimircache.CacheReader")
+        failed_components.append("libMimircache.PyUtils")
     try:
-        import PyMimircache.CMimircache.LRUProfiler
+        import libMimircache.DistUtils
     except Exception as e:
         failed_reason.add(e)
-        failed_components.append("CMimircache.LRUProfiler")
+        failed_components.append("libMimircache.DistUtils")
     try:
-        import PyMimircache.CMimircache.GeneralProfiler
+        import libMimircache.ProfilerLRU
     except Exception as e:
         failed_reason.add(e)
-        failed_components.append("CMimircache.GeneralProfiler")
+        failed_components.append("libMimircache.ProfilerLRU")
     try:
-        import PyMimircache.CMimircache.Heatmap
+        import libMimircache.Profiler
     except Exception as e:
         failed_reason.add(e)
-        failed_components.append("CMimircache.Heatmap")
+        failed_components.append("libMimircache.Profiler")
+    try:
+        import libMimircache.Heatmap
+    except Exception as e:
+        failed_reason.add(e)
+        failed_components.append("libMimircache.Heatmap")
 
     if len(failed_components):
         ALLOW_C_MIMIRCACHE = False
-        print("CMimircache components {} import failed, performance will degrade, "
+        print("libMimircache components {} import failed, performance will degrade, "
               "reason: {}, ignore this warning if this is installation".
               format(", ".join(failed_components),
                      ", ".join(["{!s}".format(i) for i in failed_reason])),
@@ -69,19 +74,19 @@ from PyMimircache.cache.tear import Tear
 from PyMimircache.cache.secondChance import SecondChance
 
 
-from PyMimircache.cacheReader.csvReader import CsvReader
-from PyMimircache.cacheReader.plainReader import PlainReader
-from PyMimircache.cacheReader.vscsiReader import VscsiReader
-from PyMimircache.cacheReader.binaryReader import BinaryReader
-
-# global C_AVAIL_CACHE (lower case)
-C_AVAIL_CACHE = ["LRU", "FIFO", "Optimal", "ARC", "Random",
-                     "LFUFast", "LFU", "MRU",
-                     "SLRU", "LRU_K", "LRU_2",
-                     "mimir", "Mithril", "AMP", "PG ",
-                 ]
-
-C_AVAIL_CACHEREADER = [PlainReader, VscsiReader, CsvReader, BinaryReader]
+# from PyMimircache.cacheReader.csvReader import CsvReader
+# from PyMimircache.cacheReader.plainReader import PlainReader
+# from PyMimircache.cacheReader.vscsiReader import VscsiReader
+# from PyMimircache.cacheReader.binaryReader import BinaryReader
+#
+# # global C_AVAIL_CACHE (lower case)
+# C_AVAIL_CACHE = ["LRU", "FIFO", "Optimal", "ARC", "Random",
+#                      "LFUFast", "LFU", "MRU",
+#                      "SLRU", "LRU_K", "LRU_2",
+#                      "mimir", "Mithril", "AMP", "PG ",
+#                  ]
+#
+# C_AVAIL_CACHEREADER = [PlainReader, VscsiReader, CsvReader, BinaryReader]
 
 
 CACHE_NAME_TO_CLASS_DICT = {"LRU":LRU, "LFU": LFU, "MRU":MRU, "ARC":ARC, "Optimal":Optimal,
@@ -91,9 +96,9 @@ CACHE_NAME_TO_CLASS_DICT = {"LRU":LRU, "LFU": LFU, "MRU":MRU, "ARC":ARC, "Optima
 
 # used to mapping user provided cache name to a unified cache replacement alg name (Appearntly this is not a good idea)
 CACHE_NAME_CONVRETER = {}
-for i in C_AVAIL_CACHE:
-    CACHE_NAME_CONVRETER[i.lower()] = i
-    CACHE_NAME_CONVRETER[i] = i
+# for i in C_AVAIL_CACHE:
+#     CACHE_NAME_CONVRETER[i.lower()] = i
+#     CACHE_NAME_CONVRETER[i] = i
 for i in CACHE_NAME_TO_CLASS_DICT.keys():
     CACHE_NAME_CONVRETER[i.lower()] = i
     CACHE_NAME_CONVRETER[i] = i
