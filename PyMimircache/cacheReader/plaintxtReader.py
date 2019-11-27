@@ -41,9 +41,12 @@ class PlaintxtReader(AbstractReader):
         while line and (len(line) == 0 or line[0] == "#"):      # while line makes sure not a deadloop
             line = self.trace_file.readline().strip()
 
-        obj_id = int(line) if self.obj_id_type == 'l' else line
-        req = Request(logical_time=self.n_read_req, obj_id=obj_id, obj_size=1)
-        return req
+        if line:
+            obj_id = int(line) if self.obj_id_type == 'l' else line
+            req = Request(logical_time=self.n_read_req, obj_id=obj_id, obj_size=1)
+            return req
+        else:
+            return None
 
     def clone(self, open_libm_reader=False):
         """

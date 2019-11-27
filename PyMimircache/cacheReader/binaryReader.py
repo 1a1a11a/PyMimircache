@@ -88,7 +88,7 @@ class BinaryReader(AbstractReader):
 
     def read_last_req(self):
         """
-        read the last request, binary trace has an efficient implementation
+        read the last request, binary trace has an efficient implementation so override the default in abstractReader
 
         :return: a request
         """

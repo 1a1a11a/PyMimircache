@@ -47,7 +47,7 @@
             '''
             evict one element from the cache line
             if we delete one element from list every time, it would be O(N) on
-            every request, which is too expensive, so we choose to access a hole
+            every request, which is too expensive, so we choose to add a hole
             on the list every time we delete it, when there are too many holes
             we re-generate the cache line list
             :return: None
@@ -59,7 +59,7 @@
 >>>         rand_num = random.randrange(0, len(self.cache_line_list))
 >>>         element = self.cache_line_list[rand_num]
 >>>         count += 1
-            # mark this element as deleted, access a hole on it
+            # mark this element as deleted, add a hole on it
 >>>         self.cache_line_list[rand_num] = None
 >>>         if count > 10:
                 # if there are too many holes, then we need to resize the list
@@ -68,7 +68,7 @@
 >>>             self.cache_line_list = new_list
 >>>         del self.cache_dict[element]
 >>>
->>>     def access(self, element):
+>>>     def add(self, element):
             '''
             :param element: the key of cache request, it can be in the cache, or not in the cache
             :return: True if element in the cache

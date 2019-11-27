@@ -15,13 +15,13 @@
 
 static void py_close_reader(PyObject *pycap_reader) {
   reader_t *reader = (reader_t *) PyCapsule_GetPointer(pycap_reader, NULL);
-  DEBUG("reader (%s) is closed\n", reader->base->trace_path);
+  DEBUG2("reader (%s) is closed\n", reader->base->trace_path);
   close_reader(reader);
 }
 
 static void py_free_cache(PyObject *pycap_cache) {
   cache_t *cache = (cache_t *) PyCapsule_GetPointer(pycap_cache, NULL);
-  DEBUG("free cache %s\n", cache->core->cache_name);
+  DEBUG2("free cache %s\n", cache->core->cache_name);
   cache->core->destroy(cache);
 }
 
@@ -101,8 +101,9 @@ static PyObject *py_setup_reader(PyObject *self, PyObject *args, PyObject *keywd
   // parse arguments
   if (!PyArg_ParseTupleAndKeywords(args, keywds, "sss|O", kwlist, &trace_path,
                                    &trace_type_str, &obj_id_type_str, &py_init_params)) {
+    ERROR("parsing argument failed in %s %s:%s\n", __func__, __FILE__, __LINE__);
     PyErr_SetString(PyExc_RuntimeError,
-                    "parsing argument failed in setup reader\n");
+                    "parsing argument failed in %s %s:%s\n", __func__, __FILE__, __LINE__);
     Py_RETURN_NONE;
   }
 
@@ -142,7 +143,7 @@ static PyObject *py_setup_reader(PyObject *self, PyObject *args, PyObject *keywd
       csv_init_params->real_time_field = (gint) PyLong_AsLong(py_real_time);
     }
 
-    if ((py_header = PyDict_GetItemString(py_init_params, "header")) != NULL) {
+    if ((py_header = PyDict_GetItemString(py_init_params, "has_header")) != NULL) {
       csv_init_params->has_header = PyObject_IsTrue(py_header);
     }
 
@@ -154,7 +155,7 @@ static PyObject *py_setup_reader(PyObject *self, PyObject *args, PyObject *keywd
       csv_init_params->traceID_field = (gint) PyLong_AsLong(py_traceID);
     }
 
-    if (((csvReader_init_params *) init_params)->has_header) DEBUG("csv data has header");
+    if (((csvReader_init_params *) init_params)->has_header) DEBUG2("csv data has header\n");
 
     DEBUG2("delimiter %d(%c)\n", ((csvReader_init_params *) init_params)->delimiter,
           ((csvReader_init_params *) init_params)->delimiter);

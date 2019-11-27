@@ -52,10 +52,17 @@ class CsvReader(AbstractReader):
         :return: a Request
         """
         super().read_one_req()
-        item = next(self.csv_reader)
-        while item[0][0] == '#':
+        try:
             item = next(self.csv_reader)
+        except StopIteration:
+            return None
+
+        while item and item[0][0] == '#':
             print("skip {}".format(item))
+            try:
+                item = next(self.csv_reader)
+            except StopIteration:
+                return None
         try:
             obj_id = int(item[self.obj_id_field]) if self.obj_id_type == 'l' else item[self.obj_id_field]
             obj_size = 1

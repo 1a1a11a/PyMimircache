@@ -8,9 +8,7 @@ import abc
 
 class Cache:
     __metaclass__ = abc.ABCMeta
-    all = ["access",
-           "get",
-           "access",
+    all = ["add",
            "evict",
            "_update",
            "_insert"]
@@ -30,62 +28,62 @@ class Cache:
         raise NotImplementedError("evict is not implemented")
 
     @abc.abstractmethod
-    def access(self, req_item, **kwargs):
+    def add(self, req, **kwargs):
         """
-        a general method shared by get and access, if an algorithm does not distinguish between
-        get and access, then you can just use this
+        a general method shared by get and set
+        
         :param **kwargs:
-        :param req_item: the element in the reference, it can be in the cache, or not
+        :param req: the element in the reference, it can be in the cache, or not
         :return: -1 if not in cache, otherwise old rank (if there is) or 1
         """
-        raise NotImplementedError("access is not implemented")
+        raise NotImplementedError("add is not implemented")
 
     @abc.abstractmethod
-    def has(self, req_item, **kwargs):
+    def check(self, req, **kwargs):
         """
-        whether the cache has the request item or not
+        whether the cache check the request item or not
         :param **kwargs:
-        :param req_item: the element in the reference, it can be in the cache, or not
+        :param req: the element in the reference, it can be in the cache, or not
         :return: -1 if not in cache, otherwise old rank (if there is) or 1
         """
-        raise NotImplementedError("access is not implemented")
+        raise NotImplementedError("add is not implemented")
 
     @abc.abstractmethod
-    def _update(self, req_item, **kwargs):
+    def _update(self, req, **kwargs):
         """ the given element is in the cache, now update it, the following information will be updated
         cache replacement algorithm related metadata
         real request data (not used in current version)
 
         :param **kwargs:
-        :param req_item:
+        :param req:
         :return: True on success, False on failure
         """
         raise NotImplementedError("_update is not implemented")
 
     @abc.abstractmethod
-    def _insert(self, req_item, **kwargs):
+    def _insert(self, req, **kwargs):
         """
         the given element is not in the cache, now insert it into cache
         :param **kwargs:
-        :param req_item:
+        :param req:
         :return: True on success, False on failure
         """
         raise NotImplementedError("_insert is not implemented")
 
     @abc.abstractmethod
-    def get_size(self, **kwargs):
+    def get_current_size(self, **kwargs):
         """
         get current used size of cache
         :param **kwargs:
         :return: int
         """
-        raise NotImplementedError("get_size is not implemented")
+        raise NotImplementedError("get_current_size is not implemented")
 
     def __len__(self):
         raise NotImplementedError("__len__ not implemented")
 
     def __contains__(self, req_id):
-        return bool(self.has(req_id))
+        return bool(self.check(req_id))
 
     def __repr__(self):
         return "abstract cache class, {}".format(super().__repr__())
