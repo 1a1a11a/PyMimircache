@@ -1,6 +1,5 @@
 # coding=utf-8
 # from distutils.core import setup, Extension
-from PyMimircache.version import __version__
 from setuptools import find_packages, setup, Extension
 from glob import glob
 from distutils.command.build_ext import build_ext
@@ -16,7 +15,8 @@ import sysconfig
 # from Cython.Build import cythonize
 
 import PyMimircache.const
-PyMimircache.const.INSTALL_PHASE = True
+PyMimircache.const.IMPORT_LIBMIMIRCACHE = False
+from PyMimircache.version import __version__
 
 
 _DEBUG = False
@@ -30,10 +30,10 @@ extra_link_args = ["-lm"]
 numpy_headers = []
 
 
-if _DEBUG:
-    extra_compile_args += ["-g", "-O0", "-D_DEBUG=%s" % _DEBUG_LEVEL, "-UNDEBUG"]
-else:
-    extra_compile_args += ["-DNDEBUG", "-O3"]
+# if _DEBUG:
+#     extra_compile_args += ["-g", "-O0", "-D_DEBUG=%s" % _DEBUG_LEVEL, "-UNDEBUG"]
+# else:
+#     extra_compile_args += ["-DNDEBUG", "-O3", "-LOGLEVEL=6"]
 
 # print(sysconfig.get_config_var("CFLAGS").split())
 # --------------------- Get OpenMP compiler flag --------------------
@@ -165,7 +165,7 @@ ext_kwargs = {
     "extra_compile_args": extra_compile_args, 
     "extra_link_args": extra_link_args,
     "language": "c", 
-    "define_macros": [('NDEBUG', '1'), ('LOGLEVEL', '3')],
+    "define_macros": [('NDEBUG', '1'), ('LOGLEVEL', '6')],
     "undef_macros": ['HAVE_FOO', 'HAVE_BAR'],
 }
 
@@ -228,7 +228,7 @@ extensions.append(Extension("libMimircache.Heatmap", **ext_kwargs))
 #     glob(BASE_PATH + "dataStructure/*.c") +
 #     ["PyMimircache/CMimircache/pyBindings/python_wrapper.c",
 #         "PyMimircache/CMimircache/pyBindings/pyHeatmap.c"],
-#     include_dirs=[BASE_PATH + "/headers"] +
+#     include_dirs=[BASE_PATH + "/header"] +
 #     [BASE_PATH + "/cache/include", BASE_PATH + "/cacheReader/include",
 #         BASE_PATH + "/profiler/include", BASE_PATH + "/utils/include/"] +
 #     ["PyMimircache/CMimircache/pyBindings/include"] + COMMON_HEADERS,
@@ -246,13 +246,13 @@ extensions.append(Extension("libMimircache.Heatmap", **ext_kwargs))
 #     glob("PyMimircache/CMimircache/wrapper/*.c") +
 #     ["PyMimircache/CMimircache/pyBindings/python_wrapper.c"] +
 #     ["PyMimircache/CMimircache/pyBindings/pyEviction_stat.c"],
-#     include_dirs=["PyMimircache/CMimircache/headers"] +
+#     include_dirs=["PyMimircache/CMimircache/header"] +
 #     ["PyMimircache/CMimircache/cache/include"] +
 #     ["PyMimircache/CMimircache/cacheReader/include"] +
 #     ["PyMimircache/CMimircache/profiler/include"] +
 #     ["PyMimircache/CMimircache/utils/include/"] +
 #     ["PyMimircache/CMimircache/pyBindings/include"] +
-#     ["PyMimircache/CMimircache/headers/cache"] + numpy_headers,
+#     ["PyMimircache/CMimircache/header/cache"] + numpy_headers,
 #     extra_compile_args=extra_compile_args,
 #     extra_link_args=extra_link_args,
 #     language="c"))

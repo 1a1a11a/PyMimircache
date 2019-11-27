@@ -19,6 +19,8 @@ DEF_NUM_BIN_PROF = 100
 DEF_NUM_THREADS = os.cpu_count()
 DEF_EMA_HISTORY_WEIGHT = 0.80
 
+
+IMPORT_LIBMIMIRCACHE = True
 # try to import libMimircache
 if not INSTALL_PHASE and ALLOW_C_MIMIRCACHE:
     failed_components = []
@@ -135,5 +137,5 @@ def add_new_cache_alg(name, cls):
 
 
 __all__ = ["ALLOW_C_MIMIRCACHE", "INTERNAL_USE", "DEF_NUM_BIN_PROF", "DEF_NUM_THREADS", "DEF_EMA_HISTORY_WEIGHT",
-           "C_AVAIL_CACHE", "C_AVAIL_CACHEREADER", "CACHE_NAME_CONVRETER", "CACHE_NAME_TO_CLASS_DICT",
-           "cache_name_to_class", "INSTALL_PHASE"]
+           "CACHE_NAME_CONVRETER", "CACHE_NAME_TO_CLASS_DICT",
+           "cache_name_to_class", "INSTALL_PHASE", "IMPORT_LIBMIMIRCACHE"]

@@ -20,20 +20,22 @@ cwd = os.getcwd()
 sys.path.extend([cwd, os.path.join(cwd, "..")])
 
 
-from PyMimircache.const import *
-if not INSTALL_PHASE:
+try:
+    from PyMimircache.const import *
     from PyMimircache.cacheReader.binaryReader import BinaryReader
     from PyMimircache.cacheReader.vscsiReader import VscsiReader
     from PyMimircache.cacheReader.csvReader import CsvReader
-    from PyMimircache.cacheReader.plainReader import PlainReader
+    from PyMimircache.cacheReader.plaintxtReader import PlaintxtReader
 
-    from PyMimircache.profiler.cLRUProfiler import CLRUProfiler as CLRUProfiler
-    from PyMimircache.profiler.cGeneralProfiler import CGeneralProfiler
-    from PyMimircache.profiler.pyGeneralProfiler import PyGeneralProfiler
-    from PyMimircache.profiler.cHeatmap import CHeatmap
-    from PyMimircache.profiler.pyHeatmap import PyHeatmap
-    from PyMimircache.top.cachecow import Cachecow
-    from PyMimircache.const import add_new_cache_alg
+# from PyMimircache.profiler.cLRUProfiler import CLRUProfiler as CLRUProfiler
+# from PyMimircache.profiler.cGeneralProfiler import CGeneralProfiler
+# from PyMimircache.profiler.pyGeneralProfiler import PyGeneralProfiler
+# from PyMimircache.profiler.cHeatmap import CHeatmap
+# from PyMimircache.profiler.pyHeatmap import PyHeatmap
+# from PyMimircache.top.cachecow import Cachecow
+# from PyMimircache.const import add_new_cache_alg
+except Exception as e:
+    print(e)
 
 from PyMimircache.version import __version__
 

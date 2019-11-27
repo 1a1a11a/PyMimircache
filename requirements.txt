@@ -3,4 +3,6 @@ wheel
 numpy
 pytest
 matplotlib
-HeapDict
+heapDict
+dataclasses
+mmh3
