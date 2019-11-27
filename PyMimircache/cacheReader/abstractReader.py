@@ -9,13 +9,11 @@
 from abc import ABC, abstractmethod
 import os
 from collections import defaultdict
-from PyMimircache.const import ALLOW_C_MIMIRCACHE, INSTALL_PHASE
-from multiprocessing import Manager, Lock
+from PyMimircache.const import IMPORT_LIBMIMIRCACHE
+from multiprocessing import Manager
 
-if ALLOW_C_MIMIRCACHE and not INSTALL_PHASE:
-    import PyMimircache.CMimircache.CacheReader as c_cacheReader
-
-from PyMimircache.cacheReader.requestItem import Req
+if IMPORT_LIBMIMIRCACHE:
+    import libMimircache.PyUtils as PyUtils
 
 
 class AbstractReader(ABC):
@@ -24,57 +22,108 @@ class AbstractReader(ABC):
 
     """
 
-    def __init__(self, file_loc, data_type='c', block_unit_size=0,
-                 disk_sector_size=0, open_c_reader=False, lock=None):
+    def __init__(self, trace_path, trace_type, obj_id_type,
+                 init_params=None,
+                 open_libm_reader=False, lock=None, *args, **kwargs):
         """
-        the initialization abstract function for cacheReaderAbstract
-        :param file_loc:            location of the file
-        :param data_type:           type of data(label), can be "l" for int/long, "c" for string
-        :param block_unit_size:     block size for storage system, 0 when disabled
-        :param disk_sector_size:    size of disk sector
-        :param open_c_reader:       whether open c reader
+            the initialization abstract function for cacheReaderAbstract
+
+        :param trace_path:          location of the file
+        :param trace_type:          type of the trace
+        :param obj_id_type:         type of obj_id, can be "l" for int/long, "c" for string
+        :param init_params:            init_params for reader
+        :param open_libm_reader:    whether open libMimircache reader
+        :param lock:
+        :param args:
+        :param kwargs:
         """
 
-        self.file_loc = file_loc
+        self.trace_path = trace_path
+        self.trace_type = trace_type
+        self.obj_id_type = obj_id_type
+        self.open_libm_reader = open_libm_reader
+        self.init_params = init_params
+
+        self.real_time_field = -1
+        self.obj_id_field = -1
+        self.obj_size_field = -1
+        self.cnt_field = -1
+        self.op_field = -1
+
+        if init_params:
+            assert "obj_id_field" in init_params, "please specify the field/column of obj_id, beginning from 1"
+
+            # this index begins from 1, so need to reduce by one before use
+            self.obj_id_field = init_params.get("obj_id_field", 0) - 1
+            self.real_time_field = init_params.get("real_time_field", 0) - 1
+            self.obj_size_field = init_params.get("obj_size_field", 0) - 1
+            self.cnt_field = init_params.get("cnt_field", 0) - 1
+            self.op_field = init_params.get("op_field", 0) - 1
+
         self.trace_file = None
-        self.c_reader = None
-        self.data_type = data_type
-        self.block_unit_size = block_unit_size
-        self.disk_sector_size = disk_sector_size
-        self.open_c_reader = open_c_reader
+        self.libm_reader = None
 
-        if self.disk_sector_size != 0:
-            assert data_type == 'l', "block size option only support on block request(data type l)"
-        assert (os.path.exists(file_loc)), "data file({}) does not exist".format(file_loc)
-
-        self.support_real_time = False
-        self.support_size = False
-        self.already_load_rd = False
+        assert (os.path.exists(trace_path)), "trace file({}) does not exist".format(trace_path)
+        assert len(args) == 0, "args not empty {}".format(args)
+        assert len(kwargs) == 0, "kwargs not empty {}".format(kwargs)
 
         self.lock = lock
         if self.lock is None:
             self._mp_manager = Manager()
             self.lock = self._mp_manager.Lock()
 
-        self.counter = 0
+        self.n_read_req = 0
         self.num_of_req = -1
-        self.num_of_uniq_req = -1
+        self.num_of_obj = -1
+        self.file_size = 0
 
-        # used for CsvReader and BinaryReader
-        self.label_column = -1
-        self.size_column = -1
-        self.time_column = -1
-        self.op_column = -1
+        self.support_real_time = True if self.real_time_field != -1 else False
+        self.support_size = True if self.obj_size_field != -1 else False
+        self.already_load_rd = False
+        self._open_trace()
 
+    def _open_trace(self):
+        if self.trace_file:
+            return
+        if self.trace_type.lower() == "binary" or self.trace_type.lower() == "b" or self.trace_type.lower() == "bin":
+            self.trace_file = open(self.trace_path, "rb")
+        else:
+            self.trace_file = open(self.trace_path, encoding='utf-8', errors='ignore')
+
+        # self.trace_file = open(self.trace_path, "rb")
+        if self.open_libm_reader:
+            self.libm_reader = PyUtils.setup_reader(self.trace_path, self.trace_type, self.obj_id_type,
+                                                    self.init_params)
+
+        self.file_size = os.path.getsize(self.trace_path)
+        self.n_read_req = 0
+
+    def close(self):
+        """
+            close reader and free all resources used by reader,
+            this is especially important for libm_reader
+        """
+        try:
+            if self is not None:
+                if getattr(self, "trace_file", None):
+                    self.trace_file.close()
+                    self.trace_file = None
+                # libMimircache reader will close upon gc
+                # if getattr(self, "libm_reader", None) and globals().get("PyUtils", None) is not None:
+                #     PyUtils.close_reader(self.libm_reader)
+                #     self.libm_reader = None
+                #     print("close libm_reader")
+        except Exception as e:
+            print("Exception during close reader: {}".format(e))
 
     def reset(self):
         """
         reset the read location back to beginning, similar as rewind in POSIX
         """
-        self.counter = 0
+        self.n_read_req = 0
         self.trace_file.seek(0, 0)
-        if self.c_reader:
-            c_cacheReader.reset_reader(self.c_reader)
+        if self.open_libm_reader:
+            PyUtils.reset_reader(self.libm_reader)
 
     def get_num_of_req(self):
         """
@@ -83,97 +132,60 @@ class AbstractReader(ABC):
         :return: the number of requests in the trace
         """
 
-        if self.num_of_req > 0:
-            return self.num_of_req
-
-        # clear before counting
-        self.num_of_req = 0
-        if self.c_reader:
-            self.num_of_req = c_cacheReader.get_num_of_req(self.c_reader)
-        else:
-            while self.read_one_req() is not None:
+        if self.num_of_req <= 0:
+            # clear before counting
+            self.num_of_req = 0
+            while self.read_one_req():
                 self.num_of_req += 1
-        self.reset()
+            self.reset()
 
         return self.num_of_req
 
-    def get_req_freq_distribution(self):
-        """
-        calculate the count for each block/obj
-        :return: a dictionary mapping from block/ojb to count
-        """
-
-        d = defaultdict(int)
-        for i in self:
-            d[i] += 1
-        self.reset()
-        return d
-
-    def get_num_of_uniq_req(self):
+    def get_num_of_obj(self):
         """
         count the number of unique block/obj in the trace
         :return: the number of unique block/obj
         """
 
-        if self.num_of_uniq_req == -1:
-            self.num_of_uniq_req = len(self.get_req_freq_distribution())
-        return self.num_of_uniq_req
+        if self.num_of_obj == -1:
+            self.num_of_obj = len(self.get_obj_freq_dict())
+        return self.num_of_obj
 
-    def read_first_req(self, label_only=False):
+    def get_obj_freq_dict(self):
+        """
+        calculate the count (frequency) for each block/obj
+        :return: a dictionary mapping from block/obj to count
+        """
+
+        d = defaultdict(int)
+        for req in self:
+            d[req.obj_id] += 1
+        self.reset()
+        return d
+
+    def read_first_req(self):
         """
         read the first request
-
-        :return: the request label or a list of information
+        :return: the first request
         """
 
         self.reset()
-        if label_only:
-            return self.read_one_req()
-        else:
-            return self.read_complete_req()
+        return self.read_one_req()
 
-    def read_last_req(self, label_only=False, max_req_size=102400):
+    def read_last_req(self):
         """
         read the last request
-
-        :return: the request label or a list of information
+        :return: the last request
         """
 
-        self.trace_file.seek(-max_req_size, 2)
-
-        if label_only:
-            read_func = self.read_one_req
-        else:
-            read_func = self.read_complete_req
-
-        last = read_func()
-        new = read_func()
-        while new:
-            last = new
-            new = read_func()
+        req = self.read_one_req()
+        last_req = req
+        while req:
+            last_req = req
+            req = self.read_one_req()
 
         self.reset()
-        return last
-
-    def read_as_req_item(self):
-        """
-        read one request from the trace and return as a Req object instead of an int or string
-        :return:
-        """
-
-        r = self.read_complete_req()
-        if not r:
-            return None
-        obj_id = r[self.label_column-1]
-
-        t, sz = -1, -1
-        if self.size_column != -1:
-            sz = float(r[self.size_column -1])
-        if self.time_column != -1:
-            t = float(r[self.time_column - 1])
-
-        req = Req(obj_id, size=sz, ts=t)
-        return req
+        return last_req
 
     def skip_n_req(self, n):
         """
@@ -182,15 +194,38 @@ class AbstractReader(ABC):
         :param n: the number of requests to skip
         """
 
-        pass
+        for i in range(n):
+            self.read_one_req()
+
+    def get_avg_req_size(self):
+        """
+            calculates the avg request size
+        :return: the avg request size
+        """
+
+        size_sum = 0
+        req_cnt = 0
+
+        for req in self:
+            size_sum += req.req_size
+            req_cnt += 1
+        self.reset()
+        return size_sum / req_cnt
 
 
     def __iter__(self):
         return self
 
     def next(self):
-        """ part of the iterator implemetation """
+        """ part of the iterator implementation """
         return self.__next__()
+
+    def __next__(self):
+        req = self.read_one_req()
+        if req:
+            return req
+        else:
+            raise StopIteration
 
     def __len__(self):
         return self.get_num_of_req()
@@ -198,35 +233,31 @@ class AbstractReader(ABC):
     def __enter__(self):
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        pass
+
+    # @atexit.register
+    def __del__(self):
+        # print("del called")
         self.close()
-
-
 
     @abstractmethod
     def read_one_req(self):
         """
-        read one request, only return the label of the request
+        read one request from the trace
         :return:
         """
-        pass
 
-
-    @abstractmethod
-    def read_complete_req(self):
-        """
-        read one request with full information
-        :return:
-        """
-        pass
+        self.n_read_req += 1
+        return None
 
     @abstractmethod
-    def copy(self, open_c_reader=False):
+    def clone(self, open_libm_reader=False):
         """
-        reader a deep copy of current reader with everything reset to initial state,
+        reader a deep clone of current reader with everything reset to initial state,
         the returned reader should not interfere with current reader
 
-        :param open_c_reader: whether open_c_reader_or_not, default not open
+        :param open_libm_reader: whether open_c_reader_or_not, default not open
         :return: a copied reader
         """
         pass
@@ -234,31 +265,9 @@ class AbstractReader(ABC):
     @abstractmethod
     def get_params(self):
         """
-        return all the parameters for this reader instance in a dictionary
+            return all the parameters for this reader instance in a dictionary
         :return: a dictionary containing all parameters
         """
         pass
 
-    def close(self):
-        """
-        close reader, this is used to close the c_reader, which will not be automatically closed
-        :return:
-        """
-        try:
-            if self is not None:
-                if getattr(self, "trace_file", None):
-                    self.trace_file.close()
-                    self.trace_file = None
-                if getattr(self, "c_reader", None) and globals().get("c_cacheReader", None) is not None:
-                    c_cacheReader.close_reader(self.c_reader)
-                    self.c_reader = None
-        except Exception as e:
-            print("Exception during close reader: {}, ccacheReader={}".format(e, c_cacheReader))
 
-    @abstractmethod
-    def __next__(self):  # Python 3
-        self.counter += 1
-
-    # @atexit.register
-    def __del__(self):
-        self.close()

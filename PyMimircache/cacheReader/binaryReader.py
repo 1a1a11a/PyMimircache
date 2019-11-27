@@ -3,93 +3,71 @@
 """
     binaryReader for reading binary trace
 
-    Author: Jason Yang <peter.waynechina@gmail.com> 2016/06
+    created 2016/06
+    refactored 2019/12
+
+    Author: Jason Yang <peter.waynechina@gmail.com>
 
 """
 
+# import os, sys
+# sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+
 import io
-import os
 import struct
-
-from PyMimircache.const import ALLOW_C_MIMIRCACHE, INSTALL_PHASE
-
-if ALLOW_C_MIMIRCACHE and not INSTALL_PHASE:
-    import PyMimircache.CMimircache.CacheReader as c_cacheReader
 from PyMimircache.cacheReader.abstractReader import AbstractReader
-from PyMimircache.cacheReader.requestItem import Req
-
+from PyMimircache.utils.printing import DEBUG, INFO, WARNING, ERROR
+from PyMimircache.cacheReader.request import Request, FullRequest
 
 class BinaryReader(AbstractReader):
     """
     BinaryReader class for reading binary trace
     """
-    all = ["read_one_req", "read_complete_req", "get_num_of_req", "skip_n_req",
-           "lines", "read_time_req", "reset", "copy", "get_params"]
 
-    def __init__(self, file_loc, init_params, data_type='c',
-                 block_unit_size=0, disk_sector_size=0, open_c_reader=True, **kwargs):
+    def __init__(self, trace_path, obj_id_type, init_params,
+                 open_libm_reader=True, *args, **kwargs):
         """
         initialization function for binaryReader
 
-        the init_params specify the parameters for opening the trace, it is a dictionary of following key-value pairs
+        the init_params specify the parameters for opening the trace, it is a dictionary of following key-item pairs
 
         +------------------+--------------+---------------------+---------------------------------------------------+
         | Keyword Argument | Value Type   | Default Value       | Description                                       |
         +==================+==============+=====================+===================================================+
-        | label            | int          | this is required    | the column of the label of the request            |
+        | obj_id_field     | int          | this is required    | the column of the obj_id                          |
         +------------------+--------------+---------------------+---------------------------------------------------+
-        | fmt              | string       | this is required    | fmt string of binary data, same as python struct  |
+        | fmt_field        | string       | this is required    | fmt string of binary data, same as python struct  |
         +------------------+--------------+---------------------+---------------------------------------------------+
-        | real_time        | int          |        NA           | the column of real time                           |
+        | real_time_field  | int          |        NA           | the column/field of real time                     |
         +------------------+--------------+---------------------+---------------------------------------------------+
-        | op               | int          |        NA           | the column of operation (read/write)              |
+        | op_field         | int          |        NA           | the column/field of operation (read/write)        |
         +------------------+--------------+---------------------+---------------------------------------------------+
-        | size             | int          |        NA           | the column of block/request size                  |
+        | obj_size_field   | int          |        NA           | the column/field of object/block  size            |
+        +------------------+--------------+---------------------+---------------------------------------------------+
+        | cnt_field        | int          |        NA           | the column/field of request count                 |
         +------------------+--------------+---------------------+---------------------------------------------------+
 
 
-        :param file_loc:            location of the file
+        :param trace_path:            location of the file
         :param init_params:         init_params for binaryReader, see above
-        :param data_type:           type of data(label), can be "l" for int/long, "c" for string
-        :param block_unit_size:     block size for storage system, 0 when disabled
-        :param disk_sector_size:    size of disk sector
-        :param open_c_reader:       whether open c reader
-        :param kwargs:              not used now
+        :param obj_id_type:           type of obj_id, can be "l" for int/long, "c" for string,
+                                        if the obj_id is a 64-bit number (on 64-bit system),
+                                        recommend using "l" for better performance
+        :param open_libm_reader:       a bool variable for whether opening reader in libMimircache
+        :param args:              not used for now
+        :param kwargs:              not used for now
         """
 
-        super(BinaryReader, self).__init__(file_loc, data_type, block_unit_size, disk_sector_size,
-                                           open_c_reader, kwargs.get("lock", None))
+        super(BinaryReader, self).__init__(trace_path, "binary", obj_id_type, init_params,
+                                           open_libm_reader, *args, **kwargs)
         assert 'fmt' in init_params, "please provide format string(fmt) in init_params"
-        assert "label" in init_params, "please specify the order of label, beginning from 1"
-        if block_unit_size != 0:
-            assert "size" in init_params, "please provide size option to consider request size"
 
-        self.init_params = init_params
         self.fmt = init_params['fmt']
-        # this number begins from 1, so need to reduce by one before use
-        self.label_column = init_params['label']
-        self.time_column = init_params.get("real_time", -1)
-        self.size_column = init_params.get("size", -1)
-
-        self.trace_file = open(file_loc, 'rb')
-        self.struct_instance = struct.Struct(self.fmt)
+        self.struct_ins = struct.Struct(self.fmt)
         self.record_size = struct.calcsize(self.fmt)
-        self.trace_file_size = os.path.getsize(self.file_loc)
-        assert self.trace_file_size % self.record_size == 0, \
-            "file size ({}) is not multiple of record size ({})".format(self.trace_file_size, self.record_size)
-
-        if self.time_column != -1:
-            self.support_real_time = True
-        if self.size_column != -1:
-            self.support_size = True
-
-        if ALLOW_C_MIMIRCACHE and open_c_reader:
-            # the data type here is not real data type, it will auto correct in C
-            self.c_reader = c_cacheReader.setup_reader(file_loc, 'b', data_type=self.data_type,
-                                                                 block_unit_size=block_unit_size,
-                                                                 disk_sector_size=disk_sector_size,
-                                                                 init_params=init_params)
-        self.get_num_of_req()
+        assert self.file_size % self.record_size == 0, \
+            "file size ({}) is not multiple of record size ({})".format(self.file_size, self.record_size)
+        self.num_of_req = self.file_size // self.record_size
 
         # this might cause problem on Windows and it does give any performance gain
         # self.mm = mmap.mmap(self.trace_file.fileno(), 0, mmap.MAP_SHARED, mmap.PROT_READ)
@@ -98,127 +76,77 @@ class BinaryReader(AbstractReader):
 
     def get_num_of_req(self):
         """
-        count the number of requests in the trace, fast for binary type trace,
-        for plain/csv type trace, this is slow
+        count the number of requests in the trace,
+        just use size to calculate in binary trace,
+        so it is very fast
         :return: the number of requests in the trace
         """
 
-        if self.num_of_req > 0:
-            return self.num_of_req
-
-        self.num_of_req = self.trace_file_size // self.record_size
+        if self.num_of_req <= 0:
+            self.num_of_req = self.file_size // self.record_size
         return self.num_of_req
 
-    def read_one_req(self):
+    def read_last_req(self):
         """
-        read one request, only return the label of the request
-        :return: the label of request
-        """
+        read the last request, binary trace has an efficient implementation
 
-        super().read_one_req()
-
-        b = self.trace_file.read(self.record_size)
-        if b and len(b):
-            ret = self.struct_instance.unpack(b)[self.label_column - 1]
-            if self.data_type == 'l':
-                if ret and self.block_unit_size != 0 and self.disk_sector_size != 0:
-                    ret = int(ret) * self.disk_sector_size // self.block_unit_size
-                return ret
-            else:
-                return ret
-        else:
-            return None
-
-    def read_complete_req(self):
-        """
-        read the complete line, including request and its all related info
-        :return: a list of all info in the request
+        :return: a request
         """
 
-        super().read_one_req()
-
-        b = self.trace_file.read(self.record_size)
-        if len(b):
-            ret = list(self.struct_instance.unpack(b))
-            if self.block_unit_size != 0 and self.disk_sector_size != 0:
-                ret[self.label_column - 1] = ret[self.label_column - 1] * self.disk_sector_size // self.block_unit_size
-            return ret
-        else:
-            return None
-
-
-    def read_last_req(self, label_only=False, max_req_size=102400):
-        """
-        read the complete line, including request and its all related info
-        :return: a list of all info in the request
-        """
-
-        return super().read_last_req(label_only, max_req_size=self.record_size)
-
-
-    def lines(self):
-        """
-        a generator for reading the complete request (including label and other information)
-        similar to read_complete_req, but this functions is generator
-        :return: a list of information of current request
-        """
-
-        b = self.trace_file.read(self.record_size)
-        while len(b):
-            ret = list(self.struct_instance.unpack(b))
-            if self.block_unit_size != 0 and self.disk_sector_size != 0:
-                ret[self.label_column - 1] = ret[self.label_column - 1] * self.disk_sector_size // self.block_unit_size
-            b = self.trace_file.read(self.record_size)
-            yield ret
-
-    def read_time_req(self):
-        """
-        return real_time information for the request in the form of (time, request)
-        :return: a tuple of (time, request label)
-        """
-
-        assert self.time_column != -1, "you need to provide time in order to use this function"
-        super().read_one_req()
-
-        b = self.trace_file.read(self.record_size)
-        if len(b):
-            ret = self.struct_instance.unpack(b)
-            try:
-                time = float(ret[self.time_column - 1])
-                obj = ret[self.label_column - 1]
-                if self.data_type == 'l':
-                    if self.block_unit_size != 0 and self.disk_sector_size != 0:
-                        obj = int(obj) * self.disk_sector_size // self.block_unit_size
-                    return time, obj
-                else:
-                    return time, obj
-            except Exception as e:
-                print("ERROR binaryReader reading data: {}, current line: {}".format(e, ret))
-
-        else:
-            return None
+        self.trace_file.seek(-self.record_size, 2)
+        req = self.read_one_req()
+        self.reset()
+        return req
 
     def skip_n_req(self, n):
         """
-        skip N requests from current position
+        skip n requests from current position
 
         :param n: the number of requests to skip
         """
 
-        self.trace_file.seek(struct.calcsize(self.fmt) * n, io.SEEK_CUR)
+        self.trace_file.seek(self.record_size * n, io.SEEK_CUR)
 
-    def copy(self, open_c_reader=False):
+    def read_one_req(self):
         """
-        reader a deep copy of current reader with everything reset to initial state,
+        read one request
+        :return: a request
+        """
+
+        AbstractReader.read_one_req(self)
+        try:
+            b = self.trace_file.read(self.record_size)
+            if not b:
+                return None
+            item = self.struct_ins.unpack(b)
+            obj_id = item[self.obj_id_field]
+
+            obj_size = item[self.obj_size_field] if self.obj_size_field != -1 else 1
+            real_time = item[self.real_time_field] if self.real_time_field != -1 else None
+            cnt = item[self.cnt_field] if self.cnt_field != -1 else None
+            op = item[self.op_field] if self.op_field != -1 else None
+
+            req = Request(logical_time=self.n_read_req,
+                          real_time=real_time, obj_id=obj_id,
+                          obj_size=obj_size,
+                          cnt=cnt, op=op)
+        except Exception as e:
+            ERROR("BinaryReader err: {}".format(e))
+            self.n_read_req -= 1
+            return self.read_one_req()
+        return req
+
+    def clone(self, open_libm_reader=False):
+        """
+        reader a deep clone of current reader with everything reset to initial state,
         the returned reader should not interfere with current reader
 
-        :param open_c_reader: whether open_c_reader_or_not, default not open
-        :return: a copied reader
+        :param open_libm_reader: whether open libm_reader, default not
+        :return: a cloned reader
         """
 
-        return BinaryReader(self.file_loc, self.init_params, data_type=self.data_type,
-                            block_unit_size=self.block_unit_size, disk_sector_size=self.disk_sector_size,
-                            open_c_reader=open_c_reader, lock=self.lock)
+        return BinaryReader(self.trace_path, self.obj_id_type, self.init_params,
+                            open_libm_reader=open_libm_reader, lock=self.lock)
 
     def get_params(self):
         """
@@ -227,27 +155,12 @@ class BinaryReader(AbstractReader):
         """
 
         return {
-            "file_loc": self.file_loc,
+            "trace_path": self.trace_path,
+            "trace_type": "binary",
             "init_params": self.init_params,
-            "data_type": self.data_type,
-            "block_unit_size": self.block_unit_size,
-            "disk_sector_size": self.disk_sector_size,
-            "open_c_reader": self.open_c_reader,
+            "obj_id_type": self.obj_id_type,
+            "open_libm_reader": self.open_libm_reader,
             "lock": self.lock
         }
 
-    def read_one_element_mmap(self):
-        """
-        wip
-        :return:
-        """
 
-        pass
-
-    def __next__(self):
-        super().__next__()
-        v = self.read_one_req()
-        if v is not None:
-            return v
-        else:
-            raise StopIteration

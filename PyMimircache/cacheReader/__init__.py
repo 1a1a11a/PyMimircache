@@ -1,2 +1,2 @@
 # coding=utf-8
-__all__ = ['plainReader', 'csvReader', 'vscsiReader']
+__all__ = ['plaintxtReader.py', 'csvReader.py', 'binaryReader.py', 'vscsiReader.py']

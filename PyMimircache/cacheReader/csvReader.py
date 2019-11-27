@@ -2,216 +2,102 @@
 """
     a csv trace reader
 
-    Author: Jason Yang <peter.waynechina@gmail.com> 2016/06
+    created 2016/06
+    refactored 2019/12
+
+    Author: Jason Yang <peter.waynechina@gmail.com>
 
 """
-import string
-from PyMimircache.const import ALLOW_C_MIMIRCACHE, INSTALL_PHASE
-from PyMimircache.utils.printing import *
 
-if ALLOW_C_MIMIRCACHE and not INSTALL_PHASE:
-    import PyMimircache.CMimircache.CacheReader as c_cacheReader
+import csv
 from PyMimircache.cacheReader.abstractReader import AbstractReader
-
+from PyMimircache.utils.printing import DEBUG, INFO, WARNING, ERROR
+from PyMimircache.cacheReader.request import Request, FullRequest
 
 class CsvReader(AbstractReader):
     """
-    CsvReader class
+    CsvReader class for reading csv trace
     """
-    all = ["read_one_req", "read_complete_req", "lines_dict",
-           "lines", "read_time_req", "reset", "copy", "get_params"]
 
-    def __init__(self, file_loc,
-                 data_type='c',
-                 init_params=None,
-                 block_unit_size=0,
-                 disk_sector_size=0,
-                 open_c_reader=True,
-                 **kwargs):
+    def __init__(self, trace_path, obj_id_type, init_params,
+                 open_libm_reader=True, *args, **kwargs):
         """
-        :param file_loc:            location of the file
-        :param data_type:           type of data, can be "l" for int/long, "c" for string
+        :param trace_path:            location of the file
+        :param obj_id_type:           type of obj_id, can be "l" for int/long, "c" for string,
+                                        if the obj_id is a 64-bit number (on 64-bit system),
+                                        recommend using "l" for better performance
         :param init_params:         the init_params for opening csv
-        :param block_unit_size:     block size for storage system, 0 when disabled
-        :param disk_sector_size:    size of disk sector
-        :param open_c_reader:       bool for whether open reader in C backend
-        :param kwargs:              not used now
+        :param open_libm_reader:       a bool variable for whether opening reader in libMimircache
+        :param args:              not used for now
+        :param kwargs:              not used for now
         """
 
-        super(CsvReader, self).__init__(file_loc, data_type, block_unit_size, disk_sector_size,
-                                        open_c_reader, kwargs.get("lock", None))
-        assert init_params is not None, "please provide init_param for csvReader"
-        assert "label" in init_params, "please provide label for csv reader"
+        super(CsvReader, self).__init__(trace_path, "csv", obj_id_type, init_params,
+                                        open_libm_reader, *args, **kwargs)
 
-        self.trace_file = open(file_loc, 'rb')
-        # self.trace_file = open(file_loc, 'r', encoding='utf-8', errors='ignore')
-        self.init_params = init_params
-        self.label_column = init_params['label']
-        self.time_column = init_params.get("real_time", -1)
-        self.size_column = init_params.get("size", -1)
+        # self.delimiter = init_params.get('delimiter', None)
+        # if "delimiter" not in init_params:
+        #     INFO("open {} using default delimiter \",\" for CsvReader".format(trace_path))
 
-        if self.time_column != -1:
-            self.support_real_time = True
+        self.has_header = init_params.get('has_header', False)
+        self.csv_reader = csv.reader(self.trace_file)
 
-        if self.size_column != -1:
-            self.support_size = True
+        if self.has_header:
+            self.header = next(self.csv_reader)
 
-        if block_unit_size != 0:
-            assert "size" in init_params, "please provide size_column option to consider request size"
-
-        self.header_bool = init_params.get('header', )
-        self.delimiter = init_params.get('delimiter', ",")
-        if "delimiter" not in init_params:
-            INFO("open {} using default delimiter \",\" for CsvReader".format(file_loc))
-
-
-        if self.header_bool:
-            self.headers = [i.strip(string.whitespace) for i in
-                            self.trace_file.readline().decode().split(self.delimiter)]
-            # self.trace_file.readline()
-
-        if ALLOW_C_MIMIRCACHE and open_c_reader:
-            self.c_reader = c_cacheReader.setup_reader(file_loc, 'c', data_type=data_type,
-                                                                 block_unit_size=block_unit_size,
-                                                                 disk_sector_size=disk_sector_size,
-                                                                 init_params=init_params)
 
     def read_one_req(self):
         """
-        read one request, return the lbn/objID 
-        :return: 
+        read one request
+        :return: a Request
         """
         super().read_one_req()
+        item = next(self.csv_reader)
+        while item[0][0] == '#':
+            item = next(self.csv_reader)
+            print("skip {}".format(item))
+        try:
+            obj_id = int(item[self.obj_id_field]) if self.obj_id_type == 'l' else item[self.obj_id_field]
+            obj_size = 1
+            if self.obj_size_field != -1 and item[self.obj_size_field] != "":
+                obj_size = int(item[self.obj_size_field])
 
-        line = self.trace_file.readline().decode('utf-8', 'ignore')
-        while line and len(line.strip(string.punctuation+string.whitespace)) == 0:
-            line = self.trace_file.readline().decode()
-        if line:
-            ret = line.split(self.delimiter)[self.label_column - 1].strip(string.punctuation+string.whitespace)
-            if self.data_type == 'l':
-                ret = int(ret)
-                if self.block_unit_size != 0 and self.disk_sector_size != 0:
-                    ret = ret * self.disk_sector_size // self.block_unit_size
-            return ret
-        else:
-            return None
+            real_time = int(item[self.real_time_field]) if self.real_time_field != -1 else None
+            cnt = int(item[self.cnt_field]) if self.cnt_field != -1 else None
+            op = item[self.op_field] if self.op_field != -1 else None
 
-    def read_complete_req(self):
-        """
-        read the complete line, including request and its all related info
-        :return: a list of all info of the request
-        """
+            req = Request(logical_time=self.n_read_req,
+                          real_time=real_time, obj_id=obj_id,
+                          obj_size=obj_size,
+                          cnt=cnt, op=op)
 
-        super().read_one_req()
-
-        line = self.trace_file.readline().decode()
-        while line and len(line.strip(string.punctuation+string.whitespace)) == 0:
-            line = self.trace_file.readline().decode()
-        if line:
-            line_split = [s.strip(string.punctuation+string.whitespace) for s in line.split(self.delimiter)]
-            if self.block_unit_size != 0 and self.disk_sector_size != 0:
-                line_split[self.label_column - 1] = line_split[self.label_column - 1] * \
-                                                    self.disk_sector_size // self.block_unit_size
-            return line_split
-        else:
-            return None
-
-    def lines_dict(self):
-        """
-        return a dict with column header->data 
-        note this function does not convert lbn even if disk_sector_size and block_unit_size are set 
-        :return: 
-        """
-        line = self.trace_file.readline().decode()
-        while line and len(line.strip(string.punctuation+string.whitespace)) == 0:
-            line = self.trace_file.readline().decode()
-
-        while line:
-            line_split = line.split(self.delimiter)
-            d = {}
-            if self.header_bool:
-                for i in range(len(self.headers)):
-                    d[self.headers[i]] = line_split[i].strip(string.whitespace)
-            else:
-                for key, value in enumerate(line_split):
-                    d[key] = value
-            line = self.trace_file.readline()
-            yield d
-            # raise StopIteration
-
-    def lines(self):
-        """
-        a generator for reading all the information of current request/line
-        :return: a tuple of current request
-        """
-        line = self.trace_file.readline().decode()
-        while line and len(line.strip(string.punctuation+string.whitespace)) == 0:
-            line = self.trace_file.readline().decode()
-
-        while line:
-            line_split = tuple(line.split(self.delimiter))
-            line = self.trace_file.readline()
-            yield line_split
-            # raise StopIteration
-
-    def read_time_req(self):
-        """
-        return real_time information for the request in the form of (time, request)
-        :return:
-        """
-        super().read_one_req()
-        line = self.trace_file.readline().strip().decode()
-        while line and len(line.strip(string.punctuation+string.whitespace)) == 0:
-            line = self.trace_file.readline().decode()
-
-        if line:
-            line = line.split(self.delimiter)
-            try:
-                time = float(line[self.time_column - 1].strip(string.punctuation+string.whitespace))
-                lbn = line[self.label_column - 1].strip(string.punctuation+string.whitespace)
-                if self.data_type == 'l':
-                    lbn = int(lbn)
-                    if self.block_unit_size != 0 and self.disk_sector_size != 0:
-                        lbn = lbn * self.disk_sector_size // self.block_unit_size
-
-                return time, lbn
-            except Exception as e:
-                print("ERROR csvReader reading data: {}, current line: {}".format(e, line))
-
-        else:
-            return None
-
-    def skip_n_req(self, n):
-        """
-        skip N requests from current position
-
-        :param n: the number of requests to skip
-        """
-
-        for i in range(n):
-            self.read_one_req()
+        except Exception as e:
+            print("CsvReader err {} at line {}".format(e, item))
+            self.n_read_req -= 1
+            return self.read_one_req()
+        return req
 
     def reset(self):
         """
         reset reader to initial state
         :return:
         """
-        super().reset()
-        if self.header_bool:
-            self.trace_file.readline()
 
-    def copy(self, open_c_reader=False):
+        super().reset()
+        if self.has_header:
+            self.header = next(self.csv_reader)
+
+    def clone(self, open_libm_reader=False):
         """
-        reader a deep copy of current reader with everything reset to initial state,
+        reader a deep clone of current reader with everything reset to initial state,
         the returned reader should not interfere with current reader
 
-        :param open_c_reader: whether open_c_reader_or_not, default not open
-        :return: a copied reader
+        :param open_libm_reader: whether open libm_reader, default not
+        :return: a cloned reader
         """
 
-        return CsvReader(self.file_loc, self.data_type, self.init_params,
-                         self.block_unit_size, self.disk_sector_size, open_c_reader, lock=self.lock)
-
+        return CsvReader(self.trace_path, self.obj_id_type, self.init_params,
+                         open_libm_reader=open_libm_reader, lock=self.lock)
 
     def get_params(self):
         """
@@ -220,22 +106,11 @@ class CsvReader(AbstractReader):
         """
 
         return {
-            "file_loc": self.file_loc,
+            "trace_path": self.trace_path,
+            "trace_type": "csv",
             "init_params": self.init_params,
-            "data_type": self.data_type,
-            "block_unit_size": self.block_unit_size,
-            "disk_sector_size": self.disk_sector_size,
-            "open_c_reader": self.open_c_reader,
+            "obj_id_type": self.obj_id_type,
+            "open_libm_reader": self.open_libm_reader,
             "lock": self.lock
         }
 
-    def __next__(self):  # Python 3
-        super().__next__()
-        element = self.read_one_req()
-        if element is not None:
-            return element
-        else:
-            raise StopIteration
-
-    def __repr__(self):
-        return "csvReader for trace {}".format(self.file_loc)
