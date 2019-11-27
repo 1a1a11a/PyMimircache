@@ -25,7 +25,7 @@ static void py_free_cache(PyObject *pycap_cache) {
   cache->core->destroy(cache);
 }
 
-static void py_reset_reader(PyObject *self, PyObject *args, PyObject *keywds) {
+static PyObject* py_reset_reader(PyObject *self, PyObject *args, PyObject *keywds) {
   PyObject *po;
   reader_t *reader;
 
@@ -34,10 +34,13 @@ static void py_reset_reader(PyObject *self, PyObject *args, PyObject *keywds) {
   if (!PyArg_ParseTupleAndKeywords(args, keywds, "O", kwlist, &po)) {
     ERROR("parsing argument failed in %s\n", __func__);
     PyErr_SetString(PyExc_RuntimeError, "parsing argument failed");
+    Py_RETURN_NONE;
   }
 
   if (!(reader = (reader_t *) PyCapsule_GetPointer(po, NULL))) {
+    ERROR("cannot get reader from capsule");
     PyErr_SetString(PyExc_RuntimeError, "cannot get reader from capsule");
+    Py_RETURN_NONE;
   }
 
   reset_reader(reader);
@@ -61,7 +64,7 @@ static PyObject* py_setup_cache(PyObject *self, PyObject *args, PyObject *keywds
                                    &algorithm, &cache_size, &obj_id_type_str, &cache_params)) {
     ERROR("parsing argument failed in %s\n", __func__);
     PyErr_SetString(PyExc_RuntimeError, "parsing argument failed");
-    return NULL;
+    Py_RETURN_NONE;
   }
 
   if (obj_id_type_str[0] == 'c')
@@ -70,13 +73,13 @@ static PyObject* py_setup_cache(PyObject *self, PyObject *args, PyObject *keywds
     obj_id_type = OBJ_ID_NUM;
   else {
     PyErr_SetString(PyExc_RuntimeError, "unknown obj_id type, supported obj_id types are c,l\n");
-    return NULL;
+    Py_RETURN_NONE;
   }
 
 //  if (!(reader = (reader_t *) PyCapsule_GetPointer(po, NULL))) {
 //    ERROR("error retrieval reader from capsule in %s\n", __func__);
 //    PyErr_SetString(PyExc_RuntimeError, "error retrieval reader from capsule");
-//    return NULL;
+//    Py_RETURN_NONE;
 //  }
 
   // build cache
@@ -96,11 +99,11 @@ static PyObject *py_setup_reader(PyObject *self, PyObject *args, PyObject *keywd
   static char *kwlist[] = {"trace_path", "trace_type", "obj_id_type", "init_params", NULL};
 
   // parse arguments
-  if (!PyArg_ParseTupleAndKeywords(args, keywds, "ss|sO", kwlist, &trace_path,
+  if (!PyArg_ParseTupleAndKeywords(args, keywds, "sss|O", kwlist, &trace_path,
                                    &trace_type_str, &obj_id_type_str, &py_init_params)) {
     PyErr_SetString(PyExc_RuntimeError,
                     "parsing argument failed in setup reader\n");
-    return NULL;
+    Py_RETURN_NONE;
   }
 
   if (obj_id_type_str[0] == 'c')
@@ -109,34 +112,34 @@ static PyObject *py_setup_reader(PyObject *self, PyObject *args, PyObject *keywd
     obj_id_type = OBJ_ID_NUM;
   else {
     PyErr_SetString(PyExc_RuntimeError, "unknown obj_id type, supported obj_id types are c,l\n");
-    return NULL;
+    Py_RETURN_NONE;
   }
   if (trace_type_str[0] == 'c') {
     trace_type = CSV_TRACE;
     if (!PyDict_Check(py_init_params)) {
       PyErr_SetString(PyExc_RuntimeError, "init_params is not a valid python dictionary\n");
-      return NULL;
+      Py_RETURN_NONE;
     }
     init_params = (void *) new_csvReader_init_params(-1, -1, -1, -1, FALSE, ',', -1);
     /* if it is csv file, we need extra init parameters */
-    PyObject *py_label, *py_size, *py_op, *py_real_time,
+    PyObject *py_obj_id, *py_size, *py_op, *py_real_time,
       *py_header, *py_delimiter, *py_traceID;
     csvReader_init_params *csv_init_params = init_params;
 
-    if ((py_label = PyDict_GetItemString(py_init_params, "obj_id")) != NULL) {
-      csv_init_params->label_column = (gint) PyLong_AsLong(py_label);
+    if ((py_obj_id = PyDict_GetItemString(py_init_params, "obj_id_field")) != NULL) {
+      csv_init_params->obj_id_field = (gint) PyLong_AsLong(py_obj_id);
     }
 
-    if ((py_size = PyDict_GetItemString(py_init_params, "size")) != NULL) {
-      csv_init_params->size_column = (gint) PyLong_AsLong(py_size);
+    if ((py_size = PyDict_GetItemString(py_init_params, "obj_size_field")) != NULL) {
+      csv_init_params->size_field = (gint) PyLong_AsLong(py_size);
     }
 
-    if ((py_op = PyDict_GetItemString(py_init_params, "op")) != NULL) {
-      csv_init_params->op_column = (gint) PyLong_AsLong(py_op);
+    if ((py_op = PyDict_GetItemString(py_init_params, "op_field")) != NULL) {
+      csv_init_params->op_field = (gint) PyLong_AsLong(py_op);
     }
 
-    if ((py_real_time = PyDict_GetItemString(py_init_params, "real_time")) != NULL) {
-      csv_init_params->real_time_column = (gint) PyLong_AsLong(py_real_time);
+    if ((py_real_time = PyDict_GetItemString(py_init_params, "real_time_field")) != NULL) {
+      csv_init_params->real_time_field = (gint) PyLong_AsLong(py_real_time);
     }
 
     if ((py_header = PyDict_GetItemString(py_init_params, "header")) != NULL) {
@@ -148,27 +151,27 @@ static PyObject *py_setup_reader(PyObject *self, PyObject *args, PyObject *keywd
     }
 
     if ((py_traceID = PyDict_GetItemString(py_init_params, "traceID")) != NULL) {
-      csv_init_params->traceID_column = (gint) PyLong_AsLong(py_traceID);
+      csv_init_params->traceID_field = (gint) PyLong_AsLong(py_traceID);
     }
 
     if (((csvReader_init_params *) init_params)->has_header) DEBUG("csv data has header");
 
-    DEBUG("delimiter %d(%c)\n", ((csvReader_init_params *) init_params)->delimiter,
+    DEBUG2("delimiter %d(%c)\n", ((csvReader_init_params *) init_params)->delimiter,
           ((csvReader_init_params *) init_params)->delimiter);
   } else if (trace_type_str[0] == 'b') {
     trace_type = BIN_TRACE;
     if (!PyDict_Check(py_init_params)) {
       PyErr_SetString(PyExc_RuntimeError,
                       "input init_params is not a valid python dictionary\n");
-      return NULL;
+      Py_RETURN_NONE;
     }
 
     init_params = g_new0(binary_init_params_t, 1);
     binary_init_params_t *bin_init_params = init_params;
-    PyObject *py_label, *py_size, *py_op, *py_real_time, *py_fmt;
+    PyObject *py_obj_id, *py_size, *py_op, *py_real_time, *py_fmt;
 
-    if ((py_label = PyDict_GetItemString(py_init_params, "label")) != NULL) {
-      bin_init_params->obj_id_pos = (gint) PyLong_AsLong(py_label);
+    if ((py_obj_id = PyDict_GetItemString(py_init_params, "obj_id_field")) != NULL) {
+      bin_init_params->obj_id_pos = (gint) PyLong_AsLong(py_obj_id);
     }
 
     if ((py_size = PyDict_GetItemString(py_init_params, "size")) != NULL) {
@@ -187,17 +190,17 @@ static PyObject *py_setup_reader(PyObject *self, PyObject *args, PyObject *keywd
     if (!PyUnicode_Check(py_fmt)) {
       PyErr_SetString(PyExc_RuntimeError,
                       "passed format string is not unicode \n");
-      return NULL;
+      Py_RETURN_NONE;
     }
     if (PyUnicode_READY(py_fmt) != 0) {
       PyErr_SetString(PyExc_RuntimeError,
                       "failed get fmt unicode ready\n");
-      return NULL;
+      Py_RETURN_NONE;
     }
 
     Py_UCS1 *py_ucs1 = PyUnicode_1BYTE_DATA(py_fmt);
 
-    DEBUG("binary fmt %s\n", py_ucs1);
+    DEBUG2("binary fmt %s\n", py_ucs1);
     strcpy(bin_init_params->fmt, (char *) py_ucs1);
 
   } else if (trace_type_str[0] == 'p') {
@@ -207,7 +210,7 @@ static PyObject *py_setup_reader(PyObject *self, PyObject *args, PyObject *keywd
     obj_id_type = OBJ_ID_NUM;
   } else {
     PyErr_SetString(PyExc_RuntimeError, "unknown trace type, supported trace types are c,p,b,v\n");
-    return NULL;
+    Py_RETURN_NONE;
   }
 
   reader_t *reader = setup_reader(trace_path, trace_type, obj_id_type, init_params);

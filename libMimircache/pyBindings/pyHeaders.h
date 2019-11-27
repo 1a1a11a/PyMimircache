@@ -16,6 +16,7 @@
 // python3-config --include
 // np.get_include()
 
+#define PY_SSIZE_T_CLEAN
 #define NPY_NO_DEPRECATED_API 11
 
 
