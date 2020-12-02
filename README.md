@@ -162,8 +162,14 @@ Next Major Releases
 
 Contributing
 ------------
-You are more than welcome to make any contributions. Please create Pull Request for any changes.
+PyMimircache and CMimircache are created by Juncheng Yang of SimBioSys group at Emory University. CMimircache, previously Mimircache, was released as part of MITHRIL: Mining Sporadic Associations for Cache Prefetching. Juncheng Yang , Reza Karimi, Trausti Saemundsson, Avani Wildani, Ymir Vigfusson. ACM Symposium on Cloud Computing (SoCC), 2017.
+
+This project has benefited from contributions from numerous people. You are more than welcome to make any contributions. Please create Pull Request for any changes.
 
 LICENSE
 -------
 PyMimircache is provided under GPLv3 license.
+
+Related
+-------
+[libCacheSim](https://github.com/1a1a11a/libCacheSim): a high-performance C++ library for cache simulations
