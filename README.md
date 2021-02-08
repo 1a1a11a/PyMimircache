@@ -9,7 +9,9 @@ PyMimircache
 NEWS
 ----
 
-PyMimircache to appear at FAST tutorial. 
+* [libCacheSim](https://www.github.com/1a1a11a/libcachesim) is a new library for cache simulations, which provides a 10x-100x performance boost compared to PyMimircache. 
+
+* PyMimircache to appear at FAST tutorial. 
 
 
 
@@ -162,7 +164,15 @@ Next Major Releases
 
 Contributing
 ------------
-PyMimircache and CMimircache are created by Juncheng Yang of SimBioSys group at Emory University. CMimircache, previously Mimircache, was released as part of MITHRIL: Mining Sporadic Associations for Cache Prefetching. Juncheng Yang , Reza Karimi, Trausti Saemundsson, Avani Wildani, Ymir Vigfusson. ACM Symposium on Cloud Computing (SoCC), 2017.
+PyMimircache and CMimircache are created by Juncheng Yang of SimBioSys group at Emory University. CMimircache, previously Mimircache, was released as part of
+MITHRIL: Mining Sporadic Associations for Cache Prefetching. Juncheng Yang , Reza Karimi, Trausti Saemundsson, Avani Wildani, Ymir Vigfusson. ACM Symposium on Cloud Computing (SoCC), 2017. 
+
+Reference 
+---------
+```
+Juncheng Yang, Reza Karimi, Trausti Sæmundsson, Avani Wildani, and Ymir Vigfusson. Mithril: Mining sporadic associations for cache prefetching. In Proceedings of the 2017 Symposium on Cloud Computing, SoCC ’17, pages 66–79, New York, NY, USA, 2017. ACM. 
+```
+
 
 This project has benefited from contributions from numerous people. You are more than welcome to make any contributions. Please create Pull Request for any changes.
 
