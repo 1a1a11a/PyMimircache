@@ -1,8 +1,6 @@
 PyMimircache
 ==========
 
-[![Build Status](https://travis-ci.org/1a1a11a/PyMimircache.svg?branch=master)](https://travis-ci.org/1a1a11a/PyMimircache)
-[![Documentation Status](https://readthedocs.org/projects/pymimircache/badge/?version=develop)](http://pymimircache.readthedocs.io/en/develop/?badge=develop)
 [![GitHub version](https://badge.fury.io/gh/1a1a11a%2FPyMimircache.svg)](https://badge.fury.io/gh/1a1a11a%2FPyMimircache)
 [![PyPI version](https://badge.fury.io/py/PyMimircache.svg)](https://badge.fury.io/py/PyMimircache)
 
