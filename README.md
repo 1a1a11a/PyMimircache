@@ -23,12 +23,12 @@ PyMimircache is a cache trace analysis platform that supports
 
 -   **easy plugging in your own cache replacement algorithm**
 
-Main users of PyMimircache includes **researchers** and **system administrators**, PyMimircache provides researchers an easy tool to 
-study existing algorithms, devise and test new algorithms. While PyMimircache provides system administrators a simple tool helping 
+Main users of PyMimircache include **researchers** and **system administrators**. PyMimircache provides researchers a tool to 
+study existing algorithms, and devise and test new algorithms. While PyMimircache provides system administrators a simple tool helping 
 them visualize and understand their cache. 
   
 PyMimircache is an independent Python3 platform that supports all the described features. 
-Besides it also bundles with CMimircache for better performance. If you need a C/C++ platform, please check out CMimircache. 
+Besides, it also bundles with CMimircache for better performance. If you need a C/C++ platform, please check out CMimircache. 
  
 PyMimircache current supports algorithms include Least Recent Used(LRU), Least Frequent Used(LFU), 
 Most Recent Used(MRU), First In First Out(FIFO), Segmented LRU(SLRU), Clock, Random, Optimal, Adaptive Replacement Cache(ARC).
@@ -43,7 +43,7 @@ Dependency and Installation
 
 #### System-wide library: glib, python3-pip, python3-matplotlib
 
-On Ubuntu using the following command to install
+On Ubuntu use the following command to install
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 jason@myMachine: ~$ sudo apt-get install libglib2.0-dev python3-pip python3-matplotlib
@@ -67,13 +67,13 @@ jason@myMachine: ~$ sudo pip3 install PyMimircache
  
 #### git clone
 
-If you use Github repo, after git clone, do `git submodules update --init` to clone the CMimircache module.
+If you use the Github repo, after the git clone, do `git submodules update --init` to clone the CMimircache module.
 
 
 Alternative using docker
 ------------------------
 
-As an alternative, you can use PyMimircache in a docker container, according to our simple benchmark, the performance difference between using a bare metal and a docker container is less than 10%.
+As an alternative, you can use PyMimircache in a docker container. According to our simple benchmark, the performance difference between using a bare metal and a docker container is less than 10%.
 
 ### Use interactive shell
 
@@ -83,8 +83,8 @@ To enter an interactive shell and do plotting, you can use
 jason@myMachine: ~$ sudo docker run -it --rm -v $(pwd):/PyMimircache/scripts -v PATH/TO/DATA:/PyMimircache/data 1a1a11a/PyMimircache /bin/bash
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-After you run this command, you will be in a shell with everything ready, your
-current directory is mapped to `/PyMimircache/scripts/` and your data directory is
+After you run this command, you will be in a shell with everything ready. Your
+current directory is mapped to `/PyMimircache/scripts/`, and your data directory is
 mapped to `/PyMimircache/data`. In addition, we have prepared a test dataset for
 you at `/PyMimircache/testData`.
  
@@ -99,7 +99,7 @@ jason@myMachine: ~$ docker run --rm -v $(pwd):/PyMimircache/scripts -v PATH/TO/D
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 However, if you are new here or you have trouble using docker to run scripts
-directly, we suggest using interactive shell which can help you debug.
+directly, we suggest using an interactive shell which can help you debug.
 
 
 PyMimircache Tutorial
@@ -114,7 +114,7 @@ We have prepared a wonderful tutorial here. [Check here for tutorial](http://pym
 ```python
 >>> from PyMimircache import Cachecow
 >>> c = Cachecow()
->>> c.vscsi("trace.vscsi")      # find this data under data folder, other type of data supported too
+>>> c.vscsi("trace.vscsi")      # find this data under the data folder, other types of data are supported as well
 >>> print(c.stat())
 	# number of requests: 113872
 	# number of uniq obj/blocks: 48974
@@ -149,29 +149,30 @@ We have prepared a wonderful tutorial here. [Check here for tutorial](http://pym
 | Hit Ratio Curve | Hit Ratio Heatmap |
 
 
-Next Major Releases
--------------------
-* **Architecture**: re-write PyMimircache pyGeneralProfiler (v0.3.0) [Done]
-* **Architecture**: Separate mimircache into PyMimircache and CMimircache (v0.4.0) [Done]
-* **Architecture**: Remove all CMimircache dependency in PyMimircache to allow CMimircache run independently (v0.5.0) 
-* **Feature**: Add block/obj size into cache replacement algorithm (v0.6.0)
-* **Feature**: Add parallel support for LRUProfiling (v0.7.0)
-* **Feature**: Add sampling layer for all profilers (v0.8.0)
-* **Milestone**: Allow mimircache to interact with Memcached and Redis (v1.0.0)
-* **Feature**: Add GPU profiling support (v1.2.0)
-* **Feature**: Add Full Windows Support (v2.0.0)
-
-
 Contributing
 ------------
-PyMimircache and CMimircache are created by Juncheng Yang of SimBioSys group at Emory University. CMimircache, previously Mimircache, was released as part of
-MITHRIL: Mining Sporadic Associations for Cache Prefetching. Juncheng Yang , Reza Karimi, Trausti Saemundsson, Avani Wildani, Ymir Vigfusson. ACM Symposium on Cloud Computing (SoCC), 2017. 
+PyMimircache and CMimircache are created by Juncheng Yang of the SimBioSys group at Emory University. CMimircache, previously Mimircache, was released as part of
+`
+MITHRIL: Mining Sporadic Associations for Cache Prefetching. Juncheng Yang , Reza Karimi, Trausti Saemundsson, Avani Wildani, Ymir Vigfusson. ACM Symposium on Cloud Computing (SoCC), 2017. `
 
 Reference 
 ---------
 ```
-Juncheng Yang, Reza Karimi, Trausti Sæmundsson, Avani Wildani, and Ymir Vigfusson. Mithril: Mining sporadic associations for cache prefetching. In Proceedings of the 2017 Symposium on Cloud Computing, SoCC ’17, pages 66–79, New York, NY, USA, 2017. ACM. 
-```
+@inproceedings{mithril,
+	author = {Yang, Juncheng and Karimi, Reza and S\ae{}mundsson, Trausti and Wildani, Avani and Vigfusson, Ymir},
+	title = {Mithril: Mining Sporadic Associations for Cache Prefetching},
+	year = {2017},
+	isbn = {9781450350280},
+	publisher = {Association for Computing Machinery},
+	address = {New York, NY, USA},
+	url = {https://doi.org/10.1145/3127479.3131210},
+	doi = {10.1145/3127479.3131210},
+	booktitle = {Proceedings of the 2017 Symposium on Cloud Computing},
+	pages = {66–79},
+	numpages = {14},
+	location = {Santa Clara, California},
+	series = {SoCC '17}
+}```
 
 
 This project has benefited from contributions from numerous people. You are more than welcome to make any contributions. Please create Pull Request for any changes.
