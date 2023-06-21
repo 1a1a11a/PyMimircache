@@ -172,7 +172,8 @@ Reference
 	numpages = {14},
 	location = {Santa Clara, California},
 	series = {SoCC '17}
-}```
+}
+```
 
 
 This project has benefited from contributions from numerous people. You are more than welcome to make any contributions. Please create Pull Request for any changes.
