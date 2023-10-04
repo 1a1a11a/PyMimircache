@@ -2,5 +2,5 @@ setuptools
 wheel
 numpy
 pytest
-matplotlib==2.0.0
+matplotlib
 HeapDict>=1.0
