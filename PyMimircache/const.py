@@ -85,7 +85,7 @@ CACHE_NAME_TO_CLASS_DICT = {"LRU":LRU, "MRU":MRU, "ARC":ARC, "Optimal":Optimal,
                             "SLRU":SLRU, "S4LRU":S4LRU,
                             }
 
-# used to mapping user provided cache name to a unified cache replacement alg name (Appearntly this is not a good idea)
+# used to mapping user provided cache name to a unified cache replacement alg name (Apparently this is not a good idea)
 CACHE_NAME_CONVRETER = {}
 for alg_name in CACHE_NAME_TO_CLASS_DICT.keys():
     CACHE_NAME_CONVRETER[alg_name.lower()] = alg_name

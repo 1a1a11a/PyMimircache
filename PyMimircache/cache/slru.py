@@ -8,7 +8,7 @@ class SLRU(Cache):
         """
 
         :param cache_size: size of cache
-        :param args: raio: the ratio of protected/probationary
+        :param args: ratio: the ratio of protected/probationary
         :return:
         """
         super().__init__(cache_size, **kwargs)

@@ -91,7 +91,7 @@ class AbstractReader(ABC):
     def get_req_freq_distribution(self):
         """
         calculate the count for each block/obj
-        :return: a dictionary mapping from block/ojb to count
+        :return: a dictionary mapping from block/obj to count
         """
 
         d = defaultdict(int)
@@ -160,7 +160,7 @@ class AbstractReader(ABC):
         return self
 
     def next(self):
-        """ part of the iterator implemetation """
+        """ part of the iterator implementation """
         return self.__next__()
 
     def __len__(self):

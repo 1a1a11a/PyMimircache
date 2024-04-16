@@ -5,7 +5,7 @@ this module provides functions for all the two dimensional figure plotting, curr
     request_rate_2d,
     cold_miss_count_2d,
     cold_miss_ratio_2d,
-    namemapping_2d (mapping block to a LBA) for visulization of scan and so on
+    namemapping_2d (mapping block to a LBA) for visualization of scan and so on
     interval_hit_ratio_2d
 
     ### static ###
@@ -174,7 +174,7 @@ def scan_vis_2d(reader, partial_ratio=0.1, figname=None, **kwargs):
     Notice that it is not first request, second request...
 
     :param reader:
-    :param partial_ratio: take fitst partial_ratio of trace for zooming in
+    :param partial_ratio: take first partial_ratio of trace for zooming in
     :param figname:
     :return:
     """

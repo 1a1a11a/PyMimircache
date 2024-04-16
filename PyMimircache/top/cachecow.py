@@ -380,7 +380,7 @@ class Cachecow:
 
                                         Note: LRUProfiler does not require cache_size/bin_size params,
                                         it does not sample thus provides a smooth curve, however, it is O(logN) at each step,
-                                        in constrast, cGeneralProfiler samples the curve, but use O(1) at each step
+                                        in contrast, cGeneralProfiler samples the curve, but use O(1) at each step
         :param kwargs: num_of_threads
         :return: a profiler instance
         """
@@ -474,7 +474,7 @@ class Cachecow:
         Plot the differential heatmap between two algorithms by alg2 - alg1
 
         :param cache_size: size of cache
-        :param time_mode: time time_mode "v" for virutal time, "r" for real time
+        :param time_mode: time time_mode "v" for virtual time, "r" for real time
         :param plot_type: same as the name in heatmap function
         :param algorithm1:  name of the first alg
         :param time_interval: same as in heatmap
@@ -565,7 +565,7 @@ class Cachecow:
 
     def twoDPlot(self, plot_type, **kwargs):
         """
-        an aggregate function for all two dimenional plots printing except hit ratio curve
+        an aggregate function for all two dimensional plots printing except hit ratio curve
 
 
         ========================  ============================  =================================================
@@ -583,7 +583,7 @@ class Cachecow:
 
 
         :param plot_type: type of the plot, see above
-        :param kwargs: paramters related to plots, see twoDPlots module for detailed control over plots
+        :param kwargs: parameters related to plots, see twoDPlots module for detailed control over plots
         """
 
         kwargs["figname"] = kwargs.get("figname", "{}.png".format(plot_type))
@@ -673,7 +673,7 @@ class Cachecow:
         :param kwargs: options: block_unit_size, num_of_threads,
                         auto_resize_threshold, xlimit, ylimit, cache_unit_size
 
-                        save_gradually - save a figure everytime computation for one algorithm finishes,
+                        save_gradually - save a figure every time computation for one algorithm finishes,
 
                         label - instead of using algorithm list as label, specify user-defined label
         """

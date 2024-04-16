@@ -1,6 +1,6 @@
 # coding=utf-8
 """
-this module provides the pyheatmap ploting engine, it is in Python, so it is very slow
+this module provides the pyheatmap plotting engine, it is in Python, so it is very slow
 it supports both virtual time (fixed number of trace requests) and
 real time
 it support using multiprocessing to speed up computation
@@ -225,8 +225,8 @@ class PyHeatmap:
         plot_type                       required parameters         descriptions
         ============================  ========================  ===========================================================================
         "hr_st_et"                      cache_size              hit ratio with regarding to start time (x) and end time (y)
-        "hr_st_size"                    NOT IMPLEMENTED         hit ratio with reagarding to start time (x) and size (y)
-        "avg_rd_st_et"                  NOT IMPLEMENTED         average reuse distance with regaarding to start time (x) and end time (y)
+        "hr_st_size"                    NOT IMPLEMENTED         hit ratio with regarding to start time (x) and size (y)
+        "avg_rd_st_et"                  NOT IMPLEMENTED         average reuse distance with regarding to start time (x) and end time (y)
         "rd_distribution"               N/A                     reuse distance distribution (y) vs time (x)
         "rd_distribution_CDF"           N/A                     reuse distance distribution CDF (y) vs time (x)
         "future_rd_distribution"        N/A                     future reuse distance distribution (y) vs time (x)

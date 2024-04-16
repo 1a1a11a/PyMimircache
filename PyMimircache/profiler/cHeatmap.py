@@ -95,8 +95,8 @@ class CHeatmap:
         plot_type                       required parameters         descriptions
         ============================  ========================  ===========================================================================
         "hr_st_et"                      cache_size              hit ratio with regarding to start time (x) and end time (y)
-        "hr_st_size"                    NOT IMPLEMENTED         hit ratio with reagarding to start time (x) and size (y)
-        "avg_rd_st_et"                  NOT IMPLEMENTED         average reuse distance with regaarding to start time (x) and end time (y)
+        "hr_st_size"                    NOT IMPLEMENTED         hit ratio with regarding to start time (x) and size (y)
+        "avg_rd_st_et"                  NOT IMPLEMENTED         average reuse distance with regarding to start time (x) and end time (y)
         "rd_distribution"               N/A                     reuse distance distribution (y) vs time (x)
         "rd_distribution_CDF"           N/A                     reuse distance distribution CDF (y) vs time (x)
         "future_rd_distribution"        N/A                     future reuse distance distribution (y) vs time (x)
@@ -399,7 +399,7 @@ class CHeatmap:
 
         else:
             raise RuntimeError("Cannot recognize this plot type, "
-                "please check documentation, yoru input is {}".format(plot_type))
+                "please check documentation, your input is {}".format(plot_type))
 
 
         reader.reset()
@@ -482,7 +482,7 @@ class CHeatmap:
 
         else:
             raise RuntimeError(
-                "Cannot recognize this plot type, please check documentation, yoru input is %s" % time_mode)
+                "Cannot recognize this plot type, please check documentation, your input is %s" % time_mode)
 
         reader.reset()
 

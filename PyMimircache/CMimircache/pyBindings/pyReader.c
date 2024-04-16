@@ -16,7 +16,7 @@
 
 /* TODO:
 not urgent, necessary: add destructor method for reader py_capsule, so we don't need to call close reader
-not urgent, not necessary: change this reader module into a pyhton object
+not urgent, not necessary: change this reader module into a python object
 */
 
 static void reader_pycapsule_destructor(PyObject *pycap_reader){
@@ -301,7 +301,7 @@ static PyObject* reader_reset_reader(PyObject* self, PyObject* args)
 }
 
 /* the following part is commented for now,
-    bacause the reader here is not wrapped as a python object yet,
+    because the reader here is not wrapped as a python object yet,
     and it also does not have enough functions to isolate as a new
     reader module to replace the old python one, but it needed,
     this module can be further wrapped as a python object
