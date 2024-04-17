@@ -22,7 +22,7 @@
 
 
 /* TODO:
- not urgent, not necessary: change this profiler module into a pyhton object,
+ not urgent, not necessary: change this profiler module into a python object,
  this is not necessary for now because we are not going to expose this level API
  to user, instead we wrap it with our python API, so these C functions are only
  called inside mimircache

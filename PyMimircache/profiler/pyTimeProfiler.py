@@ -2,11 +2,11 @@
 """
 
     This module is currently used internally to plot multiple IHRC on the same fig,
-    the multiple IHRC are usually related, for exmaple,
+    the multiple IHRC are usually related, for example,
     IHRC of the same trace with different parameters (algorithms, cache size, cache replacement algorithm parameters)
 
     This module is named timeProfiler because it should be able to dealing with streaming data in the future,
-    and currenly it keeps plotting as the trace is read in, it won't wait until all data ready to plot
+    and currently it keeps plotting as the trace is read in, it won't wait until all data ready to plot
 
 
     Author: Jason <peter.waynechina@gmail.com>
@@ -159,7 +159,7 @@ def plot_IHR(reader,
     This is the function that does the plotting, it plots interval hit ratio curve of
     different parameters of the same trace on the same plot, and it plots every five seconds
 
-    currrent supported comparisons: cache size, different algorithms, different cache params
+    current supported comparisons: cache size, different algorithms, different cache params
 
     ::NOTE: there is no support for combination of different comparisons, for example,
     you cannot compare cache size and cache replacement algorithm at the same time

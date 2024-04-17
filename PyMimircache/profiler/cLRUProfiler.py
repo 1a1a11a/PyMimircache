@@ -53,7 +53,7 @@ class CLRUProfiler:
         if self.cache_params is None:
             self.cache_params = {}
 
-        # check whether user want to profling with size
+        # check whether user want to profiling with size
         self.block_unit_size = self.cache_params.get("block_unit_size", 0)
         block_unit_size_names = {"unit_size", "block_size", "chunk_size"}
         for name in block_unit_size_names:

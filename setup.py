@@ -145,7 +145,7 @@ set_platform_related_config()
 
 if _DEBUG:
     print("all compile flags: {}".format(extra_compile_args))
-    print("all link flasgs: {}".format(extra_link_args))
+    print("all link flags: {}".format(extra_link_args))
     print("{}".format(extensions))
 
 

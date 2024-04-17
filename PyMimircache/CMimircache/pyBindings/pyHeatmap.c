@@ -208,7 +208,7 @@ static PyObject* heatmap_computation(PyObject* self,
         plot_type = hr_st_et;
         if (time_interval <= 0 && num_of_pixel_of_time_dim <= 1){
             WARNING("time_interval and num_of_pixel_of_time_dim "
-                    "can not be 0/1/-1 at the same time, "
+                    "cannot be 0/1/-1 at the same time, "
                     "use 120 for num_of_pixel_of_time_dim as default for now\n");
             num_of_pixel_of_time_dim = 120;
         }
@@ -217,14 +217,14 @@ static PyObject* heatmap_computation(PyObject* self,
     else if (strcmp(plot_type_s, "hr_interval_size") == 0){
         plot_type = hr_interval_size;
         if (bin_size <= 0){
-            WARNING("bin_size can not be 0 or -1 for hr_interval_size, "
+            WARNING("bin_size cannot be 0 or -1 for hr_interval_size, "
                     "use cache//120 as default for now\n");
             bin_size = cache_size/120;
         }
 
         if (time_interval == 0 && num_of_pixel_of_time_dim <= 1){
             WARNING("time_interval and num_of_pixel_of_time_dim "
-                    "can not be 0 or -1 at the same time, "
+                    "cannot be 0 or -1 at the same time, "
                     "use 120 for num_of_pixel_of_time_dim as default for now\n");
             num_of_pixel_of_time_dim = 120;
         }
@@ -235,14 +235,14 @@ static PyObject* heatmap_computation(PyObject* self,
              strcmp(plot_type_s, "hit_ratio_start_time_cache_size") == 0){
         plot_type = hr_st_size;
         if (bin_size <= 0){
-            WARNING("bin_size can not be 0 or -1 for hr_interval_size, "
+            WARNING("bin_size cannot be 0 or -1 for hr_interval_size, "
                     "use cache//120 as default for now\n");
             bin_size = cache_size/120;
         }
 
         if (time_interval == 0 && num_of_pixel_of_time_dim <= 1){
             WARNING("time_interval and num_of_pixel_of_time_dim "
-                    "can not be 0 or -1 at the same time, "
+                    "cannot be 0 or -1 at the same time, "
                     "use 120 for num_of_pixel_of_time_dim as default for now\n");
             num_of_pixel_of_time_dim = 120;
         }
@@ -254,7 +254,7 @@ static PyObject* heatmap_computation(PyObject* self,
         plot_type = avg_rd_st_et;
         if (time_interval <= 0 && num_of_pixel_of_time_dim <= 1){
             WARNING("time_interval and num_of_pixel_of_time_dim "
-                    "can not be 0/1/-1 at the same time, "
+                    "cannot be 0/1/-1 at the same time, "
                     "use 120 as default for now\n");
             num_of_pixel_of_time_dim = 120;
         }
@@ -266,14 +266,14 @@ static PyObject* heatmap_computation(PyObject* self,
 //        cache = build_cache(reader, cache_size, "Optimal", NULL, 0);
 
         if (bin_size <= 0){
-            WARNING("bin_size can not be 0 or -1 for effective_size, "
+            WARNING("bin_size cannot be 0 or -1 for effective_size, "
                     "use cache//120 as default for now\n");
             bin_size = cache_size/120;
         }
 
         if (time_interval <= 0 && num_of_pixel_of_time_dim <= 1){
             WARNING("time_interval and num_of_pixel_of_time_dim "
-                    "can not be 0/1/-1 at the same time, "
+                    "cannot be 0/1/-1 at the same time, "
                     "use 120 as default for now\n");
             num_of_pixel_of_time_dim = 120;
         }
@@ -401,7 +401,7 @@ static PyObject* differential_heatmap_with_Optimal(PyObject* self,
         plot_type = hr_st_et;
         if (time_interval <= 0 && num_of_pixel_of_time_dim <= 1){
             WARNING("time_interval and num_of_pixel_of_time_dim "
-                    "can not be 0/1/-1 at the same time, "
+                    "cannot be 0/1/-1 at the same time, "
                     "use 120 for num_of_pixel_of_time_dim as default for now\n");
             num_of_pixel_of_time_dim = 120;
         }
@@ -410,14 +410,14 @@ static PyObject* differential_heatmap_with_Optimal(PyObject* self,
     else if (strcmp(plot_type_s, "hr_interval_size") == 0){
         plot_type = hr_interval_size;
         if (bin_size <= 0){
-            WARNING("bin_size can not be 0 or -1 for hr_interval_size, "
+            WARNING("bin_size cannot be 0 or -1 for hr_interval_size, "
                     "use cache//120 as default for now\n");
             bin_size = cache_size/120;
         }
 
         if (time_interval == 0 && num_of_pixel_of_time_dim <= 1){
             WARNING("time_interval and num_of_pixel_of_time_dim "
-                    "can not be 0 or -1 at the same time, "
+                    "cannot be 0 or -1 at the same time, "
                     "use 120 for num_of_pixel_of_time_dim as default for now\n");
             num_of_pixel_of_time_dim = 120;
         }
@@ -428,14 +428,14 @@ static PyObject* differential_heatmap_with_Optimal(PyObject* self,
              strcmp(plot_type_s, "hit_ratio_start_time_cache_size") == 0){
         plot_type = hr_st_size;
         if (bin_size <= 0){
-            WARNING("bin_size can not be 0 or -1 for hr_interval_size, "
+            WARNING("bin_size cannot be 0 or -1 for hr_interval_size, "
                     "use cache//120 as default for now\n");
             bin_size = cache_size/120;
         }
 
         if (time_interval == 0 && num_of_pixel_of_time_dim <= 1){
             WARNING("time_interval and num_of_pixel_of_time_dim "
-                    "can not be 0 or -1 at the same time, "
+                    "cannot be 0 or -1 at the same time, "
                     "use 120 for num_of_pixel_of_time_dim as default for now\n");
             num_of_pixel_of_time_dim = 120;
         }
@@ -447,7 +447,7 @@ static PyObject* differential_heatmap_with_Optimal(PyObject* self,
         plot_type = avg_rd_st_et;
         if (time_interval <= 0 && num_of_pixel_of_time_dim <= 1){
             WARNING("time_interval and num_of_pixel_of_time_dim "
-                    "can not be 0/1/-1 at the same time, "
+                    "cannot be 0/1/-1 at the same time, "
                     "use 120 as default for now\n");
             num_of_pixel_of_time_dim = 120;
         }
@@ -587,7 +587,7 @@ static PyObject* differential_heatmap_py(PyObject* self,
         plot_type = hr_st_et;
         if (time_interval <= 0 && num_of_pixel_of_time_dim <= 1){
             WARNING("time_interval and num_of_pixel_of_time_dim "
-                    "can not be 0/1/-1 at the same time, "
+                    "cannot be 0/1/-1 at the same time, "
                     "use 120 for num_of_pixel_of_time_dim as default for now\n");
             num_of_pixel_of_time_dim = 120;
         }
@@ -596,14 +596,14 @@ static PyObject* differential_heatmap_py(PyObject* self,
     else if (strcmp(plot_type_s, "hr_interval_size") == 0){
         plot_type = hr_interval_size;
         if (bin_size <= 0){
-            WARNING("bin_size can not be 0 or -1 for hr_interval_size, "
+            WARNING("bin_size cannot be 0 or -1 for hr_interval_size, "
                     "use cache//120 as default for now\n");
             bin_size = cache_size/120;
         }
 
         if (time_interval == 0 && num_of_pixel_of_time_dim <= 1){
             WARNING("time_interval and num_of_pixel_of_time_dim "
-                    "can not be 0 or -1 at the same time, "
+                    "cannot be 0 or -1 at the same time, "
                     "use 120 for num_of_pixel_of_time_dim as default for now\n");
             num_of_pixel_of_time_dim = 120;
         }
@@ -614,14 +614,14 @@ static PyObject* differential_heatmap_py(PyObject* self,
              strcmp(plot_type_s, "hit_ratio_start_time_cache_size") == 0){
         plot_type = hr_st_size;
         if (bin_size <= 0){
-            WARNING("bin_size can not be 0 or -1 for hr_interval_size, "
+            WARNING("bin_size cannot be 0 or -1 for hr_interval_size, "
                     "use cache//120 as default for now\n");
             bin_size = cache_size/120;
         }
 
         if (time_interval == 0 && num_of_pixel_of_time_dim <= 1){
             WARNING("time_interval and num_of_pixel_of_time_dim "
-                    "can not be 0 or -1 at the same time, "
+                    "cannot be 0 or -1 at the same time, "
                     "use 120 for num_of_pixel_of_time_dim as default for now\n");
             num_of_pixel_of_time_dim = 120;
         }
@@ -633,7 +633,7 @@ static PyObject* differential_heatmap_py(PyObject* self,
         plot_type = avg_rd_st_et;
         if (time_interval <= 0 && num_of_pixel_of_time_dim <= 1){
             WARNING("time_interval and num_of_pixel_of_time_dim "
-                    "can not be 0/1/-1 at the same time, "
+                    "cannot be 0/1/-1 at the same time, "
                     "use 120 as default for now\n");
             num_of_pixel_of_time_dim = 120;
         }
